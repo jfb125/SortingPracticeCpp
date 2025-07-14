@@ -1,0 +1,44 @@
+/*
+ * BubbleSort.h
+ *
+ *  Created on: Jun 18, 2025
+ *      Author: joe
+ */
+
+#ifndef BUBBLESORT_H_
+#define BUBBLESORT_H_
+
+#include "SortingPracticeDataTypes.h"
+#include "SortingUtilities.h"
+
+template <typename T>
+class BubbleSort final {
+public:
+	BubbleSort() {}
+	~BubbleSort() {}
+
+	ComparesAndMoves sortPointersToObjects(T **array_of_pointers, array_size_t size) {
+
+		ComparesAndMoves result(0,0);
+
+		for (array_size_t lowest_unsorted = 0; lowest_unsorted != size-1; lowest_unsorted++) {
+			bool was_swap = false;
+			for (array_size_t i = size-1; i > lowest_unsorted; i--)
+			{
+				// if the element before you is larger than you,
+				//   swap it - bubble your element up one position
+				result._compares++;
+				if (*array_of_pointers[i-1] > *array_of_pointers[i]) {
+					result._moves += SortingUtilities::swap(array_of_pointers, i-1, i);
+					was_swap = true;
+				}
+			}
+			if (!was_swap) {
+				break;
+			}
+		}
+		return result;
+	}
+};
+
+#endif /* BUBBLESORT_H_ */
