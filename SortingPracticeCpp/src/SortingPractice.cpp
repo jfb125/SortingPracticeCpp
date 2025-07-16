@@ -63,9 +63,9 @@ int main(int argc, char *argv[])
 	constexpr int num_different = 2;	// number of non-normal values in FEW_DIFFERENT
 	ArrayComposition array_compositions[] = {
 			{ArrayCompositions::ALL_DISCRETE, num_discrete, num_different},
-			{ArrayCompositions::ALL_SAME, num_discrete, num_different},
+//			{ArrayCompositions::ALL_SAME, num_discrete, num_different},
 			{ArrayCompositions::FEW_DISCRETE, num_discrete, num_different},
-//			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different}
+			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different}
 	};
 	int num_compositions = sizeof(array_compositions)/sizeof(ArrayComposition);
 
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
 			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
 			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
-			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
+//			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
 	};
 	int num_initial_orderings = sizeof(initial_orderings)/sizeof(InitialOrdering);
 

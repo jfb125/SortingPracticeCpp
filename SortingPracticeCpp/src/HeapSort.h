@@ -18,12 +18,21 @@
 #define MAX_LINE_SIZE	120
 #define TAB_STOP " "
 
-template <typename T>
-class HeapSort final {
-private:
+namespace HeapSort {
+
+	template <typename T>
+	ComparesAndMoves sinkNode(array_size_t this_node, T**array, array_size_t size);
+
+	template <typename T>
+	bool isMaxHeap(T**array, array_size_t size);
+
+	template <typename T>
+	ComparesAndMoves heapify(T**array, array_size_t size);
+
 	/* ****************************************	*/
 	/*			indices management				*/
 	/* ****************************************	*/
+
 	array_size_t farthestNode(array_size_t size) {
 		return size/2 - 1;
 	}
@@ -40,6 +49,7 @@ private:
 		return parent_i * 2 + 2;
 	}
 
+	template <typename T>
 	bool isMaxHeap(T**array, array_size_t size) {
 
 		if (size <= 1)
@@ -79,6 +89,7 @@ private:
 	/*				array management			*/
 	/* ****************************************	*/
 
+	template <typename T>
 	ComparesAndMoves heapify(T**array, array_size_t size) {
 
 		ComparesAndMoves retval(0,0);
@@ -88,12 +99,13 @@ private:
 
 		do {
 			node--;
-			retval += sinkNode(node, array, size);
+			retval += HeapSort::sinkNode(node, array, size);
 		} while (node != 0);
 
 		return retval;
 	}
 
+	template <typename T>
 	ComparesAndMoves sinkNode(array_size_t this_node, T**array, array_size_t size) {
 
 		ComparesAndMoves retval(0,0);
@@ -144,10 +156,7 @@ private:
 		return retval;
 	}
 
-public:
-	HeapSort() {}
-	~HeapSort() {}
-
+	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T** array, array_size_t size) {
 
 		ComparesAndMoves retval(0,0);
@@ -168,6 +177,7 @@ public:
 		return retval;
 	}
 
+	template <typename T>
 	void printHeap(T**array, array_size_t size) {
 
 		std::ios_base::fmtflags print_heap_flags = std::cout.flags();
@@ -195,6 +205,6 @@ public:
 		std::cout << std::endl;
 		std::cout.flags(print_heap_flags);
 	}
-};
+}
 
-#endif /* HEAPSORT_H_ */
+#endif

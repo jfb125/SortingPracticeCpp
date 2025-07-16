@@ -9,6 +9,11 @@
 //#define _verbose true
 
 namespace SortingUtilities {
+
+	/*	**********************************************************************	*/
+	/*								Forward declarations						*/
+	/*	**********************************************************************	*/
+
 	template <typename T>
 	bool isSorted(T **array, array_size_t size);
 	template <typename T>
@@ -31,7 +36,9 @@ namespace SortingUtilities {
 	template <typename T>
 	int swap(T**array, array_size_t i, array_size_t j);
 
-
+	/*	**********************************************************************	*/
+	/*								implementation								*/
+	/*	**********************************************************************	*/
 
 	// returns bool
 	template <typename T>

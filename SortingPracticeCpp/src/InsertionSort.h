@@ -13,12 +13,9 @@
 #include "SortingPracticeDataTypes.h"
 #include "SortingUtilities.h"
 
-template <typename T>
-class InsertionSort final {
-public:
-	InsertionSort() {}
-	~InsertionSort() {}
+namespace InsertionSort {
 
+	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T **array, array_size_t size) {
 
 		ComparesAndMoves ret_val(0,0);
@@ -66,6 +63,6 @@ public:
 		}
 		return ret_val;
 	}
-};
+}
 
 #endif /* INSERTIONSORT_H_ */

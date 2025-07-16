@@ -20,9 +20,12 @@
 #include "OptimizedQuickSort.h"
 #include "QuickSort.h"
 
-/* ***********************************************************************	*/
-/*				forward declaration of individual sorts						*/
-/* ***********************************************************************	*/
+template <typename T>
+ComparesAndMoves bogusSort(T**array, array_size_t size) {
+	ComparesAndMoves result(0,0);
+	result += SortingUtilities::randomizeArray(array, size);
+	return result;
+}
 
 void	createDataArray(StudentDataArray& dst, ArrayComposition, StudentDataGenerator &, bool reset);
 void	disorganizeDataArray(StudentDataArray&, InitialOrdering&, SimpleRandomizer&, bool restart);
@@ -67,69 +70,47 @@ OneTestResult* testOneAlgorithm(SortAlgorithms& algorithm,
 	ComparesAndMoves compares_and_moves;
 	ComparesAndMoves (*sort)(StudentData**, array_size_t);
 
+	switch (algorithm) {
+	case SortAlgorithms::BUBBLE_SORT:
+		sort = BubbleSort::sortPointersToObjects;
+		break;
+	case SortAlgorithms::DUTCH_FLAG_SORT:
+		sort = DutchFlagSort::sortPointersToObjects;
+		break;
+	case SortAlgorithms::HEAP_SORT:
+		sort = HeapSort::sortPointersToObjects;
+		break;
+	case SortAlgorithms::INSERTION_SORT:
+		sort = InsertionSort::sortPointersToObjects;
+		break;
+	case SortAlgorithms::MERGE_SORT:
+		sort = MergeSort::sortPointersToObjects;
+		break;
+	case SortAlgorithms::OPTIMIZED_QUICK_SORT:
+		sort = OptimizedQuickSort::sortPointerstoObjects;
+		break;
+	case SortAlgorithms::QUICK_SORT:
+		sort = QuickSort::sortPointerstoObjects;
+		break;
+	case SortAlgorithms::SELECTION_SORT:
+		sort = SelectionSort::sortPointerstoObjects;
+		break;
+	case SortAlgorithms::RADIX_SORT:
+	case SortAlgorithms::COUNTING_SORT:
+	default:
+		sort = bogusSort;
+		break;
+	}
+
 	for (num_repetitions_t i = 0; i != num_repetitions; i++) {
 		*sorted_data = *reference_data;
 		disorganizeDataArray(*sorted_data, ordering, randomizer, false);
 //		printSideBySide(*reference_data, *sorted_data);
-
-		switch(algorithm) {
-		case SortAlgorithms::BUBBLE_SORT:
-			{
-				BubbleSort<StudentData> bubble_sort;
-				compares_and_moves = bubble_sort.sortPointersToObjects(sorted_data->_array, sorted_data->size());
-			}
-			break;
-		case SortAlgorithms::HEAP_SORT:
-			{
-				HeapSort<StudentData> heap_sort;
-				compares_and_moves = heap_sort.sortPointersToObjects(sorted_data->_array, sorted_data->size());
-			}
-			break;
-		case SortAlgorithms::INSERTION_SORT:
-			{
-				InsertionSort<StudentData> insertion_sort;
-				compares_and_moves = insertion_sort.sortPointersToObjects(sorted_data->_array, sorted_data->size());
-			}
-			break;
-		case SortAlgorithms::MERGE_SORT:
-			{
-				MergeSort<StudentData> merge_sort;
-				compares_and_moves = merge_sort.sortPointersToObjects(sorted_data->_array, sorted_data->size());
-			}
-			break;
-		case SortAlgorithms::QUICK_SORT:
-			{
-				QuickSort<StudentData> quick_sort;
-				compares_and_moves = quick_sort.sortPointerstoObjects(sorted_data->_array, sorted_data->size());
-			}
-			break;
-		case SortAlgorithms::OPTIMIZED_QUICK_SORT:
-			{
-				OptimizedQuickSort<StudentData> quick_insertion_hybrid_sort;
-				compares_and_moves =
-						quick_insertion_hybrid_sort.sortPointerstoObjects(sorted_data->_array, sorted_data->size());
-			}
-			break;
-		case SortAlgorithms::SELECTION_SORT:
-			{
-				SelectionSort<StudentData> selection_sort;
-				compares_and_moves = selection_sort.sortPointersToObjects(sorted_data->_array, sorted_data->size());
-			}
-			break;
-		case SortAlgorithms::DUTCH_FLAG_SORT:
-			{
-				DutchFlagSort<StudentData>  dutch_flag_sort;
-				compares_and_moves = dutch_flag_sort.sortPointersToObjects(sorted_data->_array, sorted_data->size());
-			}
-			break;
-		case SortAlgorithms::RADIX_SORT:
-		case SortAlgorithms::COUNTING_SORT:
-		default:
-			break;
-		}
+		compares_and_moves = sort(sorted_data->_array, sorted_data->size());
 
 //		printSideBySide(*reference_data, *sorted_data);
 //		std::cout << "evaluating success of repetition " << i << std::endl;
+
 		retval->_sort_metrics._compares += compares_and_moves._compares;
 		retval->_sort_metrics._moves += compares_and_moves._moves;
 		IsSortedResult *result = new IsSortedResult;

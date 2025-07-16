@@ -17,10 +17,10 @@
 
 #define VERBOSE_QUICK_SORT_MESSAGES false
 
-template <typename T>
-class QuickSort final {
-private:
+namespace QuickSort {
+
 	/*	requires that the caller ensure that end >= start	*/
+	template <typename T>
 	ComparesAndMoves partitionArray(T** array, array_size_t start, array_size_t end) {
 
 		ComparesAndMoves ret_val(0,0);
@@ -96,10 +96,7 @@ private:
 		return ret_val;
 	}
 
-public:
-	QuickSort() {}
-	~QuickSort() {}
-
+	template <typename T>
 	ComparesAndMoves sortPointerstoObjects(T** array, array_size_t size) {
 
 		ComparesAndMoves retval(0,0);
@@ -113,6 +110,6 @@ public:
 		}
 		return retval;
 	}
-};
+}
 
 #endif /* QUICKSORT_H_ */

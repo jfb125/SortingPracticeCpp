@@ -11,12 +11,10 @@
 #include "SortingPracticeDataTypes.h"
 #include "SortingUtilities.h"
 
-template <typename T>
-class BubbleSort final {
-public:
-	BubbleSort() {}
-	~BubbleSort() {}
 
+namespace BubbleSort {
+
+	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T **array_of_pointers, array_size_t size) {
 
 		ComparesAndMoves result(0,0);
@@ -39,6 +37,6 @@ public:
 		}
 		return result;
 	}
-};
+}
 
 #endif /* BUBBLESORT_H_ */
