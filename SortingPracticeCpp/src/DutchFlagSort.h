@@ -23,12 +23,12 @@
 #define MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT 0
 #define SAFETY_COUNTER_VALUE 1000
 
-template <typename T>
-class DutchFlagSort final {
-private:
-	array_size_t global_start;
-	array_size_t global_end;
+namespace DutchFlagSort {
 
+	static array_size_t global_start;
+	static array_size_t global_end;
+
+	template <typename T>
 	void printThreeWayPartitionLine(T**array, array_size_t start, array_size_t end, array_size_t lo, array_size_t i, array_size_t hi) {
 
 		int last_name_length = array[start]->last_name.size();
@@ -54,7 +54,8 @@ private:
 		}
 	}
 
-	void printArrayPivotPossibilities(T**array, array_size_t start, array_size_t end, array_size_t lo, array_size_t mid, array_size_t hi) const {
+	template <typename T>
+	void printArrayPivotPossibilities(T**array, array_size_t start, array_size_t end, array_size_t lo, array_size_t mid, array_size_t hi) {
 
 		int last_name_length = array[start]->last_name.size();
 		std::cout << "          ";
@@ -71,18 +72,8 @@ private:
 		}
 	}
 
-	// this is done as a separate function to improve readibility in sort()
-	ComparesAndMoves sortPointersToObjectsSize2(T** array) {
 
-		ComparesAndMoves result(0,0);
-		result._compares++;
-		if (*array[0] > *array[1]) {
-			result._moves +=
-				SortingUtilities::swap(array, 0, 1);
-		}
-		return result;
-	}
-
+	template <typename T>
 	ComparesAndMoves threeWayPartition(T** array, array_size_t start, array_size_t end) {
 
 		ComparesAndMoves result(0,0);
@@ -96,13 +87,16 @@ private:
 
 		if (size == 2) {
 			if (_verbose)	std::cout << "cutoff partition size 2" << std::endl;
-			return sortPointersToObjectsSize2(&array[start]);
+			result._compares++;
+			if (*array[start] > *array[end]) {
+				result._moves += SortingUtilities::swap(array, start, end);
+			}
+			return result;
 		}
 
 		if (size < MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT) {
 			if (_verbose)	std::cout << "cutoff to insertion sort" << std::endl;
-			InsertionSort<StudentData> insertion_sort;
-			return insertion_sort.sortPointersToObjects(&array[start], size);
+			return InsertionSort::sortPointersToObjects(&array[start], size);
 		}
 
 		result += SortingUtilities::selectAndPositionPivot(array, start, end);
@@ -111,7 +105,7 @@ private:
 		array_size_t lo = start;
 		// element to the right of the right-most copy of the pivot
 		array_size_t i = lo + 1;
-		// index that will seek next value <= pivot when i is stopped
+		// index that will move leftward to seek next value <= pivot when i is stopped
 		array_size_t hi = end;
 
 		if(_verbose) {
@@ -199,7 +193,7 @@ private:
 		return result;
 	}
 
-public:
+	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T ** array, array_size_t size) {
 
 		global_start = 0;
@@ -217,7 +211,7 @@ public:
 
 		return result;
 	}
-};
+}
 
 #pragma pop_macro("_isVerbose")
 #pragma pop_macro("MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT")

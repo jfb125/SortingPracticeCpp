@@ -19,10 +19,10 @@
 #pragma push_macro("MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT")
 #define MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT 11
 
-template <typename T>
-class OptimizedQuickSort final {
+namespace OptimizedQuickSort {
 
 	/*	requires that the caller ensure that end > start	*/
+	template <typename T>
 	ComparesAndMoves partitionArray(T** array, array_size_t start, array_size_t end) {
 
 		ComparesAndMoves ret_val(0,0);
@@ -45,8 +45,7 @@ class OptimizedQuickSort final {
 
 		// if array is small enough try insertion sort
 		if (span <= MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT) {
-			InsertionSort<T> insertion_sort;
-			ret_val += insertion_sort.sortPointersToObjects(&array[start], span);
+			ret_val += InsertionSort::sortPointersToObjects(&array[start], span);
 			return ret_val;
 		}
 
@@ -89,10 +88,7 @@ class OptimizedQuickSort final {
 		return ret_val;
 	}
 
-public:
-	OptimizedQuickSort() {}
-	~OptimizedQuickSort() {}
-
+	template <typename T>
 	ComparesAndMoves sortPointerstoObjects(T** array, array_size_t size) {
 
 		ComparesAndMoves retval(0,0);
@@ -108,7 +104,7 @@ public:
 
 		return retval;
 	}
-};
+}
 
 #pragma pop_macro("MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT")
 

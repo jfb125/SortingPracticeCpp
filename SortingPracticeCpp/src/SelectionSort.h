@@ -13,16 +13,11 @@
 
 #include <iostream>
 
-template <typename T>
 
-class SelectionSort final {
-private:
+namespace SelectionSort {
 
-public:
-	SelectionSort() {}
-	~SelectionSort() {}
-
-	ComparesAndMoves sortPointersToObjects(T **array, array_size_t array_size) {
+	template <typename T>
+	ComparesAndMoves sortPointerstoObjects(T **array, array_size_t array_size) {
 
 		ComparesAndMoves result(0,0);
 
@@ -53,6 +48,6 @@ public:
 
 		return result;
 	}
-};
+}
 
 #endif /* SELECTIONSORT_H_ */

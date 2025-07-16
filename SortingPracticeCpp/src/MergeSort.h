@@ -16,27 +16,9 @@
 #include "SortingPracticeDataTypes.h"
 #include "SortingUtilities.h"
 
-template <typename T>
-class MergeSort final {
-private:
-#if 0
-	bool isSorted(ComparesAndMoves &result, T**array, array_size_t size) {
+namespace MergeSort {
 
-		for (array_size_t i = 1; i != size; i++) {
-			result._compares++;
-			if (*array[i-1] > *array[i])
-				return false;
-		}
-		return true;
-	}
-
-	ComparesAndMoves sortObjects(T* array, array_size_t start, array_size_t end) {
-
-		ComparesAndMoves retval(0,0);
-
-		return retval;
-	}
-#endif
+	template <typename T>
 	ComparesAndMoves sortPointersToObjectsBottomUp(T**array, array_size_t size) {
 
 		ComparesAndMoves ret_val(0,0);
@@ -135,15 +117,7 @@ private:
 		return ret_val;
 	}
 
-public:
-	MergeSort() {}
-	~MergeSort() {}
-#if 0
-	ComparesAndMoves sortObjects(T* array, array_size_t size) {
-
-		return sortObjects(array, 0, size-1);
-	}
-#endif
+	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T** array, array_size_t size) {
 
 		return sortPointersToObjectsBottomUp(array, size);
