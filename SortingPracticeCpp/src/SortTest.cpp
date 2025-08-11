@@ -11,6 +11,7 @@
 #include "SortTest.h"
 #include "SortingUtilities.h"
 
+#include "BlockSort.h"
 #include "BubbleSort.h"
 #include "DutchFlagSort.h"
 #include "InsertionSort.h"
@@ -95,6 +96,9 @@ OneTestResult* testOneAlgorithm(SortAlgorithms& algorithm,
 	case SortAlgorithms::SELECTION_SORT:
 		sort = SelectionSort::sortPointerstoObjects;
 		break;
+	case SortAlgorithms::BLOCK_SORT:
+		sort = BlockSort::sortPointerstoObjects;
+
 	case SortAlgorithms::RADIX_SORT:
 	case SortAlgorithms::COUNTING_SORT:
 	default:
