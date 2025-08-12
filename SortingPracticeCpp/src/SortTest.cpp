@@ -97,7 +97,8 @@ OneTestResult* testOneAlgorithm(SortAlgorithms& algorithm,
 		sort = SelectionSort::sortPointerstoObjects;
 		break;
 	case SortAlgorithms::BLOCK_SORT:
-		sort = BlockSort::sortPointerstoObjects;
+//		sort = BlockSort::sortPointerstoObjects;
+		break;
 
 	case SortAlgorithms::RADIX_SORT:
 	case SortAlgorithms::COUNTING_SORT:

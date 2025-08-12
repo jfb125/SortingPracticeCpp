@@ -33,13 +33,16 @@ array_size_t next_power_of_10(array_size_t current_size) {
 /*									main()											*/
 /*	*****************************************************************************	*/
 /*	******************************************************************************	*/
-
 #include "StudentDataGenerator.h"
+#include "BlockSort.h"
 
 int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
+
+	char test_array[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+	BlockSort::testBlockSort<char>();
 	int num_repetitions = 10;
 
 	constexpr array_size_t min_array_size =  10;

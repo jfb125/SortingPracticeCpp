@@ -1,4 +1,5 @@
-Sorting Performance In C++ built on Jul 16 2025 at 15:54:13
+Sorting Performance In C++ built on Aug 12 2025 at 17:09:16
+testBlockSort()
 Algorithms: 8 Compositions: 3 Orderings: 3 of : 3 different sizes resulting in 216 outcomes over 10 repetitions
 ====================================
 Sort Test Results
