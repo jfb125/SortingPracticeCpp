@@ -41,8 +41,9 @@ int main(int argc, char *argv[])
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
 
-	char test_array[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
 	BlockSort::testBlockSort<char>();
+	return EXIT_SUCCESS;
+
 	int num_repetitions = 10;
 
 	constexpr array_size_t min_array_size =  10;
