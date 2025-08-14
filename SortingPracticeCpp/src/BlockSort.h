@@ -16,43 +16,49 @@
 
 #include "SortingPracticeDataTypes.h"
 #include "SortingUtilities.h"
+//#include "InsertionSort.h"
+
+/*
+ * index_size_t floorLog2(index_size_t num);
+ *
+ * 	returns the logarithm to the base two of
+ * 	  the largest power of 2 that is <= to num
+ *
+ * 	  floorLog2(63) returns 32
+ * 	  floorLog2(64) returns 64
+ */
+
+array_size_t floorLog2(array_size_t num);
 
 namespace BlockSort {
-using index_t = array_size_t;
-using amount_t	= array_size_t;
+	using index_t = array_size_t;
+	using amount_t	= array_size_t;
 
-	/*
-	 * index_size_t floorLog2(index_size_t num);
-	 *
-	 * 	returns the logarithm to the base two of
-	 * 	  the largest power of 2 that is <= to num
-	 *
-	 * 	  floorLog2(63) returns 32
-	 * 	  floorLog2(64) returns 64
-	 *
-	 *	algorithm:
-	 *		sign extend the msbit to the right
-	 *	      by ORing in a shifted version of num
-	 *	    mask off the lower bits by subtracting
-	 *	      a shifted>>1 (/2) version of the sign extended
-	 *
-	 *	  'b01_0000 | 'b00_1000	= 'b01_1000
-	 *	  'b01_1000 | 'b00_0110 = 'b01_1110
-	 *	  'b01_1110 | 'b00_0001 = 'b01_1111
-	 *	  'b01_1111 - 'b00_1111 = 'b01_0000
-	 *
-	 */
+	enum class BlockType {
+		A_BLOCK,
+		B_BLOCK,
+		UNSPECIFIED
+	};
 
 	template <typename T>
-	index_t floorLog2(index_t num) {
-		num |= (num>>1);
-		num |= (num>>2);	// produces a nibble
-		num |= (num>>4);	// produces a byte
-		num |= (num>>8);	// produces 2 bytes
-		num |= (num>>16);	// produces 4 bytes
-//		num |= (num>>32);	// produces 8 bytes
-		return num - (num>>1);
-	}
+	struct BlockTag {
+		BlockType type;
+		T*	key;
+		index_t start_index;
+		index_t end_index;
+		BlockTag() {
+			type = BlockType::UNSPECIFIED;
+			key = nullptr;
+			start_index = 1;
+			end_index = 0;
+		}
+		BlockTag(BlockType t, T* k, index_t s, index_t e) {
+			type = t;
+			key = k;
+			start_index = s;
+			end_index = e;
+		}
+	};
 
 
 	/*
@@ -187,43 +193,15 @@ using amount_t	= array_size_t;
 
 	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T **array_of_pointers, array_size_t size) {
-		return *(new ComparesAndMoves(0,0));
+		ComparesAndMoves result(0,0);
+		array_size_t v = size / 2;
+		array_size_t u_size = v;
+		array_size_t v_size = (size - u_size) +(size & 1);
+		//	sort both the u half and the v half
+//		InsertionSort::sortPointersToObjects(array_of_pointers, v);
+//		InsertionSort::sortPointersToObjects(&array_of_pointers[v], size-v);
+		return result;
 	}
-	template <typename T>
-	void testBlockSort() {
-		std::cout << "testBlockSort()" << std::endl;
-
-//		for (index_size_t i = 1; i < (1<<30); i <<= 1) {
-//			std::cout << "floor(log2(" << i-1 << ")] = " << floorLog2<char>(i-1) << std::endl;
-//			std::cout << "floor(log2(" << i << ")] = " << floorLog2<char>(i) << std::endl;
-//		}
-
-		constexpr index_t array_size = 8;
-		char *test_array[array_size] = {
-				new char('a'), new char('b'), new char('c'), new char('d'),
-				new char('e'), new char('f'), new char('g'), new char('h') };
-
-		ComparesAndMoves result;
-		for (index_t sub_array_size = array_size; sub_array_size >= array_size-1; sub_array_size-- ) {
-			for (index_t i = -sub_array_size; i <= 2*sub_array_size; i++) {
-				char *dut[sub_array_size];
-				for (index_t j = 0; j != sub_array_size; j++) {
-					dut[j] = test_array[j];
-				}
-				result = rotateArray<char>(dut, i, 0, sub_array_size-1);
-				std::cout << "rotate(" << std::setw(3) << i << ") ";
-				for (int j = 0; j != sub_array_size; j++) {
-					std::cout << *test_array[j];
-				}
-				std::cout << " yields ";
-				for (int j = 0; j != sub_array_size; j++) {
-					std::cout << *dut[j];
-				}
-				std::cout << " took " << std::setw(3) << result._moves << " moves";
-				std::cout << std::endl;
-			}
-		}
-	}
-}
+}	// namespace BlockSort
 
 #endif /* BLOCKSORT_H_ */
