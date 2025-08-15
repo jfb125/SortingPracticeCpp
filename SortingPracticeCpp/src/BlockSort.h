@@ -43,20 +43,140 @@ namespace BlockSort {
 	class BlockTag {
 	public:
 		BlockType type;
+		T* key;
 		index_t start_index;
 		index_t end_index;
 		BlockTag() {
 			type = BlockType::UNSPECIFIED;
+			key = nullptr;
 			start_index = 1;
 			end_index = 0;
 		}
-		BlockTag(BlockType t, index_t s, index_t e) {
+		BlockTag(BlockType t, T* k, index_t s, index_t e) {
 			type = t;
+			key = k;
 			start_index = s;
 			end_index = e;
 		}
+		BlockTag(const BlockTag &other) {
+			if (this != &other) {
+				type = other.type;
+				key = other.key;
+				start_index = other.start_index;
+				end_index = other.end_index;
+			}
+		}
+		BlockTag& operator=(const BlockTag &other) {
+			if (this != &other) {
+				type = other.type;
+				key = other.key;
+				start_index = other.start_index;
+				end_index = other.end_index;
+			}
+			return *this;
+		}
+
+		bool operator==(const BlockTag &other) const {
+			if (key != nullptr && other.key != nullptr) {
+				return *key == *other.key;
+			}
+			return false;
+		}
+		bool operator<(const BlockTag &other) const {
+			if (key != nullptr && other.key != nullptr) {
+				return *key < *other.key;
+			}
+			return false;
+		}
+		bool operator<=(const BlockTag &other) const {
+			return *this == other || *this < other;
+		}
+		bool operator>(const BlockTag &other) const {
+			return  !(*this == other || *this < other);
+ 		}
+		bool operator>=(const BlockTag &other) const {
+			return !(*this < other);
+		}
+		bool operator!=(const BlockTag &other) const {
+			return !(*this == other);
+		}
+		std::string to_string(int index_width = 0) const {
+			std::stringstream result;
+			if (type != BlockType::UNSPECIFIED) {
+				result 	<< (type == BlockType::A_BLOCK ? "A block " : "B block ");
+				result 	<< "[" << std::setw(index_width) << start_index << ":"
+						<< std::setw(index_width) << end_index << "] ";
+				if (type == BlockType::A_BLOCK) {
+					result << "[" << std::setw(index_width) << start_index << "] = ";
+					if (key != nullptr) {
+						result << *key;
+					} else {
+						result << "key is nullptr";
+					}
+				} else {
+					result << "[" << std::setw(index_width) << end_index << "] = ";
+					if (key != nullptr) {
+						result << *key;
+					} else {
+						result << "key is nullptr";
+					}
+				}
+			} else {
+				result << "Unintialized block";
+			}
+			return result.str();
+		}
 	};
 
+	class OStreamFormat {
+	public:
+		enum class Justification {
+			RIGHT, LEFT, INTERNAL, NONE
+		};
+		Justification justification;
+	};
+
+	/*	******************************************************************	*/
+	/*	******************************************************************	*/
+	/*							debugging resources							*/
+	/*	******************************************************************	*/
+	/*	******************************************************************	*/
+
+	template <typename T>
+	void printArrayIndices(std::string header, array_size_t size, int element_width) {
+		std::ios::fmtflags existing_flags = std::cout.flags();
+		char current_fill_char = std::cout.fill();
+		std::cout.fill('.');
+		std::cout << std::right;
+
+		std::cout << header;
+		for (int i = 0; i != size; i++) {
+			std::cout << std::setw(element_width) << i;
+		}
+
+		std::cout.fill(current_fill_char);
+		std::cout.flags(existing_flags);
+	}
+
+	template <typename T>
+	void printElements(std::string header, T** array, array_size_t size, int value_width, int element_width) {
+		std::cout << header;
+		int spacer_width = element_width - value_width;
+		for (int i = 0; i != size; i++) {
+			if (spacer_width) {
+				std::cout << std::setw(spacer_width) << ' ';
+			std::cout << std::setw(value_width) << *array[i];
+			}
+		}
+	}
+
+	template <typename T>
+	void printTags(std::string header, BlockTag<T> tags[], int num_tags, int element_width) {
+		std::cout << header;
+		for (int i = 0; i != num_tags; i++) {
+			std::cout << tags[i].to_string() << std::endl;
+		}
+	}
 
 	template <typename T>
 	void printBlockSortArray(std::string header, T** array, array_size_t size, index_t v, BlockTag<T> tags[], int num_tags) {
@@ -65,7 +185,7 @@ namespace BlockSort {
 		constexpr const char spacer = ' ';
 		constexpr const int element_width = 3;
 
-		std::cout << header << std::endl;
+		std::cout << header;
 		//	print out the index of the array
 		for (int i = 0; i < size; i++) {
 			std::cout << std::setw(num_width) << i << spacer;
@@ -82,42 +202,17 @@ namespace BlockSort {
 		}
 		std::cout << std::endl;
 
-		for (int i = 0; i != num_tags; i++) {
-			int tag_span = tags[i].end_index - tags[i].start_index;
-			//	"<A> or <B>"
-			if (tag_span == 1) {
-				if (tags[i].type == BlockType::A_BLOCK) {
-					std::cout << "<A>";
-				} else {
-					std::cout << "<B>";
-				}
-			} else
-			//	"<A ...>"
-			if (tags[i].type == BlockType::A_BLOCK) {
-				std::cout << "<A ";
-				for (int j = 1; j < tag_span; j++) {
-					std:: cout << spacer << tag_span+1 << spacer;
-				}
-				std::cout << " > ";
-			}
-			else
-			//  "< ...B>"
-			{
-				std::cout << "<  ";
-				for (int j = 1; j < tag_span; j++) {
-					std:: cout << spacer << tag_span+1 << spacer;
-				}
-				std::cout << "B> ";
-			}
-		}
+		printElements(std::string(), array, size, num_width, element_width);
 		std::cout << std::endl;
-
-		for (int i = 0; i < size; i++) {
-			std::cout << std::setw(num_width) << *array[i] << spacer;
-		}
-		std::cout << std::endl;
+		printTags(std::string(), tags, num_tags, element_width);
 	}
 
+
+	/*	******************************************************************	*/
+	/*	******************************************************************	*/
+	/*							algorithm functions							*/
+	/*	******************************************************************	*/
+	/*	******************************************************************	*/
 
 	/*
 	 * 	void rotateArray(array, amount, start, end);
@@ -252,6 +347,12 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T **array, array_size_t size) {
 		ComparesAndMoves result(0,0);
+		int element_width = 3;
+		int value_width = 2;
+		printArrayIndices<T>(std::string(), size, element_width);
+		std::cout << std::endl;
+		printElements(std::string(), array, size, value_width, element_width);
+		std::cout << std::endl;
 		//	sort both the u half and the v half
 		array_size_t v = size / 2;
 		result += InsertionSort::sortPointersToObjects(array, v);
@@ -262,8 +363,9 @@ namespace BlockSort {
 		array_size_t block_size = static_cast<index_t>(std::sqrt(u_size));
 		array_size_t first_u_width = u_size % block_size;
 		array_size_t last_v_width = v_size % block_size;
-		int num_blocks = u_size / block_size + (first_u_width != 0 ? 1 : 0);
-		num_blocks += v_size / block_size + (last_v_width != 0 ? 1 : 0);
+		int num_A_blocks = u_size / block_size + (first_u_width != 0 ? 1: 0);
+		int num_B_blocks = v_size / block_size + (last_v_width != 0 ? 1 : 0);
+		int num_blocks = num_A_blocks + num_B_blocks;
 		std::cout << "u_size " << u_size
 				  << " v_size " << v_size
 				  << " block_width " << block_size
@@ -273,18 +375,27 @@ namespace BlockSort {
 		BlockTag<T> tags[num_blocks];
 		array_size_t start_of_block = 0;
 		//	if the first block is less than a full block size, othewisze full size
-		array_size_t end_of_block = first_u_width != 0 ? first_u_width-1 : block_size - 1;
-		for (int i = 0; i < num_blocks-1; i++) {
+		array_size_t end_of_block = first_u_width != 0 ? first_u_width-1 : block_size-1;
+		for (int i = 0; i < num_blocks; i++) {
 			tags[i].start_index = start_of_block;
 			tags[i].end_index	= end_of_block;
-			tags[i].type = start_of_block < v ? BlockType::A_BLOCK : BlockType::B_BLOCK;
+			if (start_of_block < v) {
+				tags[i].type = BlockType::A_BLOCK;
+				tags[i].key = array[start_of_block];
+			} else {
+				tags[i].type = BlockType::B_BLOCK;
+				tags[i].key = array[end_of_block];
+			}
 			start_of_block = end_of_block+1;
 			end_of_block = end_of_block + block_size;
+			//	this happens with the last_v_block is non-zero
+			if (end_of_block >= size)
+				end_of_block = size-1;
 		}
-		tags[num_blocks-1].start_index 	= start_of_block;
-		tags[num_blocks-1].end_index 	= size-1;
-		tags[num_blocks-1].type 		= BlockType::B_BLOCK;
-		printBlockSortArray(std::string("After tagging blocks"), array, size, v, tags, num_blocks);
+		printTags(std::string(), tags, num_blocks, element_width);
+		std::cout << std::endl;
+		printElements(std::string("After generating tags:\n"), array, size, value_width, element_width);
+		std::cout << std::endl;
 		return result;
 	}
 
