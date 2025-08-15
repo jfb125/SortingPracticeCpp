@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include "SimpleRandomizer.h"
 
 #pragma push_macro("_verbose")
 //#undef _verbose

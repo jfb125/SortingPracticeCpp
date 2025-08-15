@@ -4,19 +4,17 @@
  *  Created on: Aug 11, 2025
  *      Author: joe
  */
-/*
- * BubbleSort.h
- *
- *  Created on: Jun 18, 2025
- *      Author: joe
- */
 
 #ifndef BLOCKSORT_H_
 #define BLOCKSORT_H_
 
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+
 #include "SortingPracticeDataTypes.h"
 #include "SortingUtilities.h"
-//#include "InsertionSort.h"
+#include "InsertionSort.h"
 
 /*
  * index_size_t floorLog2(index_size_t num);
@@ -29,6 +27,7 @@
  */
 
 array_size_t floorLog2(array_size_t num);
+bool	testBlockSort();
 
 namespace BlockSort {
 	using index_t = array_size_t;
@@ -41,24 +40,83 @@ namespace BlockSort {
 	};
 
 	template <typename T>
-	struct BlockTag {
+	class BlockTag {
+	public:
 		BlockType type;
-		T*	key;
 		index_t start_index;
 		index_t end_index;
 		BlockTag() {
 			type = BlockType::UNSPECIFIED;
-			key = nullptr;
 			start_index = 1;
 			end_index = 0;
 		}
-		BlockTag(BlockType t, T* k, index_t s, index_t e) {
+		BlockTag(BlockType t, index_t s, index_t e) {
 			type = t;
-			key = k;
 			start_index = s;
 			end_index = e;
 		}
 	};
+
+
+	template <typename T>
+	void printBlockSortArray(std::string header, T** array, array_size_t size, index_t v, BlockTag<T> tags[], int num_tags) {
+		constexpr const char * filler = "   ";
+		constexpr const int num_width = 2;
+		constexpr const char spacer = ' ';
+		constexpr const int element_width = 3;
+
+		std::cout << header << std::endl;
+		//	print out the index of the array
+		for (int i = 0; i < size; i++) {
+			std::cout << std::setw(num_width) << i << spacer;
+		}
+		std::cout << std::endl;
+
+		//	print out the overhead chars
+		for (int i = 0; i < size; i++) {
+			if (i == v) {
+				std::cout << std::setw(num_width) << " v ";
+			} else {
+				std::cout << filler;
+			}
+		}
+		std::cout << std::endl;
+
+		for (int i = 0; i != num_tags; i++) {
+			int tag_span = tags[i].end_index - tags[i].start_index;
+			//	"<A> or <B>"
+			if (tag_span == 1) {
+				if (tags[i].type == BlockType::A_BLOCK) {
+					std::cout << "<A>";
+				} else {
+					std::cout << "<B>";
+				}
+			} else
+			//	"<A ...>"
+			if (tags[i].type == BlockType::A_BLOCK) {
+				std::cout << "<A ";
+				for (int j = 1; j < tag_span; j++) {
+					std:: cout << spacer << tag_span+1 << spacer;
+				}
+				std::cout << " > ";
+			}
+			else
+			//  "< ...B>"
+			{
+				std::cout << "<  ";
+				for (int j = 1; j < tag_span; j++) {
+					std:: cout << spacer << tag_span+1 << spacer;
+				}
+				std::cout << "B> ";
+			}
+		}
+		std::cout << std::endl;
+
+		for (int i = 0; i < size; i++) {
+			std::cout << std::setw(num_width) << *array[i] << spacer;
+		}
+		std::cout << std::endl;
+	}
 
 
 	/*
@@ -192,16 +250,44 @@ namespace BlockSort {
 	}
 
 	template <typename T>
-	ComparesAndMoves sortPointersToObjects(T **array_of_pointers, array_size_t size) {
+	ComparesAndMoves sortPointersToObjects(T **array, array_size_t size) {
 		ComparesAndMoves result(0,0);
-		array_size_t v = size / 2;
-		array_size_t u_size = v;
-		array_size_t v_size = (size - u_size) +(size & 1);
 		//	sort both the u half and the v half
-//		InsertionSort::sortPointersToObjects(array_of_pointers, v);
-//		InsertionSort::sortPointersToObjects(&array_of_pointers[v], size-v);
+		array_size_t v = size / 2;
+		result += InsertionSort::sortPointersToObjects(array, v);
+		result += InsertionSort::sortPointersToObjects(&array[v], size-v);
+
+		array_size_t u_size = v;
+		array_size_t v_size = (size - u_size);
+		array_size_t block_size = static_cast<index_t>(std::sqrt(u_size));
+		array_size_t first_u_width = u_size % block_size;
+		array_size_t last_v_width = v_size % block_size;
+		int num_blocks = u_size / block_size + (first_u_width != 0 ? 1 : 0);
+		num_blocks += v_size / block_size + (last_v_width != 0 ? 1 : 0);
+		std::cout << "u_size " << u_size
+				  << " v_size " << v_size
+				  << " block_width " << block_size
+				  << " first_u_width " << first_u_width
+				  << " last_v_width " << last_v_width
+				  << " num_blocks " << num_blocks << std::endl;
+		BlockTag<T> tags[num_blocks];
+		array_size_t start_of_block = 0;
+		//	if the first block is less than a full block size, othewisze full size
+		array_size_t end_of_block = first_u_width != 0 ? first_u_width-1 : block_size - 1;
+		for (int i = 0; i < num_blocks-1; i++) {
+			tags[i].start_index = start_of_block;
+			tags[i].end_index	= end_of_block;
+			tags[i].type = start_of_block < v ? BlockType::A_BLOCK : BlockType::B_BLOCK;
+			start_of_block = end_of_block+1;
+			end_of_block = end_of_block + block_size;
+		}
+		tags[num_blocks-1].start_index 	= start_of_block;
+		tags[num_blocks-1].end_index 	= size-1;
+		tags[num_blocks-1].type 		= BlockType::B_BLOCK;
+		printBlockSortArray(std::string("After tagging blocks"), array, size, v, tags, num_blocks);
 		return result;
 	}
+
 }	// namespace BlockSort
 
 #endif /* BLOCKSORT_H_ */

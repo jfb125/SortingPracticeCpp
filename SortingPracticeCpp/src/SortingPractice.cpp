@@ -40,8 +40,7 @@ int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-
-	BlockSort::testBlockSort<char>();
+	testBlockSort();
 	return EXIT_SUCCESS;
 
 	int num_repetitions = 10;
