@@ -134,6 +134,13 @@ namespace BlockSort {
 	/*	******************************************************************	*/
 	/*	******************************************************************	*/
 
+	/*	***********************************************	*/
+	/*		outputting graphic representation of tags	*/
+	/*	***********************************************	*/
+
+	//	creates either	"|A   " for an A_BLOCK or "|    " for a B_BLOCK
+	//		where width of the string is set by 'chars_remaining'
+
 	template <typename T>
 	std::string toStringTagOpeningElement(BlockTag<T> &tag, int chars_remaining) {
 		std::stringstream result;
@@ -167,6 +174,9 @@ namespace BlockSort {
 		}
 		return result.str();
 	}
+
+	//	creates either	"     |" for an A_BLOCK or "   B|" for a B_BLOCK
+	//		where width of the string is set by 'chars_remaining'
 
 	template <typename T>
 	std::string toStringTagClosingElement(BlockTag<T> &tag, int chars_remaining) {
@@ -248,32 +258,19 @@ namespace BlockSort {
 		return result.str();
 	}
 
-	template <typename T>
-	void printElements(std::string trailer, T** array, array_size_t size, int value_width, int element_width) {
-		OStreamState current_state;
-
-		int spacer_width = element_width - value_width;
-		for (int i = 0; i != size; i++) {
-			if (spacer_width) {
-				std::cout << std::setw(spacer_width) << ' ';
-			std::cout << std::setw(value_width) << *array[i];
-			}
-		}
-		std::cout << trailer;
-	}
+	// 	prints a line where the blocks a represented graphically
 
 	template <typename T>
 	void printTags(std::string trailer, BlockTag<T> tags[], int num_tags, int element_width) {
 
 		if (element_width == 0) {
 			std::cout << "ERROR: printTags() called with element_width == 0" << trailer;
-
 			return;
 		}
 
 		OStreamState current_state;	// restores ostream state in destructor
 
-		constexpr const char fill_char = ' ';
+		constexpr const char fill_char = TAG_SPACE_CHAR;
 		std::cout.fill(fill_char);
 
 //		for (int i = 0; i != num_tags; i++) {
@@ -309,14 +306,32 @@ namespace BlockSort {
 		std::cout << trailer;
 	}
 
+	/*	**************************************************	*/
+	/*				print the values on a line				*/
+	/*	**************************************************	*/
+
 	template <typename T>
-	void printBlockSortArray(std::string header, T** array, array_size_t size, index_t v, BlockTag<T> tags[], int num_tags) {
+	void printElements(std::string trailer, T** array, array_size_t size, int value_width, int element_width) {
+		OStreamState current_state;
+
+		int spacer_width = element_width - value_width;
+		for (int i = 0; i != size; i++) {
+			if (spacer_width) {
+				std::cout << std::setw(spacer_width) << ' ';
+			std::cout << std::setw(value_width) << *array[i];
+			}
+		}
+		std::cout << trailer;
+	}
+
+	template <typename T>
+	void printBlockSortArray(std::string trailer, T** array, array_size_t size, index_t v, BlockTag<T> tags[], int num_tags) {
 		constexpr const char * filler = "   ";
 		constexpr const int num_width = 2;
 		constexpr const char spacer = ' ';
 		constexpr const int element_width = 3;
 
-		std::cout << header;
+		std::cout << trailer;
 		//	print out the index of the array
 		for (int i = 0; i < size; i++) {
 			std::cout << std::setw(num_width) << i << spacer;
@@ -336,6 +351,7 @@ namespace BlockSort {
 		printElements(std::string(), array, size, num_width, element_width);
 		std::cout << std::endl;
 		printTags(std::string(), tags, num_tags, element_width);
+		std::cout << trailer;
 	}
 
 
