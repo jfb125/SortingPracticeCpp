@@ -10,34 +10,34 @@
 
 #include <iostream>
 #include <iomanip>
+#include <string>
 #include <cmath>
 
 #include "SortingPracticeDataTypes.h"
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
 
-/*
- * index_size_t floorLog2(index_size_t num);
- *
- * 	returns the logarithm to the base two of
- * 	  the largest power of 2 that is <= to num
- *
- * 	  floorLog2(63) returns 32
- * 	  floorLog2(64) returns 64
- */
+bool	testBlockSort();
 
 array_size_t floorLog2(array_size_t num);
-bool	testBlockSort();
+void printArrayIndices(array_size_t size, int value_width, int element_width);
+void printArrayIndices(std::string header, array_size_t size, int value_width, int element_width);
+
+#define TAG_BOUNDARY_CHAR '|'
+#define TAG_SPACE_CHAR ' '
+#define ELEMENT_WIDTH 4
+#define VALUE_WIDDTH 3
+
+enum class BlockType {
+	A_BLOCK,
+	B_BLOCK,
+	UNSPECIFIED
+};
+char to_char(BlockType type);
 
 namespace BlockSort {
 	using index_t = array_size_t;
 	using amount_t	= array_size_t;
-
-	enum class BlockType {
-		A_BLOCK,
-		B_BLOCK,
-		UNSPECIFIED
-	};
 
 	template <typename T>
 	class BlockTag {
@@ -128,14 +128,6 @@ namespace BlockSort {
 		}
 	};
 
-	class OStreamFormat {
-	public:
-		enum class Justification {
-			RIGHT, LEFT, INTERNAL, NONE
-		};
-		Justification justification;
-	};
-
 	/*	******************************************************************	*/
 	/*	******************************************************************	*/
 	/*							debugging resources							*/
@@ -143,24 +135,123 @@ namespace BlockSort {
 	/*	******************************************************************	*/
 
 	template <typename T>
-	void printArrayIndices(std::string header, array_size_t size, int element_width) {
-		std::ios::fmtflags existing_flags = std::cout.flags();
-		char current_fill_char = std::cout.fill();
-		std::cout.fill('.');
-		std::cout << std::right;
-
-		std::cout << header;
-		for (int i = 0; i != size; i++) {
-			std::cout << std::setw(element_width) << i;
+	std::string toStringTagOpeningElement(BlockTag<T> &tag, int chars_remaining) {
+		std::stringstream result;
+		result.fill(TAG_SPACE_CHAR);
+		switch (chars_remaining) {
+		case 0:
+			result << __FUNCTION__ << " called with element_width == 0";
+			break;
+		case 1:
+			result << to_char(tag.type);
+			break;
+		default:
+			result << TAG_BOUNDARY_CHAR;
+			chars_remaining--;
+			switch (tag.type) {
+			case BlockType::A_BLOCK:
+				result << to_char(tag.type);
+				chars_remaining--;
+				if (chars_remaining >0) {
+					result << std::setw(chars_remaining) << TAG_SPACE_CHAR;
+				}
+				break;
+			case BlockType::B_BLOCK:
+				result << std::setw(chars_remaining) << TAG_SPACE_CHAR;
+				break;
+			case BlockType::UNSPECIFIED:
+				result.fill('?');
+				result << std::setw(chars_remaining) << '?';
+			}
+			break;
 		}
-
-		std::cout.fill(current_fill_char);
-		std::cout.flags(existing_flags);
+		return result.str();
 	}
 
 	template <typename T>
-	void printElements(std::string header, T** array, array_size_t size, int value_width, int element_width) {
-		std::cout << header;
+	std::string toStringTagClosingElement(BlockTag<T> &tag, int chars_remaining) {
+		std::stringstream result;
+		result.fill(TAG_SPACE_CHAR);
+		switch (chars_remaining) {
+		case 0:
+			result << __FUNCTION__ << " called with element_width == 0";
+			break;
+		case 1:
+			result << to_char(tag.type);
+			break;
+		default:
+			if (chars_remaining > 2) {
+				result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
+			}
+			if (tag.type == BlockType::B_BLOCK) {
+				result << to_char(tag.type);
+			} else {
+				result << TAG_SPACE_CHAR;
+			}
+			result << TAG_BOUNDARY_CHAR;
+			break;
+		}
+		return result.str();
+	}
+
+
+	//	creates a string representation of a block
+	//	  |A    |   or |    B|  or |?????|
+	//	where the width of the representation
+	//	is equal to the passed param 'element_width'
+
+	template <typename T>
+	std::string toStringTagSingleElement(BlockTag<T> &tag, int chars_remaining) {
+		std::stringstream result;
+		result.fill(TAG_SPACE_CHAR);
+
+		switch(chars_remaining) {
+		case 0:
+			result << __FUNCTION__ << " called with element_width == 0";
+			break;
+		case 1:
+			result << to_char(tag.type);
+			break;
+		case 2:
+			result << TAG_BOUNDARY_CHAR
+				   << to_char(tag.type);
+			break;
+		case 3:
+			result << TAG_BOUNDARY_CHAR << to_char(tag.type)
+				   << TAG_BOUNDARY_CHAR;
+			break;
+		default:
+			result << TAG_BOUNDARY_CHAR;
+			chars_remaining--;
+			switch (tag.type) {
+			case BlockType::A_BLOCK:
+				result << to_char(tag.type);
+				chars_remaining--;
+				if (chars_remaining > 1) {
+					result << std::setw(chars_remaining-1) << TAG_SPACE_CHAR;
+				}
+				break;
+			case BlockType::B_BLOCK:
+				if (chars_remaining > 2) {
+					result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
+				}
+				result << to_char(tag.type);
+				break;
+			default:
+				result.fill('?');
+				result << std::setw(chars_remaining-1) << '?';
+				break;
+			}
+			result << TAG_BOUNDARY_CHAR;
+			break;
+		}
+		return result.str();
+	}
+
+	template <typename T>
+	void printElements(std::string trailer, T** array, array_size_t size, int value_width, int element_width) {
+		OStreamState current_state;
+
 		int spacer_width = element_width - value_width;
 		for (int i = 0; i != size; i++) {
 			if (spacer_width) {
@@ -168,14 +259,54 @@ namespace BlockSort {
 			std::cout << std::setw(value_width) << *array[i];
 			}
 		}
+		std::cout << trailer;
 	}
 
 	template <typename T>
-	void printTags(std::string header, BlockTag<T> tags[], int num_tags, int element_width) {
-		std::cout << header;
-		for (int i = 0; i != num_tags; i++) {
-			std::cout << tags[i].to_string() << std::endl;
+	void printTags(std::string trailer, BlockTag<T> tags[], int num_tags, int element_width) {
+
+		if (element_width == 0) {
+			std::cout << "ERROR: printTags() called with element_width == 0" << trailer;
+
+			return;
 		}
+
+		OStreamState current_state;	// restores ostream state in destructor
+
+		constexpr const char fill_char = ' ';
+		std::cout.fill(fill_char);
+
+//		for (int i = 0; i != num_tags; i++) {
+//			std::cout << std::setw(2) << i << ":"
+//					  << tags[i].to_string() << " over "
+//					  << "[" << tags[i].start_index << ":"
+//					  << tags[i].end_index << "]"
+//					  << " = " << tags[i].end_index - tags[i].start_index + 1
+//					  << std::endl;
+//		}
+
+		for (int i = 0; i != num_tags; i++) {
+
+			int elements_left = tags[i].end_index - tags[i].start_index + 1;
+
+			switch (elements_left) {
+			case 0:
+				std::cout << "!!!!ERROR: printTags() passed a block of size 0 elements: ";
+				return;
+			case 1:
+				std::cout << toStringTagSingleElement(tags[i], element_width);
+				break;
+			default:
+				std::cout << toStringTagOpeningElement(tags[i], element_width);
+				elements_left--;
+				while(elements_left-- > 1) {
+					std::cout << std::setw(element_width) << fill_char;
+				}
+				std::cout << toStringTagClosingElement(tags[i], element_width);
+				break;
+			}
+		}
+		std::cout << trailer;
 	}
 
 	template <typename T>
@@ -347,16 +478,14 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T **array, array_size_t size) {
 		ComparesAndMoves result(0,0);
-		int element_width = 3;
-		int value_width = 2;
-		printArrayIndices<T>(std::string(), size, element_width);
-		std::cout << std::endl;
-		printElements(std::string(), array, size, value_width, element_width);
-		std::cout << std::endl;
+		int element_width = 4;
+		int value_width = 3;
 		//	sort both the u half and the v half
 		array_size_t v = size / 2;
 		result += InsertionSort::sortPointersToObjects(array, v);
 		result += InsertionSort::sortPointersToObjects(&array[v], size-v);
+
+		printElements(std::string(" after insertion sorting halves\n"), array, size, value_width, element_width);
 
 		array_size_t u_size = v;
 		array_size_t v_size = (size - u_size);
@@ -392,10 +521,9 @@ namespace BlockSort {
 			if (end_of_block >= size)
 				end_of_block = size-1;
 		}
-		printTags(std::string(), tags, num_blocks, element_width);
-		std::cout << std::endl;
-		printElements(std::string("After generating tags:\n"), array, size, value_width, element_width);
-		std::cout << std::endl;
+		printTags(std::string(" tags\n"), tags, num_blocks, element_width);
+		printElements(std::string("\n"), array, size, value_width, element_width);
+//		std::cout << std::endl;
 		return result;
 	}
 

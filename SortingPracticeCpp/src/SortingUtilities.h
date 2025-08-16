@@ -9,6 +9,36 @@
 //#undef _verbose
 //#define _verbose true
 
+class OStreamState {
+private:
+	std::ios::fmtflags flags;
+	char fill;
+public:
+	void init() {
+		flags = std::cout.flags();
+		fill = std::cout.fill();
+	}
+	void restore() {
+		std::cout.flags(flags);
+		std::cout.fill(fill);
+	}
+	OStreamState() {
+		init();
+	}
+	~OStreamState() {
+		restore();
+	}
+	OStreamState(const OStreamState &other) {
+		flags = other.flags;
+		fill = other.fill;
+	}
+	OStreamState& operator=(const OStreamState &other) {
+		flags = other.flags;
+		fill = other.fill;
+		return *this;
+	}
+};
+
 namespace SortingUtilities {
 
 	/*	**********************************************************************	*/

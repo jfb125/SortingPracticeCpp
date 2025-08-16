@@ -56,6 +56,35 @@ array_size_t floorLog2(array_size_t num) {
 	return num - (num>>1);
 }
 
+char to_char(BlockType type) {
+	switch(type) {
+	case BlockType::A_BLOCK:
+		return 'A';
+	case BlockType::B_BLOCK:
+		return 'B';
+	case BlockType::UNSPECIFIED:
+	default:
+		return '?';
+	}
+}
+
+
+void printArrayIndices(array_size_t size, int value_width, int element_width) {
+
+	OStreamState io_state;	// the destructor will restore state
+	std::cout.fill('.');
+	std::cout << std::right;
+
+	for (int i = 0; i != size; i++) {
+		std::cout << std::setw(element_width) << i;
+	}
+}
+
+void printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width) {
+
+	printArrayIndices(size, value_width, element_width);
+	std::cout << trailer;
+}
 
 /*	**********************************************	*/
 /*	**********************************************	*/
@@ -118,27 +147,28 @@ bool testBlockSort() {
 /*	**********************************************	*/
 /*	**********************************************	*/
 
-//	a way of calculating that uses a loop, which is slow
-//		due to branching
-static index_t p2(index_t num) {
-	for (index_t i = 1; i <= 1<<30; i *= 2) {
-		if (i == num) {
-			return i;
-		}
-		if (i > num) {
-			return i>>1;
-		}
-	}
-	return 1<<30;
-}
-
 bool testFloorLog2() {
+
+	//	a way of calculating that uses a loop,
+	//		which is slow due to branching
+	auto calc_expected = [] (index_t num) {
+		if (num == 0)
+			return 0;
+		for (int i = 1; i <= 1<<30; i *=2) {
+			if (i == num) {
+				return i;
+			}
+			if (i > num) {
+				return i>>1;
+			}
+		}
+		return 1<<30;
+	};
 
 	constexpr int num_width = 10;
 	bool passed = true;
-
 	index_t value = floorLog2(0);
-	index_t expected = p2(0);
+	index_t expected = calc_expected(0);
 	std::cout << "floor(log2(" << std::setw(num_width) << 0 << ")) = "
 			  << std::setw(num_width) << value;
 	if (value != expected) {
@@ -151,7 +181,7 @@ bool testFloorLog2() {
 	for (index_t i = 2; i < (1<<30); i <<= 1) {
 		// one less than a power of 2
 		value = floorLog2(i-1);
-		expected = p2(i-1);
+		expected = calc_expected(i-1);
 		std::cout << "floor(log2(" << std::setw(num_width) << i-1 << ")) = "
 				  << std::setw(num_width) << value;
 		if (value != expected) {
@@ -163,7 +193,7 @@ bool testFloorLog2() {
 
 		// a power of 2
 		value = floorLog2(i);
-		expected = p2(i);
+		expected = calc_expected(i);
 		std::cout << "floor(log2(" << std::setw(num_width) << i << ")) = "
 				  << std::setw(num_width) << value;
 		if (value != expected) {
@@ -243,11 +273,16 @@ bool testBlockSortSort() {
 		test_array[i] = new int(val);
 	}
 
-//	printBlockSortArray(std::string("Array initially: "), test_array, array_size, v);
+	int element_width = 4;
+	int value_width = 3;
+
+	printArrayIndices(array_size, value_width, element_width);
+	std::cout << std::endl;
+	BlockSort::printElements(std::string(" initially\n"), test_array, array_size, value_width, element_width);
 	SortingUtilities::randomizeArray(test_array, array_size);
-//	printBlockSortArray(std::string("Array randomized: "), test_array, array_size, v);
+	BlockSort::printElements(std::string(" randomized\n"), test_array, array_size, value_width, element_width);
 	BlockSort::sortPointersToObjects(test_array, array_size);
-//	printBlockSortArray(std::string("Array sorted: "), test_array, array_size, v, nullptr, 0);
+	BlockSort::printElements(std::string(" after sorting\n"), test_array, array_size, value_width, element_width);
 	goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
 
 TEST_BLOCK_SORT_SORT_RETURN_LABEL:
