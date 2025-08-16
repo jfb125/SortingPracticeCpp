@@ -488,31 +488,83 @@ namespace BlockSort {
 	/*
 	 * 	ComparesAndMoves sortBlocks(array, size, p_tags, num_tags);
 	 *
-	 * 		organizes the array such that every A_Block (left side block)
-	 * 			is moved to the right of every B_Block (right side block)
-	 * 			that is less than it where 'is less' is determined by comparing
-	 * 			the left-most element of the a_block (which is tag.key)
-	 * 			against the right-most element of the b block (tag.key)
-	 * 		this ensures that no element in the A
+	 * 			Organizes the array such that every A_Block (left side block)
+	 * 		is moved to the right of every B_Block (right side block)
+	 * 		that is less than it where 'is less' is determined by comparing
+	 * 		the left-most element of the a_block (which is tag.key)
+	 * 		against the right-most element of the b block (tag.key)
+	 * 			This ensures that no element in an A_Block (left) is moved
+	 * 		to the right of the same value element in the B_Block, which
+	 * 		would no longer guarantee stability
 	 *
+	 *	BlockType:Key, 	there are 5 A_Blocks and 5 B_Blocks
+	 *	initial: A:1  A:2  A:11 A:19 A:27 B:7  B:15 B:22 B:29 B:37
+	 *	final:   A:1  A:2  B:7  A:11 B:15 A:19 B:22 A:27 B:29 B:37
+	 *
+	 *	Algorithm:
+	 *		lowest_b_block = num_a_blocks
+	 *		for (a_block = num_a_blocks-1; a_block >= 0; a_block--)
+	 *			rotate_count = 0
+	 *			b_block = lowest_b_block
+	 *			while (b_block < num_blocks && blocks[b_block].key < blocks[a_block].key)
+	 *				rotate_count += num elements in blocks[b_block.key]
+	 *				b_block++
+	 *			if rotate_count
+	 *				rotate array (&array[blocks[a_block].start_index], rotate_count
+	 *				lowest_b_block--	// lowest_b_block go rotated to the left
 	 *
 	 */
 	template <typename T>
 	ComparesAndMoves sortBlocks(T **array, array_size_t size, BlockTag<T> *tags, int num_tags) {
 
 		ComparesAndMoves result(0,0);
-		int num_a_blocks = [](BlockTag<T>*tags, int num_tags) {
-			int result = 0;
-			for (int i = 0; i != num_tags; i++) {
-				if (tags[i].type == BlockType::A_BLOCK) {
-					result++;
-				} else {
-					break;
-				}
-			}
+
+		//	if the array consists of all A_Blocks, we are done
+		if (tags[num_tags-1].type != BlockType::B_BLOCK)
 			return result;
-		};
-		int lowest_b_block = num_a_blocks;
+
+		int num_a_blocks = 0;
+		for (int i = 0; i != num_tags; i++) {
+			if (tags[i].type == BlockType::A_BLOCK)
+				num_a_blocks++;
+			else
+				break;
+		}
+		//	if the array consists of all B_BLOCKS, we are done
+		if (num_a_blocks == 0)
+			return result;
+
+		int b_block = num_tags-1;
+
+		printTags(std::string("before sortBlocks()\n"), tags, num_tags, 4);
+		// process every a block
+		for (int a_block = num_a_blocks-1, b_block = num_tags-1; a_block >= 0; a_block--) {
+			int rotate_count = 0;
+			// find first block that
+			int b_block = lowest_b_block;
+			while (b_block < num_tags && *tags[b_block].key > *tags[a_block].key) {
+				rotate_count += tags[b_block].num_elements();
+				b_block++;
+				result._moves++;
+			}
+			std::cout << tags[a_block].to_string() << " will be rotated to the right of " << tags[b_block].to_string() << std::endl;
+			std::stringstream debug;
+			debug << "BEFORE a_block: " << a_block << ", b_block: " << b_block << ", rotate_count " << rotate_count << "\n";
+			printTags(debug.str(), tags, num_tags, 4);
+			printElements(std::string("\n"), array, size, 3, 4);
+			if (rotate_count) {
+				//  rotate_count currently has the number of b_block elements
+				//	that have to be moved.  Add in the width of the a block itself
+//				rotate_count += tags[a_block].num_elements();
+				// rotate the array from the start of the a_block across all b_blocks
+				rotateArray(array, rotate_count, tags[a_block].start_index, tags[b_block].end_index);
+				lowest_b_block--;
+			}
+//			printTags(std::string("AFTER\n"), tags, num_tags, 4);
+			printElements(std::string("\n\n"), array, size, 3, 4);
+			break;
+		}
+
 		return result;
 	}
 
@@ -562,6 +614,8 @@ namespace BlockSort {
 			if (end_of_block >= size)
 				end_of_block = size-1;
 		}
+		printTags(std::string(" tags\n"), tags, num_blocks, element_width);
+		sortBlocks(array, size, tags, num_blocks);
 		printTags(std::string(" tags\n"), tags, num_blocks, element_width);
 		printElements(std::string("\n"), array, size, value_width, element_width);
 //		std::cout << std::endl;
