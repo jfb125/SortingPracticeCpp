@@ -46,6 +46,11 @@ namespace BlockSort {
 		T* key;
 		index_t start_index;
 		index_t end_index;
+
+		index_t	num_elements() const {
+			return end_index - start_index + 1;
+		}
+
 		BlockTag() {
 			type = BlockType::UNSPECIFIED;
 			key = nullptr;
@@ -270,23 +275,11 @@ namespace BlockSort {
 
 		OStreamState current_state;	// restores ostream state in destructor
 
-		constexpr const char fill_char = TAG_SPACE_CHAR;
-		std::cout.fill(fill_char);
-
-//		for (int i = 0; i != num_tags; i++) {
-//			std::cout << std::setw(2) << i << ":"
-//					  << tags[i].to_string() << " over "
-//					  << "[" << tags[i].start_index << ":"
-//					  << tags[i].end_index << "]"
-//					  << " = " << tags[i].end_index - tags[i].start_index + 1
-//					  << std::endl;
-//		}
-
 		for (int i = 0; i != num_tags; i++) {
 
-			int elements_left = tags[i].end_index - tags[i].start_index + 1;
+			int elements_remaining = tags[i].num_elements();
 
-			switch (elements_left) {
+			switch (elements_remaining) {
 			case 0:
 				std::cout << "!!!!ERROR: printTags() passed a block of size 0 elements: ";
 				return;
@@ -295,9 +288,10 @@ namespace BlockSort {
 				break;
 			default:
 				std::cout << toStringTagOpeningElement(tags[i], element_width);
-				elements_left--;
-				while(elements_left-- > 1) {
-					std::cout << std::setw(element_width) << fill_char;
+				elements_remaining--;
+				while(elements_remaining-- > 1) {
+					std::cout.fill(TAG_SPACE_CHAR);
+					std::cout << std::setw(element_width) << TAG_SPACE_CHAR;
 				}
 				std::cout << toStringTagClosingElement(tags[i], element_width);
 				break;
@@ -488,6 +482,37 @@ namespace BlockSort {
 			if (u == size)
 				break;
 		}
+		return result;
+	}
+
+	/*
+	 * 	ComparesAndMoves sortBlocks(array, size, p_tags, num_tags);
+	 *
+	 * 		organizes the array such that every A_Block (left side block)
+	 * 			is moved to the right of every B_Block (right side block)
+	 * 			that is less than it where 'is less' is determined by comparing
+	 * 			the left-most element of the a_block (which is tag.key)
+	 * 			against the right-most element of the b block (tag.key)
+	 * 		this ensures that no element in the A
+	 *
+	 *
+	 */
+	template <typename T>
+	ComparesAndMoves sortBlocks(T **array, array_size_t size, BlockTag<T> *tags, int num_tags) {
+
+		ComparesAndMoves result(0,0);
+		int num_a_blocks = [](BlockTag<T>*tags, int num_tags) {
+			int result = 0;
+			for (int i = 0; i != num_tags; i++) {
+				if (tags[i].type == BlockType::A_BLOCK) {
+					result++;
+				} else {
+					break;
+				}
+			}
+			return result;
+		};
+		int lowest_b_block = num_a_blocks;
 		return result;
 	}
 
