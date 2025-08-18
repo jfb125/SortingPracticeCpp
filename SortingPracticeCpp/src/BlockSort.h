@@ -18,11 +18,10 @@
 #include "InsertionSort.h"
 
 //#define DEBUG_VERBOSE_SORT_BLOCKS 1
-#define DEBUG_SUMMARY_SORT_BLOCKS 1
+#define DEBUG_SUMMARY_SORT_BLOCKS
 #define DEBUG_VERBOSE_BLOCK_SORT
 #define SORT_BLOCKS_LEFT_TO_RIGHT 1
-#define SORT_BLOCKS_RIGHT_TO_LEFT 1
-#define SORT_BLOCK_INSERTION_SORT 1
+#define SORT_BLOCKS_RIGHT_TO_LEFT 2
 
 bool	testBlockSort();
 
@@ -380,9 +379,11 @@ namespace BlockSort {
 	 * 	  where the array is defined as array[start]:array[end] (inclusive)
 	 *
 	 * 	algorithm:
-	 * 		reverse the array
-	 * 		reverse the sub array [start:amount-1]
-	 * 		reverse the sub array [amount:end]
+	 * 		consider amount to rotate = 3
+	 * 		array									{ A, B, C, D, E, F, G }
+	 * 		reverse the array						{ G, F, E, D, C, B, A }
+	 * 		reverse the sub array [start:amount-1]  { E, F, G  D, C, B, A }
+	 * 		reverse the sub array [amount:end]		{ E, F, G, A, B, C, D }
 	 *
 	 * 	note that amount can be negative or greater than the span
 	 * 		negative amounts are converted into the equivalent positive amount
@@ -407,6 +408,7 @@ namespace BlockSort {
 		if (amount == 0)
 			return result;
 
+		//	reverse the entire array
 		T* temp;
 		for (index_t i = start, j = end; i < j; i++, j--) {
 			temp = array[i];
@@ -415,6 +417,7 @@ namespace BlockSort {
 			result._moves += 3;
 		}
 
+		//	reverse the left hand side
 		for (index_t i = start, j = start+amount-1; i < j; i++, j--) {
 			temp = array[i];
 			array[i] = array[j];
@@ -422,6 +425,7 @@ namespace BlockSort {
 			result._moves += 3;
 		}
 
+		//	reverse the right hand side
 		for (index_t i = start + amount, j = end; i < j; i++, j--) {
 			temp = array[i];
 			array[i] = array[j];
@@ -433,94 +437,86 @@ namespace BlockSort {
 
 
 	/*
-	 * ComparesAndMoves blockMerge(uv_array, size, v);
+	 * ComparesAndMoves blockMerge(arr, start, mid, end);
 	 *
 	 *   This uses rotate operations to put the { u[], v[n] } array in order
 	 *   The requirement is that the sub portions of uv_array, u[] and v[]
 	 *   	are in ascending order.
-	 *        e.g. if  u[] = { 2, 3, 3, 8 } and v[] = { 1, 3, 7, 7 }
-	 *      then uv_array[] = { 2, 3, 3, 8, 1, 3, 7, 7 }
+	 *   		Consider an array where start = 5, mid = 9 & end is equal to 12
+	 *   		             5  6  7  8  9 10 11 12
+	 *      then array[] = { B, C, C, D, A, C, G, G }
 	 *
-	 *   The position of the first element in v, in this case [4] = 1,
-	 *   	must be provided by the caller
+	 *   The algorithm looks for all elements in [mid:end] that are less
+	 *   	than the current element in u, then rotates all those elements
+	 *   	in v that are less than u.  This is equivalent to finding the
+	 *   	first element in v that is > u.
+	 *      	start with u = start = 5 & v = mid = 9, count = 0
 	 *
-	 *   The algorithm looks for the first element in v that is <
-	 *      the first element in u, then rotates
-	 * 		{ 2, 3, 3, 8, 1, 3, 7, 7 }	[u=0] is 2, [v=4] is 1, count = 0
-	 * 		{ 2, 3, 3, 8, 1, 3, 7, 7 }  [u=0] is 2, [v=5] is 3, count = 1
-	 * 		arrayRotate(uv_array, count = 1, start = u = 0, end = v-1 = 4
-	 * 		{ 1, 2, 3, 3, 8, 3, 7, 7 }
-	 * 			u = u + count = 1
-	 * 			search u for the first element != '2' which is [u=2] is 3
-	 * 			search v for the first element < [u=2] is 3, [v=6] is 7
-	 * 	    arrayRotate(uv_array, count = 1, start = 2, end = 7-1 = 6)
-	 * 	    { 1, 2, 3, 3, 3, 8, 7, 7 }
-	 * 	    	search u for the first element != 3 which is [u=5] is 8
-	 * 	    	search v for the first element > 8 v stops at size
-	 * 	    arrayRotate(uv_array, count = 2, start = 5, end = size-1)
-	 * 	    { 1, 2, 3, 3, 3, 7, 7, 8 }
+	 *      Search u for a value > v
+	 *        5  6  7  8  9 10 11 12
+	 * 		{ B, C, C, D, A, C, G, G }	arr[u=5].'B' > arr[v= 9].'A'       count = 0
+	 * 		Search v for a value < u
+	 * 		{ B, C, C, D, A, C, G, G }	arr[u=5].'B' <= arr[v= 9].'A' v++  count++;
+	 * 		{ B, C, C, D, A, C, G, G }	arr[u=5].'B' >  arr[v=10].'C'      count = 1
+	 * 		arrayRotate(array, count = 1, start = u = 5, end = v-1 = 10 -1 = 9)
+	 * 		{ A, B, C, C, E, C, G, G }
+
+	 * 		Search u for a value > v
+	 * 		{ A, B, C, C, E, C, G, G }	arr[u=6].'B' <= arr[v=10].'C', u++ count = 0
+	 * 		{ A, B, C, C, E, C, G, G }	arr[u=7].'C' <= arr[v=10].'C', u++ count = 0
+	 * 		{ A, B, C, C, E, C, G, G }	arr[u=8].'C' <= arr[v=10].'C', u++ count = 0
+	 * 		{ A, B, C, C, E, C, G, G }	arr[u=9].'E' <= arr[v=10].'C',     count = 0
+	 * 		Search v for a  value < u
+	 * 		{ A, B, C, C, E, C, G, G }	arr[u=9].'E' <= arr[v=10].'C', v++ count++
+	 * 		{ A, B, C, C, E, C, G, G }	arr[u=9].'E' <= arr[v=11].'G'      count = 1
+	 * 		arrayRotate(array, count = 1, start = u = 9, end = v-1 = 11 - 10)
+	 * 		{ A, B, C, C, C, E, G, G }
+	 *
+	 * 		Search u for a value > v
+	 * 		{ A, B, C, C, C, E, G, G }	arr[u=9].'E' <= arr[v=11].'G' u++  count = 0
+	 * 		{ A, B, C, C, C, E, G, G }	arr[u=10].'E' <= arr[v=11].'G' u++  count = 0
+	 * 		{ A, B, C, C, C, E, G, G }	arr[u=11].'E' <= arr[v=11].'G' u++  count = 0
+	 * 		STOP u == v
 	 */
 
 	template <typename T>
-	ComparesAndMoves blockMerge(T** uv_array, index_t size, index_t v) {
+	ComparesAndMoves blockMerge(T** array, index_t start, index_t mid, index_t end) {
 
 		ComparesAndMoves result(0,0);
 
 		index_t u = 0;
+		index_t v = mid;
 		amount_t rotate_count;
+		T* key;
 
 		while (1) {
+			// find the first in u that is > v,
+			//	which is the first u value that is out of order
+			result._compares++;
+			while (u < v && *array[u] <= *array[v]) {
+				u++;
+				result._compares++;
+			}
+			if (u >= v)
+				break;
+
+			// find the first value in v that > u
 			rotate_count = 0;
-			T* u_value = uv_array[u];
+			key = array[u];
 			// search for an element in v that is greater than array[u]
-			while (v < size && *uv_array[v++] <= *u_value) {
+			result._compares++;
+			while (v <= end && array[v] <= array[u]) {
 				result._compares++;
 				rotate_count++;
 			}
+			if (u > end)
+				break;
+
+			//	at this point `
 			//	rotate u to the right in the array
 			//	  past the last value in v that was equal to u_value
-			result += rotateArray(uv_array, rotate_count, u, v+rotate_count-1);
-
-			if (v == size)
-				break;
-
-			//	the u portion of the array has been rotated 'rotate_count'
-			//	  to the right in the array. All values to the left of
-			//	  u are < or = to the start of the u segment
-			//	  find the next value to the right in u that is >
-			//	  the start of u
-			u += rotate_count;
-			//	advance u until a value is found that is greater than
-			//	  the current u_value
-			while (u < size && *uv_array[u] <= *u_value) {
-				result._compares++;
-				u++;
-			}
-			//	if there were no values found > the current u value,
-			//	  no more rotates need to be performed -> done
-			if (u == size)
-				break;
+			result += rotateArray(array, rotate_count, u, v-1);
 		}
-		return result;
-	}
-
-
-	template <typename T>
-	ComparesAndMoves blockMove(T**p_array, int left_index, int right_index, int block_size) {
-
-		ComparesAndMoves result;
-
-		T* tmp;
-
-		for (int i = 0; i != block_size; i++) {
-			tmp = p_array[left_index];
-			p_array[left_index] = p_array[right_index];
-			p_array[right_index] = tmp;
-			left_index++;
-			right_index++;
-			result._moves += 3;
-		}
-
 		return result;
 	}
 
@@ -959,6 +955,19 @@ namespace BlockSort {
 #else
 		result = sortBlocksRightToLeft(array, size, tags, num_blocks);
 #endif
+		index_t rightmost_a = size;
+		// merge consecutive blocks
+		for (int right_block = num_blocks; right_block > 0; right_block--) {
+			// two consecutive B_Blocks are in ascending order because
+			//	they came out of the v side of the array that was sorted
+			if (tags[right_block-1].type == BlockType::B_BLOCK) {
+				continue;
+			}
+			// merge the A_Block
+			result += blockMerge(array, tags[right_block-1].start_index,//	start
+							  	  	    tags[right_block].start_index,	//  mid
+										tags[right_block].end_index);	//  end;
+		}
 		return result;
 	}
 
