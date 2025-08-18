@@ -17,6 +17,13 @@
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
 
+//#define DEBUG_VERBOSE_SORT_BLOCKS 1
+#define DEBUG_SUMMARY_SORT_BLOCKS 1
+#define DEBUG_VERBOSE_BLOCK_SORT
+#define SORT_BLOCKS_LEFT_TO_RIGHT 1
+#define SORT_BLOCKS_RIGHT_TO_LEFT 1
+#define SORT_BLOCK_INSERTION_SORT 1
+
 bool	testBlockSort();
 
 array_size_t floorLog2(array_size_t num);
@@ -143,6 +150,16 @@ namespace BlockSort {
 	/*	***********************************************	*/
 	/*		outputting graphic representation of tags	*/
 	/*	***********************************************	*/
+
+	template <typename T>
+	bool isSorted(BlockTag<T> *tags, int num_tags) {
+
+		for (int i = 0; i != num_tags-1; i++) {
+			if (tags[i+1] < tags[i])
+				return false;
+		}
+		return true;
+	}
 
 	//	creates either	"|A   " for an A_BLOCK or "|    " for a B_BLOCK
 	//		where width of the string is set by 'chars_remaining'
@@ -414,6 +431,7 @@ namespace BlockSort {
 		return result;
 	}
 
+
 	/*
 	 * ComparesAndMoves blockMerge(uv_array, size, v);
 	 *
@@ -426,7 +444,7 @@ namespace BlockSort {
 	 *   The position of the first element in v, in this case [4] = 1,
 	 *   	must be provided by the caller
 	 *
-	 *   The algorithm looks for the first element in v that is > u
+	 *   The algorithm looks for the first element in v that is <
 	 *      the first element in u, then rotates
 	 * 		{ 2, 3, 3, 8, 1, 3, 7, 7 }	[u=0] is 2, [v=4] is 1, count = 0
 	 * 		{ 2, 3, 3, 8, 1, 3, 7, 7 }  [u=0] is 2, [v=5] is 3, count = 1
@@ -486,8 +504,31 @@ namespace BlockSort {
 		return result;
 	}
 
+
+	template <typename T>
+	ComparesAndMoves blockMove(T**p_array, int left_index, int right_index, int block_size) {
+
+		ComparesAndMoves result;
+
+		T* tmp;
+
+		for (int i = 0; i != block_size; i++) {
+			tmp = p_array[left_index];
+			p_array[left_index] = p_array[right_index];
+			p_array[right_index] = tmp;
+			left_index++;
+			right_index++;
+			result._moves += 3;
+		}
+
+		return result;
+	}
+
+
 	/*
-	 * 	ComparesAndMoves sortBlocks(p_array, size, p_tags, num_tags);
+	 * 	ComparesAndMoves sortBlocksLeftToRight(p_array, size, p_tags, num_tags);
+	 *
+	 *	(Note: this is called 'LeftToRight' because the B_Blocks are parsed left to right)
 	 *
 	 *	This assumes that an array of block tags containing information
 	 *	  about block types, block keys (for sorting) are stored in p_tags
@@ -560,17 +601,25 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortBlocks(T **array, array_size_t size, BlockTag<T> *tags, int num_tags) {
+	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size, BlockTag<T> *tags, int num_tags) {
 
 		ComparesAndMoves result(0,0);
 
 		//	if the array consists of all A_Blocks, we are done
-		if (tags[num_tags-1].type == BlockType::A_BLOCK)
+		if (tags[num_tags-1].type == BlockType::A_BLOCK) {
+#if DEBUG_VERBOSE_SORT_BLOCKS
+			std::cout << "All blocks are A Blocks" << std::endl;
+#endif
 			return result;
+		}
 
 		// 	if the array consists of all B_Blocks, we are done
-		if (tags[0].type == BlockType::B_BLOCK)
+		if (tags[0].type == BlockType::B_BLOCK) {
+#if DEBUG_VERBOSE_SORT_BLOCKS
+			std::cout << "All blocks are B Blocks" << std::endl;
+#endif
 			return result;
+		}
 
 		int num_a_blocks = 0;
 		for (int i = 0; i != num_tags; i++) {
@@ -580,7 +629,14 @@ namespace BlockSort {
 				break;
 		}
 
-		std::cout << "sortBlocks()" << std::endl;
+#if DEBUG_VERBOSE_SORT_BLOCKS
+		std::cout << "sortBlocksLeftToRight()" << std::endl;
+		if (isSorted(tags, num_tags)) {
+			std::cout << "Tags are initially sorted" << std::endl;
+		} else {
+			std::cout << "Tags are not sorted" << std::endl;
+		}
+#endif
 
 		// process every a block
 		for (int left_block = num_a_blocks-1; left_block >= 0; left_block--) {
@@ -608,6 +664,7 @@ namespace BlockSort {
 			int end_of_rotated_span 	= tags[right_block].end_index;
 			int rotate_count 			= tags[right_block].start_index - tags[left_block].start_index;
 
+#if DEBUG_VERBOSE_SORT_BLOCKS
 			printLineArrayIndices(size, 3, 4);
 			printElements(std::string("\n"), array, size, 3, 4);
 			std::stringstream debug;
@@ -615,6 +672,8 @@ namespace BlockSort {
 				  << " b_block: " 		 << right_block << "[" << tags[right_block].start_index << ":" << tags[right_block].end_index << "]"
 				  << ", " << rotate_count << "\n\n";
 			printTags(debug.str(), tags, num_tags, 4);
+#endif
+
 			result += rotateArray(array, rotate_count, start_of_rotated_span, end_of_rotated_span);
 			//	update the block types in the block tag array
 			BlockType left_block_type = tags[left_block].type;		// an A_Block
@@ -627,17 +686,223 @@ namespace BlockSort {
 				}
 			}
 			tags[right_block].type = left_block_type;
-			if (tags[right_block].type == BlockType::B_BLOCK) {
+			if (tags[right_block].type == BlockType::A_BLOCK) {
 				tags[right_block].key = array[tags[right_block].start_index];
 			} else {
 				tags[right_block].key = array[tags[right_block].end_index];
 			}
-
+#if DEBUG_VERBOSE_SORT_BLOCKS
 			printLineArrayIndices(size, 3, 4);
 			printTags(std::string(" AFTER\n"), tags, num_tags, 4);
 			printElements(std::string("\n\n"), array, size, 3, 4);
+#endif
 		}
+
+#if DEBUG_VERBOSE_SORT_BLOCKS
+		if (isSorted(tags, num_tags)) {
+			std::cout << "Tags are sorted" << std::endl;
+		} else {
+			std::cout << "Tags are NOT sorted" << std::endl;
+		}
+#endif
+#if DEBUG_SUMMARY_SORT_BLOCKS
+		std::cout << "sortBlocksLefToRight() took " << result << std::endl;
+#endif
+		return result;
+	}
+
+	/*
+	 * 	ComparesAndMoves sortBlocksRightToLeft(p_array, size, p_tags, num_tags);
+	 *
+	 *	(Note: this is called 'RightToLeft' because the B_Blocks are parsed from the Right)
+	 *
+	 *	This assumes that an array of block tags containing information
+	 *	  about block types, block keys (for sorting) are stored in p_tags
+	 *
+	 *	The result of this function is that the blocks are arranged
+	 *	  in ascending order to facilitate a block merge which will result
+	 *	  in the whole array being in order
+	 *
+	 *	Entry into this routine assumes that the values in the A_Blocks in the 'u' half of the array (left)
+     *	  are in order and the values in the B_Blocks in the 'v' half of the array (right) are in order
+     *	  although the total array may not be in order
+     *
+     *	  An A_Block's key value is the left most element and a B_Block's key value is the right most element
+     *
+     *	  (Note that the Block information is stored in a separate "Tag" array from the array "Values")
+     *
+     *	Name/Key: ALPHA='D'	    BRAVO='E'   CHARLIE='C'    DELTA='E'      ECHO='G'
+     *	Tags:	  A_Block		A_Block		  B_Block		B_Block		  B_Block
+     *	Values:	{ D, E, F } : { E, F, G } : { A, B, C } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
+     *	right_index = num_tags-1;		// ECHO in this case
+     *	Starting at left_most A_Block	// BRAVO in this case
+     *	  while (right_index > left_index && tag[right_index] >= tag[left_index])
+     *	    rightmost_index--
+     *	  if (right_index < left_index)
+     *	  	done
+     *	  rotate span from left_most:right_most
+     *	  rightmost--
+     *	  leftmost--
+     *
+     *	starting with [leftmost=2]  CHARLIE='C' vs [rightmost=4]  ECHO.'G'
+     *		ECHO.'G' >= BRAVO.'D', rightmost-- to 3
+     *		DELTA.'E' >= BRAVO.'D' rightmost-- to 2
+     *		CHARLIE.'C' >= BRAVO.'D'
+     *		  rotate CHARLIE.'C' into position
+     *		  update Block Types and keys
+     *		  rightmost-- to 1
+     *		  leftmost-- to 0
+     *		continue
+     *
+     *	The CHARLIE='C' will go to the left of BRAVO='E'
+     *
+     *	Name/Key: ALPHA='D'	   CHARLIE='A'   BRAVO='G'    DELTA='E'      ECHO='G'
+     *	Tags:	  A_Block		A_Block		  B_Block		B_Block		  B_Block
+     *	Values:	{ D, E, F } : { A, B, C } : { E, F, G } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
+     *	  As a result rotating the array, values [3:9] are in the correct position, but CHARLIE, which
+     *		was a B_Block has now inherited an A_Block tag, and BRAVO, which was an A_Block has now
+     *		inherited a B_Block's tag.  This causes the key values, which are determined by the Block type
+     *	    to be incorrect.  This is fixed by changing the block types.  Stated alternatively, the Block type
+     *		always moves with the array values during a rotation
+     *
+     *	The process continues with leftmost = 0 and rightmost = 1
+     *	  [rightmost=1] CHARLIE.'C' vs [leftmost=0] ALPHA.'D'
+     *
+     *	Name/Key: ALPHA='D'	   CHARLIE='C'   BRAVO='E'      DELTA='E'      ECHO='G'
+     *	Tags:	  A_Block		B_Block		  A_Block		B_Block		  B_Block
+     *	Values:	{ D, E, F } : { A, B, C } : { E, F, G } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
+     *
+     *	Name/Key: CHARLIE='C'   ALPHA='D'     BRAVO='E'    DELTA='E'      ECHO='G'
+     *	Tags:	  B_Block		A_Block		  A_Block		B_Block		  B_Block
+     *	Values:	{ A, B, C } : { D, E, F } : { E, F, G } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
+     *	  The blocks are now in order, { 'C', 'D', 'E', 'E', 'G' }  A block-by-block merge can be performed
+     *
+     *	  the loop contains the check B_Block < num_tags
+     *	 In that case, [rightmost=4] ECHO.'G' >= [leftmost=0] ALPHA.'D' compares false
+     *
+     *	Name/Key: ALPHA='D'	    BRAVO='E'   CHARLIE='C'    DELTA='E'      ECHO='G'
+     *	Tags:	  A_Block		A_Block		  B_Block		B_Block		  B_Block
+     *	Values:	{ H, I, J } : { E, F, G } : { A, B, C } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
+	 */
+
+	template <typename T>
+	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size, BlockTag<T> *tags, int num_tags) {
+
+		ComparesAndMoves result(0,0);
+
+		//	if the array consists of all A_Blocks, we are done
+		if (tags[num_tags-1].type == BlockType::A_BLOCK) {
+#if DEBUG_VERBOSE_SORT_BLOCKS
+			std::cout << "All blocks are A Blocks" << std::endl;
+#endif
+			return result;
+		}
+
+		// 	if the array consists of all B_Blocks, we are done
+		if (tags[0].type == BlockType::B_BLOCK) {
+#if DEBUG_VERBOSE_SORT_BLOCKS
+			std::cout << "All blocks are B Blocks" << std::endl;
+#endif
+			return result;
+		}
+
+		int num_a_blocks = 0;
+		for (int i = 0; i != num_tags; i++) {
+			if (tags[i].type == BlockType::A_BLOCK)
+				num_a_blocks++;
+			else
+				break;
+		}
+
+#ifdef DEBUG_VERBOSE_SORT_BLOCKS
+		std::cout << "sortBlocksRightToLeft()" << std::endl;
+		if (isSorted(tags, num_tags)) {
+			std::cout << "Tags are initially sorted" << std::endl;
+		} else {
+			std::cout << "Tags are not sorted" << std::endl;
+		}
+#endif
+
+		int right_block = num_tags-1;
+
+		// process every A_Block
+		for (int left_block = num_a_blocks-1; left_block >= 0; left_block--) {
+
+			// find the rightmost B_Block that is < the A_Block
+			result._compares++;
+			while (right_block > left_block && tags[right_block] >= tags[left_block]) {
+				right_block--;
+				result._compares++;
+			}
+
+			if (right_block <= left_block) {
+				break;
+			}
+
+			int start_of_rotated_span 	= tags[left_block].start_index;
+			int end_of_rotated_span 	= tags[right_block].end_index;
+			int rotate_count 			= tags[right_block].start_index - tags[left_block].start_index;
+
+#if DEBUG_VERBOSE_SORT_BLOCKS
+			printLineArrayIndices(size, 3, 4);
+			printElements(std::string("\n"), array, size, 3, 4);
+			std::stringstream debug;
+			debug << " BEFORE a_block: " << left_block  << "[" << tags[left_block].start_index << ":" << tags[left_block].end_index << "]"
+				  << " b_block: " 		 << right_block << "[" << tags[right_block].start_index << ":" << tags[right_block].end_index << "]"
+				  << ", " << rotate_count << "\n\n";
+			printTags(debug.str(), tags, num_tags, 4);
+#endif
+
+			result += rotateArray(array, rotate_count, start_of_rotated_span, end_of_rotated_span);
+			//	update the block types in the block tag array
+			BlockType left_block_type = tags[left_block].type;		// an A_Block
+			for (int i = left_block; i < right_block; i++) {
+				tags[i].type = tags[i+1].type;
+				if (tags[i].type == BlockType::A_BLOCK) {
+					tags[i].key = array[tags[i].start_index];
+				} else {
+					tags[i].key = array[tags[i].end_index];
+				}
+			}
+			tags[right_block].type = left_block_type;
+			if (tags[right_block].type == BlockType::A_BLOCK) {
+				tags[right_block].key = array[tags[right_block].start_index];
+			} else {
+				tags[right_block].key = array[tags[right_block].end_index];
+			}
+#if DEBUG_VERBOSE_SORT_BLOCKS
+			printLineArrayIndices(size, 3, 4);
+			printTags(std::string(" AFTER\n"), tags, num_tags, 4);
+			printElements(std::string("\n\n"), array, size, 3, 4);
+#endif
+		}
+
+#ifdef DEBUG_VERBOSE_SORT_BLOCKS
+		for (int i = 0; i != num_tags; i++) {
+			std::cout << *tags[i].key << " ";
+		}
+		std::cout << std::endl;
+
+		if (isSorted(tags, num_tags)) {
+			std::cout << "Tags are sorted" << std::endl;
+		} else {
+			std::cout << "Tags are NOT sorted" << std::endl;
+		}
+#endif
+
+#if DEBUG_SUMMARY_SORT_BLOCKS
 		std::cout << "sortBlocks() took " << result << std::endl;
+#endif
 		return result;
 	}
 
@@ -651,7 +916,9 @@ namespace BlockSort {
 		result += InsertionSort::sortPointersToObjects(array, v);
 		result += InsertionSort::sortPointersToObjects(&array[v], size-v);
 
+#ifdef DEBUG_VERBOSE_BLOCK_SORT
 		printElements(std::string(" after insertion sorting halves\n"), array, size, value_width, element_width);
+#endif
 
 		array_size_t u_size = v;
 		array_size_t v_size = (size - u_size);
@@ -687,11 +954,11 @@ namespace BlockSort {
 			if (end_of_block >= size)
 				end_of_block = size-1;
 		}
-//		printTags(std::string(" tags\n"), tags, num_blocks, element_width);
-		result = sortBlocks(array, size, tags, num_blocks);
-//		printTags(std::string(" tags\n"), tags, num_blocks, element_width);
-//		printElements(std::string("\n"), array, size, value_width, element_width);
-//		std::cout << std::endl;
+#ifdef SORT_BLOCKS_LEFT_TO_RIGHT
+		result = sortBlocksLeftToRight(array, size, tags, num_blocks);
+#else
+		result = sortBlocksRightToLeft(array, size, tags, num_blocks);
+#endif
 		return result;
 	}
 
