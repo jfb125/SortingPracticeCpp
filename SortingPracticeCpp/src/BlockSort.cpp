@@ -81,9 +81,13 @@ void printArrayIndices(array_size_t size, int value_width, int element_width) {
 }
 
 void printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width) {
-
 	printArrayIndices(size, value_width, element_width);
 	std::cout << trailer;
+}
+
+void printLineArrayIndices(array_size_t size, int value_width, int element_width) {
+	printArrayIndices(size, value_width, element_width);
+	std::cout << std::endl;
 }
 
 /*	**********************************************	*/
@@ -276,7 +280,7 @@ bool testBlockSortSort() {
 	int element_width = 4;
 	int value_width = 3;
 
-	printArrayIndices(array_size, value_width, element_width);
+	printArrayIndices(std::string("\n"), array_size, value_width, element_width);
 	std::cout << std::endl;
 	BlockSort::printElements(std::string(" initially\n"), test_array, array_size, value_width, element_width);
 	SortingUtilities::randomizeArray(test_array, array_size);

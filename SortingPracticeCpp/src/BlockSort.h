@@ -21,6 +21,7 @@ bool	testBlockSort();
 
 array_size_t floorLog2(array_size_t num);
 void printArrayIndices(array_size_t size, int value_width, int element_width);
+void printLineArrayIndices(array_size_t size, int value_width, int element_width);
 void printArrayIndices(std::string header, array_size_t size, int value_width, int element_width);
 
 #define TAG_BOUNDARY_CHAR '|'
@@ -486,41 +487,89 @@ namespace BlockSort {
 	}
 
 	/*
-	 * 	ComparesAndMoves sortBlocks(array, size, p_tags, num_tags);
+	 * 	ComparesAndMoves sortBlocks(p_array, size, p_tags, num_tags);
 	 *
-	 * 			Organizes the array such that every A_Block (left side block)
-	 * 		is moved to the right of every B_Block (right side block)
-	 * 		that is less than it where 'is less' is determined by comparing
-	 * 		the left-most element of the a_block (which is tag.key)
-	 * 		against the right-most element of the b block (tag.key)
-	 * 			This ensures that no element in an A_Block (left) is moved
-	 * 		to the right of the same value element in the B_Block, which
-	 * 		would no longer guarantee stability
+	 *	This assumes that an array of block tags containing information
+	 *	  about block types, block keys (for sorting) are stored in p_tags
 	 *
-	 *	BlockType:Key, 	there are 5 A_Blocks and 5 B_Blocks
-	 *	initial: A:1  A:2  A:11 A:19 A:27 B:7  B:15 B:22 B:29 B:37
-	 *	final:   A:1  A:2  B:7  A:11 B:15 A:19 B:22 A:27 B:29 B:37
+	 *	The result of this function is that the blocks are arranged
+	 *	  in ascending order to facilitate a block merge which will result
+	 *	  in the whole array being in order
 	 *
-	 *	Algorithm:
-	 *		lowest_b_block = num_a_blocks
-	 *		for (a_block = num_a_blocks-1; a_block >= 0; a_block--)
-	 *			rotate_count = 0
-	 *			b_block = lowest_b_block
-	 *			while (b_block < num_blocks && blocks[b_block].key < blocks[a_block].key)
-	 *				rotate_count += num elements in blocks[b_block.key]
-	 *				b_block++
-	 *			if rotate_count
-	 *				rotate array (&array[blocks[a_block].start_index], rotate_count
-	 *				lowest_b_block--	// lowest_b_block go rotated to the left
-	 *
+	 *	Entry into this routine assumes that the values in the A_Blocks in the 'u' half of the array (left)
+     *	  are in order and the values in the B_Blocks in the 'v' half of the array (right) are in order
+     *	  although the total array may not be in order
+     *
+     *	  An A_Block's key value is the left most element and a B_Block's key value is the right most element
+     *
+     *	  (Note that the Block information is stored in a separate "Tag" array from the array "Values")
+     *
+     *	Name/Key: ALPHA='D'	    BRAVO='E'   CHARLIE='C'    DELTA='E'      ECHO='G'
+     *	Tags:	  A_Block		A_Block		  B_Block		B_Block		  B_Block
+     *	Values:	{ D, E, F } : { E, F, G } : { A, B, C } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
+     *	Starting at the rightmost A_Block (BRAVO in the above example), move rightward through all of the
+     *    B_Blocks until the first B_Block is found that is >= to the A_Block.  In the above example,
+     *	  moving from BRAVO = 'E' > CHARLIE = 'C' onto BRAVO = 'E' <= DELTA = 'E'
+     *
+     *	The  BRAVO = 'E' will go to the left of DELTA = 'E' which is to the right of CHARLIE = 'C'
+     *
+     *	If an A_Block of equal key value was placed to the right of a B_Block of equal key value, the
+     *	  A_Block's key, which had been on the left side of the B_Block's key, would now be on the opposite
+     *	  (right) side of the B_Block's key.  This reordering would result in the sort not being stable
+     *	  because two keys of equal value had swapped their relative position
+     *
+     *	  Elements 3:9 get rotated by a total of (CHARLIE.start = 6) - (BRAVO.start = 3) = 3 positions
+     *
+     *	Name/Key: ALPHA='D'	   CHARLIE='A'   BRAVO='G'    DELTA='E'      ECHO='G'
+     *	Tags:	  A_Block		A_Block		  B_Block		B_Block		  B_Block
+     *	Values:	{ D, E, F } : { A, B, C } : { E, F, G } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
+     *	  As a result rotating the array, values [3:9] are in the correct position, but CHARLIE, which
+     *		was a B_Block has now inherited an A_Block tag, and BRAVO, which was an A_Block has now
+     *		inherited a B_Block's tag.  This causes the key values, which are determined by the Block type
+     *	    to be incorrect.  This is fixed by changing the block types.  Stated alternatively, the Block type
+     *		always moves with the array values during a rotation
+     *
+     *	Name/Key: ALPHA='D'	   CHARLIE='C'   BRAVO='E'      DELTA='E'      ECHO='G'
+     *	Tags:	  A_Block		B_Block		  A_Block		B_Block		  B_Block
+     *	Values:	{ D, E, F } : { A, B, C } : { E, F, G } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
+     *	The process will be repeated for the A_Block ALPHA.  In this case, BRAVO = 'E' is the
+     *	  first block >= ALPHA = 'D'.  ALPHA needs to be moved to the Left of BRAVO which is the right of CHARLIE
+     *
+     *	Name/Key: CHARLIE='C'   ALPHA='D'     BRAVO='E'    DELTA='E'      ECHO='G'
+     *	Tags:	  B_Block		A_Block		  A_Block		B_Block		  B_Block
+     *	Values:	{ A, B, C } : { D, E, F } : { E, F, G } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
+     *	  The blocks are now in order, { 'C', 'D', 'E', 'E', 'G' }  A block-by-block merge can be performed
+     *
+     *	Note that it is possible that an A_Block goes at the end, which is why
+     *	  the loop contains the check B_Block < num_tags
+     *	  In that case, the last block
+     *
+     *	Name/Key: ALPHA='D'	    BRAVO='E'   CHARLIE='C'    DELTA='E'      ECHO='G'
+     *	Tags:	  A_Block		A_Block		  B_Block		B_Block		  B_Block
+     *	Values:	{ H, I, J } : { E, F, G } : { A, B, C } : { C, D, E } : { E, F, G }
+     *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
+     *
 	 */
+
 	template <typename T>
 	ComparesAndMoves sortBlocks(T **array, array_size_t size, BlockTag<T> *tags, int num_tags) {
 
 		ComparesAndMoves result(0,0);
 
 		//	if the array consists of all A_Blocks, we are done
-		if (tags[num_tags-1].type != BlockType::B_BLOCK)
+		if (tags[num_tags-1].type == BlockType::A_BLOCK)
+			return result;
+
+		// 	if the array consists of all B_Blocks, we are done
+		if (tags[0].type == BlockType::B_BLOCK)
 			return result;
 
 		int num_a_blocks = 0;
@@ -530,41 +579,65 @@ namespace BlockSort {
 			else
 				break;
 		}
-		//	if the array consists of all B_BLOCKS, we are done
-		if (num_a_blocks == 0)
-			return result;
 
-		int b_block = num_tags-1;
+		std::cout << "sortBlocks()" << std::endl;
 
-		printTags(std::string("before sortBlocks()\n"), tags, num_tags, 4);
 		// process every a block
-		for (int a_block = num_a_blocks-1, b_block = num_tags-1; a_block >= 0; a_block--) {
-			int rotate_count = 0;
-			// find first block that
-			int b_block = lowest_b_block;
-			while (b_block < num_tags && *tags[b_block].key > *tags[a_block].key) {
-				rotate_count += tags[b_block].num_elements();
-				b_block++;
-				result._moves++;
-			}
-			std::cout << tags[a_block].to_string() << " will be rotated to the right of " << tags[b_block].to_string() << std::endl;
-			std::stringstream debug;
-			debug << "BEFORE a_block: " << a_block << ", b_block: " << b_block << ", rotate_count " << rotate_count << "\n";
-			printTags(debug.str(), tags, num_tags, 4);
-			printElements(std::string("\n"), array, size, 3, 4);
-			if (rotate_count) {
-				//  rotate_count currently has the number of b_block elements
-				//	that have to be moved.  Add in the width of the a block itself
-//				rotate_count += tags[a_block].num_elements();
-				// rotate the array from the start of the a_block across all b_blocks
-				rotateArray(array, rotate_count, tags[a_block].start_index, tags[b_block].end_index);
-				lowest_b_block--;
-			}
-//			printTags(std::string("AFTER\n"), tags, num_tags, 4);
-			printElements(std::string("\n\n"), array, size, 3, 4);
-			break;
-		}
+		for (int left_block = num_a_blocks-1; left_block >= 0; left_block--) {
 
+			// the blocks to the right of the left_block are in order, although the
+			//	left_block may need to be inserted somewhere in the blocks to the right
+			int right_block = left_block+1;
+
+			//	move through the blocks to the right until a block is found that is >= this block
+			result._compares++;
+			while (right_block < num_tags && *tags[right_block].key < *tags[left_block].key) {
+				right_block++;
+				result._compares++;
+			}
+
+			//	If the proper place for this block is immediately to the left of its neighbor, done
+			if (left_block == right_block-1) {
+				continue;
+			}
+
+			// move the right_block index back to the block that goes BEFORE the left_block
+			right_block--;
+
+			int start_of_rotated_span 	= tags[left_block].start_index;
+			int end_of_rotated_span 	= tags[right_block].end_index;
+			int rotate_count 			= tags[right_block].start_index - tags[left_block].start_index;
+
+			printLineArrayIndices(size, 3, 4);
+			printElements(std::string("\n"), array, size, 3, 4);
+			std::stringstream debug;
+			debug << " BEFORE a_block: " << left_block  << "[" << tags[left_block].start_index << ":" << tags[left_block].end_index << "]"
+				  << " b_block: " 		 << right_block << "[" << tags[right_block].start_index << ":" << tags[right_block].end_index << "]"
+				  << ", " << rotate_count << "\n\n";
+			printTags(debug.str(), tags, num_tags, 4);
+			result += rotateArray(array, rotate_count, start_of_rotated_span, end_of_rotated_span);
+			//	update the block types in the block tag array
+			BlockType left_block_type = tags[left_block].type;		// an A_Block
+			for (int i = left_block; i < right_block; i++) {
+				tags[i].type = tags[i+1].type;
+				if (tags[i].type == BlockType::A_BLOCK) {
+					tags[i].key = array[tags[i].start_index];
+				} else {
+					tags[i].key = array[tags[i].end_index];
+				}
+			}
+			tags[right_block].type = left_block_type;
+			if (tags[right_block].type == BlockType::B_BLOCK) {
+				tags[right_block].key = array[tags[right_block].start_index];
+			} else {
+				tags[right_block].key = array[tags[right_block].end_index];
+			}
+
+			printLineArrayIndices(size, 3, 4);
+			printTags(std::string(" AFTER\n"), tags, num_tags, 4);
+			printElements(std::string("\n\n"), array, size, 3, 4);
+		}
+		std::cout << "sortBlocks() took " << result << std::endl;
 		return result;
 	}
 
@@ -588,15 +661,15 @@ namespace BlockSort {
 		int num_A_blocks = u_size / block_size + (first_u_width != 0 ? 1: 0);
 		int num_B_blocks = v_size / block_size + (last_v_width != 0 ? 1 : 0);
 		int num_blocks = num_A_blocks + num_B_blocks;
-		std::cout << "u_size " << u_size
-				  << " v_size " << v_size
-				  << " block_width " << block_size
-				  << " first_u_width " << first_u_width
-				  << " last_v_width " << last_v_width
-				  << " num_blocks " << num_blocks << std::endl;
+//		std::cout << "u_size " << u_size
+//				  << " v_size " << v_size
+//				  << " block_width " << block_size
+//				  << " first_u_width " << first_u_width
+//				  << " last_v_width " << last_v_width
+//				  << " num_blocks " << num_blocks << std::endl;
 		BlockTag<T> tags[num_blocks];
 		array_size_t start_of_block = 0;
-		//	if the first block is less than a full block size, othewisze full size
+		//	if the first block is less than a full block size, otherwise full size
 		array_size_t end_of_block = first_u_width != 0 ? first_u_width-1 : block_size-1;
 		for (int i = 0; i < num_blocks; i++) {
 			tags[i].start_index = start_of_block;
@@ -614,10 +687,10 @@ namespace BlockSort {
 			if (end_of_block >= size)
 				end_of_block = size-1;
 		}
-		printTags(std::string(" tags\n"), tags, num_blocks, element_width);
-		sortBlocks(array, size, tags, num_blocks);
-		printTags(std::string(" tags\n"), tags, num_blocks, element_width);
-		printElements(std::string("\n"), array, size, value_width, element_width);
+//		printTags(std::string(" tags\n"), tags, num_blocks, element_width);
+		result = sortBlocks(array, size, tags, num_blocks);
+//		printTags(std::string(" tags\n"), tags, num_blocks, element_width);
+//		printElements(std::string("\n"), array, size, value_width, element_width);
 //		std::cout << std::endl;
 		return result;
 	}
