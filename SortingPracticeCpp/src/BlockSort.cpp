@@ -68,6 +68,21 @@ char to_char(BlockType type) {
 	}
 }
 
+	//	handles negative amounts and amounts > span
+amount_t calculateRotationAmount(amount_t amount, amount_t span)  {
+	amount_t result = amount;
+	while (result < 0)
+		result += span;
+	result %= span;
+	return result;
+}
+
+
+/*	**********************************************************************	*/
+/*	**********************************************************************	*/
+/*								debugging resources							*/
+/*	**********************************************************************	*/
+/*	**********************************************************************	*/
 
 void printArrayIndices(array_size_t size, int value_width, int element_width) {
 
@@ -96,9 +111,10 @@ void printLineArrayIndices(array_size_t size, int value_width, int element_width
 /*	**********************************************	*/
 /*	**********************************************	*/
 
+//#define TEST_MODULO
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-//#define TEST_BLOCK_SORT_ROTATE_ARRAY
-#define	TEST_BLOCK_SORT_SORT
+#define TEST_BLOCK_SORT_ROTATE_ARRAY
+//#define	TEST_BLOCK_SORT_SORT
 
 bool testFloorLog2();
 bool testRotateArray();
@@ -123,6 +139,16 @@ bool testBlockSortSort();
 bool testBlockSort() {
 	bool passed = true;
 	std::cout << "testBlockSort()" << std::endl;
+
+#ifdef TEST_MODULO
+	for (array_size_t span = 7; span <= 9; span++) {
+		for (array_size_t i = -9; i <= 9; i++) {
+			array_size_t expected = calculateRotationAmount(i, span);
+			std::cout << std::setw(2) << i << " % " << span << " = " << expected <<  " | ";
+		}
+		std::cout << std::endl;;
+	}
+#endif
 
 #ifdef TEST_BLOCK_SORT_FLOOR_LOG_2
 	runTest(passed, testFloorLog2, "function floorLog2()");
@@ -223,8 +249,8 @@ bool testRotateArray() {
 	// test an array of even size and an array of odd size
 	for (index_t sub_array_size = array_size; sub_array_size >= array_size-1; sub_array_size-- ) {
 		// test different rotate amounts, left and right,
-		//	from -2*sub_array_size (left) to +2*sub_array_size (right)
-		for (index_t i = -sub_array_size; i <= 2*sub_array_size; i++) {
+		//	from -2*sub_array_size - 1 (left) to +2*sub_array_size + 1 (right)
+		for (index_t i = -sub_array_size - 1; i <= 2*sub_array_size + 1; i++) {
 			// 	create an array to rotate
 			char *rotated_array[sub_array_size];
 			for (index_t j = 0; j != sub_array_size; j++) {
@@ -263,6 +289,7 @@ bool testRotateArray() {
 TEST_ROTATE_ARRAY_RETURN_LABEL:
 	return test_passed;
 }
+
 bool testBlockSortSort() {
 	bool passed = true;
 	ComparesAndMoves sort_result;

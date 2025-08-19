@@ -41,6 +41,7 @@ enum class BlockType {
 	UNSPECIFIED
 };
 char to_char(BlockType type);
+array_size_t calculateRotationAmount(array_size_t amount, array_size_t span);
 
 namespace BlockSort {
 	using index_t = array_size_t;
@@ -400,10 +401,7 @@ namespace BlockSort {
 
 		index_t span = end - start + 1;
 
-		amount %= span;
-		if (amount < 0) {
-			amount = span+amount;
-		}
+		amount = calculateRotationAmount(amount, span);
 
 		if (amount == 0)
 			return result;
@@ -701,7 +699,7 @@ namespace BlockSort {
 			std::cout << "Tags are NOT sorted" << std::endl;
 		}
 #endif
-#if DEBUG_SUMMARY_SORT_BLOCKS
+#ifdef DEBUG_SUMMARY_SORT_BLOCKS
 		std::cout << "sortBlocksLefToRight() took " << result << std::endl;
 #endif
 		return result;
@@ -896,7 +894,7 @@ namespace BlockSort {
 		}
 #endif
 
-#if DEBUG_SUMMARY_SORT_BLOCKS
+#ifdef DEBUG_SUMMARY_SORT_BLOCKS
 		std::cout << "sortBlocks() took " << result << std::endl;
 #endif
 		return result;
