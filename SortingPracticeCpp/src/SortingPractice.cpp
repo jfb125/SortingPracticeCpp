@@ -43,22 +43,22 @@ int main(int argc, char *argv[])
 	testBlockSort();
 	return EXIT_SUCCESS;
 
-	int num_repetitions = 10;
+	int num_repetitions = 100;
 
-	constexpr array_size_t min_array_size =  10;
-	constexpr array_size_t max_array_size =  1000;
-	array_size_t (*next_size)(array_size_t current) = next_power_of_10;
+	constexpr array_size_t min_array_size =  8;
+	constexpr array_size_t max_array_size =  128;
+	array_size_t (*next_size)(array_size_t current) = next_power_of_2;
 	int num_array_sizes = getNumSizes(min_array_size, max_array_size, next_size);
 
 	SortAlgorithms 	sort_algorithms[] = {
 			SortAlgorithms::BUBBLE_SORT,
-			SortAlgorithms::SELECTION_SORT,
-			SortAlgorithms::INSERTION_SORT,
+//			SortAlgorithms::SELECTION_SORT,
+//			SortAlgorithms::INSERTION_SORT,
 			SortAlgorithms::MERGE_SORT,
-			SortAlgorithms::HEAP_SORT,
-			SortAlgorithms::QUICK_SORT,
-			SortAlgorithms::OPTIMIZED_QUICK_SORT,
-			SortAlgorithms::DUTCH_FLAG_SORT,
+//			SortAlgorithms::HEAP_SORT,
+//			SortAlgorithms::QUICK_SORT,
+//			SortAlgorithms::OPTIMIZED_QUICK_SORT,
+//			SortAlgorithms::DUTCH_FLAG_SORT,
 	};
 	int num_sort_algorithms = sizeof(sort_algorithms)/sizeof(SortAlgorithms);
 
@@ -67,8 +67,8 @@ int main(int argc, char *argv[])
 	ArrayComposition array_compositions[] = {
 			{ArrayCompositions::ALL_DISCRETE, num_discrete, num_different},
 //			{ArrayCompositions::ALL_SAME, num_discrete, num_different},
-			{ArrayCompositions::FEW_DISCRETE, num_discrete, num_different},
-			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different}
+//			{ArrayCompositions::FEW_DISCRETE, num_discrete, num_different},
+//			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different}
 	};
 	int num_compositions = sizeof(array_compositions)/sizeof(ArrayComposition);
 

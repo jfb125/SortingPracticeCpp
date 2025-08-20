@@ -1,5 +1,11 @@
-Sorting Performance In C++ built on Aug 19 2025 at 14:47:05
+Sorting Performance In C++ built on Aug 20 2025 at 16:00:39
 testBlockSort()
--9 % 7 = 5 | -8 % 7 = 6 | -7 % 7 = 0 | -6 % 7 = 1 | -5 % 7 = 2 | -4 % 7 = 3 | -3 % 7 = 4 | -2 % 7 = 5 | -1 % 7 = 6 |  0 % 7 = 0 |  1 % 7 = 1 |  2 % 7 = 2 |  3 % 7 = 3 |  4 % 7 = 4 |  5 % 7 = 5 |  6 % 7 = 6 |  7 % 7 = 0 |  8 % 7 = 1 |  9 % 7 = 2 | 
--9 % 8 = 7 | -8 % 8 = 0 | -7 % 8 = 1 | -6 % 8 = 2 | -5 % 8 = 3 | -4 % 8 = 4 | -3 % 8 = 5 | -2 % 8 = 6 | -1 % 8 = 7 |  0 % 8 = 0 |  1 % 8 = 1 |  2 % 8 = 2 |  3 % 8 = 3 |  4 % 8 = 4 |  5 % 8 = 5 |  6 % 8 = 6 |  7 % 8 = 7 |  8 % 8 = 0 |  9 % 8 = 1 | 
--9 % 9 = 0 | -8 % 9 = 1 | -7 % 9 = 2 | -6 % 9 = 3 | -5 % 9 = 4 | -4 % 9 = 5 | -3 % 9 = 6 | -2 % 9 = 7 | -1 % 9 = 8 |  0 % 9 = 0 |  1 % 9 = 1 |  2 % 9 = 2 |  3 % 9 = 3 |  4 % 9 = 4 |  5 % 9 = 5 |  6 % 9 = 6 |  7 % 9 = 7 |  8 % 9 = 8 |  9 % 9 = 0 | 
+test blockMerge with the rotate algorithm
+  Array size 2 nlog2(n)(array_size) = 2 averages 2.48 compares and 1.44 moves
+  Array size 4 nlog2(n)(array_size) = 8 averages 7.68 compares and 9.39 moves
+  Array size 8 nlog2(n)(array_size) = 24 averages 24.52 compares and 36.15 moves
+  Array size 16 nlog2(n)(array_size) = 64 averages 85.17 compares and 149.85 moves
+  Array size 32 nlog2(n)(array_size) = 160 averages 300.61 compares and 550.65 moves
+  Array size 64 nlog2(n)(array_size) = 384 averages 1099.16 compares and 2002.41 moves
+  Array size 128 nlog2(n)(array_size) = 896 averages 4172.93 compares and 7225.32 moves
+PASS:  function testBlockMerge() returns TRUE

@@ -113,11 +113,13 @@ void printLineArrayIndices(array_size_t size, int value_width, int element_width
 
 //#define TEST_MODULO
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-#define TEST_BLOCK_SORT_ROTATE_ARRAY
+//#define TEST_BLOCK_SORT_ROTATE_ARRAY
+#define TEST_BLOCK_MERGE
 //#define	TEST_BLOCK_SORT_SORT
 
 bool testFloorLog2();
 bool testRotateArray();
+bool testBlockMerge();
 bool testBlockSortSort();
 
 #define runTest(result, func, name_str) do {\
@@ -160,6 +162,10 @@ bool testBlockSort() {
 	runTest(passed, testRotateArray, "function rotateArray()");
 	if (!passed)
 		return passed;
+#endif
+
+#ifdef TEST_BLOCK_MERGE
+	runTest(passed, testBlockMerge, "function testBlockMerge()");
 #endif
 
 #ifdef	TEST_BLOCK_SORT_SORT
@@ -237,6 +243,30 @@ TEST_FLOOR_LOG_2_RETURN_LABEL:
 	return passed;
 }
 
+template <typename T>
+void rotateArrayLongWay(T**array, index_t size, index_t count) {
+
+	T* tmp;
+
+	if (count < 0) {
+		for (index_t i = count ; i != 0; i++) {
+			tmp = array[0];
+			for (index_t j = 0; j != size-1; j++) {
+				array[j] = array[j+1];
+			}
+			array[size-1] = tmp;
+		}
+	} else {
+		for (index_t i = 0; i != count; i++) {
+			tmp = array[size-1];
+			for (index_t j = size-1; j != 0; j--) {
+				array[j] = array[j-1];
+			}
+			array[0] = tmp;
+		}
+	}
+}
+
 bool testRotateArray() {
 
 	bool test_passed = true;
@@ -251,42 +281,175 @@ bool testRotateArray() {
 		// test different rotate amounts, left and right,
 		//	from -2*sub_array_size - 1 (left) to +2*sub_array_size + 1 (right)
 		for (index_t i = -sub_array_size - 1; i <= 2*sub_array_size + 1; i++) {
-			// 	create an array to rotate
+			// 	create an array to test rotation and an array of expecteds
 			char *rotated_array[sub_array_size];
+			char *expected_array[sub_array_size];
 			for (index_t j = 0; j != sub_array_size; j++) {
 				rotated_array[j] = test_array[j];
+				expected_array[j]= test_array[j];
 			}
-			//	rotate the array
+			rotateArrayLongWay(expected_array, sub_array_size, i);
 			rotate_result = rotateArray<char>(rotated_array, i, 0, sub_array_size-1);
-			// determine if array is reversed
-			bool array_is_reversed = true;
+			//	check results
 			for (int i = 0, j = sub_array_size-1; i < sub_array_size; i++, j--) {
-				if (test_array[i] != rotated_array[j]) {
-					array_is_reversed = false;
+				if (rotated_array[j] != expected_array[j]) {
+					test_passed = false;
 					break;
 				}
 			}
-			std::cout << (array_is_reversed ? "PASSED " : "FAILED ");
+			std::cout << (test_passed ? "PASSED " : "FAILED ");
 			//	print out before / after
-			std::cout << "rotate(" << std::setw(3) << i << ") ";
+			std::cout << "rotate(" << std::setw(3) << i << ") \"";
 			for (int j = 0; j != sub_array_size; j++) {
 				std::cout << *test_array[j];
 			}
-			std::cout << " yields ";
+			std::cout << "\" yields \"";
 			for (int j = 0; j != sub_array_size; j++) {
 				std::cout << *rotated_array[j];
 			}
-			std::cout << " took " << std::setw(3) << rotate_result._moves << " moves";
+			std:: cout << "\" vs expected \"";
+			for (int j = 0; j != sub_array_size; j++) {
+				std::cout << *expected_array[j];
+			}
+			std::cout << "\" took:" << std::setw(3) << rotate_result._moves << " moves";
 			std::cout << std::endl;
-			if (!array_is_reversed) {
-				test_passed = false;
-				goto TEST_ROTATE_ARRAY_RETURN_LABEL;
+
+			if (!test_passed) {
 				break;
 			}
 		}
+		if (!test_passed) {
+			break;
+		}
 	}
 
-TEST_ROTATE_ARRAY_RETURN_LABEL:
+	return test_passed;
+}
+
+
+bool testBlockMerge() {
+#ifdef BLOCK_MERGE_BY_ROTATE
+	std::cout << "test blockMerge with the rotate algorithm" << std::endl;
+#endif
+	bool test_passed = true;
+	SimpleRandomizer randomizer;
+
+	void (*printArray)(char**, int) = [] (char **l_array, int l_size){
+		std::cout << "\"";
+		for (int i = 0; i != l_size; i++) {
+			std::cout << *l_array[i];
+		}
+		std::cout << "\"";
+	};
+
+	ComparesAndMoves (*sortArray)(char**, int, int) = [] (char **l_array, int l_start, int l_end) {
+		ComparesAndMoves result(0,0);
+		for (int i = l_start+1; i <= l_end; i++) {
+			for (int j = i; j != l_start; j--) {
+				result._compares++;
+				if (*l_array[j-1] > *l_array[j]) {
+					char *tmp = l_array[j-1];
+					l_array[j-1] = l_array[j];
+					l_array[j] = tmp;
+					result._moves += 3;
+					result._compares++;
+				} else {
+					break;
+				}
+			}
+		}
+		return result;
+	};
+
+	int min_array_size = 2;
+	int max_array_size = 128;
+
+	for (int array_size = min_array_size; array_size <= max_array_size; array_size *= 2) {
+
+		bool verbose = false;
+		ComparesAndMoves total_result(0,0);
+		int num_tests = 100;
+
+		char *array[array_size];
+		char *before[array_size];
+		char *expected[array_size];
+
+		for (int test_number = 0; test_number != num_tests; test_number++) {
+
+			ComparesAndMoves result(0,0);
+			//	create a linear array
+			for (int i = 0; i != array_size; i++) {
+				char value = 'a'+(i%26);
+				array[i] = new char(value);
+				expected[i] = new char(value);
+			}
+
+			sortArray(expected, 0, array_size-1);
+
+			//	randomize the array
+			for (int i = 0; i != array_size; i++) {
+				int r = randomizer.rand(i, array_size);
+				char *tmp = array[i];
+				array[i] = array[r];
+				array[r] = tmp;
+			}
+
+			for (int i = 0; i != array_size; i++) {
+				before[i] = new char(*array[i]);
+			}
+
+			//	sort each subarray, u & v, using an insertion sort
+			result += sortArray(array, 0, array_size / 2-1);
+			result += sortArray(array, array_size / 2, array_size-1);
+
+			if (verbose) {
+				std::cout << "  before: ";
+				printArray(before, array_size);
+			}
+
+#ifdef BLOCK_MERGE_BY_ROTATE
+			result += blockMergeByRotate(array, 0, array_size/2, array_size-1);
+#endif
+			total_result += result;
+
+			if (verbose) {
+				std::cout << " after: ";
+				printArray(array, array_size);
+				std::cout << " used: " << result;
+			}
+
+			for (int i = 0; i != array_size; i++) {
+				if (*array[i] != *expected[i]) {
+					test_passed = false;
+					std::cout << "array size " << array_size
+							  << " test pass " << test_number
+							  << " before ";
+					printArray(before, array_size);
+					std::cout << " expected ";
+					printArray(expected, array_size);
+					std::cout << " actual ";
+					printArray(array, array_size);
+					std::cout << std::endl;
+					std::cout << " FAILED: [" << std::setw(3) << i << "]"
+							  << " expected " << expected[i]
+							  << " vs actual " << *array[i]
+							  << std::endl;
+					goto TEST_BLOCK_MERGE_RETURN_LABEL;
+				}
+			}
+			if (verbose)
+				std::cout << std::endl;
+		}
+		std::cout << "  Array size " << array_size << " nlog2(n)(array_size) = "
+				  << array_size * std::log2(array_size)
+				  << " averages "
+				  << static_cast<double>(total_result._compares) / num_tests
+				  << " compares and "
+				  << static_cast<double>(total_result._moves) / num_tests
+				  << " moves" << std::endl;
+	}
+
+TEST_BLOCK_MERGE_RETURN_LABEL:
 	return test_passed;
 }
 

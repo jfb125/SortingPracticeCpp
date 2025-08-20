@@ -43,10 +43,11 @@ enum class BlockType {
 char to_char(BlockType type);
 array_size_t calculateRotationAmount(array_size_t amount, array_size_t span);
 
+#define BLOCK_MERGE_BY_ROTATE
+
 namespace BlockSort {
 	using index_t = array_size_t;
 	using amount_t	= array_size_t;
-
 	template <typename T>
 	class BlockTag {
 	public:
@@ -478,14 +479,13 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves blockMerge(T** array, index_t start, index_t mid, index_t end) {
+	ComparesAndMoves blockMergeByRotate(T** array, index_t start, index_t mid, index_t end) {
 
 		ComparesAndMoves result(0,0);
 
 		index_t u = 0;
 		index_t v = mid;
 		amount_t rotate_count;
-		T* key;
 
 		while (1) {
 			// find the first in u that is > v,
@@ -500,20 +500,65 @@ namespace BlockSort {
 
 			// find the first value in v that > u
 			rotate_count = 0;
-			key = array[u];
 			// search for an element in v that is greater than array[u]
 			result._compares++;
-			while (v <= end && array[v] <= array[u]) {
+			while (v <= end && *array[v] <= *array[u]) {
+				v++;
 				result._compares++;
 				rotate_count++;
 			}
-			if (u > end)
-				break;
-
 			//	at this point `
 			//	rotate u to the right in the array
 			//	  past the last value in v that was equal to u_value
 			result += rotateArray(array, rotate_count, u, v-1);
+			//  point to the element that is one past the element
+			//    that u was pointing to which has now been rotated
+			u = u + rotate_count + 1;
+			if (v > end)
+				break;
+		}
+		return result;
+	}
+
+
+	template <typename T>
+	ComparesAndMoves blockMergeByAux(T** array, BlockTag<T> tags[], index_t num_tags) {
+
+		ComparesAndMoves result(0,0);
+		//	if the array is all of a particular type of block, it is sorted
+		if (tags[0].type == BlockType::B_BLOCK)
+			return result;
+		if (tags[num_tags-1] == BlockType::A_BLOCK)
+			return result;
+
+		//	if there are only 2 tags, it is possible that either (or both)
+		//	  of them are not full size blocks.  In that case do a classic merge sort
+		if (num_tags == 2) {
+			int left_size 	= tags[0].num_elements();
+			int right_size 	= tags[1].num_elements();
+			int l_dst 		= 0;
+			int l_dst_end 	= l_dst + left_size-1;
+			int r_dst		= left_size;
+			int r_dst_end 	= r_dst + right_size-1;
+			int l_src 		= tags[0].start_index;
+			int l_src_end	= tags[0].end_index;
+			int r_src		= tags[1].start_index;
+			int r_src_end	= tags[1].end_index;
+			T* aux[left_size + right_size];
+
+			while (1) {
+				//	if they are equal, take the left
+				if (*array[l_src] <= *array[r_src]) {
+					aux[l_dst++] = aux[l_src++];
+					if (l_dst == l_dst_end)
+				} else {
+					aux[l_dst++] = aux[r_src++];
+				}
+			}
+			for (int i = 0; i != left_size; i++) {
+			for (int i = tags[0].start, j = 0; i <= tags[1].end; i++, j++) {
+				aux_array[j] = array[i];
+			}
 		}
 		return result;
 	}
@@ -962,9 +1007,12 @@ namespace BlockSort {
 				continue;
 			}
 			// merge the A_Block
-			result += blockMerge(array, tags[right_block-1].start_index,//	start
-							  	  	    tags[right_block].start_index,	//  mid
-										tags[right_block].end_index);	//  end;
+#ifdef BLOCK_MERGE_BY_ROTATE
+			result +=
+				blockMergeByRotate(array, tags[right_block-1].start_index,//	start
+							  	  	      tags[right_block].start_index,	//  mid
+										  tags[right_block].end_index);	//  end;
+#endif
 		}
 		return result;
 	}
