@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <string>
 #include <cmath>
+#include <memory>
 
 #include "SortingPracticeDataTypes.h"
 #include "SortingUtilities.h"
@@ -374,65 +375,16 @@ namespace BlockSort {
 	/*	******************************************************************	*/
 	/*	******************************************************************	*/
 
-	/*
-	 * 	void rotateArray(array, amount, start, end);
-	 *
-	 * 	rotate the contents of the array by 'amount' positions
-	 * 	  where the array is defined as array[start]:array[end] (inclusive)
-	 *
-	 * 	algorithm:
-	 * 		consider amount to rotate = 3
-	 * 		array									{ A, B, C, D, E, F, G }
-	 * 		reverse the array						{ G, F, E, D, C, B, A }
-	 * 		reverse the sub array [start:amount-1]  { E, F, G  D, C, B, A }
-	 * 		reverse the sub array [amount:end]		{ E, F, G, A, B, C, D }
-	 *
-	 * 	note that amount can be negative or greater than the span
-	 * 		negative amounts are converted into the equivalent positive amount
-	 * 		amounts greater than the span are % to be within the span
-	 */
-
 	template <typename T>
-	ComparesAndMoves rotateArray(T** array, amount_t amount, index_t start, index_t end) {
-
-		ComparesAndMoves result(0,0);
-
-		if (end <= start)
-			return result;
-
-		index_t span = end - start + 1;
-
-		amount = calculateRotationAmount(amount, span);
-
-		if (amount == 0)
-			return result;
-
-		//	reverse the entire array
-		T* temp;
-		for (index_t i = start, j = end; i < j; i++, j--) {
-			temp = array[i];
-			array[i] = array[j];
-			array[j] = temp;
-			result._moves += 3;
-		}
-
-		//	reverse the left hand side
-		for (index_t i = start, j = start+amount-1; i < j; i++, j--) {
-			temp = array[i];
-			array[i] = array[j];
-			array[j] = temp;
-			result._moves += 3;
-		}
-
-		//	reverse the right hand side
-		for (index_t i = start + amount, j = end; i < j; i++, j--) {
-			temp = array[i];
-			array[i] = array[j];
-			array[j] = temp;
-			result._moves += 3;
-		}
-		return result;
-	}
+	ComparesAndMoves blockMergeByRotate(T** array, index_t start, index_t mid, index_t end);
+	template <typename T>
+	ComparesAndMoves blockSwap(T** array, index_t block1_start, index_t block2_start, index_t block_size);
+	template <typename T>
+	ComparesAndMoves rotateArray(T** array, index_t start, index_t end, index_t amount);
+	template <typename T>
+	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size, BlockTag<T> *tags, int num_tags);
+	template <typename T>
+	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size, BlockTag<T> *tags, int num_tags);
 
 
 	/*
@@ -521,44 +473,83 @@ namespace BlockSort {
 	}
 
 
+	/*
+	 *	ComparesAndMoves blockSwap(array, block1_start, block2_start, block_size)
+	 */
+
 	template <typename T>
-	ComparesAndMoves blockMergeByAux(T** array, BlockTag<T> tags[], index_t num_tags) {
+	ComparesAndMoves blockSwap(T** array, index_t block1_start, index_t block2_start, index_t block_size) {
+		ComparesAndMoves result(0,0);
+		T* temp;
+
+		for (index_t i = 0; i != block_size; i++) {
+			temp = array[block1_start];
+			array[block1_start] = array[block2_start];
+			array[block2_start] = temp;
+			block1_start++;
+			block2_start++;
+			result._moves += 3;
+		}
+		return result;
+	}
+
+
+	/*
+	 * 	ComparesAndSwaps rotateArray(array, amount, start, end);
+	 *
+	 * 	rotate the contents of the array by 'amount' positions
+	 * 	  where the array is defined as array[start]:array[end] (inclusive)
+	 *
+	 * 	algorithm:
+	 * 		consider amount to rotate = 3
+	 * 		array									{ A, B, C, D, E, F, G }
+	 * 		reverse the array						{ G, F, E, D, C, B, A }
+	 * 		reverse the sub array [start:amount-1]  { E, F, G  D, C, B, A }
+	 * 		reverse the sub array [amount:end]		{ E, F, G, A, B, C, D }
+	 *
+	 * 	note that amount can be negative or greater than the span
+	 * 		negative amounts are converted into the equivalent positive amount
+	 * 		amounts greater than the span are % to be within the span
+	 */
+
+	template <typename T>
+	ComparesAndMoves rotateArray(T** array, amount_t amount, index_t start, index_t end) {
 
 		ComparesAndMoves result(0,0);
-		//	if the array is all of a particular type of block, it is sorted
-		if (tags[0].type == BlockType::B_BLOCK)
-			return result;
-		if (tags[num_tags-1] == BlockType::A_BLOCK)
+
+		if (end <= start)
 			return result;
 
-		//	if there are only 2 tags, it is possible that either (or both)
-		//	  of them are not full size blocks.  In that case do a classic merge sort
-		if (num_tags == 2) {
-			int left_size 	= tags[0].num_elements();
-			int right_size 	= tags[1].num_elements();
-			int l_dst 		= 0;
-			int l_dst_end 	= l_dst + left_size-1;
-			int r_dst		= left_size;
-			int r_dst_end 	= r_dst + right_size-1;
-			int l_src 		= tags[0].start_index;
-			int l_src_end	= tags[0].end_index;
-			int r_src		= tags[1].start_index;
-			int r_src_end	= tags[1].end_index;
-			T* aux[left_size + right_size];
+		index_t span = end - start + 1;
 
-			while (1) {
-				//	if they are equal, take the left
-				if (*array[l_src] <= *array[r_src]) {
-					aux[l_dst++] = aux[l_src++];
-					if (l_dst == l_dst_end)
-				} else {
-					aux[l_dst++] = aux[r_src++];
-				}
-			}
-			for (int i = 0; i != left_size; i++) {
-			for (int i = tags[0].start, j = 0; i <= tags[1].end; i++, j++) {
-				aux_array[j] = array[i];
-			}
+		amount = calculateRotationAmount(amount, span);
+
+		if (amount == 0)
+			return result;
+
+		//	reverse the entire array
+		T* temp;
+		for (index_t i = start, j = end; i < j; i++, j--) {
+			temp = array[i];
+			array[i] = array[j];
+			array[j] = temp;
+			result._moves += 3;
+		}
+
+		//	reverse the left hand side
+		for (index_t i = start, j = start+amount-1; i < j; i++, j--) {
+			temp = array[i];
+			array[i] = array[j];
+			array[j] = temp;
+			result._moves += 3;
+		}
+
+		//	reverse the right hand side
+		for (index_t i = start + amount, j = end; i < j; i++, j--) {
+			temp = array[i];
+			array[i] = array[j];
+			array[j] = temp;
+			result._moves += 3;
 		}
 		return result;
 	}
@@ -945,6 +936,101 @@ namespace BlockSort {
 		return result;
 	}
 
+	/*
+	 * 	ComparesAndMoves sortArray(array, start, mid, end, block_size);
+	 *
+	 * 	This function sorts the blocks of the 'array' of size 'block_size'
+	 *    S                          M                    E
+	 * 	{ a, c, e, e, e, k, m, o, q, b, c, c, c, d, d, d, d }	block_size = 4
+	 *
+	 * 	  S        A Blocks                   M         B Blocks      E
+	 * 	{ a } { c, e, e, e } { k, m, o, q } { b, c, c, c } { d, d, d, d }
+	 *
+	 * 	{ a } { c, e, e, e } { b, c, c, c } { d, d, d, d } { k, m, o, q }
+	 *
+	 */
+
+	template <typename T>
+	ComparesAndMoves sortArray(T** array, index_t start, index_t mid, index_t end, index_t block_size)
+	{
+		ComparesAndMoves result(0,0);
+
+		return result;
+	}
+
+	template <typename T>
+	int tagBlocks(T** array, index_t start, index_t mid, index_t end, BlockTag<T>* &tags, index_t block_size) {
+
+		index_t lower_span = mid-start;
+		index_t upper_span = end-mid + 1;
+
+		// calculate the total number of blocks
+		int num_blocks = lower_span / block_size + upper_span / block_size;
+		int first_block_size = lower_span % block_size;
+		// if there is a partial first block
+		if (first_block_size != 0)
+			num_blocks++;
+		//	if there is a partial last block
+		if (upper_span % block_size)
+			num_blocks++;
+
+		// create the block storage
+		tags = new BlockTag<T>[num_blocks];
+
+		//	assign values to the blocks
+		int block_number = 0;
+		index_t start_of_block = 0;
+
+		//	do the A_Blocks first
+		//	if the first A_Block is a partial
+		if (first_block_size) {
+			BlockTag<T> *p 	= &tags[block_number];
+			p->type 		= BlockType::A_BLOCK;
+			p->start_index 	= start;
+			p->end_index 	= start_of_block + first_block_size-1;
+			p->key 			= array[start_of_block];
+			start_of_block += first_block_size;
+			block_number = 1;
+		}
+
+		//	the full A_Blocks
+		while (start_of_block < mid) {
+			BlockTag<T> *p 	= &tags[block_number];
+			p->type 		= BlockType::A_BLOCK;
+			p->start_index 	= start_of_block;
+			p->end_index 	= start_of_block + block_size - 1;
+			p->key 			= array[p->start_index];
+			start_of_block += block_size;
+			block_number++;
+		}
+
+		//	the full B_Blocks
+		while (block_number < num_blocks-1) {
+			BlockTag<T> *p 	= &tags[block_number];
+			p->type 		= BlockType::B_BLOCK;
+			p->start_index 	= start_of_block;
+			p->end_index 	= start_of_block + block_size - 1;
+			p->key 			= array[p->end_index];
+			start_of_block += block_size;
+			block_number++;
+		}
+
+		//	the final B_Block may be a partial block,
+		//	  but regardless of its size, it will extend to 'end'
+		BlockTag<T> *p	= &tags[num_blocks-1];
+		p->type			= BlockType::B_BLOCK;
+		p->start_index	= start_of_block;
+		p->end_index	= end;
+		p->key			= array[p->end_index];
+
+		return num_blocks;
+	}
+
+
+	/*	**************************************************************	*/
+	/*						the sorting function						*/
+	/*	**************************************************************	*/
+
 	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T **array, array_size_t size) {
 		ComparesAndMoves result(0,0);
@@ -960,58 +1046,32 @@ namespace BlockSort {
 #endif
 
 		array_size_t u_size = v;
-		array_size_t v_size = (size - u_size);
 		array_size_t block_size = static_cast<index_t>(std::sqrt(u_size));
-		array_size_t first_u_width = u_size % block_size;
-		array_size_t last_v_width = v_size % block_size;
-		int num_A_blocks = u_size / block_size + (first_u_width != 0 ? 1: 0);
-		int num_B_blocks = v_size / block_size + (last_v_width != 0 ? 1 : 0);
-		int num_blocks = num_A_blocks + num_B_blocks;
-//		std::cout << "u_size " << u_size
-//				  << " v_size " << v_size
-//				  << " block_width " << block_size
-//				  << " first_u_width " << first_u_width
-//				  << " last_v_width " << last_v_width
-//				  << " num_blocks " << num_blocks << std::endl;
-		BlockTag<T> tags[num_blocks];
-		array_size_t start_of_block = 0;
-		//	if the first block is less than a full block size, otherwise full size
-		array_size_t end_of_block = first_u_width != 0 ? first_u_width-1 : block_size-1;
-		for (int i = 0; i < num_blocks; i++) {
-			tags[i].start_index = start_of_block;
-			tags[i].end_index	= end_of_block;
-			if (start_of_block < v) {
-				tags[i].type = BlockType::A_BLOCK;
-				tags[i].key = array[start_of_block];
-			} else {
-				tags[i].type = BlockType::B_BLOCK;
-				tags[i].key = array[end_of_block];
-			}
-			start_of_block = end_of_block+1;
-			end_of_block = end_of_block + block_size;
-			//	this happens with the last_v_block is non-zero
-			if (end_of_block >= size)
-				end_of_block = size-1;
-		}
+		BlockTag<T> *block_tags;
+		int num_blocks = 0;
+
+//		num_blocks = tagBlocks(array, 0, v, size-1, block_tags, block_size);
+		std::cout << "Result of tagging blocks is:" << std::endl;
+		printTags(std::string(" created tags\n"), block_tags, num_blocks, element_width);
+		return result;
 #ifdef SORT_BLOCKS_LEFT_TO_RIGHT
-		result = sortBlocksLeftToRight(array, size, tags, num_blocks);
+		result = sortBlocksLeftToRight(array, size, block_tags, num_blocks);
 #else
-		result = sortBlocksRightToLeft(array, size, tags, num_blocks);
+		result = sortBlocksRightToLeft(array, size, block_tags, num_blocks);
 #endif
-		index_t rightmost_a = size;
 		// merge consecutive blocks
 		for (int right_block = num_blocks; right_block > 0; right_block--) {
 			// two consecutive B_Blocks are in ascending order because
 			//	they came out of the v side of the array that was sorted
-			if (tags[right_block-1].type == BlockType::B_BLOCK) {
+			if (block_tags[right_block-1].type == BlockType::B_BLOCK) {
 				continue;
 			}
 			// merge the A_Block
 #ifdef BLOCK_MERGE_BY_ROTATE
 			result +=
-				blockMergeByRotate(array, tags[right_block-1].start_index,//	start
-							  	  	      tags[right_block].start_index,	//  mid
-										  tags[right_block].end_index);	//  end;
+				blockMergeByRotate(array, block_tags[right_block-1].start_index,//	start
+							  	  	      block_tags[right_block].start_index,	//  mid
+										  block_tags[right_block].end_index);	//  end;
 #endif
 		}
 		return result;

@@ -40,7 +40,28 @@ int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-	testBlockSort();
+	void (*print)(int*, int) = [] (int* _array, int _size) {
+		for (int i = 0; i != _size; i++) {
+			std::cout << std::setw(2) << _array[i] << " ";
+		}
+		std::cout << std::endl;
+	};
+
+	void (*set_ints)(int**, int) = [] (int **p_array, int _size) {
+		*p_array = new int[_size];
+		for (int i = 0; i != _size; i++) {
+			(*p_array)[i] = i;
+		}
+	};
+
+	int num_ints = 5;
+	int ints[5];
+	int *p_ints;
+	set_ints(&p_ints, num_ints);
+	std::cout << "The ints are: ";
+	print(p_ints, num_ints);
+	std::cout << std::endl;
+//	testBlockSort();
 	return EXIT_SUCCESS;
 
 	int num_repetitions = 100;

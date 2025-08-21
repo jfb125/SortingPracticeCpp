@@ -1,11 +1,3 @@
-Sorting Performance In C++ built on Aug 20 2025 at 16:00:39
-testBlockSort()
-test blockMerge with the rotate algorithm
-  Array size 2 nlog2(n)(array_size) = 2 averages 2.48 compares and 1.44 moves
-  Array size 4 nlog2(n)(array_size) = 8 averages 7.68 compares and 9.39 moves
-  Array size 8 nlog2(n)(array_size) = 24 averages 24.52 compares and 36.15 moves
-  Array size 16 nlog2(n)(array_size) = 64 averages 85.17 compares and 149.85 moves
-  Array size 32 nlog2(n)(array_size) = 160 averages 300.61 compares and 550.65 moves
-  Array size 64 nlog2(n)(array_size) = 384 averages 1099.16 compares and 2002.41 moves
-  Array size 128 nlog2(n)(array_size) = 896 averages 4172.93 compares and 7225.32 moves
-PASS:  function testBlockMerge() returns TRUE
+Sorting Performance In C++ built on Aug 21 2025 at 18:00:36
+The ints are:  0  1  2  3  4 
+

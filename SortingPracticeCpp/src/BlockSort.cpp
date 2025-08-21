@@ -114,8 +114,8 @@ void printLineArrayIndices(array_size_t size, int value_width, int element_width
 //#define TEST_MODULO
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ARRAY
-#define TEST_BLOCK_MERGE
-//#define	TEST_BLOCK_SORT_SORT
+//#define TEST_BLOCK_MERGE
+#define	TEST_BLOCK_SORT_SORT
 
 bool testFloorLog2();
 bool testRotateArray();
@@ -299,6 +299,7 @@ bool testRotateArray() {
 			}
 			std::cout << (test_passed ? "PASSED " : "FAILED ");
 			//	print out before / after
+			std::cout << "array size " << sub_array_size << " ";
 			std::cout << "rotate(" << std::setw(3) << i << ") \"";
 			for (int j = 0; j != sub_array_size; j++) {
 				std::cout << *test_array[j];
@@ -334,7 +335,7 @@ bool testBlockMerge() {
 	bool test_passed = true;
 	SimpleRandomizer randomizer;
 
-	void (*printArray)(char**, int) = [] (char **l_array, int l_size){
+	void (*printArray)(char**, int) = [] (char **l_array, int l_size) {
 		std::cout << "\"";
 		for (int i = 0; i != l_size; i++) {
 			std::cout << *l_array[i];
