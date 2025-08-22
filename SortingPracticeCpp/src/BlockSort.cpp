@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <string>
 #include <numeric>
 #include <cmath>
 
@@ -68,15 +69,6 @@ char to_char(BlockType type) {
 	}
 }
 
-	//	handles negative amounts and amounts > span
-amount_t calculateRotationAmount(amount_t amount, amount_t span)  {
-	amount_t result = amount;
-	while (result < 0)
-		result += span;
-	result %= span;
-	return result;
-}
-
 
 /*	**********************************************************************	*/
 /*	**********************************************************************	*/
@@ -86,12 +78,16 @@ amount_t calculateRotationAmount(amount_t amount, amount_t span)  {
 
 void printArrayIndices(array_size_t size, int value_width, int element_width) {
 
-	OStreamState io_state;	// the destructor will restore state
-	std::cout.fill('.');
-	std::cout << std::right;
+	if (size != 0) {
+		OStreamState io_state;	// the destructor will restore state
+		std::cout.fill('.');
+		std::cout << std::right;
 
-	for (int i = 0; i != size; i++) {
-		std::cout << std::setw(element_width) << i;
+		for (int i = 0; i < size-1; i++) {
+			std::cout << std::setw(element_width-1) << i;
+			std::cout << '.';
+		}
+		std::cout << std::setw(element_width-1) << size-1;
 	}
 }
 
@@ -105,6 +101,51 @@ void printLineArrayIndices(array_size_t size, int value_width, int element_width
 	std::cout << std::endl;
 }
 
+void printArrayStartMiddleEnd(array_size_t size, index_t start, index_t mid, index_t end, int element_width) {
+	OStreamState state;	// destructor will restore ostream state
+
+	for (int i = 0; i < start ; i++) {
+		std::cout << std::setw(element_width) << ' ';
+	}
+	std::cout << std::setw(element_width-1) << 's' << ' ';
+	for (int i = start+1; i < mid; i++) {
+		std::cout << std::setw(element_width) << ' ';
+	}
+	std::cout << std::setw(element_width-1) << 'm' << ' ';
+	for (int i = mid+1; i < end;  i++) {
+		std::cout << std::setw(element_width) << ' ';
+	}
+	std::cout << std::setw(element_width-1) << 'e' << ' ';
+}
+
+void printLineArrayStartMiddleEnd(array_size_t size, index_t start, index_t mid, index_t end, int element_width) {
+	printArrayStartMiddleEnd(size, start, mid, end, element_width);
+	std::cout << std::endl;
+}
+
+template <typename T>
+void printArray(T** array, index_t array_size,
+				const int object_width = 3, const int element_width = 4,
+				const char separator = ' ', std::string trailer = "")
+{
+	// will restore state in destructor
+	OStreamState ostream_state;
+
+	if (array_size) {
+		//	all the elements before the final element have separator
+		for (int i = 0; i != array_size-1; i++) {
+			std::cout << std::setw(object_width) << *array[i];
+			for (int i = element_width - object_width; i != 0; i--) {
+				std::cout << separator;
+			}
+		}
+		// no separator after final element
+		std::cout << std::setw(object_width) << *array[array_size-1];
+	}
+	std::cout << trailer;
+}
+
+
 /*	**********************************************	*/
 /*	**********************************************	*/
 /*		forward declaration of test functions		*/
@@ -115,11 +156,13 @@ void printLineArrayIndices(array_size_t size, int value_width, int element_width
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ARRAY
 //#define TEST_BLOCK_MERGE
-#define	TEST_BLOCK_SORT_SORT
+#define TEST_BLOCK_SORT_TAG_BLOCKS
+//#define	TEST_BLOCK_SORT_SORT
 
 bool testFloorLog2();
 bool testRotateArray();
 bool testBlockMerge();
+bool testBlockSortSortBlocks();
 bool testBlockSortSort();
 
 #define runTest(result, func, name_str) do {\
@@ -143,9 +186,17 @@ bool testBlockSort() {
 	std::cout << "testBlockSort()" << std::endl;
 
 #ifdef TEST_MODULO
+	//	handles negative amounts and amounts > span
+	auto calculateRotateAmount = [](amount_t _i, amount_t _span) -> amount_t {
+		while (_i < 0)
+			_i += _span;
+		_i %= _span;
+		return _i;
+	};
+
 	for (array_size_t span = 7; span <= 9; span++) {
 		for (array_size_t i = -9; i <= 9; i++) {
-			array_size_t expected = calculateRotationAmount(i, span);
+			array_size_t expected = calculateRotateAmount(i, span);
 			std::cout << std::setw(2) << i << " % " << span << " = " << expected <<  " | ";
 		}
 		std::cout << std::endl;;
@@ -166,6 +217,10 @@ bool testBlockSort() {
 
 #ifdef TEST_BLOCK_MERGE
 	runTest(passed, testBlockMerge, "function testBlockMerge()");
+#endif
+
+#ifdef TEST_BLOCK_SORT_TAG_BLOCKS
+	runTest(passed, testBlockSortSortBlocks, "function testBlockSortTagBlocks()");
 #endif
 
 #ifdef	TEST_BLOCK_SORT_SORT
@@ -451,6 +506,90 @@ bool testBlockMerge() {
 	}
 
 TEST_BLOCK_MERGE_RETURN_LABEL:
+	return test_passed;
+}
+
+template <typename T>
+void randomizeArray(T** array, index_t size) {
+
+	static SimpleRandomizer randomizer;
+
+	for (index_t i = 0; i != size; i++) {
+		index_t r = randomizer.rand(i, size);
+		T* temp = array[i];
+		array[i] = array[r];
+		array[r] = temp;
+	}
+}
+
+bool testBlockSortSortBlocks() {
+	bool test_passed = true;
+
+	using TagArray = std::shared_ptr<BlockSort::BlockTag<char>[]>;
+	constexpr const int object_width = 3;
+	constexpr const int element_width = 4;
+	constexpr const char separator = ' ';
+	constexpr const int num_tests = 2;
+	constexpr const index_t min_array_size = 26;
+	constexpr const index_t max_array_size = 26;
+	constexpr const index_t min_block_size = 3;
+	constexpr const index_t max_block_size = 3;
+
+	auto out = [object_width, element_width, separator](char ** array, index_t array_size, std::string trailer) {
+		printArray(array, array_size, object_width, element_width, separator, trailer);
+	};
+
+	bool (*areSorted)(TagArray &tags, int num_tags) =
+		[] (TagArray &_tags, int _num_tags) {
+		for (int i = 1; i < _num_tags; i++) {
+			if (*_tags[i-1].key > *_tags[i].key)
+				return false;
+		}
+		return true;
+	};
+
+	for (index_t array_size = min_array_size; array_size <= max_array_size; array_size++) {
+		for (int block_size = min_block_size; block_size <= max_block_size; block_size++) {
+			for (int test_num = 0; test_num != num_tests; test_num++) {
+				char *array[array_size];
+				for (int i = 0; i != array_size; i++) {
+					array[i] = new char('a' + (i % 26));
+				}
+				ComparesAndMoves result(0,0);
+				int num_tags = 4;
+				int start = 0;
+				int mid = array_size / 2;
+				int end = array_size - 1;
+				std::shared_ptr<BlockSort::BlockTag<char>[]> tags;
+
+				printLineArrayIndices(array_size, object_width, element_width);
+				out(array, array_size, " generated\n");
+				randomizeArray(array, array_size);
+				InsertionSort::sortPointersToObjects(array, mid);
+				InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
+				out(array, array_size, " after randomizing\n");
+				num_tags = BlockSort::createTags(array, start, mid, end, block_size, tags);
+				printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
+				BlockSort::printTags(std::string("\n"), tags, num_tags, element_width);
+				out(array, array_size, "\n");
+				result = BlockSort::sortBlocksLeftToRight(array, array_size, tags, num_tags);
+				BlockSort::printTags(std::string("\n"), tags, num_tags, element_width);
+				out(array, array_size, " after sorting blocks\n");
+				std::cout << "sortBlocksLeftToRight() took "
+						  << result._compares << " compares and "
+						  << result._moves << " moves\n";
+				std::cout << " ***************** end of test run #"
+						  << test_num;
+				if (!areSorted(tags, num_tags)) {
+					test_passed = false;
+					std::cout << " !!!! FAILED !!!!" << std::endl;
+					goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
+				}
+				std::cout << " *****************\n\n";
+			}
+		}
+	}
+TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL:
 	return test_passed;
 }
 

@@ -19,7 +19,7 @@
 #include "InsertionSort.h"
 
 //#define DEBUG_VERBOSE_SORT_BLOCKS 1
-#define DEBUG_SUMMARY_SORT_BLOCKS
+//#define DEBUG_SUMMARY_SORT_BLOCKS
 #define DEBUG_VERBOSE_BLOCK_SORT
 #define SORT_BLOCKS_LEFT_TO_RIGHT 1
 #define SORT_BLOCKS_RIGHT_TO_LEFT 2
@@ -42,7 +42,6 @@ enum class BlockType {
 	UNSPECIFIED
 };
 char to_char(BlockType type);
-array_size_t calculateRotationAmount(array_size_t amount, array_size_t span);
 
 #define BLOCK_MERGE_BY_ROTATE
 
@@ -64,7 +63,7 @@ namespace BlockSort {
 		BlockTag() {
 			type = BlockType::UNSPECIFIED;
 			key = nullptr;
-			start_index = 1;
+			start_index = 0;
 			end_index = 0;
 		}
 		BlockTag(BlockType t, T* k, index_t s, index_t e) {
@@ -286,7 +285,8 @@ namespace BlockSort {
 	// 	prints a line where the blocks a represented graphically
 
 	template <typename T>
-	void printTags(std::string trailer, BlockTag<T> tags[], int num_tags, int element_width) {
+	void printTags(	std::string trailer, std::shared_ptr<BlockTag<T>[]> &tags,
+					int num_tags, int element_width) {
 
 		if (element_width == 0) {
 			std::cout << "ERROR: printTags() called with element_width == 0" << trailer;
@@ -380,12 +380,14 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves blockSwap(T** array, index_t block1_start, index_t block2_start, index_t block_size);
 	template <typename T>
+	int createTags( T** array, index_t start, index_t mid, index_t end,
+			    	int block_size, std::shared_ptr<BlockTag<T>[]> &tags);
+	template <typename T>
 	ComparesAndMoves rotateArray(T** array, index_t start, index_t end, index_t amount);
 	template <typename T>
-	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size, BlockTag<T> *tags, int num_tags);
+	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size, std::shared_ptr<BlockTag<T>[]> tags, int num_tags);
 	template <typename T>
-	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size, BlockTag<T> *tags, int num_tags);
-
+	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size, std::shared_ptr<BlockTag<T>[]> tags, int num_tags);
 
 	/*
 	 * ComparesAndMoves blockMerge(arr, start, mid, end);
@@ -493,6 +495,79 @@ namespace BlockSort {
 		return result;
 	}
 
+	template <typename T>
+	int  createTags(T** array, index_t start, index_t mid, index_t end,
+			    	int block_size, std::shared_ptr<BlockTag<T>[]> &tags) {
+
+		ComparesAndMoves result(0,0);
+		index_t lower_span = mid-start;
+		index_t upper_span = end-mid + 1;
+
+		// calculate the total number of blocks
+		int num_blocks = lower_span / block_size + upper_span / block_size;
+		int first_block_size = lower_span % block_size;
+		// if there is a partial first block
+		if (first_block_size != 0)
+			num_blocks++;
+		//	if there is a partial last block
+		if (upper_span % block_size)
+			num_blocks++;
+
+		// create the block storage
+		tags = std::shared_ptr<BlockTag<T>[]>(new BlockTag<T>[num_blocks]);
+
+		//	assign values to the blocks
+		int block_number = 0;
+		index_t start_of_block = start;
+#if 0
+		for (int i = 0; i != num_blocks; i++) {
+			tags[i].type = BlockType::A_BLOCK;
+			tags[i].start_index = 2*i;
+			tags[i].end_index = 2*i+1;
+			tags[i].key = new char('a'+i);
+		}
+		return num_blocks;
+#endif
+		//	do the A_Blocks first
+		//	if the first A_Block is a partial
+		if (first_block_size) {
+			tags[block_number].type 		= BlockType::A_BLOCK;
+			tags[block_number].start_index	= start;
+			tags[block_number].end_index	= first_block_size-1;
+			tags[block_number].key			= array[start_of_block];
+			start_of_block += first_block_size;
+			block_number = 1;
+		}
+
+		//	the full A_Blocks
+		while (start_of_block < mid) {
+			tags[block_number].type 		= BlockType::A_BLOCK;
+			tags[block_number].start_index	= start_of_block;
+			tags[block_number].end_index	= start_of_block+block_size-1;
+			tags[block_number].key			= array[start_of_block];
+			start_of_block += block_size;
+			block_number++;
+		}
+
+		//	the full B_Blocks
+		while (block_number < num_blocks-1) {
+			tags[block_number].type 		= BlockType::B_BLOCK;
+			tags[block_number].start_index	= start_of_block;
+			tags[block_number].end_index	= start_of_block+block_size-1;
+			tags[block_number].key			= array[start_of_block + block_size-1];
+			start_of_block += block_size;
+			block_number++;
+		}
+
+		//	the final B_Block may be a partial block,
+		//	  but regardless of its size, it will extend to 'end'
+		tags[block_number].type 		= BlockType::B_BLOCK;
+		tags[block_number].start_index	= start_of_block;
+		tags[block_number].end_index	= end;
+		tags[block_number].key			= array[end];
+
+		return num_blocks;
+	}
 
 	/*
 	 * 	ComparesAndSwaps rotateArray(array, amount, start, end);
@@ -522,7 +597,10 @@ namespace BlockSort {
 
 		index_t span = end - start + 1;
 
-		amount = calculateRotationAmount(amount, span);
+		while (amount < 0) {
+			amount += span;
+		}
+		amount %= span;
 
 		if (amount == 0)
 			return result;
@@ -631,7 +709,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size, BlockTag<T> *tags, int num_tags) {
+	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size, std::shared_ptr<BlockTag<T>[]> tags, int num_tags) {
 
 		ComparesAndMoves result(0,0);
 
@@ -826,7 +904,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size, BlockTag<T> *tags, int num_tags) {
+	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size, std::shared_ptr<BlockTag<T>[]> tags, int num_tags) {
 
 		ComparesAndMoves result(0,0);
 
@@ -958,78 +1036,9 @@ namespace BlockSort {
 		return result;
 	}
 
-	template <typename T>
-	int tagBlocks(T** array, index_t start, index_t mid, index_t end, BlockTag<T>* &tags, index_t block_size) {
-
-		index_t lower_span = mid-start;
-		index_t upper_span = end-mid + 1;
-
-		// calculate the total number of blocks
-		int num_blocks = lower_span / block_size + upper_span / block_size;
-		int first_block_size = lower_span % block_size;
-		// if there is a partial first block
-		if (first_block_size != 0)
-			num_blocks++;
-		//	if there is a partial last block
-		if (upper_span % block_size)
-			num_blocks++;
-
-		// create the block storage
-		tags = new BlockTag<T>[num_blocks];
-
-		//	assign values to the blocks
-		int block_number = 0;
-		index_t start_of_block = 0;
-
-		//	do the A_Blocks first
-		//	if the first A_Block is a partial
-		if (first_block_size) {
-			BlockTag<T> *p 	= &tags[block_number];
-			p->type 		= BlockType::A_BLOCK;
-			p->start_index 	= start;
-			p->end_index 	= start_of_block + first_block_size-1;
-			p->key 			= array[start_of_block];
-			start_of_block += first_block_size;
-			block_number = 1;
-		}
-
-		//	the full A_Blocks
-		while (start_of_block < mid) {
-			BlockTag<T> *p 	= &tags[block_number];
-			p->type 		= BlockType::A_BLOCK;
-			p->start_index 	= start_of_block;
-			p->end_index 	= start_of_block + block_size - 1;
-			p->key 			= array[p->start_index];
-			start_of_block += block_size;
-			block_number++;
-		}
-
-		//	the full B_Blocks
-		while (block_number < num_blocks-1) {
-			BlockTag<T> *p 	= &tags[block_number];
-			p->type 		= BlockType::B_BLOCK;
-			p->start_index 	= start_of_block;
-			p->end_index 	= start_of_block + block_size - 1;
-			p->key 			= array[p->end_index];
-			start_of_block += block_size;
-			block_number++;
-		}
-
-		//	the final B_Block may be a partial block,
-		//	  but regardless of its size, it will extend to 'end'
-		BlockTag<T> *p	= &tags[num_blocks-1];
-		p->type			= BlockType::B_BLOCK;
-		p->start_index	= start_of_block;
-		p->end_index	= end;
-		p->key			= array[p->end_index];
-
-		return num_blocks;
-	}
-
-
-	/*	**************************************************************	*/
-	/*						the sorting function						*/
-	/*	**************************************************************	*/
+	/*	**************************	*/
+	/*		the sorting function	*/
+	/*	**************************	*/
 
 	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T **array, array_size_t size) {
@@ -1047,7 +1056,7 @@ namespace BlockSort {
 
 		array_size_t u_size = v;
 		array_size_t block_size = static_cast<index_t>(std::sqrt(u_size));
-		BlockTag<T> *block_tags;
+		std::shared_ptr<BlockTag<T>[]> block_tags;
 		int num_blocks = 0;
 
 //		num_blocks = tagBlocks(array, 0, v, size-1, block_tags, block_size);
