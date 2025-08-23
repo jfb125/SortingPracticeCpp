@@ -171,7 +171,8 @@ std::string arrayToString(T** array, index_t array_size,
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ARRAY
 //#define TEST_BLOCK_MERGE
-#define TEST_BLOCK_SORT_TAG_BLOCKS
+#define TEST_BLOCK_SWAP
+//#define TEST_BLOCK_SORT_TAG_BLOCKS
 //#define	TEST_BLOCK_SORT_SORT
 
 bool testFloorLog2();
@@ -179,6 +180,7 @@ bool testRotateArray();
 bool testBlockMerge();
 bool testBlockSortSortBlocks();
 bool testBlockSortSort();
+bool testBlockSwap();
 
 #define runTest(result, func, name_str) do {\
 	if (!func()) {\
@@ -236,6 +238,10 @@ bool testBlockSort() {
 
 #ifdef TEST_BLOCK_SORT_TAG_BLOCKS
 	runTest(passed, testBlockSortSortBlocks, "function testBlockSortSortBlocks()");
+#endif
+
+#ifdef TEST_BLOCK_SWAP
+	runTest(passed, testBlockSwap, "function testBlockSwap()");
 #endif
 
 #ifdef	TEST_BLOCK_SORT_SORT
@@ -335,6 +341,153 @@ void rotateArrayLongWay(T**array, index_t size, index_t count) {
 			array[0] = tmp;
 		}
 	}
+}
+
+/*	**********************************************************	*/
+/*						testBlockSwap							*/
+/*	**********************************************************	*/
+
+//	for array_size = even_number, then odd_number
+//	  for block_size = 2 to array_size / 2
+//		for block distances -2, -1, 0, 1, 2
+//		   for array positions [0:block_size-1],
+//							   [block_size:2*block_size-1],
+//							   [array_size-blocK_size+1:array_size-1]
+//			  builds a test array
+//			  if there is room in the array for the given gap
+//	    		builds an expected array
+//				calls block swap on the test array
+//				verifies the result of the swap
+//			  else
+//				calls block swap and verifies that the return value is 0
+//
+//	'if there is room in the array':
+//	  consider the case where the array is 20 elements long
+//	    and the block size is 9.  To swap a gap of 2,
+//		array[0:8] would swap with array[0+2*9=18:8+2*9=26]
+//		which is outside the array and thus blockSwap should return
+//		without any moves
+
+bool testBlockSwap() {
+
+	constexpr bool verbose = true;
+	constexpr int value_width = 3;
+	constexpr int element_width = 4;
+
+	constexpr int min_array_size = 20;
+	constexpr int max_array_size = 21;
+	constexpr int min_block_size = 2;
+	constexpr int min_block_gap = -2;
+	constexpr int max_block_gap =  2;
+
+	struct BlockBoundary {
+		int begin;
+		int end;
+		BlockBoundary() {
+			begin = 0;
+			end = 0;
+		}
+	};
+
+	int (*ceilingDivision)(int, int) = [] (int dividend, int divisor) {
+		if (divisor == 0) {
+			//	TODO - throw exception
+			return INT_MAX;
+		}
+		int result = dividend / divisor;
+		if (dividend % divisor) {
+			result++;
+		}
+		return result;
+	};
+
+	bool test_passed = true;
+
+	for (int array_size = min_array_size; array_size <= max_array_size; array_size++) {
+		int max_block_size = array_size / 2;
+		for (int block_size = min_block_size; block_size <= max_block_size; block_size++) {
+			for (int block_gap = min_block_gap; block_gap <= max_block_gap; block_gap++) {
+				//	create a block on the left that will cause the block
+				//	  on the right to end at the last element in tha array
+				int last_block_start =
+						(array_size-1) -					// right most end
+						(abs(block_gap) * block_size) -		// left end
+						block_size + 1;						// left begin_
+				int beginnings[] = { 0, 1, last_block_start };
+				int num_beginnings = sizeof(beginnings) / sizeof(int);
+				for (int i = 0; i != num_beginnings; i++) {
+					std::stringstream messages;
+					//	delineate two blocks, left & right
+					int left_block_begin = beginnings[i];
+					int left_block_end = left_block_begin + block_size-1;
+					int right_block_begin =
+							left_block_begin + std::abs(block_gap) * block_size;
+					int right_block_end =
+							right_block_begin + block_size-1;
+					messages << "array_size " 	<< std::setw(2) << array_size
+							 << ", block_size " << std::setw(2) << block_size
+							 << ", block_gap " << std::setw(2) << block_gap
+							 << ", block_beginning " << std::setw(2) << beginnings[i]
+							 << " left_block [" << std::setw(2) << left_block_begin
+							 << ":" << std::setw(2) << left_block_end
+							 << "], right block [" << std::setw(2) << right_block_begin
+							 << ":" << std::setw(2) << right_block_end << "]";
+					//	if the bounds of the right block are outside the array
+					if (right_block_end > array_size-1) {
+						std::cout << messages.str() << " !!! right block end index > array_size-1" << std::endl;
+						continue;
+					}
+					messages << std::endl;
+					// create the array to be tested
+					char *array[array_size];
+					char *expected[array_size];
+					for (int i = 0; i != array_size; i++) {
+						array[i] = new char('a' + (i % 26));
+						expected[i] = new char('a' + (i %26));
+					}
+					for (int i = left_block_begin, j = right_block_begin;
+							 i <= left_block_end; ++i, ++j) {
+						char *tmp = expected[i];
+						expected[i] = expected[j];
+						expected[j] = tmp;
+					}
+					messages << " testing:  " << arrayToString(array, array_size, value_width, element_width)
+							 << std::endl;
+					if (block_gap >= 0) {
+						//	if the block gap is not negative,
+						//	   the blocks can be swapped
+						BlockSort::blockSwap(array, left_block_begin, left_block_end,
+												    right_block_begin, right_block_end);
+					} else {
+						// if the block gap is negative, the right most block needs
+						//     to be the first block passed to the function
+						BlockSort::blockSwap(array, right_block_begin, right_block_end,
+													left_block_begin, left_block_end);
+					}
+					messages << " expected: " << arrayToString(expected, array_size, value_width, element_width)
+							 << std::endl;
+					messages << " received: " << arrayToString(array, array_size, value_width, element_width)
+							 << std::endl;
+					for (int i = 0; i != array_size; i++) {
+						if (*array[i] != *expected[i]) {
+							messages << " ERROR: [" << std::setw(2) << i << "] "
+									 << " expected " << *expected[i]
+									 << " vs received " << *array[i]
+									 << std::endl;
+							test_passed = false;
+							std::cout << messages.str();
+							goto TEST_BLOCK_SWAP_RETURN_LABEL;
+						}
+					}
+					messages << std::endl;
+					if (verbose)
+						std::cout << messages.str();
+				}	// while (start & end positions < array_size-1
+			}	// for swap gaps -2, -1, 0, 1, 2
+		}	// for block size
+	}	// for array size
+TEST_BLOCK_SWAP_RETURN_LABEL:
+	return test_passed;
 }
 
 bool testRotateArray() {
@@ -563,8 +716,23 @@ bool testBlockSortSortBlocks() {
 	bool (*areSorted)(TagArray &tags, int num_tags) =
 		[] (TagArray &_tags, int _num_tags) {
 		for (int i = 1; i < _num_tags; i++) {
+			//	if the earlier block is > this block
 			if (*_tags[i-1].key > *_tags[i].key)
 				return false;
+			//	if the two blocks are equal, they have to be in order:
+			//		A_Block, A_Block
+			//		A_Block, B_Block
+			//		B_Block, B_Block
+			//	to ensure stability
+			//		B_Block, A_Block
+			//	violates stability because it puts equivalent values
+			///	  that were in the left side of the array (A_Blocks) to the right of
+			//	  values that were in the right side of the array (B_Blocks)
+			if (*_tags[i-1].key  == *_tags[i].key &&
+			     _tags[i-1].type == BlockType::B_BLOCK &&
+				 _tags[i].type   == BlockType::A_BLOCK) {
+					return false;
+				}
 		}
 		return true;
 	};
