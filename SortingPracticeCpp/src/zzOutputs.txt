@@ -1,8 +1,2 @@
-Sorting Performance In C++ built on Aug 23 2025 at 16:46:05
+Sorting Performance In C++ built on Aug 23 2025 at 18:55:41
 testBlockSort()
-array_size 20, block_size  2, block_gap -2, block_beginning  0 left_block [ 0: 1], right block [ 4: 5]
- testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
- expected:   e   f   c   d   a   b   g   h   i   j   k   l   m   n   o   p   q   r   s   t
- received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
- ERROR: [ 0]  expected e vs received a
-ERROR: function testBlockSwap() returns FALSE

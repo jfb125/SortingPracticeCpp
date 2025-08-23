@@ -498,42 +498,59 @@ namespace BlockSort {
 	{
 		ComparesAndMoves result(0,0);
 
+		//	if the indices are not credible, leave
 		if (block1_start < 0 || block1_end < 0 || block2_start < 0 || block2_end < 0) {
 			//	TODO - throw an exception
 			return result;
 		}
-		index_t block1_span = block1_start-block1_end;
-		index_t block2_span = block2_start-block2_end;
-		if (block1_span != block2_span) {
-			//	TODO  throw an exception
+		if (block1_start > block1_end) {
+			index_t tmp  = block1_start;
+			block1_start = block1_end;
+			block1_end   = tmp;
+		}
+		if (block2_start > block2_end) {
+			index_t tmp  = block2_start;
+			block2_start = block2_end;
+			block2_end   = tmp;
+		}
+		//	ensure the blocks are well formatted:
+		//	1. same size
+		//	2. if necessary, swap indices
+		//	3. ensure the blocks don't overlap
+		index_t block1_span = block1_end-block1_start+1;
+		index_t block2_span = block2_end-block2_start+1;
+
+		//	this is not an exception
+		if (block1_span == 0) {
 			return result;
 		}
-		// are the indices reversed?
-		if (block1_span < 0) {
-			index_t tmp 	= block1_start;	// swap block1 indices
-			block1_start 	= block1_end;
-			block1_end 		= tmp;
-			tmp 			= block2_start;	// swap block2 indices
-			block2_start 	= block2_end;
-			block2_end 		= tmp;
+		//	if the blocks are different sizes, exit
+		if (block1_span != block2_span) {
+			// TODO - throw and exception
+			return result;
 		}
-		// are the blocks reversed?
-		if (block1_start > block2_start) {
-			index_t tmp		= block1_start;
-			block1_start	= block2_start;
-			block2_start	= tmp;
-			tmp				= block1_end;
-			block1_end		= block2_end;
-			block2_end		= tmp;
+		//	if it is the same block, we are done
+		if (block1_start == block2_start) {
+			return result;
 		}
 		// do the blocks overlap?
-		if (block1_end >= block2_start) {
-			//	TODO - throw an exception
-			return result;
+		if (block1_start < block2_start) {
+			//	block1 is the leftmost block
+			//	  does block1 overlap with block2?`
+			if (block1_end >= block2_start) {
+				// TODO - throw exception
+				return result;
+			}
+		} else {
+			// 	block2 is the leftmost block
+			//	  does block2 overlap with block1?
+			if (block2_end >= block1_start) {
+				// TODO - throw exception
+				return result;
+			}
 		}
 
 		T* temp;
-
 		for (index_t i = block1_start, j = block2_start;
 			 block1_start <= block1_end; ++i, ++j) {
 			temp = array[i];
