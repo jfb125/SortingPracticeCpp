@@ -27,9 +27,9 @@
 bool	testBlockSort();
 
 array_size_t floorLog2(array_size_t num);
-void printArrayIndices(array_size_t size, int value_width, int element_width);
-void printLineArrayIndices(array_size_t size, int value_width, int element_width);
-void printArrayIndices(std::string header, array_size_t size, int value_width, int element_width);
+std::string printArrayIndices(array_size_t size, int value_width, int element_width);
+std::string printLineArrayIndices(array_size_t size, int value_width, int element_width);
+std::string printArrayIndices(std::string header, array_size_t size, int value_width, int element_width);
 
 #define TAG_BOUNDARY_CHAR '|'
 #define TAG_SPACE_CHAR ' '
@@ -285,15 +285,18 @@ namespace BlockSort {
 	// 	prints a line where the blocks a represented graphically
 
 	template <typename T>
-	void printTags(	std::string trailer, std::shared_ptr<BlockTag<T>[]> &tags,
+	std::string printTags(	std::string trailer, std::unique_ptr<BlockTag<T>[]> &tags,
 					int num_tags, int element_width) {
 
+		//	restores ostream state with its destructor
+		OStreamState ostream_state;
+
+		std::stringstream result;
 		if (element_width == 0) {
-			std::cout << "ERROR: printTags() called with element_width == 0" << trailer;
-			return;
+			result << "ERROR: printTags() called with element_width == 0" << trailer;
+			return result.str();
 		}
 
-		OStreamState current_state;	// restores ostream state in destructor
 
 		for (int i = 0; i != num_tags; i++) {
 
@@ -301,23 +304,24 @@ namespace BlockSort {
 
 			switch (elements_remaining) {
 			case 0:
-				std::cout << "!!!!ERROR: printTags() passed a block of size 0 elements: ";
-				return;
+				result << "!!!!ERROR: printTags() passed a block of size 0 elements: ";
+				return result.str();
 			case 1:
-				std::cout << toStringTagSingleElement(tags[i], element_width);
+				result  << toStringTagSingleElement(tags[i], element_width);
 				break;
 			default:
-				std::cout << toStringTagOpeningElement(tags[i], element_width);
+				result << toStringTagOpeningElement(tags[i], element_width);
 				elements_remaining--;
 				while(elements_remaining-- > 1) {
 					std::cout.fill(TAG_SPACE_CHAR);
-					std::cout << std::setw(element_width) << TAG_SPACE_CHAR;
+					result << std::setw(element_width) << TAG_SPACE_CHAR;
 				}
-				std::cout << toStringTagClosingElement(tags[i], element_width);
+				result << toStringTagClosingElement(tags[i], element_width);
 				break;
 			}
 		}
-		std::cout << trailer;
+		result << trailer;
+		return result.str();
 	}
 
 	/*	**************************************************	*/
@@ -381,13 +385,15 @@ namespace BlockSort {
 	ComparesAndMoves blockSwap(T** array, index_t block1_start, index_t block2_start, index_t block_size);
 	template <typename T>
 	int createTags( T** array, index_t start, index_t mid, index_t end,
-			    	int block_size, std::shared_ptr<BlockTag<T>[]> &tags);
+			    	int block_size, std::unique_ptr<BlockTag<T>[]> &tags);
 	template <typename T>
 	ComparesAndMoves rotateArray(T** array, index_t start, index_t end, index_t amount);
 	template <typename T>
-	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size, std::shared_ptr<BlockTag<T>[]> tags, int num_tags);
+	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size,
+			std::unique_ptr<BlockTag<T>[]> &tags, int num_tags);
 	template <typename T>
-	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size, std::shared_ptr<BlockTag<T>[]> tags, int num_tags);
+	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size,
+			std::unique_ptr<BlockTag<T>[]> &tags, int num_tags);
 
 	/*
 	 * ComparesAndMoves blockMerge(arr, start, mid, end);
@@ -497,7 +503,7 @@ namespace BlockSort {
 
 	template <typename T>
 	int  createTags(T** array, index_t start, index_t mid, index_t end,
-			    	int block_size, std::shared_ptr<BlockTag<T>[]> &tags) {
+			    	int block_size, std::unique_ptr<BlockTag<T>[]> &tags) {
 
 		ComparesAndMoves result(0,0);
 		index_t lower_span = mid-start;
@@ -514,7 +520,7 @@ namespace BlockSort {
 			num_blocks++;
 
 		// create the block storage
-		tags = std::shared_ptr<BlockTag<T>[]>(new BlockTag<T>[num_blocks]);
+		tags = std::unique_ptr<BlockTag<T>[]>(new BlockTag<T>[num_blocks]);
 
 		//	assign values to the blocks
 		int block_number = 0;
@@ -709,7 +715,8 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size, std::shared_ptr<BlockTag<T>[]> tags, int num_tags) {
+	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size,
+											std::unique_ptr<BlockTag<T>[]> &tags, int num_tags) {
 
 		ComparesAndMoves result(0,0);
 
@@ -904,7 +911,8 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size, std::shared_ptr<BlockTag<T>[]> tags, int num_tags) {
+	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size,
+			std::unique_ptr<BlockTag<T>[]> &tags, int num_tags) {
 
 		ComparesAndMoves result(0,0);
 
@@ -1056,10 +1064,10 @@ namespace BlockSort {
 
 		array_size_t u_size = v;
 		array_size_t block_size = static_cast<index_t>(std::sqrt(u_size));
-		std::shared_ptr<BlockTag<T>[]> block_tags;
+		std::unique_ptr<BlockTag<T>[]> block_tags;
 		int num_blocks = 0;
 
-//		num_blocks = tagBlocks(array, 0, v, size-1, block_tags, block_size);
+		num_blocks = createTags(array, 0, v, size-1, block_size, block_tags);
 		std::cout << "Result of tagging blocks is:" << std::endl;
 		printTags(std::string(" created tags\n"), block_tags, num_blocks, element_width);
 		return result;

@@ -40,6 +40,9 @@ array_size_t next_power_of_10(array_size_t current_size) {
 int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
+#if 0
+//	using SmartBlockArray = std::shared_ptr<BlockSort::BlockTag<char>[]>;
+	using SmartBlockArray = std::unique_ptr<BlockSort::BlockTag<char>[]>;
 
 	void (*printBlockTag)(std::shared_ptr<BlockSort::BlockTag<char>> &) =
 		[] (std::shared_ptr<BlockSort::BlockTag<char>> &_tag) {
@@ -54,14 +57,14 @@ int main(int argc, char *argv[])
 	void (*printOldArrayOfBlockTags)(BlockSort::BlockTag<char> *, int) =
 		[] (BlockSort::BlockTag<char>*_tags, int _num_tags) {
 		for (int i = 0; i != _num_tags; i++) {
-			std::cout << "print c-style array of BlockTags " << _tags[i].to_string() << std::endl;
+			std::cout << "print c-style array of BlockTags: " << _tags[i].to_string() << std::endl;
 		}
 	};
 
-	void (*printSmartArrayOfBlockTags)(std::shared_ptr<BlockSort::BlockTag<char>[]>, int) =
-		[] (std::shared_ptr<BlockSort::BlockTag<char>[]> _tags, int _num_tags) {
+	void (*printSmartArrayOfBlockTags)(SmartBlockArray &, int) =
+		[] (SmartBlockArray &_tags, int _num_tags) {
 		for (int i = 0; i != _num_tags; i++) {
-			std::cout << "print smart array of BlockTags " << _tags[i].to_string() << std::endl;
+			std::cout << "print smart array of BlockTags: " << _tags[i].to_string() << std::endl;
 		}
 	};
 
@@ -76,14 +79,9 @@ int main(int argc, char *argv[])
 		}
 	};
 
-	using SmartBlockArray = std::shared_ptr<BlockSort::BlockTag<char>[]>;
-
-//	void (*generateSmartBlocks)(std::shared_ptr<BlockSort::BlockTag<char>[]> &, int num_tags) =
-//		[] (std::shared_ptr<BlockSort::BlockTag<char>[]> &_tags, int _num_tags) {
 	void (*generateSmartBlocks)(SmartBlockArray &, int num_tags) =
 		[] (SmartBlockArray &_tags, int _num_tags) {
 		_tags = SmartBlockArray(new BlockSort::BlockTag<char>[_num_tags]);
-//	std::shared_ptr<BlockSort::BlockTag<char>[]>(new BlockSort::BlockTag<char>[_num_tags]);
 		for (int i = 0; i != _num_tags; i++) {
 			(_tags)[i].type = BlockType::B_BLOCK;
 			(_tags)[i].key = new char('s');
@@ -97,8 +95,8 @@ int main(int argc, char *argv[])
 	BlockSort::BlockTag<char> *old_p_blocks = new BlockSort::BlockTag<char>[block_count];
 
 	std::shared_ptr<BlockSort::BlockTag<char>> p_block(new BlockSort::BlockTag<char>(BlockType::A_BLOCK, nullptr, 100, 101));
-	std::shared_ptr<BlockSort::BlockTag<char>[]> p_blocks(new BlockSort::BlockTag<char>[block_count]);
-#if 0
+	SmartBlockArray p_blocks(new BlockSort::BlockTag<char>[block_count]);
+
 	generateOldBlocks(old_p_blocks, block_count);
 	generateSmartBlocks(p_blocks, block_count);
 	printOldArrayOfBlockTags(old_p_blocks, block_count);

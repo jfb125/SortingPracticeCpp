@@ -76,73 +76,88 @@ char to_char(BlockType type) {
 /*	**********************************************************************	*/
 /*	**********************************************************************	*/
 
-void printArrayIndices(array_size_t size, int value_width, int element_width) {
+std::string printArrayIndices(array_size_t size, int value_width, int element_width) {
+
+	std::stringstream result;
 
 	if (size != 0) {
+		constexpr const char separator = '.';
 		OStreamState io_state;	// the destructor will restore state
-		std::cout.fill('.');
+		std::cout.fill(separator);
 		std::cout << std::right;
 
 		for (int i = 0; i < size-1; i++) {
-			std::cout << std::setw(element_width-1) << i;
-			std::cout << '.';
+			result << std::setw(element_width-1) << i;
+			result << '.';
 		}
-		std::cout << std::setw(element_width-1) << size-1;
+		result << std::setw(element_width-1) << size-1;
 	}
+	return result.str();
 }
 
-void printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width) {
-	printArrayIndices(size, value_width, element_width);
-	std::cout << trailer;
+std::string printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width) {
+	std::stringstream result;
+	result << printArrayIndices(size, value_width, element_width);
+	result << trailer;
+	result << trailer;
+	return result.str();
 }
 
-void printLineArrayIndices(array_size_t size, int value_width, int element_width) {
-	printArrayIndices(size, value_width, element_width);
-	std::cout << std::endl;
+std::string printLineArrayIndices(array_size_t size, int value_width, int element_width) {
+	std::stringstream result;
+	result << printArrayIndices(size, value_width, element_width);
+	result << std::endl;
+	return result.str();
 }
 
-void printArrayStartMiddleEnd(array_size_t size, index_t start, index_t mid, index_t end, int element_width) {
+std::string printArrayStartMiddleEnd(array_size_t size, index_t start, index_t mid, index_t end, int element_width) {
 	OStreamState state;	// destructor will restore ostream state
+	std::stringstream result;
 
 	for (int i = 0; i < start ; i++) {
-		std::cout << std::setw(element_width) << ' ';
+		result << std::setw(element_width) << ' ';
 	}
-	std::cout << std::setw(element_width-1) << 's' << ' ';
+	result << std::setw(element_width-1) << 's' << ' ';
 	for (int i = start+1; i < mid; i++) {
-		std::cout << std::setw(element_width) << ' ';
+		result << std::setw(element_width) << ' ';
 	}
-	std::cout << std::setw(element_width-1) << 'm' << ' ';
+	result << std::setw(element_width-1) << 'm' << ' ';
 	for (int i = mid+1; i < end;  i++) {
-		std::cout << std::setw(element_width) << ' ';
+		result << std::setw(element_width) << ' ';
 	}
-	std::cout << std::setw(element_width-1) << 'e' << ' ';
+	result << std::setw(element_width-1) << 'e' << ' ';
+	return result.str();
 }
 
-void printLineArrayStartMiddleEnd(array_size_t size, index_t start, index_t mid, index_t end, int element_width) {
-	printArrayStartMiddleEnd(size, start, mid, end, element_width);
-	std::cout << std::endl;
+std::string printLineArrayStartMiddleEnd(array_size_t size, index_t start, index_t mid, index_t end, int element_width) {
+	std::stringstream result;
+	result << printArrayStartMiddleEnd(size, start, mid, end, element_width);
+	result << std::endl;
+	return result.str();
 }
 
 template <typename T>
-void printArray(T** array, index_t array_size,
+std::string arrayToString(T** array, index_t array_size,
 				const int object_width = 3, const int element_width = 4,
 				const char separator = ' ', std::string trailer = "")
 {
 	// will restore state in destructor
 	OStreamState ostream_state;
+	std::stringstream result;
 
 	if (array_size) {
 		//	all the elements before the final element have separator
 		for (int i = 0; i != array_size-1; i++) {
-			std::cout << std::setw(object_width) << *array[i];
+			result << std::setw(object_width) << *array[i];
 			for (int i = element_width - object_width; i != 0; i--) {
-				std::cout << separator;
+				result << separator;
 			}
 		}
 		// no separator after final element
-		std::cout << std::setw(object_width) << *array[array_size-1];
+		result << std::setw(object_width) << *array[array_size-1];
 	}
-	std::cout << trailer;
+	result << trailer;
+	return result.str();
 }
 
 
@@ -220,7 +235,7 @@ bool testBlockSort() {
 #endif
 
 #ifdef TEST_BLOCK_SORT_TAG_BLOCKS
-	runTest(passed, testBlockSortSortBlocks, "function testBlockSortTagBlocks()");
+	runTest(passed, testBlockSortSortBlocks, "function testBlockSortSortBlocks()");
 #endif
 
 #ifdef	TEST_BLOCK_SORT_SORT
@@ -228,7 +243,7 @@ bool testBlockSort() {
 	if (!passed)
 		return passed;
 #endif
-	return true;
+	return passed;
 }
 
 
@@ -523,21 +538,27 @@ void randomizeArray(T** array, index_t size) {
 }
 
 bool testBlockSortSortBlocks() {
-	bool test_passed = true;
 
-	using TagArray = std::shared_ptr<BlockSort::BlockTag<char>[]>;
+	using TagArray = std::unique_ptr<BlockSort::BlockTag<char>[]>;
+
+	constexpr const bool echo_every_test_step = false;
+	constexpr const bool echo_every_test_result = false;
+
 	constexpr const int object_width = 3;
 	constexpr const int element_width = 4;
 	constexpr const char separator = ' ';
-	constexpr const int num_tests = 2;
-	constexpr const index_t min_array_size = 26;
-	constexpr const index_t max_array_size = 26;
-	constexpr const index_t min_block_size = 3;
-	constexpr const index_t max_block_size = 3;
+	constexpr const int compares_precision = 1;
+	constexpr const int moves_precision = 1;
+
+	constexpr const int num_tests = 10000;
+	constexpr const index_t min_array_size = 10;
+	constexpr const index_t max_array_size = 52;
 
 	auto out = [object_width, element_width, separator](char ** array, index_t array_size, std::string trailer) {
-		printArray(array, array_size, object_width, element_width, separator, trailer);
+		return arrayToString(array, array_size, object_width, element_width, separator, trailer);
 	};
+
+	bool test_passed = true;
 
 	bool (*areSorted)(TagArray &tags, int num_tags) =
 		[] (TagArray &_tags, int _num_tags) {
@@ -548,45 +569,104 @@ bool testBlockSortSortBlocks() {
 		return true;
 	};
 
+	//	OStreamState destructor will restore state of ostream
+	OStreamState ostream_state;
+
 	for (index_t array_size = min_array_size; array_size <= max_array_size; array_size++) {
-		for (int block_size = min_block_size; block_size <= max_block_size; block_size++) {
+		int min_block_size = static_cast<index_t>(sqrt(array_size));
+		int max_block_size = min_block_size;
+		bool all_unique_elements = true;
+		bool few_unique_elements = false;
+		int num_unique = 5;
+		for (int block_size = min_block_size; block_size <= max_block_size; ) {
+			ComparesAndMoves total_results(0,0);
 			for (int test_num = 0; test_num != num_tests; test_num++) {
+				std::stringstream messages;
 				char *array[array_size];
-				for (int i = 0; i != array_size; i++) {
-					array[i] = new char('a' + (i % 26));
+
+				if (all_unique_elements && !few_unique_elements) {
+					for (int i = 0; i != array_size; i++) {
+						array[i] = new char('a' + (i % 26));
+					}
+				} else
+				if (!all_unique_elements && few_unique_elements) {
+					for (int i = 0, unique_counter = 0; i != array_size; i++) {
+						array[i] = new char('a' + (unique_counter % 26));
+						if (++unique_counter == num_unique) {
+							unique_counter = 0;
+						}
+					}
+				} else {
+					messages << "ERROR: conflicted array composition directives \n";
+					test_passed = false;
+					goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
 				}
+
 				ComparesAndMoves result(0,0);
 				int num_tags = 4;
 				int start = 0;
 				int mid = array_size / 2;
 				int end = array_size - 1;
-				std::shared_ptr<BlockSort::BlockTag<char>[]> tags;
+				TagArray tags;
 
-				printLineArrayIndices(array_size, object_width, element_width);
-				out(array, array_size, " generated\n");
+				messages << printLineArrayIndices(array_size, object_width, element_width);
+				messages << out(array, array_size, " generated\n");
 				randomizeArray(array, array_size);
 				InsertionSort::sortPointersToObjects(array, mid);
 				InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
-				out(array, array_size, " after randomizing\n");
+				messages << out(array, array_size, " after randomizing\n");
 				num_tags = BlockSort::createTags(array, start, mid, end, block_size, tags);
-				printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
-				BlockSort::printTags(std::string("\n"), tags, num_tags, element_width);
-				out(array, array_size, "\n");
+				messages << printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
+				messages << BlockSort::printTags(std::string("\n"), tags, num_tags, element_width);
+				messages << out(array, array_size, "\n");
 				result = BlockSort::sortBlocksLeftToRight(array, array_size, tags, num_tags);
-				BlockSort::printTags(std::string("\n"), tags, num_tags, element_width);
-				out(array, array_size, " after sorting blocks\n");
-				std::cout << "sortBlocksLeftToRight() took "
-						  << result._compares << " compares and "
-						  << result._moves << " moves\n";
-				std::cout << " ***************** end of test run #"
-						  << test_num;
+				messages << BlockSort::printTags(std::string("\n"), tags, num_tags, element_width);
+				messages << out(array, array_size, " after sorting blocks\n");
 				if (!areSorted(tags, num_tags)) {
 					test_passed = false;
-					std::cout << " !!!! FAILED !!!!" << std::endl;
+					std::cout << " !!!! FAILED !!!! test run " << test_num << std::endl;
+					std::cout << messages.str() << std::endl;
 					goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
 				}
-				std::cout << " *****************\n\n";
+				if (echo_every_test_step) {
+					std::cout << messages.str();
+				}
+				if (echo_every_test_result) {
+					std::cout << "sorting an array of " << array_size << " elements "
+							  << " with block size " << block_size
+							  << " took "
+							  << result._compares << " compares and "
+							  << result._moves << " moves\n";
+				}
+				if (echo_every_test_step) {
+					std::cout << " ***************** end of test run #"
+							  << test_num;
+					std::cout << " *****************\n\n";
+				}
+				total_results += result;
 			}
+			if (all_unique_elements) {
+				few_unique_elements = true;
+				all_unique_elements = false;
+				std::cout << array_size << " elements "
+						  << "with block size " << block_size << " "
+						  << num_tests << " times"
+						  << std::endl
+				          << " .. " << std::setw(2) << 0;
+			} else {
+				std::cout << " .. " << std::setw(2) << num_unique;
+				few_unique_elements = false;
+				all_unique_elements = true;
+				block_size++;
+			}
+			std::cout  << " unique values took on average "
+					   << std::fixed << std::setprecision(compares_precision)
+					   << static_cast<double>(total_results._compares) / num_tests
+					   << " compares and "
+					   << std::fixed << std::setprecision(moves_precision)
+					   << static_cast<double>(total_results._moves) / num_tests
+					   << " moves"
+					   << std::endl;
 		}
 	}
 TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL:
