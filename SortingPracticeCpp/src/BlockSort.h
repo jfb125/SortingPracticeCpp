@@ -388,6 +388,10 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves rotateArray(T** array, index_t start, index_t end, index_t amount);
 	template <typename T>
+	void rotateTags(std::unique_ptr<BlockTag<T>[]> tags,
+					int first_tag, int last_tag, int tag_rotate_count,
+					index_t element_count);
+	template <typename T>
 	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size,
 			std::unique_ptr<BlockTag<T>[]> &tags, int num_tags);
 	template <typename T>
@@ -698,6 +702,52 @@ namespace BlockSort {
 		return result;
 	}
 
+	/*
+	 * 	void rotateTags(tags, first, last, tag_rotate_count, index_rotate_cnt);
+	 *
+	 * 	Takes an array of tags an rotates the tags on [first::last] by
+	 * 	  distance element_count which refers to the array indices,
+	 * 	  not the tag array
+	 *
+	 * 	Consider a tag array with the associated start:end values
+	 * 		   0	  1		 2        3        4		5
+	 * 		a[0:2] a[3:6] a[7:10] b[11:14] b[15:18] b[19:20]
+	 *      key='d'key='e'key='f' key='b'  key='c'  key='g'
+	 * 	rotateTags(tags, 0, 4, 8) results in
+	 * 		   0	  1		  2        3        4		5
+	 * 		b[0:3] b[4:7]  a[8:10] a[11:14] a[15:18] b[19:20]
+	 * 		k='b'  key='c' key='d' key='e'  key='f'  key='g'
+	 *	where 8 is the distance that each .start_index has moved
+	 *	  tag 0 a[0:2] became tag 2 a[8:10]
+	 *
+	 *	1 update the start & end indices
+	 *	  index_span_start = first.start
+	 *	  index_span_end = last.end
+	 *	  for each tag
+	 *	    for start_index, end_index
+	 *	      new_index = _index+rotate_count
+	 *	      if (new_index > index_span_end)
+	 *	        	overshoot = new_index - (index_end_index+1)
+	 *	        	new_index = index_span_start + overshoot
+	 *	      _index = new_index
+	 *
+	 *	2 rotate the tag types and keys
+	 *	  for each tag
+	 *	  tag_span_start = first
+	 *	  tag_span_end = last
+	 *	  for each tag
+	 *	     src_tag_index = index + tag_rotate_count
+	 *	     if (src_tag_index > tag_span_end)
+	 *	     	overshoot = src_tag_index - (tag_span_start+1)
+	 *	     	src_tag_index = new_tag_index+overshoot
+	 *	     tag.type = tag[src_tag_index].type
+	 *	     tag.key = tag[src_tag_index].key
+	 */
+
+	template <typename T>
+	void rotateTags(std::unique_ptr<BlockTag<T>[]> tags,
+					int first_tag, int last_tag, int tag_rotate_count,
+					index_t element_count);
 	/*
 	 * 	ComparesAndMoves sortBlocksInsertion(p_array, size, p_tags, num_tags);
 	 *
