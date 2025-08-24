@@ -13,6 +13,9 @@
 #include "SortTest.h"
 #include "ResultOutput.h"
 
+bool testBlockSort();
+
+
 array_size_t next_power_of_2(array_size_t current_size) {
 	return current_size * 2;
 }

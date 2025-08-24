@@ -24,7 +24,6 @@
 #define SORT_BLOCKS_LEFT_TO_RIGHT 1
 #define SORT_BLOCKS_RIGHT_TO_LEFT 2
 
-bool	testBlockSort();
 
 array_size_t floorLog2(array_size_t num);
 std::string printArrayIndices(array_size_t size, int value_width, int element_width);
@@ -492,7 +491,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves blockSwap(T** array,
+	ComparesAndMoves swapBlocks(T** array,
 								index_t block1_start, index_t block1_end,
 								index_t block2_start, index_t block2_end)
 	{
@@ -503,6 +502,7 @@ namespace BlockSort {
 			//	TODO - throw an exception
 			return result;
 		}
+		//	if necessary, swap indices so that the block is defined left to right
 		if (block1_start > block1_end) {
 			index_t tmp  = block1_start;
 			block1_start = block1_end;
@@ -552,7 +552,7 @@ namespace BlockSort {
 
 		T* temp;
 		for (index_t i = block1_start, j = block2_start;
-			 block1_start <= block1_end; ++i, ++j) {
+			 i <= block1_end; ++i, ++j) {
 			temp = array[i];
 			array[i] = array[j];
 			array[j] = temp;
@@ -975,46 +975,78 @@ namespace BlockSort {
 		}
 #endif
 
-		// process every a block
-		for (int left_block = num_a_blocks-1; left_block >= 0; left_block--) {
+		// process every A_Block starting with the block order:
+		//	 								A0 A1 ...    Am B0 ... .......Bn
+		// after the first pass, possibly	A0 A1 . Am-1 B0 B1 ... Am ... Bn
+		//	thus, each new iteration has to start with the next left block
+		//
+		for (int a_block_index = num_a_blocks-1; a_block_index >= 0; a_block_index--) {
 
-			// the blocks to the right of the left_block are in order, although the
-			//	left_block may need to be inserted somewhere in the blocks to the right
-			int right_block = left_block+1;
+			// The blocks to the right of the left_block are in order,
+			//	although there may be blocks to the right that are smaller than
+			//	this block.  Note that it may be possible that block immediately
+			//	to the right of this block is a B_Block
+			int b_block_index = a_block_index+1;
 
-			//	move through the blocks to the right until a block is found that is >= this block
-			result._compares++;
-			while (right_block < num_tags && *tags[right_block].key < *tags[left_block].key) {
-				right_block++;
+			//	Find first b_block to the right of this a_block
+			//	  that is greater than this block  That may entail
+			//	  moving through  a number of B_Blocks.
+			//	It is possible that there is no b_block that is greater
+			//	   thatn this a_block
+			while (b_block_index < num_tags) {
 				result._compares++;
+				if (*tags[a_block_index].key <= *tags[b_block_index].key) {
+					break;
+				}
+				b_block_index++;
 			}
 
-			//	If the proper place for this block is immediately to the left of its neighbor, done
-			if (left_block == right_block-1) {
-				continue;
+			//	If the b_block that is greater than this a_block is
+			//	  the next block, all of the blocks are in order
+			//	  because all a_blocks to the left are smaller and
+			//	  all b_blocks and a_blocks to the right are larger
+			//	  because this algorithm starts with the biggest a_block,
+			//	  performs the re-ordering, and then repeats by considering
+			//	  the next a_block lower
+			if (a_block_index == b_block_index-1) {
+				break;
 			}
 
-			// move the right_block index back to the block that goes BEFORE the left_block
-			right_block--;
+			//	A b_block has been identified that is >= this a_block,
+			//	  or the end of the b_blocks has been reached
+			//	  and there is at least one intervening b_block
+			//	  the portion of the array to be rotated is from
+			//	  this a_block to the b_block before the found one
+			//		consider the array { ... a[m], b[0], b[1] }
+			//	a[m].key=3  b[0].key=0  b[1].key=3  b_block_index = 1 rotate a[m]:b[0]
+			//	a[m].key=3  b[0].key=0  b[1].key=4  b_block_index = 1 rotate a[m]:b[0]
+			//	a[m].key=3  b[0].key=0  b[1].key=1  b_block_index = 2 rotate a[m]:b[1]
+			b_block_index--;
 
-			int start_of_rotated_span 	= tags[left_block].start_index;
-			int end_of_rotated_span 	= tags[right_block].end_index;
-			int rotate_count 			= tags[right_block].start_index - tags[left_block].start_index;
+			int start_of_rotated_span 	= tags[a_block_index].start_index;
+			int end_of_rotated_span 	= tags[b_block_index].end_index;
+			int rotate_count 			= tags[b_block_index].start_index - tags[a_block_index].start_index;
 
 #if DEBUG_VERBOSE_SORT_BLOCKS
 			printLineArrayIndices(size, 3, 4);
 			printElements(std::string("\n"), array, size, 3, 4);
 			std::stringstream debug;
-			debug << " BEFORE a_block: " << left_block  << "[" << tags[left_block].start_index << ":" << tags[left_block].end_index << "]"
-				  << " b_block: " 		 << right_block << "[" << tags[right_block].start_index << ":" << tags[right_block].end_index << "]"
+			debug << " BEFORE a_block: " << a_block_index  << "[" << tags[a_block_index].start_index << ":" << tags[a_block_index].end_index << "]"
+				  << " b_block: " 		 << b_block_index << "[" << tags[b_block_index].start_index << ":" << tags[b_block_index].end_index << "]"
 				  << ", " << rotate_count << "\n\n";
 			printTags(debug.str(), tags, num_tags, 4);
 #endif
 
 			result += rotateArray(array, rotate_count, start_of_rotated_span, end_of_rotated_span);
-			//	update the block types in the block tag array
-			BlockType left_block_type = tags[left_block].type;		// an A_Block
-			for (int i = left_block; i < right_block; i++) {
+
+			//	The blocks tags no longer match the array because
+			//	  the array has been rotated one block to the left
+			//	  The tags themselves should not be rotated, because
+			//	  the [start:end] has not changed
+			//	  Update the block tags copy the next blocks TYPE
+			//	    into this block, then updating the key value
+			BlockType left_block_type = tags[a_block_index].type;		// an A_Block
+			for (int i = a_block_index; i < b_block_index; i++) {
 				tags[i].type = tags[i+1].type;
 				if (tags[i].type == BlockType::A_BLOCK) {
 					tags[i].key = array[tags[i].start_index];
@@ -1022,12 +1054,13 @@ namespace BlockSort {
 					tags[i].key = array[tags[i].end_index];
 				}
 			}
-			tags[right_block].type = left_block_type;
-			if (tags[right_block].type == BlockType::A_BLOCK) {
-				tags[right_block].key = array[tags[right_block].start_index];
+			tags[b_block_index].type = left_block_type;
+			if (tags[b_block_index].type == BlockType::A_BLOCK) {
+				tags[b_block_index].key = array[tags[b_block_index].start_index];
 			} else {
-				tags[right_block].key = array[tags[right_block].end_index];
+				tags[b_block_index].key = array[tags[b_block_index].end_index];
 			}
+
 #if DEBUG_VERBOSE_SORT_BLOCKS
 			printLineArrayIndices(size, 3, 4);
 			printTags(std::string(" AFTER\n"), tags, num_tags, 4);

@@ -1,5 +1,5 @@
 /*
- * BlockSortTest.cpp
+ * 	BlockSortTest.cpp
  *
  *  Created on: Aug 14, 2025
  *      Author: joe
@@ -171,16 +171,17 @@ std::string arrayToString(T** array, index_t array_size,
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ARRAY
 //#define TEST_BLOCK_MERGE
-#define TEST_BLOCK_SWAP
-//#define TEST_BLOCK_SORT_TAG_BLOCKS
-//#define	TEST_BLOCK_SORT_SORT
+//#define TEST_BLOCK_SWAP
+//#define TEST_BLOCK_SORT_SORT_BLOCKS
+//#define TEST_BLOCK_SORT_SORT
 
 bool testFloorLog2();
 bool testRotateArray();
 bool testBlockMerge();
 bool testBlockSortSortBlocks();
 bool testBlockSortSort();
-bool testBlockSwap();
+bool testBlockSortSwapBlocks();
+bool testBlockSort();
 
 #define runTest(result, func, name_str) do {\
 	if (!func()) {\
@@ -236,12 +237,12 @@ bool testBlockSort() {
 	runTest(passed, testBlockMerge, "function testBlockMerge()");
 #endif
 
-#ifdef TEST_BLOCK_SORT_TAG_BLOCKS
+#ifdef TEST_BLOCK_SORT_SORT_BLOCKS
 	runTest(passed, testBlockSortSortBlocks, "function testBlockSortSortBlocks()");
 #endif
 
 #ifdef TEST_BLOCK_SWAP
-	runTest(passed, testBlockSwap, "function testBlockSwap()");
+	runTest(passed, testBlockSortSwapBlocks, "function testBlockSwap()");
 #endif
 
 #ifdef	TEST_BLOCK_SORT_SORT
@@ -368,7 +369,7 @@ void rotateArrayLongWay(T**array, index_t size, index_t count) {
 //		which is outside the array and thus blockSwap should return
 //		without any moves
 
-bool testBlockSwap() {
+bool testBlockSortSwapBlocks() {
 
 	constexpr bool verbose = true;
 	constexpr int value_width = 3;
@@ -402,7 +403,7 @@ bool testBlockSwap() {
 	};
 
 	bool test_passed = true;
-
+	int test_case = 0;
 	for (int array_size = min_array_size; array_size <= max_array_size; array_size++) {
 		int max_block_size = array_size / 2;
 		for (int block_size = min_block_size; block_size <= max_block_size; block_size++) {
@@ -424,7 +425,8 @@ bool testBlockSwap() {
 							left_block_begin + std::abs(block_gap) * block_size;
 					int right_block_end =
 							right_block_begin + block_size-1;
-					messages << "array_size " 	<< std::setw(2) << array_size
+					messages << "test case " << test_case
+							 << " array_size " 	<< std::setw(2) << array_size
 							 << ", block_size " << std::setw(2) << block_size
 							 << ", block_gap " << std::setw(2) << block_gap
 							 << ", block_beginning " << std::setw(2) << beginnings[i]
@@ -432,9 +434,14 @@ bool testBlockSwap() {
 							 << ":" << std::setw(2) << left_block_end
 							 << "], right block [" << std::setw(2) << right_block_begin
 							 << ":" << std::setw(2) << right_block_end << "]";
+					test_case++;
 					//	if the bounds of the right block are outside the array
 					if (right_block_end > array_size-1) {
 						std::cout << messages.str() << " !!! right block end index > array_size-1" << std::endl;
+						continue;
+					}
+					if (left_block_begin <0) {
+						std::cout << messages.str() << " !!! left block start index < 0" << std::endl;
 						continue;
 					}
 					messages << std::endl;
@@ -456,12 +463,12 @@ bool testBlockSwap() {
 					if (block_gap >= 0) {
 						//	if the block gap is not negative,
 						//	   the blocks can be swapped
-						BlockSort::blockSwap(array, left_block_begin, left_block_end,
+						BlockSort::swapBlocks(array, left_block_begin, left_block_end,
 												    right_block_begin, right_block_end);
 					} else {
 						// if the block gap is negative, the right most block needs
 						//     to be the first block passed to the function
-						BlockSort::blockSwap(array, right_block_begin, right_block_end,
+						BlockSort::swapBlocks(array, right_block_begin, right_block_end,
 													left_block_begin, left_block_end);
 					}
 					messages << " expected: " << arrayToString(expected, array_size, value_width, element_width)
@@ -713,7 +720,7 @@ bool testBlockSortSortBlocks() {
 
 	bool test_passed = true;
 
-	bool (*areSorted)(TagArray &tags, int num_tags) =
+	bool (*areTagsSorted)(TagArray &tags, int num_tags) =
 		[] (TagArray &_tags, int _num_tags) {
 		for (int i = 1; i < _num_tags; i++) {
 			//	if the earlier block is > this block
@@ -790,7 +797,7 @@ bool testBlockSortSortBlocks() {
 				result = BlockSort::sortBlocksLeftToRight(array, array_size, tags, num_tags);
 				messages << BlockSort::printTags(std::string("\n"), tags, num_tags, element_width);
 				messages << out(array, array_size, " after sorting blocks\n");
-				if (!areSorted(tags, num_tags)) {
+				if (!areTagsSorted(tags, num_tags)) {
 					test_passed = false;
 					std::cout << " !!!! FAILED !!!! test run " << test_num << std::endl;
 					std::cout << messages.str() << std::endl;
