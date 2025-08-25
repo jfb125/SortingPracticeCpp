@@ -388,7 +388,7 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves rotateArray(T** array, index_t start, index_t end, index_t amount);
 	template <typename T>
-	void rotateTags(std::unique_ptr<BlockTag<T>[]> tags,
+	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> tags,
 					int first_tag, int last_tag, int tag_rotate_count,
 					index_t element_count);
 	template <typename T>
@@ -397,6 +397,12 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size,
 			std::unique_ptr<BlockTag<T>[]> &tags, int num_tags);
+	template <typename T>
+	ComparesAndMoves swapBlocks(T** array,
+								index_t block1_start, index_t block1_end,
+								index_t block2_start, index_t block2_end);
+	template<typename T>
+	ComparesAndMoves swapTags(std::unique_ptr<BlockTag<T[]>> &tags, int i, int j);
 
 	/*
 	 * ComparesAndMoves blockMerge(arr, start, mid, end);
@@ -483,87 +489,6 @@ namespace BlockSort {
 		return result;
 	}
 
-
-	/*
-	 *	ComparesAndMoves blockSwap(array, b1_start, b1_end, b2_start, bl2_end)
-	 *
-	 *	if the block sizes are not the same, it returns
-	 *		(it is the caller's responsibility to determine if a rotate should
-	 *		 occur instead of a swap)
-	 *	if either of the indices are less than zero, it returns
-	 *	if the blocks overlap (exchange is not defined), it returns
-	 */
-
-	template <typename T>
-	ComparesAndMoves swapBlocks(T** array,
-								index_t block1_start, index_t block1_end,
-								index_t block2_start, index_t block2_end)
-	{
-		ComparesAndMoves result(0,0);
-
-		//	if the indices are not credible, leave
-		if (block1_start < 0 || block1_end < 0 || block2_start < 0 || block2_end < 0) {
-			//	TODO - throw an exception
-			return result;
-		}
-		//	if necessary, swap indices so that the block is defined left to right
-		if (block1_start > block1_end) {
-			index_t tmp  = block1_start;
-			block1_start = block1_end;
-			block1_end   = tmp;
-		}
-		if (block2_start > block2_end) {
-			index_t tmp  = block2_start;
-			block2_start = block2_end;
-			block2_end   = tmp;
-		}
-		//	ensure the blocks are well formatted:
-		//	1. same size
-		//	2. if necessary, swap indices
-		//	3. ensure the blocks don't overlap
-		index_t block1_span = block1_end-block1_start+1;
-		index_t block2_span = block2_end-block2_start+1;
-
-		//	this is not an exception
-		if (block1_span == 0) {
-			return result;
-		}
-		//	if the blocks are different sizes, exit
-		if (block1_span != block2_span) {
-			// TODO - throw and exception
-			return result;
-		}
-		//	if it is the same block, we are done
-		if (block1_start == block2_start) {
-			return result;
-		}
-		// do the blocks overlap?
-		if (block1_start < block2_start) {
-			//	block1 is the leftmost block
-			//	  does block1 overlap with block2?`
-			if (block1_end >= block2_start) {
-				// TODO - throw exception
-				return result;
-			}
-		} else {
-			// 	block2 is the leftmost block
-			//	  does block2 overlap with block1?
-			if (block2_end >= block1_start) {
-				// TODO - throw exception
-				return result;
-			}
-		}
-
-		T* temp;
-		for (index_t i = block1_start, j = block2_start;
-			 i <= block1_end; ++i, ++j) {
-			temp = array[i];
-			array[i] = array[j];
-			array[j] = temp;
-			result._moves += 3;
-		}
-		return result;
-	}
 
 	template <typename T>
 	int  createTags(T** array, index_t start, index_t mid, index_t end,
@@ -703,7 +628,7 @@ namespace BlockSort {
 	}
 
 	/*
-	 * 	void rotateTags(tags, first, last, tag_rotate_count, index_rotate_cnt);
+	 * 	ComparesAndMoves rotateTags(tags, first, last, tag_rotate_count, index_rotate_cnt);
 	 *
 	 * 	Takes an array of tags an rotates the tags on [first::last] by
 	 * 	  distance element_count which refers to the array indices,
@@ -732,22 +657,74 @@ namespace BlockSort {
 	 *	      _index = new_index
 	 *
 	 *	2 rotate the tag types and keys
-	 *	  for each tag
-	 *	  tag_span_start = first
-	 *	  tag_span_end = last
-	 *	  for each tag
-	 *	     src_tag_index = index + tag_rotate_count
-	 *	     if (src_tag_index > tag_span_end)
-	 *	     	overshoot = src_tag_index - (tag_span_start+1)
-	 *	     	src_tag_index = new_tag_index+overshoot
-	 *	     tag.type = tag[src_tag_index].type
-	 *	     tag.key = tag[src_tag_index].key
+	 *		triple reverse tag type and key
+	 *		for (i = start, j = end; i < j; i++, j--)
+	 *			Tag<T> tmp = tags[i]
+	 *			tags[i].type = tags[j].type
+	 *			tags[i].key  = tags[j].key
+	 *			tags[j].type = tmp.type
+	 *			tags[j],key  = tmp.key
 	 */
 
 	template <typename T>
-	void rotateTags(std::unique_ptr<BlockTag<T>[]> tags,
-					int first_tag, int last_tag, int tag_rotate_count,
-					index_t element_count);
+	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> tags,
+							    int first_tag, int last_tag, int tag_rotate_count,
+								index_t element_rotate_count) {
+		ComparesAndMoves result(0,0);
+
+		if (first_tag == last_tag)
+			return result;
+
+		auto swapTypeAndKey = [&tags] (int i, int j) {
+			BlockType tmp_type 	= tags[i].type;
+			T*		  tmp_key	= tags[i].key;
+			tags[i].type = tags[j].type;
+			tags[i].key  = tags[j].key;
+			tags[j].type = tmp_type;
+			tags[j].key  = tmp_key;
+		};
+
+		 // update the start & end indices
+		index_t start_of_span_index = tags[first_tag].start_index;
+		index_t end_of_span_index	= tags[last_tag].end_index;
+
+		for (int i = first_tag; i <= last_tag; i++) {
+			index_t next_start_index = tags[i].start_index + element_rotate_count;
+			// if this tag rotated to a position earlier in the array
+			if (next_start_index > end_of_span_index) {
+				//	calculate how many elements from the start of the span
+				index_t overshoot = next_start_index - (end_of_span_index + 1);
+				// the next start index will be 'overashoot' from the start of span
+				next_start_index = start_of_span_index + overshoot;
+			}
+			tags[i].start_index = next_start_index;
+
+			// do the sam calculation for the end_index
+			index_t next_end_index = tags[i].end_index + element_rotate_count;
+			if (next_end_index > end_of_span_index) {
+				index_t overshoot = next_end_index - (end_of_span_index+1);
+				next_end_index = tags[i].end_index + overshoot;
+			}
+			tags[i].end_index = next_end_index;
+		}
+
+		// rotate the types & keys
+		//	 note that moving swapping a key is the same as
+		//	   swapping an array element, so it counts as 3 moves
+
+		for (int i = first_tag, j = last_tag; i < j; i++, j--) {
+			swapTypeAndKey(i,j);
+		}
+		for (int i = first_tag, j = tag_rotate_count-1; i < j; i++, j--) {
+			swapTypeAndKey(i,j);
+		}
+		for (int i = tag_rotate_count, j = last_tag; i < j; i++, j--) {
+			swapTypeAndKey(i,j);
+		}
+
+		return result;
+	}
+
 	/*
 	 * 	ComparesAndMoves sortBlocksInsertion(p_array, size, p_tags, num_tags);
 	 *
@@ -1326,6 +1303,105 @@ namespace BlockSort {
 #endif
 		return result;
 	}
+
+	/*
+	 *	ComparesAndMoves blockSwap(array, b1_start, b1_end, b2_start, bl2_end)
+	 *
+	 *	if the block sizes are not the same, it returns
+	 *		(it is the caller's responsibility to determine if a rotate should
+	 *		 occur instead of a swap)
+	 *	if either of the indices are less than zero, it returns
+	 *	if the blocks overlap (exchange is not defined), it returns
+	 */
+
+	template <typename T>
+	ComparesAndMoves swapBlocks(T** array,
+								index_t block1_start, index_t block1_end,
+								index_t block2_start, index_t block2_end)
+	{
+		ComparesAndMoves result(0,0);
+
+		//	if the indices are not credible, leave
+		if (block1_start < 0 || block1_end < 0 || block2_start < 0 || block2_end < 0) {
+			//	TODO - throw an exception
+			return result;
+		}
+		//	if necessary, swap indices so that the block is defined left to right
+		if (block1_start > block1_end) {
+			index_t tmp  = block1_start;
+			block1_start = block1_end;
+			block1_end   = tmp;
+		}
+		if (block2_start > block2_end) {
+			index_t tmp  = block2_start;
+			block2_start = block2_end;
+			block2_end   = tmp;
+		}
+		//	ensure the blocks are well formatted:
+		//	1. same size
+		//	2. if necessary, swap indices
+		//	3. ensure the blocks don't overlap
+		index_t block1_span = block1_end-block1_start+1;
+		index_t block2_span = block2_end-block2_start+1;
+
+		//	this is not an exception
+		if (block1_span == 0) {
+			return result;
+		}
+		//	if the blocks are different sizes, exit
+		if (block1_span != block2_span) {
+			// TODO - throw and exception
+			return result;
+		}
+		//	if it is the same block, we are done
+		if (block1_start == block2_start) {
+			return result;
+		}
+		// do the blocks overlap?
+		if (block1_start < block2_start) {
+			//	block1 is the leftmost block
+			//	  does block1 overlap with block2?`
+			if (block1_end >= block2_start) {
+				// TODO - throw exception
+				return result;
+			}
+		} else {
+			// 	block2 is the leftmost block
+			//	  does block2 overlap with block1?
+			if (block2_end >= block1_start) {
+				// TODO - throw exception
+				return result;
+			}
+		}
+
+		T* temp;
+		for (index_t i = block1_start, j = block2_start;
+			 i <= block1_end; ++i, ++j) {
+			temp = array[i];
+			array[i] = array[j];
+			array[j] = temp;
+			result._moves += 3;
+		}
+		return result;
+	}
+
+	template<typename T>
+	ComparesAndMoves swapTags(std::unique_ptr<BlockTag<T[]>> &tags, int i, int j) {
+
+		//	swapping the Tag.key, which is an array element, takes three moves
+		ComparesAndMoves result(0,3);
+		BlockTag<T>tmp = tags[i];
+		tags[i] = tags[j];
+		tags[j] = tmp;
+		return result;
+	}
+
+
+		/*	**************************************************	*/
+		/*	**************************************************	*/
+		/*						the sort						*/
+		/*	**************************************************	*/
+		/*	**************************************************	*/
 
 	/*
 	 * 	ComparesAndMoves sortArray(array, start, mid, end, block_size);

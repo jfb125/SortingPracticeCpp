@@ -1,54 +1,1169 @@
-Sorting Performance In C++ built on Aug 24 2025 at 14:56:42
+Sorting Performance In C++ built on Aug 25 2025 at 16:10:48
 testBlockSort()
-PASSED array size 8 rotate( -9) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
-PASSED array size 8 rotate( -8) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
-PASSED array size 8 rotate( -7) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
-PASSED array size 8 rotate( -6) "abcdefgh" yields "ghabcdef" vs expected "ghabcdef" took: 24 moves
-PASSED array size 8 rotate( -5) "abcdefgh" yields "fghabcde" vs expected "fghabcde" took: 21 moves
-PASSED array size 8 rotate( -4) "abcdefgh" yields "efghabcd" vs expected "efghabcd" took: 24 moves
-PASSED array size 8 rotate( -3) "abcdefgh" yields "defghabc" vs expected "defghabc" took: 21 moves
-PASSED array size 8 rotate( -2) "abcdefgh" yields "cdefghab" vs expected "cdefghab" took: 24 moves
-PASSED array size 8 rotate( -1) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
-PASSED array size 8 rotate(  0) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
-PASSED array size 8 rotate(  1) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
-PASSED array size 8 rotate(  2) "abcdefgh" yields "ghabcdef" vs expected "ghabcdef" took: 24 moves
-PASSED array size 8 rotate(  3) "abcdefgh" yields "fghabcde" vs expected "fghabcde" took: 21 moves
-PASSED array size 8 rotate(  4) "abcdefgh" yields "efghabcd" vs expected "efghabcd" took: 24 moves
-PASSED array size 8 rotate(  5) "abcdefgh" yields "defghabc" vs expected "defghabc" took: 21 moves
-PASSED array size 8 rotate(  6) "abcdefgh" yields "cdefghab" vs expected "cdefghab" took: 24 moves
-PASSED array size 8 rotate(  7) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
-PASSED array size 8 rotate(  8) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
-PASSED array size 8 rotate(  9) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
-PASSED array size 8 rotate( 10) "abcdefgh" yields "ghabcdef" vs expected "ghabcdef" took: 24 moves
-PASSED array size 8 rotate( 11) "abcdefgh" yields "fghabcde" vs expected "fghabcde" took: 21 moves
-PASSED array size 8 rotate( 12) "abcdefgh" yields "efghabcd" vs expected "efghabcd" took: 24 moves
-PASSED array size 8 rotate( 13) "abcdefgh" yields "defghabc" vs expected "defghabc" took: 21 moves
-PASSED array size 8 rotate( 14) "abcdefgh" yields "cdefghab" vs expected "cdefghab" took: 24 moves
-PASSED array size 8 rotate( 15) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
-PASSED array size 8 rotate( 16) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
-PASSED array size 8 rotate( 17) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
-PASSED array size 7 rotate( -8) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
-PASSED array size 7 rotate( -7) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
-PASSED array size 7 rotate( -6) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
-PASSED array size 7 rotate( -5) "abcdefg" yields "fgabcde" vs expected "fgabcde" took: 18 moves
-PASSED array size 7 rotate( -4) "abcdefg" yields "efgabcd" vs expected "efgabcd" took: 18 moves
-PASSED array size 7 rotate( -3) "abcdefg" yields "defgabc" vs expected "defgabc" took: 18 moves
-PASSED array size 7 rotate( -2) "abcdefg" yields "cdefgab" vs expected "cdefgab" took: 18 moves
-PASSED array size 7 rotate( -1) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
-PASSED array size 7 rotate(  0) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
-PASSED array size 7 rotate(  1) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
-PASSED array size 7 rotate(  2) "abcdefg" yields "fgabcde" vs expected "fgabcde" took: 18 moves
-PASSED array size 7 rotate(  3) "abcdefg" yields "efgabcd" vs expected "efgabcd" took: 18 moves
-PASSED array size 7 rotate(  4) "abcdefg" yields "defgabc" vs expected "defgabc" took: 18 moves
-PASSED array size 7 rotate(  5) "abcdefg" yields "cdefgab" vs expected "cdefgab" took: 18 moves
-PASSED array size 7 rotate(  6) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
-PASSED array size 7 rotate(  7) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
-PASSED array size 7 rotate(  8) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
-PASSED array size 7 rotate(  9) "abcdefg" yields "fgabcde" vs expected "fgabcde" took: 18 moves
-PASSED array size 7 rotate( 10) "abcdefg" yields "efgabcd" vs expected "efgabcd" took: 18 moves
-PASSED array size 7 rotate( 11) "abcdefg" yields "defgabc" vs expected "defgabc" took: 18 moves
-PASSED array size 7 rotate( 12) "abcdefg" yields "cdefgab" vs expected "cdefgab" took: 18 moves
-PASSED array size 7 rotate( 13) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
-PASSED array size 7 rotate( 14) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
-PASSED array size 7 rotate( 15) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
-PASS:  function rotateArray() returns TRUE
+test case 0 array_size 20, block_size  2, block_gap -2, block_beginning  0 left_block [ 0: 1], right block [ 4: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   e   f   c   d   a   b   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   e   f   c   d   a   b   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 1 array_size 20, block_size  2, block_gap -2, block_beginning  1 left_block [ 1: 2], right block [ 5: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   f   g   d   e   b   c   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   f   g   d   e   b   c   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 2 array_size 20, block_size  2, block_gap -2, block_beginning 14 left_block [14:15], right block [18:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   s   t   q   r   o   p
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   s   t   q   r   o   p
+
+test case 3 array_size 20, block_size  2, block_gap -1, block_beginning  0 left_block [ 0: 1], right block [ 2: 3]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   c   d   a   b   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   c   d   a   b   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 4 array_size 20, block_size  2, block_gap -1, block_beginning  1 left_block [ 1: 2], right block [ 3: 4]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   d   e   b   c   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   d   e   b   c   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 5 array_size 20, block_size  2, block_gap -1, block_beginning 16 left_block [16:17], right block [18:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   s   t   q   r
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   s   t   q   r
+
+test case 6 array_size 20, block_size  2, block_gap  0, block_beginning  0 left_block [ 0: 1], right block [ 0: 1]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 7 array_size 20, block_size  2, block_gap  0, block_beginning  1 left_block [ 1: 2], right block [ 1: 2]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 8 array_size 20, block_size  2, block_gap  0, block_beginning 18 left_block [18:19], right block [18:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 9 array_size 20, block_size  2, block_gap  1, block_beginning  0 left_block [ 0: 1], right block [ 2: 3]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   c   d   a   b   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   c   d   a   b   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 10 array_size 20, block_size  2, block_gap  1, block_beginning  1 left_block [ 1: 2], right block [ 3: 4]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   d   e   b   c   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   d   e   b   c   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 11 array_size 20, block_size  2, block_gap  1, block_beginning 16 left_block [16:17], right block [18:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   s   t   q   r
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   s   t   q   r
+
+test case 12 array_size 20, block_size  2, block_gap  2, block_beginning  0 left_block [ 0: 1], right block [ 4: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   e   f   c   d   a   b   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   e   f   c   d   a   b   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 13 array_size 20, block_size  2, block_gap  2, block_beginning  1 left_block [ 1: 2], right block [ 5: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   f   g   d   e   b   c   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   f   g   d   e   b   c   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 14 array_size 20, block_size  2, block_gap  2, block_beginning 14 left_block [14:15], right block [18:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   s   t   q   r   o   p
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   s   t   q   r   o   p
+
+test case 15 array_size 20, block_size  3, block_gap -2, block_beginning  0 left_block [ 0: 2], right block [ 6: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   g   h   i   d   e   f   a   b   c   j   k   l   m   n   o   p   q   r   s   t
+ received:   g   h   i   d   e   f   a   b   c   j   k   l   m   n   o   p   q   r   s   t
+
+test case 16 array_size 20, block_size  3, block_gap -2, block_beginning  1 left_block [ 1: 3], right block [ 7: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   h   i   j   e   f   g   b   c   d   k   l   m   n   o   p   q   r   s   t
+ received:   a   h   i   j   e   f   g   b   c   d   k   l   m   n   o   p   q   r   s   t
+
+test case 17 array_size 20, block_size  3, block_gap -2, block_beginning 11 left_block [11:13], right block [17:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   r   s   t   o   p   q   l   m   n
+ received:   a   b   c   d   e   f   g   h   i   j   k   r   s   t   o   p   q   l   m   n
+
+test case 18 array_size 20, block_size  3, block_gap -1, block_beginning  0 left_block [ 0: 2], right block [ 3: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   d   e   f   a   b   c   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   d   e   f   a   b   c   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 19 array_size 20, block_size  3, block_gap -1, block_beginning  1 left_block [ 1: 3], right block [ 4: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   e   f   g   b   c   d   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   e   f   g   b   c   d   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 20 array_size 20, block_size  3, block_gap -1, block_beginning 14 left_block [14:16], right block [17:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   r   s   t   o   p   q
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   r   s   t   o   p   q
+
+test case 21 array_size 20, block_size  3, block_gap  0, block_beginning  0 left_block [ 0: 2], right block [ 0: 2]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 22 array_size 20, block_size  3, block_gap  0, block_beginning  1 left_block [ 1: 3], right block [ 1: 3]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 23 array_size 20, block_size  3, block_gap  0, block_beginning 17 left_block [17:19], right block [17:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 24 array_size 20, block_size  3, block_gap  1, block_beginning  0 left_block [ 0: 2], right block [ 3: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   d   e   f   a   b   c   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   d   e   f   a   b   c   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 25 array_size 20, block_size  3, block_gap  1, block_beginning  1 left_block [ 1: 3], right block [ 4: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   e   f   g   b   c   d   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   e   f   g   b   c   d   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 26 array_size 20, block_size  3, block_gap  1, block_beginning 14 left_block [14:16], right block [17:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   r   s   t   o   p   q
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   r   s   t   o   p   q
+
+test case 27 array_size 20, block_size  3, block_gap  2, block_beginning  0 left_block [ 0: 2], right block [ 6: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   g   h   i   d   e   f   a   b   c   j   k   l   m   n   o   p   q   r   s   t
+ received:   g   h   i   d   e   f   a   b   c   j   k   l   m   n   o   p   q   r   s   t
+
+test case 28 array_size 20, block_size  3, block_gap  2, block_beginning  1 left_block [ 1: 3], right block [ 7: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   h   i   j   e   f   g   b   c   d   k   l   m   n   o   p   q   r   s   t
+ received:   a   h   i   j   e   f   g   b   c   d   k   l   m   n   o   p   q   r   s   t
+
+test case 29 array_size 20, block_size  3, block_gap  2, block_beginning 11 left_block [11:13], right block [17:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   r   s   t   o   p   q   l   m   n
+ received:   a   b   c   d   e   f   g   h   i   j   k   r   s   t   o   p   q   l   m   n
+
+test case 30 array_size 20, block_size  4, block_gap -2, block_beginning  0 left_block [ 0: 3], right block [ 8:11]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   i   j   k   l   e   f   g   h   a   b   c   d   m   n   o   p   q   r   s   t
+ received:   i   j   k   l   e   f   g   h   a   b   c   d   m   n   o   p   q   r   s   t
+
+test case 31 array_size 20, block_size  4, block_gap -2, block_beginning  1 left_block [ 1: 4], right block [ 9:12]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   j   k   l   m   f   g   h   i   b   c   d   e   n   o   p   q   r   s   t
+ received:   a   j   k   l   m   f   g   h   i   b   c   d   e   n   o   p   q   r   s   t
+
+test case 32 array_size 20, block_size  4, block_gap -2, block_beginning  8 left_block [ 8:11], right block [16:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   q   r   s   t   m   n   o   p   i   j   k   l
+ received:   a   b   c   d   e   f   g   h   q   r   s   t   m   n   o   p   i   j   k   l
+
+test case 33 array_size 20, block_size  4, block_gap -1, block_beginning  0 left_block [ 0: 3], right block [ 4: 7]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   e   f   g   h   a   b   c   d   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   e   f   g   h   a   b   c   d   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 34 array_size 20, block_size  4, block_gap -1, block_beginning  1 left_block [ 1: 4], right block [ 5: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   f   g   h   i   b   c   d   e   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   f   g   h   i   b   c   d   e   j   k   l   m   n   o   p   q   r   s   t
+
+test case 35 array_size 20, block_size  4, block_gap -1, block_beginning 12 left_block [12:15], right block [16:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   q   r   s   t   m   n   o   p
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   q   r   s   t   m   n   o   p
+
+test case 36 array_size 20, block_size  4, block_gap  0, block_beginning  0 left_block [ 0: 3], right block [ 0: 3]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 37 array_size 20, block_size  4, block_gap  0, block_beginning  1 left_block [ 1: 4], right block [ 1: 4]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 38 array_size 20, block_size  4, block_gap  0, block_beginning 16 left_block [16:19], right block [16:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 39 array_size 20, block_size  4, block_gap  1, block_beginning  0 left_block [ 0: 3], right block [ 4: 7]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   e   f   g   h   a   b   c   d   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   e   f   g   h   a   b   c   d   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 40 array_size 20, block_size  4, block_gap  1, block_beginning  1 left_block [ 1: 4], right block [ 5: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   f   g   h   i   b   c   d   e   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   f   g   h   i   b   c   d   e   j   k   l   m   n   o   p   q   r   s   t
+
+test case 41 array_size 20, block_size  4, block_gap  1, block_beginning 12 left_block [12:15], right block [16:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   q   r   s   t   m   n   o   p
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   q   r   s   t   m   n   o   p
+
+test case 42 array_size 20, block_size  4, block_gap  2, block_beginning  0 left_block [ 0: 3], right block [ 8:11]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   i   j   k   l   e   f   g   h   a   b   c   d   m   n   o   p   q   r   s   t
+ received:   i   j   k   l   e   f   g   h   a   b   c   d   m   n   o   p   q   r   s   t
+
+test case 43 array_size 20, block_size  4, block_gap  2, block_beginning  1 left_block [ 1: 4], right block [ 9:12]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   j   k   l   m   f   g   h   i   b   c   d   e   n   o   p   q   r   s   t
+ received:   a   j   k   l   m   f   g   h   i   b   c   d   e   n   o   p   q   r   s   t
+
+test case 44 array_size 20, block_size  4, block_gap  2, block_beginning  8 left_block [ 8:11], right block [16:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   q   r   s   t   m   n   o   p   i   j   k   l
+ received:   a   b   c   d   e   f   g   h   q   r   s   t   m   n   o   p   i   j   k   l
+
+test case 45 array_size 20, block_size  5, block_gap -2, block_beginning  0 left_block [ 0: 4], right block [10:14]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   k   l   m   n   o   f   g   h   i   j   a   b   c   d   e   p   q   r   s   t
+ received:   k   l   m   n   o   f   g   h   i   j   a   b   c   d   e   p   q   r   s   t
+
+test case 46 array_size 20, block_size  5, block_gap -2, block_beginning  1 left_block [ 1: 5], right block [11:15]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   l   m   n   o   p   g   h   i   j   k   b   c   d   e   f   q   r   s   t
+ received:   a   l   m   n   o   p   g   h   i   j   k   b   c   d   e   f   q   r   s   t
+
+test case 47 array_size 20, block_size  5, block_gap -2, block_beginning  5 left_block [ 5: 9], right block [15:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   p   q   r   s   t   k   l   m   n   o   f   g   h   i   j
+ received:   a   b   c   d   e   p   q   r   s   t   k   l   m   n   o   f   g   h   i   j
+
+test case 48 array_size 20, block_size  5, block_gap -1, block_beginning  0 left_block [ 0: 4], right block [ 5: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   f   g   h   i   j   a   b   c   d   e   k   l   m   n   o   p   q   r   s   t
+ received:   f   g   h   i   j   a   b   c   d   e   k   l   m   n   o   p   q   r   s   t
+
+test case 49 array_size 20, block_size  5, block_gap -1, block_beginning  1 left_block [ 1: 5], right block [ 6:10]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   g   h   i   j   k   b   c   d   e   f   l   m   n   o   p   q   r   s   t
+ received:   a   g   h   i   j   k   b   c   d   e   f   l   m   n   o   p   q   r   s   t
+
+test case 50 array_size 20, block_size  5, block_gap -1, block_beginning 10 left_block [10:14], right block [15:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   p   q   r   s   t   k   l   m   n   o
+ received:   a   b   c   d   e   f   g   h   i   j   p   q   r   s   t   k   l   m   n   o
+
+test case 51 array_size 20, block_size  5, block_gap  0, block_beginning  0 left_block [ 0: 4], right block [ 0: 4]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 52 array_size 20, block_size  5, block_gap  0, block_beginning  1 left_block [ 1: 5], right block [ 1: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 53 array_size 20, block_size  5, block_gap  0, block_beginning 15 left_block [15:19], right block [15:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 54 array_size 20, block_size  5, block_gap  1, block_beginning  0 left_block [ 0: 4], right block [ 5: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   f   g   h   i   j   a   b   c   d   e   k   l   m   n   o   p   q   r   s   t
+ received:   f   g   h   i   j   a   b   c   d   e   k   l   m   n   o   p   q   r   s   t
+
+test case 55 array_size 20, block_size  5, block_gap  1, block_beginning  1 left_block [ 1: 5], right block [ 6:10]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   g   h   i   j   k   b   c   d   e   f   l   m   n   o   p   q   r   s   t
+ received:   a   g   h   i   j   k   b   c   d   e   f   l   m   n   o   p   q   r   s   t
+
+test case 56 array_size 20, block_size  5, block_gap  1, block_beginning 10 left_block [10:14], right block [15:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   p   q   r   s   t   k   l   m   n   o
+ received:   a   b   c   d   e   f   g   h   i   j   p   q   r   s   t   k   l   m   n   o
+
+test case 57 array_size 20, block_size  5, block_gap  2, block_beginning  0 left_block [ 0: 4], right block [10:14]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   k   l   m   n   o   f   g   h   i   j   a   b   c   d   e   p   q   r   s   t
+ received:   k   l   m   n   o   f   g   h   i   j   a   b   c   d   e   p   q   r   s   t
+
+test case 58 array_size 20, block_size  5, block_gap  2, block_beginning  1 left_block [ 1: 5], right block [11:15]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   l   m   n   o   p   g   h   i   j   k   b   c   d   e   f   q   r   s   t
+ received:   a   l   m   n   o   p   g   h   i   j   k   b   c   d   e   f   q   r   s   t
+
+test case 59 array_size 20, block_size  5, block_gap  2, block_beginning  5 left_block [ 5: 9], right block [15:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   p   q   r   s   t   k   l   m   n   o   f   g   h   i   j
+ received:   a   b   c   d   e   p   q   r   s   t   k   l   m   n   o   f   g   h   i   j
+
+test case 60 array_size 20, block_size  6, block_gap -2, block_beginning  0 left_block [ 0: 5], right block [12:17]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   m   n   o   p   q   r   g   h   i   j   k   l   a   b   c   d   e   f   s   t
+ received:   m   n   o   p   q   r   g   h   i   j   k   l   a   b   c   d   e   f   s   t
+
+test case 61 array_size 20, block_size  6, block_gap -2, block_beginning  1 left_block [ 1: 6], right block [13:18]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   n   o   p   q   r   s   h   i   j   k   l   m   b   c   d   e   f   g   t
+ received:   a   n   o   p   q   r   s   h   i   j   k   l   m   b   c   d   e   f   g   t
+
+test case 62 array_size 20, block_size  6, block_gap -2, block_beginning  2 left_block [ 2: 7], right block [14:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   o   p   q   r   s   t   i   j   k   l   m   n   c   d   e   f   g   h
+ received:   a   b   o   p   q   r   s   t   i   j   k   l   m   n   c   d   e   f   g   h
+
+test case 63 array_size 20, block_size  6, block_gap -1, block_beginning  0 left_block [ 0: 5], right block [ 6:11]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   g   h   i   j   k   l   a   b   c   d   e   f   m   n   o   p   q   r   s   t
+ received:   g   h   i   j   k   l   a   b   c   d   e   f   m   n   o   p   q   r   s   t
+
+test case 64 array_size 20, block_size  6, block_gap -1, block_beginning  1 left_block [ 1: 6], right block [ 7:12]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   h   i   j   k   l   m   b   c   d   e   f   g   n   o   p   q   r   s   t
+ received:   a   h   i   j   k   l   m   b   c   d   e   f   g   n   o   p   q   r   s   t
+
+test case 65 array_size 20, block_size  6, block_gap -1, block_beginning  8 left_block [ 8:13], right block [14:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   o   p   q   r   s   t   i   j   k   l   m   n
+ received:   a   b   c   d   e   f   g   h   o   p   q   r   s   t   i   j   k   l   m   n
+
+test case 66 array_size 20, block_size  6, block_gap  0, block_beginning  0 left_block [ 0: 5], right block [ 0: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 67 array_size 20, block_size  6, block_gap  0, block_beginning  1 left_block [ 1: 6], right block [ 1: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 68 array_size 20, block_size  6, block_gap  0, block_beginning 14 left_block [14:19], right block [14:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 69 array_size 20, block_size  6, block_gap  1, block_beginning  0 left_block [ 0: 5], right block [ 6:11]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   g   h   i   j   k   l   a   b   c   d   e   f   m   n   o   p   q   r   s   t
+ received:   g   h   i   j   k   l   a   b   c   d   e   f   m   n   o   p   q   r   s   t
+
+test case 70 array_size 20, block_size  6, block_gap  1, block_beginning  1 left_block [ 1: 6], right block [ 7:12]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   h   i   j   k   l   m   b   c   d   e   f   g   n   o   p   q   r   s   t
+ received:   a   h   i   j   k   l   m   b   c   d   e   f   g   n   o   p   q   r   s   t
+
+test case 71 array_size 20, block_size  6, block_gap  1, block_beginning  8 left_block [ 8:13], right block [14:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   o   p   q   r   s   t   i   j   k   l   m   n
+ received:   a   b   c   d   e   f   g   h   o   p   q   r   s   t   i   j   k   l   m   n
+
+test case 72 array_size 20, block_size  6, block_gap  2, block_beginning  0 left_block [ 0: 5], right block [12:17]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   m   n   o   p   q   r   g   h   i   j   k   l   a   b   c   d   e   f   s   t
+ received:   m   n   o   p   q   r   g   h   i   j   k   l   a   b   c   d   e   f   s   t
+
+test case 73 array_size 20, block_size  6, block_gap  2, block_beginning  1 left_block [ 1: 6], right block [13:18]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   n   o   p   q   r   s   h   i   j   k   l   m   b   c   d   e   f   g   t
+ received:   a   n   o   p   q   r   s   h   i   j   k   l   m   b   c   d   e   f   g   t
+
+test case 74 array_size 20, block_size  6, block_gap  2, block_beginning  2 left_block [ 2: 7], right block [14:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   o   p   q   r   s   t   i   j   k   l   m   n   c   d   e   f   g   h
+ received:   a   b   o   p   q   r   s   t   i   j   k   l   m   n   c   d   e   f   g   h
+
+test case 75 array_size 20, block_size  7, block_gap -2, block_beginning  0 left_block [ 0: 6], right block [14:20] !!! right block end index > array_size-1
+test case 76 array_size 20, block_size  7, block_gap -2, block_beginning  1 left_block [ 1: 7], right block [15:21] !!! right block end index > array_size-1
+test case 77 array_size 20, block_size  7, block_gap -2, block_beginning -1 left_block [-1: 5], right block [13:19] !!! left block start index < 0
+test case 78 array_size 20, block_size  7, block_gap -1, block_beginning  0 left_block [ 0: 6], right block [ 7:13]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   h   i   j   k   l   m   n   a   b   c   d   e   f   g   o   p   q   r   s   t
+ received:   h   i   j   k   l   m   n   a   b   c   d   e   f   g   o   p   q   r   s   t
+
+test case 79 array_size 20, block_size  7, block_gap -1, block_beginning  1 left_block [ 1: 7], right block [ 8:14]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   i   j   k   l   m   n   o   b   c   d   e   f   g   h   p   q   r   s   t
+ received:   a   i   j   k   l   m   n   o   b   c   d   e   f   g   h   p   q   r   s   t
+
+test case 80 array_size 20, block_size  7, block_gap -1, block_beginning  6 left_block [ 6:12], right block [13:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   n   o   p   q   r   s   t   g   h   i   j   k   l   m
+ received:   a   b   c   d   e   f   n   o   p   q   r   s   t   g   h   i   j   k   l   m
+
+test case 81 array_size 20, block_size  7, block_gap  0, block_beginning  0 left_block [ 0: 6], right block [ 0: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 82 array_size 20, block_size  7, block_gap  0, block_beginning  1 left_block [ 1: 7], right block [ 1: 7]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 83 array_size 20, block_size  7, block_gap  0, block_beginning 13 left_block [13:19], right block [13:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 84 array_size 20, block_size  7, block_gap  1, block_beginning  0 left_block [ 0: 6], right block [ 7:13]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   h   i   j   k   l   m   n   a   b   c   d   e   f   g   o   p   q   r   s   t
+ received:   h   i   j   k   l   m   n   a   b   c   d   e   f   g   o   p   q   r   s   t
+
+test case 85 array_size 20, block_size  7, block_gap  1, block_beginning  1 left_block [ 1: 7], right block [ 8:14]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   i   j   k   l   m   n   o   b   c   d   e   f   g   h   p   q   r   s   t
+ received:   a   i   j   k   l   m   n   o   b   c   d   e   f   g   h   p   q   r   s   t
+
+test case 86 array_size 20, block_size  7, block_gap  1, block_beginning  6 left_block [ 6:12], right block [13:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   n   o   p   q   r   s   t   g   h   i   j   k   l   m
+ received:   a   b   c   d   e   f   n   o   p   q   r   s   t   g   h   i   j   k   l   m
+
+test case 87 array_size 20, block_size  7, block_gap  2, block_beginning  0 left_block [ 0: 6], right block [14:20] !!! right block end index > array_size-1
+test case 88 array_size 20, block_size  7, block_gap  2, block_beginning  1 left_block [ 1: 7], right block [15:21] !!! right block end index > array_size-1
+test case 89 array_size 20, block_size  7, block_gap  2, block_beginning -1 left_block [-1: 5], right block [13:19] !!! left block start index < 0
+test case 90 array_size 20, block_size  8, block_gap -2, block_beginning  0 left_block [ 0: 7], right block [16:23] !!! right block end index > array_size-1
+test case 91 array_size 20, block_size  8, block_gap -2, block_beginning  1 left_block [ 1: 8], right block [17:24] !!! right block end index > array_size-1
+test case 92 array_size 20, block_size  8, block_gap -2, block_beginning -4 left_block [-4: 3], right block [12:19] !!! left block start index < 0
+test case 93 array_size 20, block_size  8, block_gap -1, block_beginning  0 left_block [ 0: 7], right block [ 8:15]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   i   j   k   l   m   n   o   p   a   b   c   d   e   f   g   h   q   r   s   t
+ received:   i   j   k   l   m   n   o   p   a   b   c   d   e   f   g   h   q   r   s   t
+
+test case 94 array_size 20, block_size  8, block_gap -1, block_beginning  1 left_block [ 1: 8], right block [ 9:16]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   j   k   l   m   n   o   p   q   b   c   d   e   f   g   h   i   r   s   t
+ received:   a   j   k   l   m   n   o   p   q   b   c   d   e   f   g   h   i   r   s   t
+
+test case 95 array_size 20, block_size  8, block_gap -1, block_beginning  4 left_block [ 4:11], right block [12:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   m   n   o   p   q   r   s   t   e   f   g   h   i   j   k   l
+ received:   a   b   c   d   m   n   o   p   q   r   s   t   e   f   g   h   i   j   k   l
+
+test case 96 array_size 20, block_size  8, block_gap  0, block_beginning  0 left_block [ 0: 7], right block [ 0: 7]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 97 array_size 20, block_size  8, block_gap  0, block_beginning  1 left_block [ 1: 8], right block [ 1: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 98 array_size 20, block_size  8, block_gap  0, block_beginning 12 left_block [12:19], right block [12:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 99 array_size 20, block_size  8, block_gap  1, block_beginning  0 left_block [ 0: 7], right block [ 8:15]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   i   j   k   l   m   n   o   p   a   b   c   d   e   f   g   h   q   r   s   t
+ received:   i   j   k   l   m   n   o   p   a   b   c   d   e   f   g   h   q   r   s   t
+
+test case 100 array_size 20, block_size  8, block_gap  1, block_beginning  1 left_block [ 1: 8], right block [ 9:16]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   j   k   l   m   n   o   p   q   b   c   d   e   f   g   h   i   r   s   t
+ received:   a   j   k   l   m   n   o   p   q   b   c   d   e   f   g   h   i   r   s   t
+
+test case 101 array_size 20, block_size  8, block_gap  1, block_beginning  4 left_block [ 4:11], right block [12:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   m   n   o   p   q   r   s   t   e   f   g   h   i   j   k   l
+ received:   a   b   c   d   m   n   o   p   q   r   s   t   e   f   g   h   i   j   k   l
+
+test case 102 array_size 20, block_size  8, block_gap  2, block_beginning  0 left_block [ 0: 7], right block [16:23] !!! right block end index > array_size-1
+test case 103 array_size 20, block_size  8, block_gap  2, block_beginning  1 left_block [ 1: 8], right block [17:24] !!! right block end index > array_size-1
+test case 104 array_size 20, block_size  8, block_gap  2, block_beginning -4 left_block [-4: 3], right block [12:19] !!! left block start index < 0
+test case 105 array_size 20, block_size  9, block_gap -2, block_beginning  0 left_block [ 0: 8], right block [18:26] !!! right block end index > array_size-1
+test case 106 array_size 20, block_size  9, block_gap -2, block_beginning  1 left_block [ 1: 9], right block [19:27] !!! right block end index > array_size-1
+test case 107 array_size 20, block_size  9, block_gap -2, block_beginning -7 left_block [-7: 1], right block [11:19] !!! left block start index < 0
+test case 108 array_size 20, block_size  9, block_gap -1, block_beginning  0 left_block [ 0: 8], right block [ 9:17]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   j   k   l   m   n   o   p   q   r   a   b   c   d   e   f   g   h   i   s   t
+ received:   j   k   l   m   n   o   p   q   r   a   b   c   d   e   f   g   h   i   s   t
+
+test case 109 array_size 20, block_size  9, block_gap -1, block_beginning  1 left_block [ 1: 9], right block [10:18]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   k   l   m   n   o   p   q   r   s   b   c   d   e   f   g   h   i   j   t
+ received:   a   k   l   m   n   o   p   q   r   s   b   c   d   e   f   g   h   i   j   t
+
+test case 110 array_size 20, block_size  9, block_gap -1, block_beginning  2 left_block [ 2:10], right block [11:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   l   m   n   o   p   q   r   s   t   c   d   e   f   g   h   i   j   k
+ received:   a   b   l   m   n   o   p   q   r   s   t   c   d   e   f   g   h   i   j   k
+
+test case 111 array_size 20, block_size  9, block_gap  0, block_beginning  0 left_block [ 0: 8], right block [ 0: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 112 array_size 20, block_size  9, block_gap  0, block_beginning  1 left_block [ 1: 9], right block [ 1: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 113 array_size 20, block_size  9, block_gap  0, block_beginning 11 left_block [11:19], right block [11:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 114 array_size 20, block_size  9, block_gap  1, block_beginning  0 left_block [ 0: 8], right block [ 9:17]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   j   k   l   m   n   o   p   q   r   a   b   c   d   e   f   g   h   i   s   t
+ received:   j   k   l   m   n   o   p   q   r   a   b   c   d   e   f   g   h   i   s   t
+
+test case 115 array_size 20, block_size  9, block_gap  1, block_beginning  1 left_block [ 1: 9], right block [10:18]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   k   l   m   n   o   p   q   r   s   b   c   d   e   f   g   h   i   j   t
+ received:   a   k   l   m   n   o   p   q   r   s   b   c   d   e   f   g   h   i   j   t
+
+test case 116 array_size 20, block_size  9, block_gap  1, block_beginning  2 left_block [ 2:10], right block [11:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   l   m   n   o   p   q   r   s   t   c   d   e   f   g   h   i   j   k
+ received:   a   b   l   m   n   o   p   q   r   s   t   c   d   e   f   g   h   i   j   k
+
+test case 117 array_size 20, block_size  9, block_gap  2, block_beginning  0 left_block [ 0: 8], right block [18:26] !!! right block end index > array_size-1
+test case 118 array_size 20, block_size  9, block_gap  2, block_beginning  1 left_block [ 1: 9], right block [19:27] !!! right block end index > array_size-1
+test case 119 array_size 20, block_size  9, block_gap  2, block_beginning -7 left_block [-7: 1], right block [11:19] !!! left block start index < 0
+test case 120 array_size 20, block_size 10, block_gap -2, block_beginning  0 left_block [ 0: 9], right block [20:29] !!! right block end index > array_size-1
+test case 121 array_size 20, block_size 10, block_gap -2, block_beginning  1 left_block [ 1:10], right block [21:30] !!! right block end index > array_size-1
+test case 122 array_size 20, block_size 10, block_gap -2, block_beginning -10 left_block [-10:-1], right block [10:19] !!! left block start index < 0
+test case 123 array_size 20, block_size 10, block_gap -1, block_beginning  0 left_block [ 0: 9], right block [10:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j
+ received:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j
+
+test case 124 array_size 20, block_size 10, block_gap -1, block_beginning  1 left_block [ 1:10], right block [11:20] !!! right block end index > array_size-1
+test case 125 array_size 20, block_size 10, block_gap -1, block_beginning  0 left_block [ 0: 9], right block [10:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j
+ received:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j
+
+test case 126 array_size 20, block_size 10, block_gap  0, block_beginning  0 left_block [ 0: 9], right block [ 0: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 127 array_size 20, block_size 10, block_gap  0, block_beginning  1 left_block [ 1:10], right block [ 1:10]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 128 array_size 20, block_size 10, block_gap  0, block_beginning 10 left_block [10:19], right block [10:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+
+test case 129 array_size 20, block_size 10, block_gap  1, block_beginning  0 left_block [ 0: 9], right block [10:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j
+ received:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j
+
+test case 130 array_size 20, block_size 10, block_gap  1, block_beginning  1 left_block [ 1:10], right block [11:20] !!! right block end index > array_size-1
+test case 131 array_size 20, block_size 10, block_gap  1, block_beginning  0 left_block [ 0: 9], right block [10:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t
+ expected:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j
+ received:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j
+
+test case 132 array_size 20, block_size 10, block_gap  2, block_beginning  0 left_block [ 0: 9], right block [20:29] !!! right block end index > array_size-1
+test case 133 array_size 20, block_size 10, block_gap  2, block_beginning  1 left_block [ 1:10], right block [21:30] !!! right block end index > array_size-1
+test case 134 array_size 20, block_size 10, block_gap  2, block_beginning -10 left_block [-10:-1], right block [10:19] !!! left block start index < 0
+test case 135 array_size 21, block_size  2, block_gap -2, block_beginning  0 left_block [ 0: 1], right block [ 4: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   e   f   c   d   a   b   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   e   f   c   d   a   b   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 136 array_size 21, block_size  2, block_gap -2, block_beginning  1 left_block [ 1: 2], right block [ 5: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   f   g   d   e   b   c   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   f   g   d   e   b   c   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 137 array_size 21, block_size  2, block_gap -2, block_beginning 15 left_block [15:16], right block [19:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   t   u   r   s   p   q
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   t   u   r   s   p   q
+
+test case 138 array_size 21, block_size  2, block_gap -1, block_beginning  0 left_block [ 0: 1], right block [ 2: 3]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   c   d   a   b   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   c   d   a   b   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 139 array_size 21, block_size  2, block_gap -1, block_beginning  1 left_block [ 1: 2], right block [ 3: 4]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   d   e   b   c   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   d   e   b   c   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 140 array_size 21, block_size  2, block_gap -1, block_beginning 17 left_block [17:18], right block [19:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   t   u   r   s
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   t   u   r   s
+
+test case 141 array_size 21, block_size  2, block_gap  0, block_beginning  0 left_block [ 0: 1], right block [ 0: 1]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 142 array_size 21, block_size  2, block_gap  0, block_beginning  1 left_block [ 1: 2], right block [ 1: 2]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 143 array_size 21, block_size  2, block_gap  0, block_beginning 19 left_block [19:20], right block [19:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 144 array_size 21, block_size  2, block_gap  1, block_beginning  0 left_block [ 0: 1], right block [ 2: 3]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   c   d   a   b   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   c   d   a   b   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 145 array_size 21, block_size  2, block_gap  1, block_beginning  1 left_block [ 1: 2], right block [ 3: 4]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   d   e   b   c   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   d   e   b   c   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 146 array_size 21, block_size  2, block_gap  1, block_beginning 17 left_block [17:18], right block [19:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   t   u   r   s
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   t   u   r   s
+
+test case 147 array_size 21, block_size  2, block_gap  2, block_beginning  0 left_block [ 0: 1], right block [ 4: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   e   f   c   d   a   b   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   e   f   c   d   a   b   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 148 array_size 21, block_size  2, block_gap  2, block_beginning  1 left_block [ 1: 2], right block [ 5: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   f   g   d   e   b   c   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   f   g   d   e   b   c   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 149 array_size 21, block_size  2, block_gap  2, block_beginning 15 left_block [15:16], right block [19:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   t   u   r   s   p   q
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   t   u   r   s   p   q
+
+test case 150 array_size 21, block_size  3, block_gap -2, block_beginning  0 left_block [ 0: 2], right block [ 6: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   g   h   i   d   e   f   a   b   c   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   g   h   i   d   e   f   a   b   c   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 151 array_size 21, block_size  3, block_gap -2, block_beginning  1 left_block [ 1: 3], right block [ 7: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   h   i   j   e   f   g   b   c   d   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   h   i   j   e   f   g   b   c   d   k   l   m   n   o   p   q   r   s   t   u
+
+test case 152 array_size 21, block_size  3, block_gap -2, block_beginning 12 left_block [12:14], right block [18:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   s   t   u   p   q   r   m   n   o
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   s   t   u   p   q   r   m   n   o
+
+test case 153 array_size 21, block_size  3, block_gap -1, block_beginning  0 left_block [ 0: 2], right block [ 3: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   d   e   f   a   b   c   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   d   e   f   a   b   c   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 154 array_size 21, block_size  3, block_gap -1, block_beginning  1 left_block [ 1: 3], right block [ 4: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   e   f   g   b   c   d   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   e   f   g   b   c   d   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 155 array_size 21, block_size  3, block_gap -1, block_beginning 15 left_block [15:17], right block [18:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   s   t   u   p   q   r
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   s   t   u   p   q   r
+
+test case 156 array_size 21, block_size  3, block_gap  0, block_beginning  0 left_block [ 0: 2], right block [ 0: 2]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 157 array_size 21, block_size  3, block_gap  0, block_beginning  1 left_block [ 1: 3], right block [ 1: 3]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 158 array_size 21, block_size  3, block_gap  0, block_beginning 18 left_block [18:20], right block [18:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 159 array_size 21, block_size  3, block_gap  1, block_beginning  0 left_block [ 0: 2], right block [ 3: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   d   e   f   a   b   c   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   d   e   f   a   b   c   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 160 array_size 21, block_size  3, block_gap  1, block_beginning  1 left_block [ 1: 3], right block [ 4: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   e   f   g   b   c   d   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   e   f   g   b   c   d   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 161 array_size 21, block_size  3, block_gap  1, block_beginning 15 left_block [15:17], right block [18:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   s   t   u   p   q   r
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   s   t   u   p   q   r
+
+test case 162 array_size 21, block_size  3, block_gap  2, block_beginning  0 left_block [ 0: 2], right block [ 6: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   g   h   i   d   e   f   a   b   c   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   g   h   i   d   e   f   a   b   c   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 163 array_size 21, block_size  3, block_gap  2, block_beginning  1 left_block [ 1: 3], right block [ 7: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   h   i   j   e   f   g   b   c   d   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   h   i   j   e   f   g   b   c   d   k   l   m   n   o   p   q   r   s   t   u
+
+test case 164 array_size 21, block_size  3, block_gap  2, block_beginning 12 left_block [12:14], right block [18:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   s   t   u   p   q   r   m   n   o
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   s   t   u   p   q   r   m   n   o
+
+test case 165 array_size 21, block_size  4, block_gap -2, block_beginning  0 left_block [ 0: 3], right block [ 8:11]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   i   j   k   l   e   f   g   h   a   b   c   d   m   n   o   p   q   r   s   t   u
+ received:   i   j   k   l   e   f   g   h   a   b   c   d   m   n   o   p   q   r   s   t   u
+
+test case 166 array_size 21, block_size  4, block_gap -2, block_beginning  1 left_block [ 1: 4], right block [ 9:12]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   j   k   l   m   f   g   h   i   b   c   d   e   n   o   p   q   r   s   t   u
+ received:   a   j   k   l   m   f   g   h   i   b   c   d   e   n   o   p   q   r   s   t   u
+
+test case 167 array_size 21, block_size  4, block_gap -2, block_beginning  9 left_block [ 9:12], right block [17:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   r   s   t   u   n   o   p   q   j   k   l   m
+ received:   a   b   c   d   e   f   g   h   i   r   s   t   u   n   o   p   q   j   k   l   m
+
+test case 168 array_size 21, block_size  4, block_gap -1, block_beginning  0 left_block [ 0: 3], right block [ 4: 7]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   e   f   g   h   a   b   c   d   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   e   f   g   h   a   b   c   d   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 169 array_size 21, block_size  4, block_gap -1, block_beginning  1 left_block [ 1: 4], right block [ 5: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   f   g   h   i   b   c   d   e   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   f   g   h   i   b   c   d   e   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 170 array_size 21, block_size  4, block_gap -1, block_beginning 13 left_block [13:16], right block [17:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   r   s   t   u   n   o   p   q
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   r   s   t   u   n   o   p   q
+
+test case 171 array_size 21, block_size  4, block_gap  0, block_beginning  0 left_block [ 0: 3], right block [ 0: 3]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 172 array_size 21, block_size  4, block_gap  0, block_beginning  1 left_block [ 1: 4], right block [ 1: 4]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 173 array_size 21, block_size  4, block_gap  0, block_beginning 17 left_block [17:20], right block [17:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 174 array_size 21, block_size  4, block_gap  1, block_beginning  0 left_block [ 0: 3], right block [ 4: 7]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   e   f   g   h   a   b   c   d   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   e   f   g   h   a   b   c   d   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 175 array_size 21, block_size  4, block_gap  1, block_beginning  1 left_block [ 1: 4], right block [ 5: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   f   g   h   i   b   c   d   e   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   f   g   h   i   b   c   d   e   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 176 array_size 21, block_size  4, block_gap  1, block_beginning 13 left_block [13:16], right block [17:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   r   s   t   u   n   o   p   q
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   r   s   t   u   n   o   p   q
+
+test case 177 array_size 21, block_size  4, block_gap  2, block_beginning  0 left_block [ 0: 3], right block [ 8:11]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   i   j   k   l   e   f   g   h   a   b   c   d   m   n   o   p   q   r   s   t   u
+ received:   i   j   k   l   e   f   g   h   a   b   c   d   m   n   o   p   q   r   s   t   u
+
+test case 178 array_size 21, block_size  4, block_gap  2, block_beginning  1 left_block [ 1: 4], right block [ 9:12]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   j   k   l   m   f   g   h   i   b   c   d   e   n   o   p   q   r   s   t   u
+ received:   a   j   k   l   m   f   g   h   i   b   c   d   e   n   o   p   q   r   s   t   u
+
+test case 179 array_size 21, block_size  4, block_gap  2, block_beginning  9 left_block [ 9:12], right block [17:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   r   s   t   u   n   o   p   q   j   k   l   m
+ received:   a   b   c   d   e   f   g   h   i   r   s   t   u   n   o   p   q   j   k   l   m
+
+test case 180 array_size 21, block_size  5, block_gap -2, block_beginning  0 left_block [ 0: 4], right block [10:14]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   k   l   m   n   o   f   g   h   i   j   a   b   c   d   e   p   q   r   s   t   u
+ received:   k   l   m   n   o   f   g   h   i   j   a   b   c   d   e   p   q   r   s   t   u
+
+test case 181 array_size 21, block_size  5, block_gap -2, block_beginning  1 left_block [ 1: 5], right block [11:15]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   l   m   n   o   p   g   h   i   j   k   b   c   d   e   f   q   r   s   t   u
+ received:   a   l   m   n   o   p   g   h   i   j   k   b   c   d   e   f   q   r   s   t   u
+
+test case 182 array_size 21, block_size  5, block_gap -2, block_beginning  6 left_block [ 6:10], right block [16:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   q   r   s   t   u   l   m   n   o   p   g   h   i   j   k
+ received:   a   b   c   d   e   f   q   r   s   t   u   l   m   n   o   p   g   h   i   j   k
+
+test case 183 array_size 21, block_size  5, block_gap -1, block_beginning  0 left_block [ 0: 4], right block [ 5: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   f   g   h   i   j   a   b   c   d   e   k   l   m   n   o   p   q   r   s   t   u
+ received:   f   g   h   i   j   a   b   c   d   e   k   l   m   n   o   p   q   r   s   t   u
+
+test case 184 array_size 21, block_size  5, block_gap -1, block_beginning  1 left_block [ 1: 5], right block [ 6:10]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   g   h   i   j   k   b   c   d   e   f   l   m   n   o   p   q   r   s   t   u
+ received:   a   g   h   i   j   k   b   c   d   e   f   l   m   n   o   p   q   r   s   t   u
+
+test case 185 array_size 21, block_size  5, block_gap -1, block_beginning 11 left_block [11:15], right block [16:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   q   r   s   t   u   l   m   n   o   p
+ received:   a   b   c   d   e   f   g   h   i   j   k   q   r   s   t   u   l   m   n   o   p
+
+test case 186 array_size 21, block_size  5, block_gap  0, block_beginning  0 left_block [ 0: 4], right block [ 0: 4]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 187 array_size 21, block_size  5, block_gap  0, block_beginning  1 left_block [ 1: 5], right block [ 1: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 188 array_size 21, block_size  5, block_gap  0, block_beginning 16 left_block [16:20], right block [16:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 189 array_size 21, block_size  5, block_gap  1, block_beginning  0 left_block [ 0: 4], right block [ 5: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   f   g   h   i   j   a   b   c   d   e   k   l   m   n   o   p   q   r   s   t   u
+ received:   f   g   h   i   j   a   b   c   d   e   k   l   m   n   o   p   q   r   s   t   u
+
+test case 190 array_size 21, block_size  5, block_gap  1, block_beginning  1 left_block [ 1: 5], right block [ 6:10]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   g   h   i   j   k   b   c   d   e   f   l   m   n   o   p   q   r   s   t   u
+ received:   a   g   h   i   j   k   b   c   d   e   f   l   m   n   o   p   q   r   s   t   u
+
+test case 191 array_size 21, block_size  5, block_gap  1, block_beginning 11 left_block [11:15], right block [16:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   q   r   s   t   u   l   m   n   o   p
+ received:   a   b   c   d   e   f   g   h   i   j   k   q   r   s   t   u   l   m   n   o   p
+
+test case 192 array_size 21, block_size  5, block_gap  2, block_beginning  0 left_block [ 0: 4], right block [10:14]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   k   l   m   n   o   f   g   h   i   j   a   b   c   d   e   p   q   r   s   t   u
+ received:   k   l   m   n   o   f   g   h   i   j   a   b   c   d   e   p   q   r   s   t   u
+
+test case 193 array_size 21, block_size  5, block_gap  2, block_beginning  1 left_block [ 1: 5], right block [11:15]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   l   m   n   o   p   g   h   i   j   k   b   c   d   e   f   q   r   s   t   u
+ received:   a   l   m   n   o   p   g   h   i   j   k   b   c   d   e   f   q   r   s   t   u
+
+test case 194 array_size 21, block_size  5, block_gap  2, block_beginning  6 left_block [ 6:10], right block [16:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   q   r   s   t   u   l   m   n   o   p   g   h   i   j   k
+ received:   a   b   c   d   e   f   q   r   s   t   u   l   m   n   o   p   g   h   i   j   k
+
+test case 195 array_size 21, block_size  6, block_gap -2, block_beginning  0 left_block [ 0: 5], right block [12:17]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   m   n   o   p   q   r   g   h   i   j   k   l   a   b   c   d   e   f   s   t   u
+ received:   m   n   o   p   q   r   g   h   i   j   k   l   a   b   c   d   e   f   s   t   u
+
+test case 196 array_size 21, block_size  6, block_gap -2, block_beginning  1 left_block [ 1: 6], right block [13:18]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   n   o   p   q   r   s   h   i   j   k   l   m   b   c   d   e   f   g   t   u
+ received:   a   n   o   p   q   r   s   h   i   j   k   l   m   b   c   d   e   f   g   t   u
+
+test case 197 array_size 21, block_size  6, block_gap -2, block_beginning  3 left_block [ 3: 8], right block [15:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   p   q   r   s   t   u   j   k   l   m   n   o   d   e   f   g   h   i
+ received:   a   b   c   p   q   r   s   t   u   j   k   l   m   n   o   d   e   f   g   h   i
+
+test case 198 array_size 21, block_size  6, block_gap -1, block_beginning  0 left_block [ 0: 5], right block [ 6:11]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   g   h   i   j   k   l   a   b   c   d   e   f   m   n   o   p   q   r   s   t   u
+ received:   g   h   i   j   k   l   a   b   c   d   e   f   m   n   o   p   q   r   s   t   u
+
+test case 199 array_size 21, block_size  6, block_gap -1, block_beginning  1 left_block [ 1: 6], right block [ 7:12]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   h   i   j   k   l   m   b   c   d   e   f   g   n   o   p   q   r   s   t   u
+ received:   a   h   i   j   k   l   m   b   c   d   e   f   g   n   o   p   q   r   s   t   u
+
+test case 200 array_size 21, block_size  6, block_gap -1, block_beginning  9 left_block [ 9:14], right block [15:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   p   q   r   s   t   u   j   k   l   m   n   o
+ received:   a   b   c   d   e   f   g   h   i   p   q   r   s   t   u   j   k   l   m   n   o
+
+test case 201 array_size 21, block_size  6, block_gap  0, block_beginning  0 left_block [ 0: 5], right block [ 0: 5]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 202 array_size 21, block_size  6, block_gap  0, block_beginning  1 left_block [ 1: 6], right block [ 1: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 203 array_size 21, block_size  6, block_gap  0, block_beginning 15 left_block [15:20], right block [15:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 204 array_size 21, block_size  6, block_gap  1, block_beginning  0 left_block [ 0: 5], right block [ 6:11]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   g   h   i   j   k   l   a   b   c   d   e   f   m   n   o   p   q   r   s   t   u
+ received:   g   h   i   j   k   l   a   b   c   d   e   f   m   n   o   p   q   r   s   t   u
+
+test case 205 array_size 21, block_size  6, block_gap  1, block_beginning  1 left_block [ 1: 6], right block [ 7:12]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   h   i   j   k   l   m   b   c   d   e   f   g   n   o   p   q   r   s   t   u
+ received:   a   h   i   j   k   l   m   b   c   d   e   f   g   n   o   p   q   r   s   t   u
+
+test case 206 array_size 21, block_size  6, block_gap  1, block_beginning  9 left_block [ 9:14], right block [15:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   p   q   r   s   t   u   j   k   l   m   n   o
+ received:   a   b   c   d   e   f   g   h   i   p   q   r   s   t   u   j   k   l   m   n   o
+
+test case 207 array_size 21, block_size  6, block_gap  2, block_beginning  0 left_block [ 0: 5], right block [12:17]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   m   n   o   p   q   r   g   h   i   j   k   l   a   b   c   d   e   f   s   t   u
+ received:   m   n   o   p   q   r   g   h   i   j   k   l   a   b   c   d   e   f   s   t   u
+
+test case 208 array_size 21, block_size  6, block_gap  2, block_beginning  1 left_block [ 1: 6], right block [13:18]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   n   o   p   q   r   s   h   i   j   k   l   m   b   c   d   e   f   g   t   u
+ received:   a   n   o   p   q   r   s   h   i   j   k   l   m   b   c   d   e   f   g   t   u
+
+test case 209 array_size 21, block_size  6, block_gap  2, block_beginning  3 left_block [ 3: 8], right block [15:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   p   q   r   s   t   u   j   k   l   m   n   o   d   e   f   g   h   i
+ received:   a   b   c   p   q   r   s   t   u   j   k   l   m   n   o   d   e   f   g   h   i
+
+test case 210 array_size 21, block_size  7, block_gap -2, block_beginning  0 left_block [ 0: 6], right block [14:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   o   p   q   r   s   t   u   h   i   j   k   l   m   n   a   b   c   d   e   f   g
+ received:   o   p   q   r   s   t   u   h   i   j   k   l   m   n   a   b   c   d   e   f   g
+
+test case 211 array_size 21, block_size  7, block_gap -2, block_beginning  1 left_block [ 1: 7], right block [15:21] !!! right block end index > array_size-1
+test case 212 array_size 21, block_size  7, block_gap -2, block_beginning  0 left_block [ 0: 6], right block [14:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   o   p   q   r   s   t   u   h   i   j   k   l   m   n   a   b   c   d   e   f   g
+ received:   o   p   q   r   s   t   u   h   i   j   k   l   m   n   a   b   c   d   e   f   g
+
+test case 213 array_size 21, block_size  7, block_gap -1, block_beginning  0 left_block [ 0: 6], right block [ 7:13]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   h   i   j   k   l   m   n   a   b   c   d   e   f   g   o   p   q   r   s   t   u
+ received:   h   i   j   k   l   m   n   a   b   c   d   e   f   g   o   p   q   r   s   t   u
+
+test case 214 array_size 21, block_size  7, block_gap -1, block_beginning  1 left_block [ 1: 7], right block [ 8:14]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   i   j   k   l   m   n   o   b   c   d   e   f   g   h   p   q   r   s   t   u
+ received:   a   i   j   k   l   m   n   o   b   c   d   e   f   g   h   p   q   r   s   t   u
+
+test case 215 array_size 21, block_size  7, block_gap -1, block_beginning  7 left_block [ 7:13], right block [14:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   o   p   q   r   s   t   u   h   i   j   k   l   m   n
+ received:   a   b   c   d   e   f   g   o   p   q   r   s   t   u   h   i   j   k   l   m   n
+
+test case 216 array_size 21, block_size  7, block_gap  0, block_beginning  0 left_block [ 0: 6], right block [ 0: 6]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 217 array_size 21, block_size  7, block_gap  0, block_beginning  1 left_block [ 1: 7], right block [ 1: 7]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 218 array_size 21, block_size  7, block_gap  0, block_beginning 14 left_block [14:20], right block [14:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 219 array_size 21, block_size  7, block_gap  1, block_beginning  0 left_block [ 0: 6], right block [ 7:13]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   h   i   j   k   l   m   n   a   b   c   d   e   f   g   o   p   q   r   s   t   u
+ received:   h   i   j   k   l   m   n   a   b   c   d   e   f   g   o   p   q   r   s   t   u
+
+test case 220 array_size 21, block_size  7, block_gap  1, block_beginning  1 left_block [ 1: 7], right block [ 8:14]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   i   j   k   l   m   n   o   b   c   d   e   f   g   h   p   q   r   s   t   u
+ received:   a   i   j   k   l   m   n   o   b   c   d   e   f   g   h   p   q   r   s   t   u
+
+test case 221 array_size 21, block_size  7, block_gap  1, block_beginning  7 left_block [ 7:13], right block [14:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   o   p   q   r   s   t   u   h   i   j   k   l   m   n
+ received:   a   b   c   d   e   f   g   o   p   q   r   s   t   u   h   i   j   k   l   m   n
+
+test case 222 array_size 21, block_size  7, block_gap  2, block_beginning  0 left_block [ 0: 6], right block [14:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   o   p   q   r   s   t   u   h   i   j   k   l   m   n   a   b   c   d   e   f   g
+ received:   o   p   q   r   s   t   u   h   i   j   k   l   m   n   a   b   c   d   e   f   g
+
+test case 223 array_size 21, block_size  7, block_gap  2, block_beginning  1 left_block [ 1: 7], right block [15:21] !!! right block end index > array_size-1
+test case 224 array_size 21, block_size  7, block_gap  2, block_beginning  0 left_block [ 0: 6], right block [14:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   o   p   q   r   s   t   u   h   i   j   k   l   m   n   a   b   c   d   e   f   g
+ received:   o   p   q   r   s   t   u   h   i   j   k   l   m   n   a   b   c   d   e   f   g
+
+test case 225 array_size 21, block_size  8, block_gap -2, block_beginning  0 left_block [ 0: 7], right block [16:23] !!! right block end index > array_size-1
+test case 226 array_size 21, block_size  8, block_gap -2, block_beginning  1 left_block [ 1: 8], right block [17:24] !!! right block end index > array_size-1
+test case 227 array_size 21, block_size  8, block_gap -2, block_beginning -3 left_block [-3: 4], right block [13:20] !!! left block start index < 0
+test case 228 array_size 21, block_size  8, block_gap -1, block_beginning  0 left_block [ 0: 7], right block [ 8:15]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   i   j   k   l   m   n   o   p   a   b   c   d   e   f   g   h   q   r   s   t   u
+ received:   i   j   k   l   m   n   o   p   a   b   c   d   e   f   g   h   q   r   s   t   u
+
+test case 229 array_size 21, block_size  8, block_gap -1, block_beginning  1 left_block [ 1: 8], right block [ 9:16]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   j   k   l   m   n   o   p   q   b   c   d   e   f   g   h   i   r   s   t   u
+ received:   a   j   k   l   m   n   o   p   q   b   c   d   e   f   g   h   i   r   s   t   u
+
+test case 230 array_size 21, block_size  8, block_gap -1, block_beginning  5 left_block [ 5:12], right block [13:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   n   o   p   q   r   s   t   u   f   g   h   i   j   k   l   m
+ received:   a   b   c   d   e   n   o   p   q   r   s   t   u   f   g   h   i   j   k   l   m
+
+test case 231 array_size 21, block_size  8, block_gap  0, block_beginning  0 left_block [ 0: 7], right block [ 0: 7]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 232 array_size 21, block_size  8, block_gap  0, block_beginning  1 left_block [ 1: 8], right block [ 1: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 233 array_size 21, block_size  8, block_gap  0, block_beginning 13 left_block [13:20], right block [13:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 234 array_size 21, block_size  8, block_gap  1, block_beginning  0 left_block [ 0: 7], right block [ 8:15]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   i   j   k   l   m   n   o   p   a   b   c   d   e   f   g   h   q   r   s   t   u
+ received:   i   j   k   l   m   n   o   p   a   b   c   d   e   f   g   h   q   r   s   t   u
+
+test case 235 array_size 21, block_size  8, block_gap  1, block_beginning  1 left_block [ 1: 8], right block [ 9:16]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   j   k   l   m   n   o   p   q   b   c   d   e   f   g   h   i   r   s   t   u
+ received:   a   j   k   l   m   n   o   p   q   b   c   d   e   f   g   h   i   r   s   t   u
+
+test case 236 array_size 21, block_size  8, block_gap  1, block_beginning  5 left_block [ 5:12], right block [13:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   n   o   p   q   r   s   t   u   f   g   h   i   j   k   l   m
+ received:   a   b   c   d   e   n   o   p   q   r   s   t   u   f   g   h   i   j   k   l   m
+
+test case 237 array_size 21, block_size  8, block_gap  2, block_beginning  0 left_block [ 0: 7], right block [16:23] !!! right block end index > array_size-1
+test case 238 array_size 21, block_size  8, block_gap  2, block_beginning  1 left_block [ 1: 8], right block [17:24] !!! right block end index > array_size-1
+test case 239 array_size 21, block_size  8, block_gap  2, block_beginning -3 left_block [-3: 4], right block [13:20] !!! left block start index < 0
+test case 240 array_size 21, block_size  9, block_gap -2, block_beginning  0 left_block [ 0: 8], right block [18:26] !!! right block end index > array_size-1
+test case 241 array_size 21, block_size  9, block_gap -2, block_beginning  1 left_block [ 1: 9], right block [19:27] !!! right block end index > array_size-1
+test case 242 array_size 21, block_size  9, block_gap -2, block_beginning -6 left_block [-6: 2], right block [12:20] !!! left block start index < 0
+test case 243 array_size 21, block_size  9, block_gap -1, block_beginning  0 left_block [ 0: 8], right block [ 9:17]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   j   k   l   m   n   o   p   q   r   a   b   c   d   e   f   g   h   i   s   t   u
+ received:   j   k   l   m   n   o   p   q   r   a   b   c   d   e   f   g   h   i   s   t   u
+
+test case 244 array_size 21, block_size  9, block_gap -1, block_beginning  1 left_block [ 1: 9], right block [10:18]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   k   l   m   n   o   p   q   r   s   b   c   d   e   f   g   h   i   j   t   u
+ received:   a   k   l   m   n   o   p   q   r   s   b   c   d   e   f   g   h   i   j   t   u
+
+test case 245 array_size 21, block_size  9, block_gap -1, block_beginning  3 left_block [ 3:11], right block [12:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   m   n   o   p   q   r   s   t   u   d   e   f   g   h   i   j   k   l
+ received:   a   b   c   m   n   o   p   q   r   s   t   u   d   e   f   g   h   i   j   k   l
+
+test case 246 array_size 21, block_size  9, block_gap  0, block_beginning  0 left_block [ 0: 8], right block [ 0: 8]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 247 array_size 21, block_size  9, block_gap  0, block_beginning  1 left_block [ 1: 9], right block [ 1: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 248 array_size 21, block_size  9, block_gap  0, block_beginning 12 left_block [12:20], right block [12:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 249 array_size 21, block_size  9, block_gap  1, block_beginning  0 left_block [ 0: 8], right block [ 9:17]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   j   k   l   m   n   o   p   q   r   a   b   c   d   e   f   g   h   i   s   t   u
+ received:   j   k   l   m   n   o   p   q   r   a   b   c   d   e   f   g   h   i   s   t   u
+
+test case 250 array_size 21, block_size  9, block_gap  1, block_beginning  1 left_block [ 1: 9], right block [10:18]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   k   l   m   n   o   p   q   r   s   b   c   d   e   f   g   h   i   j   t   u
+ received:   a   k   l   m   n   o   p   q   r   s   b   c   d   e   f   g   h   i   j   t   u
+
+test case 251 array_size 21, block_size  9, block_gap  1, block_beginning  3 left_block [ 3:11], right block [12:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   m   n   o   p   q   r   s   t   u   d   e   f   g   h   i   j   k   l
+ received:   a   b   c   m   n   o   p   q   r   s   t   u   d   e   f   g   h   i   j   k   l
+
+test case 252 array_size 21, block_size  9, block_gap  2, block_beginning  0 left_block [ 0: 8], right block [18:26] !!! right block end index > array_size-1
+test case 253 array_size 21, block_size  9, block_gap  2, block_beginning  1 left_block [ 1: 9], right block [19:27] !!! right block end index > array_size-1
+test case 254 array_size 21, block_size  9, block_gap  2, block_beginning -6 left_block [-6: 2], right block [12:20] !!! left block start index < 0
+test case 255 array_size 21, block_size 10, block_gap -2, block_beginning  0 left_block [ 0: 9], right block [20:29] !!! right block end index > array_size-1
+test case 256 array_size 21, block_size 10, block_gap -2, block_beginning  1 left_block [ 1:10], right block [21:30] !!! right block end index > array_size-1
+test case 257 array_size 21, block_size 10, block_gap -2, block_beginning -9 left_block [-9: 0], right block [11:20] !!! left block start index < 0
+test case 258 array_size 21, block_size 10, block_gap -1, block_beginning  0 left_block [ 0: 9], right block [10:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j   u
+ received:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j   u
+
+test case 259 array_size 21, block_size 10, block_gap -1, block_beginning  1 left_block [ 1:10], right block [11:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   l   m   n   o   p   q   r   s   t   u   b   c   d   e   f   g   h   i   j   k
+ received:   a   l   m   n   o   p   q   r   s   t   u   b   c   d   e   f   g   h   i   j   k
+
+test case 260 array_size 21, block_size 10, block_gap -1, block_beginning  1 left_block [ 1:10], right block [11:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   l   m   n   o   p   q   r   s   t   u   b   c   d   e   f   g   h   i   j   k
+ received:   a   l   m   n   o   p   q   r   s   t   u   b   c   d   e   f   g   h   i   j   k
+
+test case 261 array_size 21, block_size 10, block_gap  0, block_beginning  0 left_block [ 0: 9], right block [ 0: 9]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 262 array_size 21, block_size 10, block_gap  0, block_beginning  1 left_block [ 1:10], right block [ 1:10]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 263 array_size 21, block_size 10, block_gap  0, block_beginning 11 left_block [11:20], right block [11:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ received:   a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+
+test case 264 array_size 21, block_size 10, block_gap  1, block_beginning  0 left_block [ 0: 9], right block [10:19]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j   u
+ received:   k   l   m   n   o   p   q   r   s   t   a   b   c   d   e   f   g   h   i   j   u
+
+test case 265 array_size 21, block_size 10, block_gap  1, block_beginning  1 left_block [ 1:10], right block [11:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   l   m   n   o   p   q   r   s   t   u   b   c   d   e   f   g   h   i   j   k
+ received:   a   l   m   n   o   p   q   r   s   t   u   b   c   d   e   f   g   h   i   j   k
+
+test case 266 array_size 21, block_size 10, block_gap  1, block_beginning  1 left_block [ 1:10], right block [11:20]
+ testing:    a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t   u
+ expected:   a   l   m   n   o   p   q   r   s   t   u   b   c   d   e   f   g   h   i   j   k
+ received:   a   l   m   n   o   p   q   r   s   t   u   b   c   d   e   f   g   h   i   j   k
+
+test case 267 array_size 21, block_size 10, block_gap  2, block_beginning  0 left_block [ 0: 9], right block [20:29] !!! right block end index > array_size-1
+test case 268 array_size 21, block_size 10, block_gap  2, block_beginning  1 left_block [ 1:10], right block [21:30] !!! right block end index > array_size-1
+test case 269 array_size 21, block_size 10, block_gap  2, block_beginning -9 left_block [-9: 0], right block [11:20] !!! left block start index < 0
+PASS:  function testBlockSwap() returns TRUE
