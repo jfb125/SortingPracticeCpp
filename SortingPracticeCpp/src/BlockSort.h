@@ -26,6 +26,7 @@
 
 
 array_size_t floorLog2(array_size_t num);
+array_size_t blockSortModulo(array_size_t, array_size_t);
 std::string printArrayIndices(array_size_t size, int value_width, int element_width);
 std::string printLineArrayIndices(array_size_t size, int value_width, int element_width);
 std::string printArrayIndices(std::string header, array_size_t size, int value_width, int element_width);
@@ -381,12 +382,10 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves blockMergeByRotate(T** array, index_t start, index_t mid, index_t end);
 	template <typename T>
-	ComparesAndMoves blockSwap(T** array, index_t block1_start, index_t block2_start, index_t block_size);
-	template <typename T>
 	int createTags( T** array, index_t start, index_t mid, index_t end,
 			    	int block_size, std::unique_ptr<BlockTag<T>[]> &tags);
 	template <typename T>
-	ComparesAndMoves rotateArray(T** array, index_t start, index_t end, index_t amount);
+	ComparesAndMoves rotateArrayElements(T** array, index_t start, index_t end, index_t amount);
 	template <typename T>
 	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> tags,
 					int first_tag, int last_tag, int tag_rotate_count,
@@ -479,7 +478,7 @@ namespace BlockSort {
 			//	at this point `
 			//	rotate u to the right in the array
 			//	  past the last value in v that was equal to u_value
-			result += rotateArray(array, rotate_count, u, v-1);
+			result += rotateArrayElements(array, rotate_count, u, v-1);
 			//  point to the element that is one past the element
 			//    that u was pointing to which has now been rotated
 			u = u + rotate_count + 1;
@@ -583,7 +582,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves rotateArray(T** array, amount_t amount, index_t start, index_t end) {
+	ComparesAndMoves rotateArrayElements(T** array, amount_t amount, index_t start, index_t end) {
 
 		ComparesAndMoves result(0,0);
 
@@ -591,11 +590,7 @@ namespace BlockSort {
 			return result;
 
 		index_t span = end - start + 1;
-
-		while (amount < 0) {
-			amount += span;
-		}
-		amount %= span;
+		amount = blockSortModulo(amount, span);
 
 		if (amount == 0)
 			return result;
@@ -1064,7 +1059,7 @@ namespace BlockSort {
 			printTags(debug.str(), tags, num_tags, 4);
 #endif
 
-			result += rotateArray(array, rotate_count, start_of_rotated_span, end_of_rotated_span);
+			result += rotateArrayElements(array, rotate_count, start_of_rotated_span, end_of_rotated_span);
 
 			//	The blocks tags no longer match the array because
 			//	  the array has been rotated one block to the left

@@ -69,6 +69,14 @@ char to_char(BlockType type) {
 	}
 }
 
+array_size_t blockSortModulo(array_size_t amount, array_size_t span) {
+
+	while (amount < 0) {
+		amount += span;
+	}
+	amount %= span;
+	return amount;
+}
 
 /*	**********************************************************************	*/
 /*	**********************************************************************	*/
@@ -167,9 +175,9 @@ std::string arrayToString(T** array, index_t array_size,
 /*	**********************************************	*/
 /*	**********************************************	*/
 
-//#define TEST_MODULO
+#define TEST_MODULO
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-//#define TEST_BLOCK_SORT_ROTATE_ARRAY
+#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_TAGS
 //#define TEST_BLOCK_MERGE
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
@@ -177,9 +185,10 @@ std::string arrayToString(T** array, index_t array_size,
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 
+bool testBlockSortModulo();
 bool testFloorLog2();
 bool testBlockSortBlockMerge();
-bool testBlockSortRotateArray();
+bool testBlockSortRotateArrayElements();
 bool testBlockSortRotateTags();
 bool testBlockSortSort();
 bool testBlockSortSortBlocks();
@@ -208,21 +217,10 @@ bool testBlockSort() {
 	std::cout << "testBlockSort()" << std::endl;
 
 #ifdef TEST_MODULO
+	runTest(passed, testBlockSortModulo, "function blockSortModulo()");
+	if (!passed)
+		return passed;
 	//	handles negative amounts and amounts > span
-	auto calculateRotateAmount = [](amount_t _i, amount_t _span) -> amount_t {
-		while (_i < 0)
-			_i += _span;
-		_i %= _span;
-		return _i;
-	};
-
-	for (array_size_t span = 7; span <= 9; span++) {
-		for (array_size_t i = -9; i <= 9; i++) {
-			array_size_t expected = calculateRotateAmount(i, span);
-			std::cout << std::setw(2) << i << " % " << span << " = " << expected <<  " | ";
-		}
-		std::cout << std::endl;;
-	}
 #endif
 
 #ifdef TEST_BLOCK_SORT_FLOOR_LOG_2
@@ -231,8 +229,8 @@ bool testBlockSort() {
 		return passed;
 #endif
 
-#ifdef	TEST_BLOCK_SORT_ROTATE_ARRAY
-	runTest(passed, testBlockSortRotateArray, "function rotateArray()");
+#ifdef	TEST_BLOCK_SORT_ROTATE_ELEMENTS
+	runTest(passed, testBlockSortRotateArrayElements, "function rotateArrayElements()");
 	if (!passed)
 		return passed;
 #endif
@@ -325,7 +323,7 @@ TEST_FLOOR_LOG_2_RETURN_LABEL:
 }
 
 template <typename T>
-void rotateArrayLongWay(T**array, index_t size, index_t count) {
+void rotateArrayElementsLongWay(T**array, index_t size, index_t count) {
 
 	T* tmp;
 
@@ -475,7 +473,35 @@ TEST_BLOCK_MERGE_RETURN_LABEL:
 	return test_passed;
 }
 
-bool testBlockSortRotateArray() {
+bool testBlockSortModulo() {
+	bool test_passed = true;
+	//	handles negative amounts and amounts > span
+	auto calculateRotateAmount = [](amount_t _i, amount_t _span) -> amount_t {
+		while (_i < 0)
+			_i += _span;
+		_i %= _span;
+		return _i;
+	};
+
+	for (array_size_t span = 7; span <= 9; span++) {
+		for (array_size_t i = -9; i <= 9; i++) {
+			array_size_t expected = calculateRotateAmount(i, span);
+			array_size_t calculated = blockSortModulo(i, span);
+			std::cout << std::setw(2) << i << " % " << span << " = " << expected <<  " vs " << calculated << " | ";
+			if (expected != calculated) {
+				std::cout << " ERROR ";
+				test_passed = false;
+				break;
+			}
+		}
+		std::cout << std::endl;
+		if (!test_passed)
+			break;
+	}
+	return test_passed;
+}
+
+bool testBlockSortRotateArrayElements() {
 
 	bool test_passed = true;
 	ComparesAndMoves rotate_result;
@@ -496,8 +522,8 @@ bool testBlockSortRotateArray() {
 				rotated_array[j] = test_array[j];
 				expected_array[j]= test_array[j];
 			}
-			rotateArrayLongWay(expected_array, sub_array_size, i);
-			rotate_result = rotateArray<char>(rotated_array, i, 0, sub_array_size-1);
+			rotateArrayElementsLongWay(expected_array, sub_array_size, i);
+			rotate_result = rotateArrayElements<char>(rotated_array, i, 0, sub_array_size-1);
 			//	check results
 			for (int i = 0, j = sub_array_size-1; i < sub_array_size; i++, j--) {
 				if (rotated_array[j] != expected_array[j]) {
