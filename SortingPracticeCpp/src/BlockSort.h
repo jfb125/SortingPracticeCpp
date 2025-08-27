@@ -672,75 +672,117 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> &tags,
-							    int first_tag, int last_tag, int tag_rotate_count,
+							    int tag_rotate_count, int first_tag, int last_tag,
 								index_t element_rotation_count) {
 
-		auto swapTypeAndKey = [&tags] (int i, int j) {
-			BlockType tmp_type 	= tags[i].type;
-			T*		  tmp_key	= tags[i].key;
-			tags[i].type = tags[j].type;
-			tags[i].key  = tags[j].key;
-			tags[j].type = tmp_type;
-			tags[j].key  = tmp_key;
+		bool debug_verbose = true;
+
+		auto tagIndicesToString = [&](int i) ->std::string {
+			std::stringstream tag_indices_string;
+			tag_indices_string << "[" << i << "]: ";
+			for (int i = first_tag; i <= last_tag; i++) {
+				tag_indices_string << "[" << tags[i].start_index
+						  	  	   << "," << tags[i].end_index << "] ";
+
+			}
+			return tag_indices_string.str();
+		};
+
+		auto tagsToString = [&]() -> std::string {
+			std::stringstream tags_string;
+			for (int i =  first_tag; i <= last_tag; i++) {
+				tags_string << "|" << i << ": " << tags[i].to_string() << "|";
+			}
+			return tags_string.str();
+		};
+		//	swapping a key, which is an array element, requires 3 moves
+		auto swapTags = [&tags] (int i, int j) {
+			BlockSort::BlockTag<T> tmp = tags[i];
+			tags[i] = tags[j];
+			tags[j] = tmp;
 		};
 
 		ComparesAndMoves result(0,0);
 
-		int tag_span = last_tag - first_tag + 1;
-		int rotate_count = blockSortModulo(tag_rotate_count, tag_span);
-
-		if (first_tag == last_tag || rotate_count == 0) {
+		if (last_tag == first_tag) {
 			return result;
 		}
 
-		 // update the start & end indices
-		index_t start_of_span_index = tags[first_tag].start_index;
-		index_t end_of_span_index	= tags[last_tag].end_index;
-		std::cout << "tag rotation: " << rotate_count << " element rotation " << element_rotation_count << std::endl;
-		std::cout << "[" << 0 << "]: ";
-		for (int j = first_tag; j <= last_tag; j++) {
-			std::cout << "[" << tags[j].start_index << "," << tags[j].end_index << "] ";
+		if (last_tag < first_tag) {
+			index_t tmp = first_tag;
+			first_tag = last_tag;
+			last_tag = tmp;
 		}
-		std::cout << std::endl;
-		for (int i = first_tag; i <= last_tag; i++) {
-			index_t next_start_index = tags[i].start_index + element_rotation_count;
-			// if this tag rotated to a position earlier in the array
-			if (next_start_index > end_of_span_index) {
-				//	calculate how many elements from the start of the span
-				index_t overshoot = next_start_index - (end_of_span_index + 1);
-				// the next start index will be 'overshoot' from the start of span
-				next_start_index = start_of_span_index + overshoot;
-			}
-			tags[i].start_index = next_start_index;
 
-			// do the same calculation for the end_index
-			index_t next_end_index = tags[i].end_index + element_rotation_count;
-			if (next_end_index > end_of_span_index) {
-				index_t overshoot = next_end_index - (end_of_span_index+1);
-				next_end_index = tags[i].end_index + overshoot;
-			}
-			tags[i].end_index = next_end_index;
-			std::cout << "[" << i << "]: ";
-			for (int j = first_tag; j <= last_tag; j++) {
-				std::cout << "[" << tags[j].start_index << "," << tags[j].end_index << "] ";
-			}
-			std::cout << std::endl;
+		int tag_span = last_tag - first_tag + 1;
+		int rotate_count = blockSortModulo(tag_rotate_count, tag_span);
+		index_t element_span = tags[last_tag].end_index - tags[first_tag].start_index+1;
+		if (rotate_count > element_span) {
+			std::cout << "ERROR rotateTag with rotate_count " << rotate_count
+					  << " greater than tag span " << tags[last_tag].end_index
+					  << " - " << tags[first_tag].start_index << " + 1 "
+					  << std::endl;
+			while (1);
 		}
-#if 0
-		// rotate the types & keys
-		//	 note that moving swapping a key is the same as
+		if (element_rotation_count < 0) {
+			std::cout << "ERROR elementRotationCount " << element_rotation_count
+					  << " < 0" << std::endl;
+			while(1);
+		}
+		if (rotate_count == 0) {
+			return result;
+		}
+
+		// make a record of span of the array covered by the tags
+		//	before re-ordering the tags
+		index_t first_start_index = tags[first_tag].start_index;
+		index_t last_end_index	= tags[last_tag].end_index;
+
+		// rotate the tags
+		//	 note that swapping a key is the same as
 		//	   swapping an array element, so it counts as 3 moves
 
 		for (int i = first_tag, j = last_tag; i < j; i++, j--) {
-			swapTypeAndKey(i,j);
+			swapTags(i,j);
+			result._moves += 3;
 		}
-		for (int i = first_tag, j = tag_rotate_count-1; i < j; i++, j--) {
-			swapTypeAndKey(i,j);
+		if (debug_verbose) std::cout << tagsToString() << std::endl;
+		for (int i = first_tag, j = first_tag + rotate_count-1; i < j; i++, j--) {
+			swapTags(i,j);
+			result._moves += 3;
 		}
-		for (int i = tag_rotate_count, j = last_tag; i < j; i++, j--) {
-			swapTypeAndKey(i,j);
+		if (debug_verbose) std::cout << tagsToString() << std::endl;
+		for (int i = first_tag + rotate_count, j = last_tag; i < j; i++, j--) {
+			swapTags(i,j);
+			result._moves += 3;
 		}
-#endif
+		if (debug_verbose) std::cout << tagsToString() << std::endl;
+
+		//	each tag is now in its correct position in the array of tags,
+		//	  but the indices of the tags point to the old position in the array
+
+		if (debug_verbose) {
+			std::cout << "tag rotation: " << rotate_count << " element rotation " << element_rotation_count << std::endl;
+			std::cout << tagIndicesToString(0) << std::endl;
+		}
+
+		for (int i = first_tag; i <= last_tag; i++) {
+			index_t this_tags_span = tags[i].end_index - tags[i].start_index;
+			index_t next_start_index = tags[i].start_index + element_rotation_count;
+			// if this tag rotated to a position earlier in the array
+			if (next_start_index > last_end_index) {
+				//	calculate how many elements from the start of the span
+				index_t overshoot = next_start_index - (last_end_index + 1);
+				// the next start index will be 'overshoot' from the start of span
+				next_start_index = first_start_index + overshoot;
+			}
+			tags[i].start_index = next_start_index;
+			tags[i].end_index = next_start_index + this_tags_span;
+			if (debug_verbose) {
+				std::cout << tagIndicesToString(i) << std::endl;
+			}
+		}
+		std::cout << tagsToString() << std::endl;
 		return result;
 	}
 
