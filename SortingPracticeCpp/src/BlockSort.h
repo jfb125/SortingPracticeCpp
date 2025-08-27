@@ -153,7 +153,7 @@ namespace BlockSort {
 	/*	***********************************************	*/
 
 	template <typename T>
-	bool isSorted(BlockTag<T> *tags, int num_tags) {
+	bool areTagsSorted(BlockTag<T> *tags, int num_tags) {
 
 		for (int i = 0; i != num_tags-1; i++) {
 			if (tags[i+1] < tags[i])
@@ -285,8 +285,10 @@ namespace BlockSort {
 	// 	prints a line where the blocks a represented graphically
 
 	template <typename T>
-	std::string printTags(	std::string trailer, std::unique_ptr<BlockTag<T>[]> &tags,
-					int num_tags, int element_width) {
+	std::string tagArrayToString(
+		std::string trailer,
+		std::unique_ptr<BlockTag<T>[]> &tags, int num_tags,
+		int element_width) {
 
 		//	restores ostream state with its destructor
 		OStreamState ostream_state;
@@ -343,32 +345,38 @@ namespace BlockSort {
 	}
 
 	template <typename T>
-	void printBlockSortArray(std::string trailer, T** array, array_size_t size, index_t v, BlockTag<T> tags[], int num_tags) {
-		constexpr const char * filler = "   ";
-		constexpr const int num_width = 2;
-		constexpr const char spacer = ' ';
-		constexpr const int element_width = 3;
+	void printBlockSortArray(std::string trailer, T** array, array_size_t size, index_t v,
+							 std::unique_ptr<BlockTag<T>[]> &tags, int num_tags) {
 
-		std::cout << trailer;
+		constexpr const int 	element_width = 3;
+		constexpr const int 	value_width = element_width - 1;
+		constexpr const char 	spacer = ' ';
+		// hand edit these to make them 'element_width' wide
+		constexpr const char* 	filler 		= "   ";
+		constexpr const char*   midpoint 	= " v ";
+
+		//	preserve state of ostream; destructor will restore state
+		OStreamState ostream_state;
+
 		//	print out the index of the array
 		for (int i = 0; i < size; i++) {
-			std::cout << std::setw(num_width) << i << spacer;
+			std::cout << std::setw(value_width) << i << spacer;
 		}
 		std::cout << std::endl;
 
 		//	print out the overhead chars
 		for (int i = 0; i < size; i++) {
 			if (i == v) {
-				std::cout << std::setw(num_width) << " v ";
+				std::cout << midpoint;
 			} else {
 				std::cout << filler;
 			}
 		}
 		std::cout << std::endl;
 
-		printElements(std::string(), array, size, num_width, element_width);
+		printElements(std::string(), array, size, value_width, element_width);
 		std::cout << std::endl;
-		printTags(std::string(), tags, num_tags, element_width);
+		std::cout << tagArrayToString(std::string(), tags, num_tags, element_width);
 		std::cout << trailer;
 	}
 
@@ -387,9 +395,8 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves rotateArrayElements(T** array, index_t start, index_t end, index_t amount);
 	template <typename T>
-	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> tags,
-					int first_tag, int last_tag, int tag_rotate_count,
-					index_t element_count);
+	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> &tags,
+					int first_tag, int last_tag, int tag_rotate_count);
 	template <typename T>
 	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size,
 			std::unique_ptr<BlockTag<T>[]> &tags, int num_tags);
@@ -590,6 +597,8 @@ namespace BlockSort {
 			return result;
 
 		index_t span = end - start + 1;
+
+		//	converts amounts that are not in [0,span) to in range
 		amount = blockSortModulo(amount, span);
 
 		if (amount == 0)
@@ -662,13 +671,9 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> tags,
+	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> &tags,
 							    int first_tag, int last_tag, int tag_rotate_count,
-								index_t element_rotate_count) {
-		ComparesAndMoves result(0,0);
-
-		if (first_tag == last_tag)
-			return result;
+								index_t element_rotation_count) {
 
 		auto swapTypeAndKey = [&tags] (int i, int j) {
 			BlockType tmp_type 	= tags[i].type;
@@ -679,30 +684,49 @@ namespace BlockSort {
 			tags[j].key  = tmp_key;
 		};
 
+		ComparesAndMoves result(0,0);
+
+		int tag_span = last_tag - first_tag + 1;
+		int rotate_count = blockSortModulo(tag_rotate_count, tag_span);
+
+		if (first_tag == last_tag || rotate_count == 0) {
+			return result;
+		}
+
 		 // update the start & end indices
 		index_t start_of_span_index = tags[first_tag].start_index;
 		index_t end_of_span_index	= tags[last_tag].end_index;
-
+		std::cout << "tag rotation: " << rotate_count << " element rotation " << element_rotation_count << std::endl;
+		std::cout << "[" << 0 << "]: ";
+		for (int j = first_tag; j <= last_tag; j++) {
+			std::cout << "[" << tags[j].start_index << "," << tags[j].end_index << "] ";
+		}
+		std::cout << std::endl;
 		for (int i = first_tag; i <= last_tag; i++) {
-			index_t next_start_index = tags[i].start_index + element_rotate_count;
+			index_t next_start_index = tags[i].start_index + element_rotation_count;
 			// if this tag rotated to a position earlier in the array
 			if (next_start_index > end_of_span_index) {
 				//	calculate how many elements from the start of the span
 				index_t overshoot = next_start_index - (end_of_span_index + 1);
-				// the next start index will be 'overashoot' from the start of span
+				// the next start index will be 'overshoot' from the start of span
 				next_start_index = start_of_span_index + overshoot;
 			}
 			tags[i].start_index = next_start_index;
 
-			// do the sam calculation for the end_index
-			index_t next_end_index = tags[i].end_index + element_rotate_count;
+			// do the same calculation for the end_index
+			index_t next_end_index = tags[i].end_index + element_rotation_count;
 			if (next_end_index > end_of_span_index) {
 				index_t overshoot = next_end_index - (end_of_span_index+1);
 				next_end_index = tags[i].end_index + overshoot;
 			}
 			tags[i].end_index = next_end_index;
+			std::cout << "[" << i << "]: ";
+			for (int j = first_tag; j <= last_tag; j++) {
+				std::cout << "[" << tags[j].start_index << "," << tags[j].end_index << "] ";
+			}
+			std::cout << std::endl;
 		}
-
+#if 0
 		// rotate the types & keys
 		//	 note that moving swapping a key is the same as
 		//	   swapping an array element, so it counts as 3 moves
@@ -716,7 +740,7 @@ namespace BlockSort {
 		for (int i = tag_rotate_count, j = last_tag; i < j; i++, j--) {
 			swapTypeAndKey(i,j);
 		}
-
+#endif
 		return result;
 	}
 
@@ -803,7 +827,7 @@ namespace BlockSort {
 
 #if DEBUG_VERBOSE_SORT_BLOCKS
 		std::cout << "sortBlocksLeftToRight()" << std::endl;
-		if (isSorted(tags, num_tags)) {
+		if (areTagsSorted(tags, num_tags)) {
 			std::cout << "Tags are initially sorted" << std::endl;
 		} else {
 			std::cout << "Tags are not sorted" << std::endl;
@@ -843,7 +867,7 @@ namespace BlockSort {
 			debug << " BEFORE a_block: " << left_block  << "[" << tags[left_block].start_index << ":" << tags[left_block].end_index << "]"
 				  << " b_block: " 		 << right_block << "[" << tags[right_block].start_index << ":" << tags[right_block].end_index << "]"
 				  << ", " << rotate_count << "\n\n";
-			printTags(debug.str(), tags, num_tags, 4);
+			tagArrayToString(debug.str(), tags, num_tags, 4);
 #endif
 
 			result += rotateArray(array, rotate_count, start_of_rotated_span, end_of_rotated_span);
@@ -865,13 +889,13 @@ namespace BlockSort {
 			}
 #if DEBUG_VERBOSE_SORT_BLOCKS
 			printLineArrayIndices(size, 3, 4);
-			printTags(std::string(" AFTER\n"), tags, num_tags, 4);
+			tagArrayToString(std::string(" AFTER\n"), tags, num_tags, 4);
 			printElements(std::string("\n\n"), array, size, 3, 4);
 #endif
 		}
 
 #if DEBUG_VERBOSE_SORT_BLOCKS
-		if (isSorted(tags, num_tags)) {
+		if (areTagsSorted(tags, num_tags)) {
 			std::cout << "Tags are sorted" << std::endl;
 		} else {
 			std::cout << "Tags are NOT sorted" << std::endl;
@@ -990,7 +1014,7 @@ namespace BlockSort {
 
 #if DEBUG_VERBOSE_SORT_BLOCKS
 		std::cout << "sortBlocksLeftToRight()" << std::endl;
-		if (isSorted(tags, num_tags)) {
+		if (areTagsSorted(tags, num_tags)) {
 			std::cout << "Tags are initially sorted" << std::endl;
 		} else {
 			std::cout << "Tags are not sorted" << std::endl;
@@ -1056,7 +1080,7 @@ namespace BlockSort {
 			debug << " BEFORE a_block: " << a_block_index  << "[" << tags[a_block_index].start_index << ":" << tags[a_block_index].end_index << "]"
 				  << " b_block: " 		 << b_block_index << "[" << tags[b_block_index].start_index << ":" << tags[b_block_index].end_index << "]"
 				  << ", " << rotate_count << "\n\n";
-			printTags(debug.str(), tags, num_tags, 4);
+			tagArrayToString(debug.str(), tags, num_tags, 4);
 #endif
 
 			result += rotateArrayElements(array, rotate_count, start_of_rotated_span, end_of_rotated_span);
@@ -1085,13 +1109,13 @@ namespace BlockSort {
 
 #if DEBUG_VERBOSE_SORT_BLOCKS
 			printLineArrayIndices(size, 3, 4);
-			printTags(std::string(" AFTER\n"), tags, num_tags, 4);
+			tagArrayToString(std::string(" AFTER\n"), tags, num_tags, 4);
 			printElements(std::string("\n\n"), array, size, 3, 4);
 #endif
 		}
 
 #if DEBUG_VERBOSE_SORT_BLOCKS
-		if (isSorted(tags, num_tags)) {
+		if (areTagsSorted(tags, num_tags)) {
 			std::cout << "Tags are sorted" << std::endl;
 		} else {
 			std::cout << "Tags are NOT sorted" << std::endl;
@@ -1219,7 +1243,7 @@ namespace BlockSort {
 
 #ifdef DEBUG_VERBOSE_SORT_BLOCKS
 		std::cout << "sortBlocksRightToLeft()" << std::endl;
-		if (isSorted(tags, num_tags)) {
+		if (areTagsSorted(tags, num_tags)) {
 			std::cout << "Tags are initially sorted" << std::endl;
 		} else {
 			std::cout << "Tags are not sorted" << std::endl;
@@ -1253,7 +1277,7 @@ namespace BlockSort {
 			debug << " BEFORE a_block: " << left_block  << "[" << tags[left_block].start_index << ":" << tags[left_block].end_index << "]"
 				  << " b_block: " 		 << right_block << "[" << tags[right_block].start_index << ":" << tags[right_block].end_index << "]"
 				  << ", " << rotate_count << "\n\n";
-			printTags(debug.str(), tags, num_tags, 4);
+			tagArrayToString(debug.str(), tags, num_tags, 4);
 #endif
 
 			result += rotateArray(array, rotate_count, start_of_rotated_span, end_of_rotated_span);
@@ -1275,7 +1299,7 @@ namespace BlockSort {
 			}
 #if DEBUG_VERBOSE_SORT_BLOCKS
 			printLineArrayIndices(size, 3, 4);
-			printTags(std::string(" AFTER\n"), tags, num_tags, 4);
+			tagArrayToString(std::string(" AFTER\n"), tags, num_tags, 4);
 			printElements(std::string("\n\n"), array, size, 3, 4);
 #endif
 		}
@@ -1286,7 +1310,7 @@ namespace BlockSort {
 		}
 		std::cout << std::endl;
 
-		if (isSorted(tags, num_tags)) {
+		if (areTagsSorted(tags, num_tags)) {
 			std::cout << "Tags are sorted" << std::endl;
 		} else {
 			std::cout << "Tags are NOT sorted" << std::endl;
@@ -1445,7 +1469,7 @@ namespace BlockSort {
 
 		num_blocks = createTags(array, 0, v, size-1, block_size, block_tags);
 		std::cout << "Result of tagging blocks is:" << std::endl;
-		printTags(std::string(" created tags\n"), block_tags, num_blocks, element_width);
+		std::cout << tagArrayToString(std::string(" created tags\n"), block_tags, num_blocks, element_width);
 		return result;
 #ifdef SORT_BLOCKS_LEFT_TO_RIGHT
 		result = sortBlocksLeftToRight(array, size, block_tags, num_blocks);

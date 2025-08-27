@@ -1,58 +1,46 @@
-Sorting Performance In C++ built on Aug 26 2025 at 17:48:36
+Sorting Performance In C++ built on Aug 26 2025 at 20:46:51
 testBlockSort()
--9 % 7 = 5 vs 5 | -8 % 7 = 6 vs 6 | -7 % 7 = 0 vs 0 | -6 % 7 = 1 vs 1 | -5 % 7 = 2 vs 2 | -4 % 7 = 3 vs 3 | -3 % 7 = 4 vs 4 | -2 % 7 = 5 vs 5 | -1 % 7 = 6 vs 6 |  0 % 7 = 0 vs 0 |  1 % 7 = 1 vs 1 |  2 % 7 = 2 vs 2 |  3 % 7 = 3 vs 3 |  4 % 7 = 4 vs 4 |  5 % 7 = 5 vs 5 |  6 % 7 = 6 vs 6 |  7 % 7 = 0 vs 0 |  8 % 7 = 1 vs 1 |  9 % 7 = 2 vs 2 | 
--9 % 8 = 7 vs 7 | -8 % 8 = 0 vs 0 | -7 % 8 = 1 vs 1 | -6 % 8 = 2 vs 2 | -5 % 8 = 3 vs 3 | -4 % 8 = 4 vs 4 | -3 % 8 = 5 vs 5 | -2 % 8 = 6 vs 6 | -1 % 8 = 7 vs 7 |  0 % 8 = 0 vs 0 |  1 % 8 = 1 vs 1 |  2 % 8 = 2 vs 2 |  3 % 8 = 3 vs 3 |  4 % 8 = 4 vs 4 |  5 % 8 = 5 vs 5 |  6 % 8 = 6 vs 6 |  7 % 8 = 7 vs 7 |  8 % 8 = 0 vs 0 |  9 % 8 = 1 vs 1 | 
--9 % 9 = 0 vs 0 | -8 % 9 = 1 vs 1 | -7 % 9 = 2 vs 2 | -6 % 9 = 3 vs 3 | -5 % 9 = 4 vs 4 | -4 % 9 = 5 vs 5 | -3 % 9 = 6 vs 6 | -2 % 9 = 7 vs 7 | -1 % 9 = 8 vs 8 |  0 % 9 = 0 vs 0 |  1 % 9 = 1 vs 1 |  2 % 9 = 2 vs 2 |  3 % 9 = 3 vs 3 |  4 % 9 = 4 vs 4 |  5 % 9 = 5 vs 5 |  6 % 9 = 6 vs 6 |  7 % 9 = 7 vs 7 |  8 % 9 = 8 vs 8 |  9 % 9 = 0 vs 0 | 
-PASS:  function blockSortModulo() returns TRUE
-PASSED array size 8 rotate( -9) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
-PASSED array size 8 rotate( -8) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
-PASSED array size 8 rotate( -7) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
-PASSED array size 8 rotate( -6) "abcdefgh" yields "ghabcdef" vs expected "ghabcdef" took: 24 moves
-PASSED array size 8 rotate( -5) "abcdefgh" yields "fghabcde" vs expected "fghabcde" took: 21 moves
-PASSED array size 8 rotate( -4) "abcdefgh" yields "efghabcd" vs expected "efghabcd" took: 24 moves
-PASSED array size 8 rotate( -3) "abcdefgh" yields "defghabc" vs expected "defghabc" took: 21 moves
-PASSED array size 8 rotate( -2) "abcdefgh" yields "cdefghab" vs expected "cdefghab" took: 24 moves
-PASSED array size 8 rotate( -1) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
-PASSED array size 8 rotate(  0) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
-PASSED array size 8 rotate(  1) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
-PASSED array size 8 rotate(  2) "abcdefgh" yields "ghabcdef" vs expected "ghabcdef" took: 24 moves
-PASSED array size 8 rotate(  3) "abcdefgh" yields "fghabcde" vs expected "fghabcde" took: 21 moves
-PASSED array size 8 rotate(  4) "abcdefgh" yields "efghabcd" vs expected "efghabcd" took: 24 moves
-PASSED array size 8 rotate(  5) "abcdefgh" yields "defghabc" vs expected "defghabc" took: 21 moves
-PASSED array size 8 rotate(  6) "abcdefgh" yields "cdefghab" vs expected "cdefghab" took: 24 moves
-PASSED array size 8 rotate(  7) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
-PASSED array size 8 rotate(  8) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
-PASSED array size 8 rotate(  9) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
-PASSED array size 8 rotate( 10) "abcdefgh" yields "ghabcdef" vs expected "ghabcdef" took: 24 moves
-PASSED array size 8 rotate( 11) "abcdefgh" yields "fghabcde" vs expected "fghabcde" took: 21 moves
-PASSED array size 8 rotate( 12) "abcdefgh" yields "efghabcd" vs expected "efghabcd" took: 24 moves
-PASSED array size 8 rotate( 13) "abcdefgh" yields "defghabc" vs expected "defghabc" took: 21 moves
-PASSED array size 8 rotate( 14) "abcdefgh" yields "cdefghab" vs expected "cdefghab" took: 24 moves
-PASSED array size 8 rotate( 15) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
-PASSED array size 8 rotate( 16) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
-PASSED array size 8 rotate( 17) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
-PASSED array size 7 rotate( -8) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
-PASSED array size 7 rotate( -7) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
-PASSED array size 7 rotate( -6) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
-PASSED array size 7 rotate( -5) "abcdefg" yields "fgabcde" vs expected "fgabcde" took: 18 moves
-PASSED array size 7 rotate( -4) "abcdefg" yields "efgabcd" vs expected "efgabcd" took: 18 moves
-PASSED array size 7 rotate( -3) "abcdefg" yields "defgabc" vs expected "defgabc" took: 18 moves
-PASSED array size 7 rotate( -2) "abcdefg" yields "cdefgab" vs expected "cdefgab" took: 18 moves
-PASSED array size 7 rotate( -1) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
-PASSED array size 7 rotate(  0) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
-PASSED array size 7 rotate(  1) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
-PASSED array size 7 rotate(  2) "abcdefg" yields "fgabcde" vs expected "fgabcde" took: 18 moves
-PASSED array size 7 rotate(  3) "abcdefg" yields "efgabcd" vs expected "efgabcd" took: 18 moves
-PASSED array size 7 rotate(  4) "abcdefg" yields "defgabc" vs expected "defgabc" took: 18 moves
-PASSED array size 7 rotate(  5) "abcdefg" yields "cdefgab" vs expected "cdefgab" took: 18 moves
-PASSED array size 7 rotate(  6) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
-PASSED array size 7 rotate(  7) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
-PASSED array size 7 rotate(  8) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
-PASSED array size 7 rotate(  9) "abcdefg" yields "fgabcde" vs expected "fgabcde" took: 18 moves
-PASSED array size 7 rotate( 10) "abcdefg" yields "efgabcd" vs expected "efgabcd" took: 18 moves
-PASSED array size 7 rotate( 11) "abcdefg" yields "defgabc" vs expected "defgabc" took: 18 moves
-PASSED array size 7 rotate( 12) "abcdefg" yields "cdefgab" vs expected "cdefgab" took: 18 moves
-PASSED array size 7 rotate( 13) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
-PASSED array size 7 rotate( 14) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
-PASSED array size 7 rotate( 15) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
-PASS:  function rotateArrayElements() returns TRUE
+ 0  1  2  3  4  5  6  7 
+             v          
+  g  c  e  f  b  a  h  d
+|A   ||A   ||   B||   B|
+
+ 0  1  2  3  4  5  6  7 
+             v          
+  g  c  e  f  b  a  h  d
+|A   ||A   ||   B||   B| after rotation by 0 tags
+
+tag rotation: 1 element rotation 6
+[0]: [0,1] [2,3] [4,5] [6,7] 
+[0]: [6,7] [2,3] [4,5] [6,7] 
+[1]: [6,7] [0,4] [4,5] [6,7] 
+[2]: [6,7] [0,4] [2,8] [6,7] 
+[3]: [6,7] [0,4] [2,8] [4,12] 
+ 0  1  2  3  4  5  6  7 
+             v          
+  h  d  g  c  e  f  b  a
+|A   ||A            ||                  B||                        B| after rotation by 1 tags
+
+tag rotation: 2 element rotation -2
+[0]: [6,7] [0,4] [2,8] [4,12] 
+[0]: [4,5] [0,4] [2,8] [4,12] 
+[1]: [4,5] [-2,2] [2,8] [4,12] 
+[2]: [4,5] [-2,2] [0,6] [4,12] 
+[3]: [4,5] [-2,2] [0,6] [2,10] 
+ 0  1  2  3  4  5  6  7 
+             v          
+  e  f  b  a  h  d  g  c
+|A   ||A            ||                  B||                        B| after rotation by 2 tags
+
+tag rotation: 3 element rotation -2
+[0]: [4,5] [-2,2] [0,6] [2,10] 
+[0]: [2,3] [-2,2] [0,6] [2,10] 
+[1]: [2,3] [-4,0] [0,6] [2,10] 
+[2]: [2,3] [-4,0] [-2,4] [2,10] 
+[3]: [2,3] [-4,0] [-2,4] [0,8] 
+ 0  1  2  3  4  5  6  7 
+             v          
+  b  a  h  d  g  c  e  f
+|A   ||A            ||                  B||                        B| after rotation by 3 tags
+
+PASS:  function testBlockSortRotateTags() returns TRUE

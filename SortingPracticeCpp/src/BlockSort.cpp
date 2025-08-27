@@ -69,14 +69,22 @@ char to_char(BlockType type) {
 	}
 }
 
-array_size_t blockSortModulo(array_size_t amount, array_size_t span) {
+/*
+ * blockSortModulo(element_rotation_amount, span)
+ *
+ * 	this converts values of 'element_rotation_amount' that are either
+ * 		negative of greater than span into an amount < span
+ */
 
-	while (amount < 0) {
-		amount += span;
+array_size_t blockSortModulo(array_size_t rotation_count, array_size_t span) {
+
+	while (rotation_count < 0) {
+		rotation_count += span;
 	}
-	amount %= span;
-	return amount;
+	rotation_count %= span;
+	return rotation_count;
 }
+
 
 /*	**********************************************************************	*/
 /*	**********************************************************************	*/
@@ -175,10 +183,10 @@ std::string arrayToString(T** array, index_t array_size,
 /*	**********************************************	*/
 /*	**********************************************	*/
 
-#define TEST_MODULO
+//#define TEST_MODULO
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
-//#define TEST_BLOCK_SORT_ROTATE_TAGS
+//#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
+#define TEST_BLOCK_SORT_ROTATE_TAGS
 //#define TEST_BLOCK_MERGE
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
@@ -205,6 +213,18 @@ bool testBlockSort();
 	}\
 } while(false)
 
+template <typename T>
+void randomizeArray(T** array, index_t size) {
+
+	static SimpleRandomizer randomizer;
+
+	for (index_t i = 0; i != size; i++) {
+		index_t r = randomizer.rand(i, size);
+		T* temp = array[i];
+		array[i] = array[r];
+		array[r] = temp;
+	}
+}
 
 /*	**********************************************	*/
 /*	**********************************************	*/
@@ -230,13 +250,21 @@ bool testBlockSort() {
 #endif
 
 #ifdef	TEST_BLOCK_SORT_ROTATE_ELEMENTS
-	runTest(passed, testBlockSortRotateArrayElements, "function rotateArrayElements()");
+	runTest(passed, testBlockSortRotateArrayElements, "function testBlockSortRotateArrayElements()");
+	if (!passed)
+		return passed;
+#endif
+
+#ifdef	TEST_BLOCK_SORT_ROTATE_TAGS
+	runTest(passed, testBlockSortRotateTags, "function testBlockSortRotateTags()");
 	if (!passed)
 		return passed;
 #endif
 
 #ifdef TEST_BLOCK_MERGE
 	runTest(passed, testBlockMerge, "function testBlockSortBlockMerge()");
+	if (!passed)
+		return passed;
 #endif
 
 #ifdef TEST_BLOCK_SORT_SORT_BLOCKS
@@ -563,21 +591,54 @@ bool testBlockSortRotateArrayElements() {
 
 bool testBlockSortRotateTags() {
 	bool test_passed = true;
+	constexpr int min_array_size = 8;
+	constexpr int max_array_size = 8;
+
+	auto calculateNumberOfTags = [](array_size_t _size, array_size_t _v, int block_size) -> int {
+		array_size_t left_span = _v;
+		array_size_t right_span = _size-_v;
+		int num_blocks = left_span / block_size + (left_span % block_size ? 1 : 0);
+		num_blocks += right_span / block_size + (right_span % block_size ? 1 : 0);
+		return num_blocks;
+	};
+
+	for (int array_size = min_array_size; array_size <= max_array_size; array_size++) {
+		int min_block_size = 2;
+		int v = array_size / 2 + (array_size % 2 ? 1 : 0);
+		int max_block_size = static_cast<int>(std::sqrt(v));
+		max_block_size = min_block_size;	// TODO - debugging
+		for (int block_size = min_block_size; block_size <= max_block_size; block_size++) {
+			char *array[array_size];
+			for (int i = 0; i != array_size; i++) {
+				array[i] = new char('a' + i % 26);
+			}
+			randomizeArray(array, array_size);
+			std::unique_ptr<BlockTag<char>[]> tags;
+			int num_tags;
+			num_tags = createTags(array, 0, v, array_size-1, block_size, tags);
+			std::string trailer = "\n\n";
+			BlockSort::printBlockSortArray<char>(trailer, array, array_size, v,
+												 tags, num_tags);
+			for (int i = 0; i != num_tags; i++) {
+			for (int j = 0; j != num_tags; j++) {
+				int element_rotation_amount = tags[i].start_index - tags[0].start_index;
+				std::stringstream rotate_message;
+				rotate_message << " after rotation by " << i << " tags\n\n";
+
+				BlockSort::rotateArrayElements(array, element_rotation_amount, 0, array_size-1);
+				BlockSort::rotateTags(tags, 0, num_tags-1,i);
+				BlockSort::printBlockSortArray(rotate_message.str(),
+											   array, array_size, v,
+											   tags, num_tags);
+//				rotate_message.clear();
+			}
+			}
+		}
+	}
+
 	return test_passed;
 }
 
-template <typename T>
-void randomizeArray(T** array, index_t size) {
-
-	static SimpleRandomizer randomizer;
-
-	for (index_t i = 0; i != size; i++) {
-		index_t r = randomizer.rand(i, size);
-		T* temp = array[i];
-		array[i] = array[r];
-		array[r] = temp;
-	}
-}
 
 bool testBlockSortSortBlocks() {
 
@@ -674,10 +735,10 @@ bool testBlockSortSortBlocks() {
 				messages << out(array, array_size, " after randomizing\n");
 				num_tags = BlockSort::createTags(array, start, mid, end, block_size, tags);
 				messages << printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
-				messages << BlockSort::printTags(std::string("\n"), tags, num_tags, element_width);
+				messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
 				messages << out(array, array_size, "\n");
 				result = BlockSort::sortBlocksLeftToRight(array, array_size, tags, num_tags);
-				messages << BlockSort::printTags(std::string("\n"), tags, num_tags, element_width);
+				messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
 				messages << out(array, array_size, " after sorting blocks\n");
 				if (!areTagsSorted(tags, num_tags)) {
 					test_passed = false;
