@@ -186,7 +186,7 @@ std::string arrayToString(T** array, index_t array_size,
 //#define TEST_MODULO
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
-#define TEST_BLOCK_SORT_ROTATE_TAGS
+#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_MERGE
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
@@ -197,7 +197,7 @@ bool testBlockSortModulo();
 bool testFloorLog2();
 bool testBlockSortBlockMerge();
 bool testBlockSortRotateArrayElements();
-bool testBlockSortRotateTags();
+bool testBlockSortRotateBlocks();
 bool testBlockSortSort();
 bool testBlockSortSortBlocks();
 bool testBlockSortSwapBlocks();
@@ -255,8 +255,8 @@ bool testBlockSort() {
 		return passed;
 #endif
 
-#ifdef	TEST_BLOCK_SORT_ROTATE_TAGS
-	runTest(passed, testBlockSortRotateTags, "function testBlockSortRotateTags()");
+#ifdef	TEST_BLOCK_SORT_ROTATE_BLOCKS
+	runTest(passed, testBlockSortRotateBlocks, "function testBlockSortRotateBlocks()");
 	if (!passed)
 		return passed;
 #endif
@@ -589,10 +589,15 @@ bool testBlockSortRotateArrayElements() {
 	return test_passed;
 }
 
-bool testBlockSortRotateTags() {
+bool testBlockSortRotateBlocks() {
+
 	bool test_result = true;
 	constexpr int min_array_size = 9;
 	constexpr int max_array_size = 9;
+
+	/*	******************************	*/
+	/*		helpful lambdas				*/
+	/*	******************************	*/
 
 	auto calculateNumberOfTags = [](array_size_t _size, array_size_t _v, int block_size) -> int {
 		array_size_t left_span = _v;
@@ -615,6 +620,41 @@ bool testBlockSortRotateTags() {
 		}
 	};
 
+	/*	***************************************************	*/
+	/*		lambda that rotates simply but inefficiently	*/
+	/*	***************************************************	*/
+
+	auto rotateExpectedBlocks = [](char **x_array, std::unique_ptr<BlockTag<char>[]> &x_tags,
+						  	     int x_array_size, int x_num_tags,
+								 int x_tag_rotate_count, int x_first_tag, int x_last_tag) {
+		int tag_i = x_last_tag;
+		int first_start_index = x_tags[0].start_index;
+		for (; x_tag_rotate_count > 0; --x_tag_rotate_count) {
+			int tag_span = x_tags[tag_i].num_elements();
+			for (int i = tag_span; i != 0; i--) {
+				char *end_key = x_array[x_array_size-1];
+				for (int j = x_array_size-1; j > 0; --j) {
+					x_array[j] = x_array[j-1];
+				}
+				x_array[0] = end_key;
+			}
+			BlockTag<char> tmp_block;
+			tmp_block = x_tags[x_num_tags-1];
+			for (int i = x_num_tags-1; i > 0; --i) {
+				x_tags[i] = x_tags[i-1];
+				x_tags[i].start_index += tag_span;
+				x_tags[i].end_index += tag_span;
+			}
+			x_tags[0] = tmp_block;
+			x_tags[0].start_index = first_start_index;
+			x_tags[0].end_index = first_start_index + tag_span-1;
+		}
+	};
+
+	/* ***********************************************************************	*/
+	/* 								test code									*/
+	/* ***********************************************************************	*/
+
 	for (int array_size = min_array_size; array_size <= max_array_size; array_size++) {
 		int min_block_size = 2;
 		int v = array_size / 2;
@@ -628,6 +668,8 @@ bool testBlockSortRotateTags() {
 				reference_array[i] = new char('a' + i % 26);
 			}
 			randomizeArray(reference_array, array_size);
+			InsertionSort::sortPointersToObjects(reference_array, v);
+			InsertionSort::sortPointersToObjects(&reference_array[v], array_size-v);
 			std::unique_ptr<BlockTag<char>[]> reference_tags;
 			num_tags = createTags(reference_array, 0, v, array_size-1,
 					   	   	      block_size, reference_tags);
@@ -647,38 +689,46 @@ bool testBlockSortRotateTags() {
 				for (int block_span = num_tags; block_span > 0; block_span--) {
 					for (int left_block = anchor_block, right_block = anchor_block+block_span-1;
 							 right_block < num_tags; left_block++, right_block++) {
-						for (int rotate_count = 0; rotate_count != num_tags; rotate_count++) {
+						for (int rotate_count = 1; rotate_count != num_tags; rotate_count++) {
 							if (left_block + rotate_count > right_block)
 								break;
 							char *test_array[array_size];
+							char *expected_array[array_size];
 							std::unique_ptr<BlockTag<char>[]> test_tags(new BlockTag<char>[num_tags]);
+							std::unique_ptr<BlockTag<char>[]> expected_tags(new BlockTag<char>[num_tags]);
 							copyArray(test_array, reference_array, array_size);
 							copyTags(test_tags, reference_tags, num_tags);
-							int element_rotation_amount = test_tags[left_block+rotate_count].start_index - test_tags[left_block].start_index;
-							int start_element = test_tags[left_block].start_index;
-							int end_element = test_tags[right_block].end_index;
+							copyArray(expected_array, test_array, array_size);
+							copyTags(expected_tags, test_tags, num_tags);
+							rotateExpectedBlocks(expected_array, expected_tags, array_size, num_tags,
+												 rotate_count, left_block, right_block);
 							std::stringstream rotate_message;
-							rotate_message << " before [" << left_block << ":" << right_block << "] rotated by "
-									       << rotate_count << " blocks" << std::endl;
+							rotate_message << " before    [" << left_block << ":" << right_block << "] rotated by "
+									       << rotate_count << " blocks\n\n";
 							printBlockSortArray(rotate_message.str(), test_array, array_size, v, test_tags, num_tags);
 
-							rotateArrayElements(test_array, element_rotation_amount, start_element, end_element);
-							rotateTags(test_tags, rotate_count, left_block, right_block, element_rotation_amount);
+							rotateBlocks(test_array, test_tags, rotate_count, left_block, right_block);
 							rotate_message.str("");
 							rotate_message.clear();
-							rotate_message << " after  [" << left_block << ":" << right_block << "] rotated by "
-										   << rotate_count << " blocks" << std::endl << std::endl;
+							rotate_message << " after     [" << left_block << ":" << right_block << "] rotated by "
+										   << rotate_count << " blocks\n\n";
 							printBlockSortArray(rotate_message.str(), test_array, array_size, v, test_tags, num_tags);
+							rotate_message.str("");
+							rotate_message.clear();
+							rotate_message << " expected  [" << left_block << ":" << right_block << "] rotated by "
+										   << rotate_count << " blocks\n\n";
+							printBlockSortArray(rotate_message.str(), expected_array, array_size, v, expected_tags, num_tags);
+							return test_result;
 						}
 					}
 				}
-				return test_result;
 			}
 		}
 	}
 
 	return test_result;
-	}
+
+}
 
 
 bool testBlockSortSortBlocks() {

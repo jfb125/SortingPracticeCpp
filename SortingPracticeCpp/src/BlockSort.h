@@ -352,25 +352,15 @@ namespace BlockSort {
 		constexpr const int 	value_width = element_width - 1;
 		constexpr const char 	spacer = ' ';
 		// hand edit these to make them 'element_width' wide
-		constexpr const char* 	filler 		= "   ";
-		constexpr const char*   midpoint 	= " v ";
+		constexpr const char*   midpoint 	= "\\V/";
 
 		//	preserve state of ostream; destructor will restore state
 		OStreamState ostream_state;
 
 		//	print out the index of the array
 		for (int i = 0; i < size; i++) {
-			std::cout << std::setw(value_width) << i << spacer;
-		}
-		std::cout << std::endl;
-
-		//	print out the overhead chars
-		for (int i = 0; i < size; i++) {
-			if (i == v) {
-				std::cout << midpoint;
-			} else {
-				std::cout << filler;
-			}
+			if (i != v) std::cout << std::setw(value_width) << i << spacer;
+			else std::cout << midpoint;
 		}
 		std::cout << std::endl;
 
@@ -395,7 +385,7 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves rotateArrayElements(T** array, index_t start, index_t end, index_t amount);
 	template <typename T>
-	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> &tags,
+	ComparesAndMoves rotateBlocks(T** array, std::unique_ptr<BlockTag<T>[]> &tags,
 					int first_tag, int last_tag, int tag_rotate_count);
 	template <typename T>
 	ComparesAndMoves sortBlocksLeftToRight(T **array, array_size_t size,
@@ -671,16 +661,19 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves rotateTags(std::unique_ptr<BlockTag<T>[]> &tags,
-							    int tag_rotate_count, int first_tag, int last_tag,
-								index_t element_rotation_count) {
+	ComparesAndMoves rotateBlocks(T** array, std::unique_ptr<BlockTag<T>[]> &tags,
+							      int passed_tag_rotate_count, int first, int last) {
+
+		/*	**************************************	*/
+		/*				Debugging					*/
+		/*	**************************************	*/
 
 		bool debug_verbose = true;
 
 		auto tagIndicesToString = [&](int i) ->std::string {
 			std::stringstream tag_indices_string;
 			tag_indices_string << "[" << i << "]: ";
-			for (int i = first_tag; i <= last_tag; i++) {
+			for (int i = first; i <= last; i++) {
 				tag_indices_string << "[" << tags[i].start_index
 						  	  	   << "," << tags[i].end_index << "] ";
 
@@ -690,69 +683,74 @@ namespace BlockSort {
 
 		auto tagsToString = [&]() -> std::string {
 			std::stringstream tags_string;
-			for (int i =  first_tag; i <= last_tag; i++) {
+			for (int i =  first; i <= last; i++) {
 				tags_string << "|" << i << ": " << tags[i].to_string() << "|";
 			}
 			return tags_string.str();
 		};
-		//	swapping a key, which is an array element, requires 3 moves
+
+		/*	**************************************	*/
+		/*				swap lambda					*/
+		/*	**************************************	*/
+
 		auto swapTags = [&tags] (int i, int j) {
 			BlockSort::BlockTag<T> tmp = tags[i];
 			tags[i] = tags[j];
 			tags[j] = tmp;
 		};
 
+
 		ComparesAndMoves result(0,0);
 
-		if (last_tag == first_tag) {
+		if (last == first) {
 			return result;
 		}
 
-		if (last_tag < first_tag) {
-			index_t tmp = first_tag;
-			first_tag = last_tag;
-			last_tag = tmp;
+		if (last < first) {
+			index_t tmp = first;
+			first = last;
+			last = tmp;
 		}
 
-		int tag_span = last_tag - first_tag + 1;
-		int rotate_count = blockSortModulo(tag_rotate_count, tag_span);
-		index_t element_span = tags[last_tag].end_index - tags[first_tag].start_index+1;
-		if (rotate_count > element_span) {
-			std::cout << "ERROR rotateTag with rotate_count " << rotate_count
-					  << " greater than tag span " << tags[last_tag].end_index
-					  << " - " << tags[first_tag].start_index << " + 1 "
-					  << std::endl;
-			while (1);
-		}
-		if (element_rotation_count < 0) {
-			std::cout << "ERROR elementRotationCount " << element_rotation_count
-					  << " < 0" << std::endl;
-			while(1);
-		}
-		if (rotate_count == 0) {
+		int tag_span = last - first + 1;
+		int tag_rotate_count = blockSortModulo(passed_tag_rotate_count, tag_span);
+		if (tag_rotate_count == 0) {
 			return result;
+		}
+
+		//	calculate how far the tags on the right side will rotate
+		//	  to be placed at the left start of the span
+		int array_rotate_count = 0;
+		int tag = last;
+		for (int i = tag_rotate_count; i > 0; --i) {
+			array_rotate_count += tags[tag].num_elements();
+			--tag;
 		}
 
 		// make a record of span of the array covered by the tags
-		//	before re-ordering the tags
-		index_t first_start_index = tags[first_tag].start_index;
-		index_t last_end_index	= tags[last_tag].end_index;
+		//	before re-ordering the tags - it is necessary to update the indices
+		index_t first_start_index = tags[first].start_index;
+		index_t last_end_index	= tags[last].end_index;
 
-		// rotate the tags
-		//	 note that swapping a key is the same as
-		//	   swapping an array element, so it counts as 3 moves
+		rotateArrayElements(array, array_rotate_count, first_start_index, last_end_index);
 
-		for (int i = first_tag, j = last_tag; i < j; i++, j--) {
+		// rotate the tags - note that swapping the key in the tag is
+		//	the same as swapping an array element, so it counts as 3 moves
+
+		if (debug_verbose) std::cout << tagsToString() << std::endl;
+		for (int i = first, j = last; i < j; i++, j--) {
 			swapTags(i,j);
 			result._moves += 3;
 		}
 		if (debug_verbose) std::cout << tagsToString() << std::endl;
-		for (int i = first_tag, j = first_tag + rotate_count-1; i < j; i++, j--) {
+
+		for (int i = first, j = first + tag_rotate_count-1; i < j; i++, j--) {
 			swapTags(i,j);
 			result._moves += 3;
 		}
 		if (debug_verbose) std::cout << tagsToString() << std::endl;
-		for (int i = first_tag + rotate_count, j = last_tag; i < j; i++, j--) {
+
+		for (int i = first + tag_rotate_count, j = last; i < j; i++, j--) {
 			swapTags(i,j);
 			result._moves += 3;
 		}
@@ -762,13 +760,14 @@ namespace BlockSort {
 		//	  but the indices of the tags point to the old position in the array
 
 		if (debug_verbose) {
-			std::cout << "tag rotation: " << rotate_count << " element rotation " << element_rotation_count << std::endl;
+			std::cout << "tag rotation: " << tag_rotate_count
+					  << " element rotation " << array_rotate_count << std::endl;
 			std::cout << tagIndicesToString(0) << std::endl;
 		}
 
-		for (int i = first_tag; i <= last_tag; i++) {
+		for (int i = first; i <= last; i++) {
 			index_t this_tags_span = tags[i].end_index - tags[i].start_index;
-			index_t next_start_index = tags[i].start_index + element_rotation_count;
+			index_t next_start_index = tags[i].start_index + array_rotate_count;
 			// if this tag rotated to a position earlier in the array
 			if (next_start_index > last_end_index) {
 				//	calculate how many elements from the start of the span
@@ -782,7 +781,8 @@ namespace BlockSort {
 				std::cout << tagIndicesToString(i) << std::endl;
 			}
 		}
-		std::cout << tagsToString() << std::endl;
+
+		if (debug_verbose) std::cout << tagsToString() << std::endl;
 		return result;
 	}
 
