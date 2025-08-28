@@ -1,27 +1,458 @@
-Sorting Performance In C++ built on Aug 27 2025 at 20:23:07
+Sorting Performance In C++ built on Aug 28 2025 at 18:01:25
 testBlockSort()
- 0  1  2  3 \V/ 5  6  7  8 
-  a  d  f  h  b  c  e  g  i
-|A   ||A   ||   B||   B||B| before    [0:4] rotated by 1 blocks
+rotating blocks [0:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  i   a   d   f   h   b   c   e   g
+| B||A     ||A     ||     B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  i   a   d   f   h   b   c   e   g
+| B||A     ||A     ||     B||     B|
 
-|0: A block [0:1] [0] = a||1: A block [2:3] [2] = f||2: B block [4:5] [5] = c||3: B block [6:7] [7] = g||4: B block [8:8] [8] = i|
-|0: B block [8:8] [8] = i||1: B block [6:7] [7] = g||2: B block [4:5] [5] = c||3: A block [2:3] [2] = f||4: A block [0:1] [0] = a|
-|0: B block [8:8] [8] = i||1: B block [6:7] [7] = g||2: B block [4:5] [5] = c||3: A block [2:3] [2] = f||4: A block [0:1] [0] = a|
-|0: B block [8:8] [8] = i||1: A block [0:1] [0] = a||2: A block [2:3] [2] = f||3: B block [4:5] [5] = c||4: B block [6:7] [7] = g|
-tag rotation: 1 element rotation 1
-[0]: [8,8] [0,1] [2,3] [4,5] [6,7] 
-[0]: [0,0] [0,1] [2,3] [4,5] [6,7] 
-[1]: [0,0] [1,2] [2,3] [4,5] [6,7] 
-[2]: [0,0] [1,2] [3,4] [4,5] [6,7] 
-[3]: [0,0] [1,2] [3,4] [5,6] [6,7] 
-[4]: [0,0] [1,2] [3,4] [5,6] [7,8] 
-|0: B block [0:0] [0] = i||1: A block [1:2] [1] = a||2: A block [3:4] [3] = f||3: B block [5:6] [6] = c||4: B block [7:8] [8] = g|
- 0  1  2  3 \V/ 5  6  7  8 
-  i  a  d  f  h  b  c  e  g
-|B||A   ||A   ||   B||   B| after     [0:4] rotated by 1 blocks
+rotating blocks [0:4] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  e   g   i   a   d   f   h   b   c
+|     B|| B||A     ||A     ||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  e   g   i   a   d   f   h   b   c
+|     B|| B||A     ||A     ||     B|
 
- 0  1  2  3 \V/ 5  6  7  8 
-  i  a  d  f  h  b  c  e  g
-|B||A   ||A   ||   B||   B| expected  [0:4] rotated by 1 blocks
+rotating blocks [0:4] by 3
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  b   c   e   g   i   a   d   f   h
+|     B||     B|| B||A     ||A     |
+expected
+  0   1   2   3   4   5   6   7   8
+  b   c   e   g   i   a   d   f   h
+|     B||     B|| B||A     ||A     |
+
+rotating blocks [0:4] by 4
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  f   h   b   c   e   g   i   a   d
+|A     ||     B||     B|| B||A     |
+expected
+  0   1   2   3   4   5   6   7   8
+  f   h   b   c   e   g   i   a   d
+|A     ||     B||     B|| B||A     |
+
+rotating blocks [0:3] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  e   g   a   d   f   h   b   c   i
+|     B||A     ||A     ||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  e   g   a   d   f   h   b   c   i
+|     B||A     ||A     ||     B|| B|
+
+rotating blocks [0:3] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  b   c   e   g   a   d   f   h   i
+|     B||     B||A     ||A     || B|
+expected
+  0   1   2   3   4   5   6   7   8
+  b   c   e   g   a   d   f   h   i
+|     B||     B||A     ||A     || B|
+
+rotating blocks [0:3] by 3
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  f   h   b   c   e   g   a   d   i
+|A     ||     B||     B||A     || B|
+expected
+  0   1   2   3   4   5   6   7   8
+  f   h   b   c   e   g   a   d   i
+|A     ||     B||     B||A     || B|
+
+rotating blocks [1:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   i   f   h   b   c   e   g
+|A     || B||A     ||     B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   i   f   h   b   c   e   g
+|A     || B||A     ||     B||     B|
+
+rotating blocks [1:4] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   e   g   i   f   h   b   c
+|A     ||     B|| B||A     ||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   e   g   i   f   h   b   c
+|A     ||     B|| B||A     ||     B|
+
+rotating blocks [1:4] by 3
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   e   g   i   f   h
+|A     ||     B||     B|| B||A     |
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   e   g   i   f   h
+|A     ||     B||     B|| B||A     |
+
+rotating blocks [0:2] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  b   c   a   d   f   h   e   g   i
+|     B||A     ||A     ||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  b   c   a   d   f   h   e   g   i
+|     B||A     ||A     ||     B|| B|
+
+rotating blocks [0:2] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  f   h   b   c   a   d   e   g   i
+|A     ||     B||A     ||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  f   h   b   c   a   d   e   g   i
+|A     ||     B||A     ||     B|| B|
+
+rotating blocks [1:3] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   e   g   f   h   b   c   i
+|A     ||     B||A     ||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   e   g   f   h   b   c   i
+|A     ||     B||A     ||     B|| B|
+
+rotating blocks [1:3] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   e   g   f   h   i
+|A     ||     B||     B||A     || B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   e   g   f   h   i
+|A     ||     B||     B||A     || B|
+
+rotating blocks [2:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   i   b   c   e   g
+|A     ||A     || B||     B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   i   b   c   e   g
+|A     ||A     || B||     B||     B|
+
+rotating blocks [2:4] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   i   b   c
+|A     ||A     ||     B|| B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   i   b   c
+|A     ||A     ||     B|| B||     B|
+
+rotating blocks [0:1] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  f   h   a   d   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  f   h   a   d   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+
+rotating blocks [1:2] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   f   h   e   g   i
+|A     ||     B||A     ||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   f   h   e   g   i
+|A     ||     B||A     ||     B|| B|
+
+rotating blocks [2:3] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   b   c   i
+|A     ||A     ||     B||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   b   c   i
+|A     ||A     ||     B||     B|| B|
+
+rotating blocks [3:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   i   e   g
+|A     ||A     ||     B|| B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   i   e   g
+|A     ||A     ||     B|| B||     B|
+
+rotating blocks [1:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   i   f   h   b   c   e   g
+|A     || B||A     ||     B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   i   f   h   b   c   e   g
+|A     || B||A     ||     B||     B|
+
+rotating blocks [1:4] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   e   g   i   f   h   b   c
+|A     ||     B|| B||A     ||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   e   g   i   f   h   b   c
+|A     ||     B|| B||A     ||     B|
+
+rotating blocks [1:4] by 3
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   e   g   i   f   h
+|A     ||     B||     B|| B||A     |
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   e   g   i   f   h
+|A     ||     B||     B|| B||A     |
+
+rotating blocks [1:3] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   e   g   f   h   b   c   i
+|A     ||     B||A     ||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   e   g   f   h   b   c   i
+|A     ||     B||A     ||     B|| B|
+
+rotating blocks [1:3] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   e   g   f   h   i
+|A     ||     B||     B||A     || B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   e   g   f   h   i
+|A     ||     B||     B||A     || B|
+
+rotating blocks [2:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   i   b   c   e   g
+|A     ||A     || B||     B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   i   b   c   e   g
+|A     ||A     || B||     B||     B|
+
+rotating blocks [2:4] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   i   b   c
+|A     ||A     ||     B|| B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   i   b   c
+|A     ||A     ||     B|| B||     B|
+
+rotating blocks [1:2] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   f   h   e   g   i
+|A     ||     B||A     ||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   b   c   f   h   e   g   i
+|A     ||     B||A     ||     B|| B|
+
+rotating blocks [2:3] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   b   c   i
+|A     ||A     ||     B||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   b   c   i
+|A     ||A     ||     B||     B|| B|
+
+rotating blocks [3:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   i   e   g
+|A     ||A     ||     B|| B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   i   e   g
+|A     ||A     ||     B|| B||     B|
+
+rotating blocks [2:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   i   b   c   e   g
+|A     ||A     || B||     B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   i   b   c   e   g
+|A     ||A     || B||     B||     B|
+
+rotating blocks [2:4] by 2
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   i   b   c
+|A     ||A     ||     B|| B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   i   b   c
+|A     ||A     ||     B|| B||     B|
+
+rotating blocks [2:3] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   b   c   i
+|A     ||A     ||     B||     B|| B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   e   g   b   c   i
+|A     ||A     ||     B||     B|| B|
+
+rotating blocks [3:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   i   e   g
+|A     ||A     ||     B|| B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   i   e   g
+|A     ||A     ||     B|| B||     B|
+
+rotating blocks [3:4] by 1
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   e   g   i
+|A     ||A     ||     B||     B|| B|
+ result
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   i   e   g
+|A     ||A     ||     B|| B||     B|
+expected
+  0   1   2   3   4   5   6   7   8
+  a   d   f   h   b   c   i   e   g
+|A     ||A     ||     B|| B||     B|
 
 PASS:  function testBlockSortRotateBlocks() returns TRUE

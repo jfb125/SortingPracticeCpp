@@ -92,6 +92,28 @@ array_size_t blockSortModulo(array_size_t rotation_count, array_size_t span) {
 /*	**********************************************************************	*/
 /*	**********************************************************************	*/
 
+std::string arrayIndicesToString(array_size_t size, array_size_t v, int element_width) {
+
+	OStreamState io_state;	// the destructor will restore state
+	std::stringstream result;
+	if (size != 0) {
+		for (int i = 0; i < size-1; i++) {
+			result << std::right << std::setw(element_width-1) << i;
+			result << ' ';
+		}
+		result << std::right << std::setw(element_width-1) << size-1;
+	}
+	return result.str();
+}
+
+std::string arrayIndicesToString(std::string trailer, array_size_t size, array_size_t v, int element_width) {
+	OStreamState ostream_state;
+	std::stringstream result;
+	result << arrayIndicesToString(size, v, element_width);
+	result << trailer;
+	return result.str();
+}
+
 std::string printArrayIndices(array_size_t size, int value_width, int element_width) {
 
 	std::stringstream result;
@@ -114,7 +136,6 @@ std::string printArrayIndices(array_size_t size, int value_width, int element_wi
 std::string printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width) {
 	std::stringstream result;
 	result << printArrayIndices(size, value_width, element_width);
-	result << trailer;
 	result << trailer;
 	return result.str();
 }
@@ -213,14 +234,14 @@ bool testBlockSort();
 	}\
 } while(false)
 
-template <typename T>
-void randomizeArray(T** array, index_t size) {
+template<typename T>
+void randomizeArray(T **array, index_t size) {
 
 	static SimpleRandomizer randomizer;
 
 	for (index_t i = 0; i != size; i++) {
 		index_t r = randomizer.rand(i, size);
-		T* temp = array[i];
+		T *temp = array[i];
 		array[i] = array[r];
 		array[r] = temp;
 	}
@@ -256,7 +277,8 @@ bool testBlockSort() {
 #endif
 
 #ifdef	TEST_BLOCK_SORT_ROTATE_BLOCKS
-	runTest(passed, testBlockSortRotateBlocks, "function testBlockSortRotateBlocks()");
+	runTest(passed, testBlockSortRotateBlocks,
+			"function testBlockSortRotateBlocks()");
 	if (!passed)
 		return passed;
 #endif
@@ -283,7 +305,6 @@ bool testBlockSort() {
 	return passed;
 }
 
-
 /*	**********************************************	*/
 /*	**********************************************	*/
 /*					individual tests				*/
@@ -294,18 +315,18 @@ bool testFloorLog2() {
 
 	//	a way of calculating that uses a loop,
 	//		which is slow due to branching
-	auto calc_expected = [] (index_t num) {
+	auto calc_expected = [](index_t num) {
 		if (num == 0)
 			return 0;
-		for (int i = 1; i <= 1<<30; i *=2) {
+		for (int i = 1; i <= 1 << 30; i *= 2) {
 			if (i == num) {
 				return i;
 			}
 			if (i > num) {
-				return i>>1;
+				return i >> 1;
 			}
 		}
-		return 1<<30;
+		return 1 << 30;
 	};
 
 	constexpr int num_width = 10;
@@ -313,22 +334,24 @@ bool testFloorLog2() {
 	index_t value = floorLog2(0);
 	index_t expected = calc_expected(0);
 	std::cout << "floor(log2(" << std::setw(num_width) << 0 << ")) = "
-			  << std::setw(num_width) << value;
+			<< std::setw(num_width) << value;
 	if (value != expected) {
-		std::cout << " does not match expected " << std::setw(num_width) << expected << std::endl;
+		std::cout << " does not match expected " << std::setw(num_width)
+				<< expected << std::endl;
 		passed = false;
 		goto TEST_FLOOR_LOG_2_RETURN_LABEL;
 	}
 	std::cout << std::endl;
 
-	for (index_t i = 2; i < (1<<30); i <<= 1) {
+	for (index_t i = 2; i < (1 << 30); i <<= 1) {
 		// one less than a power of 2
-		value = floorLog2(i-1);
-		expected = calc_expected(i-1);
-		std::cout << "floor(log2(" << std::setw(num_width) << i-1 << ")) = "
-				  << std::setw(num_width) << value;
+		value = floorLog2(i - 1);
+		expected = calc_expected(i - 1);
+		std::cout << "floor(log2(" << std::setw(num_width) << i - 1 << ")) = "
+				<< std::setw(num_width) << value;
 		if (value != expected) {
-			std::cout << " does not match expected " << std::setw(num_width) << expected << std::endl;
+			std::cout << " does not match expected " << std::setw(num_width)
+					<< expected << std::endl;
 			passed = false;
 			goto TEST_FLOOR_LOG_2_RETURN_LABEL;
 		}
@@ -338,42 +361,41 @@ bool testFloorLog2() {
 		value = floorLog2(i);
 		expected = calc_expected(i);
 		std::cout << "floor(log2(" << std::setw(num_width) << i << ")) = "
-				  << std::setw(num_width) << value;
+				<< std::setw(num_width) << value;
 		if (value != expected) {
-			std::cout << " does not match expected " << std::setw(num_width) << expected << std::endl;
+			std::cout << " does not match expected " << std::setw(num_width)
+					<< expected << std::endl;
 			passed = false;
 			goto TEST_FLOOR_LOG_2_RETURN_LABEL;
 		}
 		std::cout << std::endl;
 	}
-TEST_FLOOR_LOG_2_RETURN_LABEL:
-	return passed;
+	TEST_FLOOR_LOG_2_RETURN_LABEL: return passed;
 }
 
-template <typename T>
-void rotateArrayElementsLongWay(T**array, index_t size, index_t count) {
+template<typename T>
+void rotateArrayElementsLongWay(T **array, index_t size, index_t count) {
 
-	T* tmp;
+	T *tmp;
 
 	if (count < 0) {
-		for (index_t i = count ; i != 0; i++) {
+		for (index_t i = count; i != 0; i++) {
 			tmp = array[0];
-			for (index_t j = 0; j != size-1; j++) {
-				array[j] = array[j+1];
+			for (index_t j = 0; j != size - 1; j++) {
+				array[j] = array[j + 1];
 			}
-			array[size-1] = tmp;
+			array[size - 1] = tmp;
 		}
 	} else {
 		for (index_t i = 0; i != count; i++) {
-			tmp = array[size-1];
-			for (index_t j = size-1; j != 0; j--) {
-				array[j] = array[j-1];
+			tmp = array[size - 1];
+			for (index_t j = size - 1; j != 0; j--) {
+				array[j] = array[j - 1];
 			}
 			array[0] = tmp;
 		}
 	}
 }
-
 
 bool testBlockSortBlockMerge() {
 #ifdef BLOCK_MERGE_BY_ROTATE
@@ -390,32 +412,34 @@ bool testBlockSortBlockMerge() {
 		std::cout << "\"";
 	};
 
-	ComparesAndMoves (*sortArray)(char**, int, int) = [] (char **l_array, int l_start, int l_end) {
-		ComparesAndMoves result(0,0);
-		for (int i = l_start+1; i <= l_end; i++) {
-			for (int j = i; j != l_start; j--) {
-				result._compares++;
-				if (*l_array[j-1] > *l_array[j]) {
-					char *tmp = l_array[j-1];
-					l_array[j-1] = l_array[j];
-					l_array[j] = tmp;
-					result._moves += 3;
-					result._compares++;
-				} else {
-					break;
+	ComparesAndMoves (*sortArray)(char**, int,
+			int) = [] (char **l_array, int l_start, int l_end) {
+				ComparesAndMoves result(0,0);
+				for (int i = l_start+1; i <= l_end; i++) {
+					for (int j = i; j != l_start; j--) {
+						result._compares++;
+						if (*l_array[j-1] > *l_array[j]) {
+							char *tmp = l_array[j-1];
+							l_array[j-1] = l_array[j];
+							l_array[j] = tmp;
+							result._moves += 3;
+							result._compares++;
+						} else {
+							break;
+						}
+					}
 				}
-			}
-		}
-		return result;
-	};
+				return result;
+			};
 
 	int min_array_size = 2;
 	int max_array_size = 128;
 
-	for (int array_size = min_array_size; array_size <= max_array_size; array_size *= 2) {
+	for (int array_size = min_array_size; array_size <= max_array_size;
+			array_size *= 2) {
 
 		bool verbose = false;
-		ComparesAndMoves total_result(0,0);
+		ComparesAndMoves total_result(0, 0);
 		int num_tests = 100;
 
 		char *array[array_size];
@@ -424,15 +448,15 @@ bool testBlockSortBlockMerge() {
 
 		for (int test_number = 0; test_number != num_tests; test_number++) {
 
-			ComparesAndMoves result(0,0);
+			ComparesAndMoves result(0, 0);
 			//	create a linear array
 			for (int i = 0; i != array_size; i++) {
-				char value = 'a'+(i%26);
+				char value = 'a' + (i % 26);
 				array[i] = new char(value);
 				expected[i] = new char(value);
 			}
 
-			sortArray(expected, 0, array_size-1);
+			sortArray(expected, 0, array_size - 1);
 
 			//	randomize the array
 			for (int i = 0; i != array_size; i++) {
@@ -447,8 +471,8 @@ bool testBlockSortBlockMerge() {
 			}
 
 			//	sort each subarray, u & v, using an insertion sort
-			result += sortArray(array, 0, array_size / 2-1);
-			result += sortArray(array, array_size / 2, array_size-1);
+			result += sortArray(array, 0, array_size / 2 - 1);
+			result += sortArray(array, array_size / 2, array_size - 1);
 
 			if (verbose) {
 				std::cout << "  before: ";
@@ -456,7 +480,8 @@ bool testBlockSortBlockMerge() {
 			}
 
 #ifdef BLOCK_MERGE_BY_ROTATE
-			result += blockMergeByRotate(array, 0, array_size/2, array_size-1);
+			result += blockMergeByRotate(array, 0, array_size / 2,
+					array_size - 1);
 #endif
 			total_result += result;
 
@@ -469,9 +494,8 @@ bool testBlockSortBlockMerge() {
 			for (int i = 0; i != array_size; i++) {
 				if (*array[i] != *expected[i]) {
 					test_passed = false;
-					std::cout << "array size " << array_size
-							  << " test pass " << test_number
-							  << " before ";
+					std::cout << "array size " << array_size << " test pass "
+							<< test_number << " before ";
 					printArray(before, array_size);
 					std::cout << " expected ";
 					printArray(expected, array_size);
@@ -479,9 +503,8 @@ bool testBlockSortBlockMerge() {
 					printArray(array, array_size);
 					std::cout << std::endl;
 					std::cout << " FAILED: [" << std::setw(3) << i << "]"
-							  << " expected " << expected[i]
-							  << " vs actual " << *array[i]
-							  << std::endl;
+							<< " expected " << expected[i] << " vs actual "
+							<< *array[i] << std::endl;
 					goto TEST_BLOCK_MERGE_RETURN_LABEL;
 				}
 			}
@@ -489,16 +512,14 @@ bool testBlockSortBlockMerge() {
 				std::cout << std::endl;
 		}
 		std::cout << "  Array size " << array_size << " nlog2(n)(array_size) = "
-				  << array_size * std::log2(array_size)
-				  << " averages "
-				  << static_cast<double>(total_result._compares) / num_tests
-				  << " compares and "
-				  << static_cast<double>(total_result._moves) / num_tests
-				  << " moves" << std::endl;
+				<< array_size * std::log2(array_size) << " averages "
+				<< static_cast<double>(total_result._compares) / num_tests
+				<< " compares and "
+				<< static_cast<double>(total_result._moves) / num_tests
+				<< " moves" << std::endl;
 	}
 
-TEST_BLOCK_MERGE_RETURN_LABEL:
-	return test_passed;
+	TEST_BLOCK_MERGE_RETURN_LABEL: return test_passed;
 }
 
 bool testBlockSortModulo() {
@@ -515,7 +536,8 @@ bool testBlockSortModulo() {
 		for (array_size_t i = -9; i <= 9; i++) {
 			array_size_t expected = calculateRotateAmount(i, span);
 			array_size_t calculated = blockSortModulo(i, span);
-			std::cout << std::setw(2) << i << " % " << span << " = " << expected <<  " vs " << calculated << " | ";
+			std::cout << std::setw(2) << i << " % " << span << " = " << expected
+					<< " vs " << calculated << " | ";
 			if (expected != calculated) {
 				std::cout << " ERROR ";
 				test_passed = false;
@@ -534,26 +556,30 @@ bool testBlockSortRotateArrayElements() {
 	bool test_passed = true;
 	ComparesAndMoves rotate_result;
 	constexpr index_t array_size = 8;
-	char *test_array[array_size] = {
-			new char('a'), new char('b'), new char('c'), new char('d'),
-			new char('e'), new char('f'), new char('g'), new char('h') };
+	char *test_array[array_size] = { new char('a'), new char('b'), new char(
+			'c'), new char('d'), new char('e'), new char('f'), new char('g'),
+			new char('h') };
 
 	// test an array of even size and an array of odd size
-	for (index_t sub_array_size = array_size; sub_array_size >= array_size-1; sub_array_size-- ) {
+	for (index_t sub_array_size = array_size; sub_array_size >= array_size - 1;
+			sub_array_size--) {
 		// test different rotate amounts, left and right,
 		//	from -2*sub_array_size - 1 (left) to +2*sub_array_size + 1 (right)
-		for (index_t i = -sub_array_size - 1; i <= 2*sub_array_size + 1; i++) {
+		for (index_t i = -sub_array_size - 1; i <= 2 * sub_array_size + 1;
+				i++) {
 			// 	create an array to test rotation and an array of expecteds
 			char *rotated_array[sub_array_size];
 			char *expected_array[sub_array_size];
 			for (index_t j = 0; j != sub_array_size; j++) {
 				rotated_array[j] = test_array[j];
-				expected_array[j]= test_array[j];
+				expected_array[j] = test_array[j];
 			}
 			rotateArrayElementsLongWay(expected_array, sub_array_size, i);
-			rotate_result = rotateArrayElements<char>(rotated_array, i, 0, sub_array_size-1);
+			rotate_result = rotateArrayElements<char>(rotated_array, i, 0,
+					sub_array_size - 1);
 			//	check results
-			for (int i = 0, j = sub_array_size-1; i < sub_array_size; i++, j--) {
+			for (int i = 0, j = sub_array_size - 1; i < sub_array_size;
+					i++, j--) {
 				if (rotated_array[j] != expected_array[j]) {
 					test_passed = false;
 					break;
@@ -570,11 +596,12 @@ bool testBlockSortRotateArrayElements() {
 			for (int j = 0; j != sub_array_size; j++) {
 				std::cout << *rotated_array[j];
 			}
-			std:: cout << "\" vs expected \"";
+			std::cout << "\" vs expected \"";
 			for (int j = 0; j != sub_array_size; j++) {
 				std::cout << *expected_array[j];
 			}
-			std::cout << "\" took:" << std::setw(3) << rotate_result._moves << " moves";
+			std::cout << "\" took:" << std::setw(3) << rotate_result._moves
+					<< " moves";
 			std::cout << std::endl;
 
 			if (!test_passed) {
@@ -590,78 +617,113 @@ bool testBlockSortRotateArrayElements() {
 }
 
 bool testBlockSortRotateBlocks() {
-
 	bool test_result = true;
+	constexpr bool verbose = true;
 	constexpr int min_array_size = 9;
 	constexpr int max_array_size = 9;
-
 	/*	******************************	*/
 	/*		helpful lambdas				*/
 	/*	******************************	*/
-
-	auto calculateNumberOfTags = [](array_size_t _size, array_size_t _v, int block_size) -> int {
+	auto calculateNumberOfTags = [](array_size_t _size, array_size_t _v,
+			int block_size) -> int {
 		array_size_t left_span = _v;
-		array_size_t right_span = _size-_v;
-		int num_blocks = left_span / block_size + (left_span % block_size ? 1 : 0);
-		num_blocks += right_span / block_size + (right_span % block_size ? 1 : 0);
+		array_size_t right_span = _size - _v;
+		int num_blocks = left_span / block_size
+				+ (left_span % block_size ? 1 : 0);
+		num_blocks += right_span / block_size
+				+ (right_span % block_size ? 1 : 0);
 		return num_blocks;
 	};
-
 	auto copyArray = [](char **_dst, char **_src, array_size_t _size) {
 		for (int i = 0; i != _size; i++) {
 			_dst[i] = _src[i];
 		}
 	};
-
-	auto copyTags = [](std::unique_ptr<BlockTag<char>[]> &_dst,
-					   std::unique_ptr<BlockTag<char>[]> &_src, int num_tags) {
+	auto copyTags = [](std::unique_ptr<BlockTag<char> []> &_dst,
+			std::unique_ptr<BlockTag<char> []> &_src, int num_tags) {
 		for (int i = 0; i != num_tags; i++) {
 			_dst[i] = _src[i];
 		}
 	};
-
+	auto compareResult = [](char **_test_array, char **_expected_array,
+			int _array_size, std::unique_ptr<BlockTag<char> []> &_test_tags,
+			std::unique_ptr<BlockTag<char> []> &_expected_tags, int _num_tags,
+			std::stringstream &message) -> bool {
+		for (int i = 0; i != _array_size; i++) {
+			if (_test_array[i] != _expected_array[i]) {
+				message << "ERROR: test value[" << i << "] '" << *_test_array[i]
+						<< "' does not match expected value[" << i << "] '"
+						<< _expected_array[i] << "'";
+				return false;
+			}
+		}
+		for (int i = 0; i != _num_tags; i++) {
+			if (_test_tags[i] != _expected_tags[i]) {
+				message << "ERROR: test tag[" << i << "] '"
+						<< _test_tags[i].to_string()
+						<< "' does not match expected tag[" << i << "] '"
+						<< _expected_tags[i].to_string() << "'";
+				return false;
+			}
+		}
+		return true;
+	};
 	/*	***************************************************	*/
 	/*		lambda that rotates simply but inefficiently	*/
 	/*	***************************************************	*/
 
-	auto rotateExpectedBlocks = [](char **x_array, std::unique_ptr<BlockTag<char>[]> &x_tags,
-						  	     int x_array_size, int x_num_tags,
-								 int x_tag_rotate_count, int x_first_tag, int x_last_tag) {
-		int tag_i = x_last_tag;
-		int first_start_index = x_tags[0].start_index;
+	auto rotateExpectedBlocks = [](char **x_array,
+			std::unique_ptr<BlockTag<char> []> &x_tags, int x_array_size,
+			int x_tag_rotate_count, int x_first_tag, int x_last_tag)
+	{
+		int array_start = x_tags[x_first_tag].start_index;
+		int array_end	= x_tags[x_last_tag].end_index;
+
 		for (; x_tag_rotate_count > 0; --x_tag_rotate_count) {
-			int tag_span = x_tags[tag_i].num_elements();
-			for (int i = tag_span; i != 0; i--) {
-				char *end_key = x_array[x_array_size-1];
-				for (int j = x_array_size-1; j > 0; --j) {
-					x_array[j] = x_array[j-1];
+			// rotate the elements in the underlying array
+			int tag_span = x_tags[x_last_tag].num_elements();
+			for (int element_counter = tag_span; element_counter != 0; element_counter--) {
+				// store the last element.  it will become the first element
+				char *end_key = x_array[array_end];
+				// move every element one position to the right
+				for (int element_ptr = array_end; element_ptr > array_start; --element_ptr) {
+					x_array[element_ptr] = x_array[element_ptr - 1];
 				}
-				x_array[0] = end_key;
+				x_array[array_start] = end_key;
 			}
+			// rotate each of the tags by one position
+			// 	the start_index of [x_first_tag] will get written into
+			//	the tag that is coming off of the right side of the array
+			int first_start_index 	= x_tags[x_first_tag].start_index;
+			// make a copy of the tag on the right side of the array
+			//	  so that it can be put into 'first_tag' position in the array
 			BlockTag<char> tmp_block;
-			tmp_block = x_tags[x_num_tags-1];
-			for (int i = x_num_tags-1; i > 0; --i) {
-				x_tags[i] = x_tags[i-1];
-				x_tags[i].start_index += tag_span;
-				x_tags[i].end_index += tag_span;
+			tmp_block = x_tags[x_last_tag];
+			for (int tag_ptr = x_last_tag; tag_ptr > x_first_tag; --tag_ptr) {
+				// copy the tag that is to the left into her
+				x_tags[tag_ptr] 			= x_tags[tag_ptr - 1];
+				// add the amount that the underlying array was shifted
+				//	to the indices of the tag when it was to the left
+				x_tags[tag_ptr].start_index += tag_span;
+				x_tags[tag_ptr].end_index 	+= tag_span;
 			}
-			x_tags[0] = tmp_block;
-			x_tags[0].start_index = first_start_index;
-			x_tags[0].end_index = first_start_index + tag_span-1;
+			x_tags[x_first_tag] 			= tmp_block;
+			x_tags[x_first_tag].start_index = first_start_index;
+			x_tags[x_first_tag].end_index 	= first_start_index + tag_span - 1;
 		}
 	};
-
 	/* ***********************************************************************	*/
 	/* 								test code									*/
 	/* ***********************************************************************	*/
-
-	for (int array_size = min_array_size; array_size <= max_array_size; array_size++) {
+	for (int array_size = min_array_size; array_size <= max_array_size;
+			array_size++) {
 		int min_block_size = 2;
 		int v = array_size / 2;
 		//	v is the number of elements in the smaller left portion of the array
 		int max_block_size = static_cast<int>(std::sqrt(v));
-		max_block_size = min_block_size;	// TODO - debugging
-		for (int block_size = min_block_size; block_size <= max_block_size; block_size++) {
+		max_block_size = min_block_size; // TODO - debugging
+		for (int block_size = min_block_size; block_size <= max_block_size;
+				block_size++) {
 			int num_tags = calculateNumberOfTags(array_size, v, block_size);
 			char *reference_array[array_size];
 			for (int i = 0; i != array_size; i++) {
@@ -669,11 +731,11 @@ bool testBlockSortRotateBlocks() {
 			}
 			randomizeArray(reference_array, array_size);
 			InsertionSort::sortPointersToObjects(reference_array, v);
-			InsertionSort::sortPointersToObjects(&reference_array[v], array_size-v);
-			std::unique_ptr<BlockTag<char>[]> reference_tags;
-			num_tags = createTags(reference_array, 0, v, array_size-1,
-					   	   	      block_size, reference_tags);
-
+			InsertionSort::sortPointersToObjects(&reference_array[v],
+					array_size - v);
+			std::unique_ptr<BlockTag<char> []> reference_tags;
+			num_tags = createTags(reference_array, 0, v, array_size - 1,
+					block_size, reference_tags);
 			//	anchor block	block_span		rotate_count	left_block	right_block
 			//		0				4				0				0			3
 			//		0				4				1				0			3
@@ -685,51 +747,77 @@ bool testBlockSortRotateBlocks() {
 			//		0				3				0				1			3
 			//		0				3			    1				0			2
 			//		0				3				1				1			3
-			for (int anchor_block = 0; anchor_block < num_tags; anchor_block++) {
+			for (int anchor_block = 0; anchor_block < num_tags;
+					anchor_block++) {
 				for (int block_span = num_tags; block_span > 0; block_span--) {
-					for (int left_block = anchor_block, right_block = anchor_block+block_span-1;
-							 right_block < num_tags; left_block++, right_block++) {
-						for (int rotate_count = 1; rotate_count != num_tags; rotate_count++) {
+					for (int left_block = anchor_block, right_block =
+							anchor_block + block_span - 1;
+							right_block < num_tags;
+							left_block++, right_block++) {
+						for (int rotate_count = 1; rotate_count != num_tags;
+								rotate_count++) {
 							if (left_block + rotate_count > right_block)
 								break;
+
 							char *test_array[array_size];
 							char *expected_array[array_size];
-							std::unique_ptr<BlockTag<char>[]> test_tags(new BlockTag<char>[num_tags]);
-							std::unique_ptr<BlockTag<char>[]> expected_tags(new BlockTag<char>[num_tags]);
+							std::unique_ptr<BlockTag<char> []> test_tags(
+									new BlockTag<char> [num_tags]);
+							std::unique_ptr<BlockTag<char> []> expected_tags(
+									new BlockTag<char> [num_tags]);
 							copyArray(test_array, reference_array, array_size);
 							copyTags(test_tags, reference_tags, num_tags);
 							copyArray(expected_array, test_array, array_size);
 							copyTags(expected_tags, test_tags, num_tags);
-							rotateExpectedBlocks(expected_array, expected_tags, array_size, num_tags,
-												 rotate_count, left_block, right_block);
+							rotateExpectedBlocks(expected_array, expected_tags,
+												 array_size, rotate_count,
+												 left_block, right_block);
 							std::stringstream rotate_message;
-							rotate_message << " before    [" << left_block << ":" << right_block << "] rotated by "
-									       << rotate_count << " blocks\n\n";
-							printBlockSortArray(rotate_message.str(), test_array, array_size, v, test_tags, num_tags);
-
-							rotateBlocks(test_array, test_tags, rotate_count, left_block, right_block);
-							rotate_message.str("");
-							rotate_message.clear();
-							rotate_message << " after     [" << left_block << ":" << right_block << "] rotated by "
-										   << rotate_count << " blocks\n\n";
-							printBlockSortArray(rotate_message.str(), test_array, array_size, v, test_tags, num_tags);
-							rotate_message.str("");
-							rotate_message.clear();
-							rotate_message << " expected  [" << left_block << ":" << right_block << "] rotated by "
-										   << rotate_count << " blocks\n\n";
-							printBlockSortArray(rotate_message.str(), expected_array, array_size, v, expected_tags, num_tags);
-							return test_result;
+							rotate_message << "rotating blocks [" << left_block
+									<< ":" << right_block << "] by "
+									<< rotate_count << std::endl;
+							rotate_message
+									<< blockSortToString(test_array, array_size,
+											v, test_tags, num_tags)
+									<< std::endl;
+							rotateBlocks(test_array, test_tags, rotate_count,
+										 left_block, right_block);
+							rotate_message << " result\n";
+							rotate_message
+									<< blockSortToString(test_array, array_size,
+											v, test_tags, num_tags);
+							rotate_message << "\nexpected\n";
+							rotate_message
+									<< blockSortToString(expected_array,
+											array_size, v, expected_tags,
+											num_tags);
+							if (!compareResult(test_array, expected_array,
+									array_size, test_tags, expected_tags,
+									num_tags, rotate_message)) {
+								std::cout
+										<< "*************** ERROR ***************"
+										<< std::endl;
+								std::cout << rotate_message.str() << std::endl;
+								std::cout
+										<< "*************** ERROR ***************"
+										<< std::endl;
+								test_result = false;
+								return test_result;
+							}
+							if (verbose) {
+								std::cout << rotate_message.str() << std::endl
+										<< std::endl;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-
 	return test_result;
-
+	std::cout << std::endl;
+	return test_result;
 }
-
 
 bool testBlockSortSortBlocks() {
 

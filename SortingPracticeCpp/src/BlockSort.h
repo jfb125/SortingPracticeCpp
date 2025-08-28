@@ -24,24 +24,26 @@
 #define SORT_BLOCKS_LEFT_TO_RIGHT 1
 #define SORT_BLOCKS_RIGHT_TO_LEFT 2
 
-
-array_size_t floorLog2(array_size_t num);
-array_size_t blockSortModulo(array_size_t, array_size_t);
-std::string printArrayIndices(array_size_t size, int value_width, int element_width);
-std::string printLineArrayIndices(array_size_t size, int value_width, int element_width);
-std::string printArrayIndices(std::string header, array_size_t size, int value_width, int element_width);
-
 #define TAG_BOUNDARY_CHAR '|'
 #define TAG_SPACE_CHAR ' '
 #define ELEMENT_WIDTH 4
-#define VALUE_WIDDTH 3
+#define VALUE_WIDTH 3
+
+array_size_t blockSortModulo(array_size_t rotation_count, array_size_t span);
 
 enum class BlockType {
 	A_BLOCK,
 	B_BLOCK,
 	UNSPECIFIED
 };
+
 char to_char(BlockType type);
+//std::string printArrayIndices(array_size_t size, int value_width, int element_width);
+//std::string printLineArrayIndices(array_size_t size, int value_width, int element_width);
+//std::string printArrayIndices(std::string header, array_size_t size, int value_width, int element_width);
+std::string arrayIndicesToString(std::string trailer, array_size_t size, array_size_t v, int element_width);
+std::string arrayIndicesToString(array_size_t size, array_size_t v, int element_width);
+
 
 #define BLOCK_MERGE_BY_ROTATE
 
@@ -282,20 +284,21 @@ namespace BlockSort {
 		return result.str();
 	}
 
-	// 	prints a line where the blocks a represented graphically
+	/*	**************************************************	*/
+	/*				print the values on a line				*/
+	/*	**************************************************	*/
 
+	// 	prints a line where the blocks a represented graphically
 	template <typename T>
-	std::string tagArrayToString(
-		std::string trailer,
-		std::unique_ptr<BlockTag<T>[]> &tags, int num_tags,
-		int element_width) {
+	std::string tagArrayToString(std::unique_ptr<BlockTag<T>[]> &tags, int num_tags,
+								 int element_width = ELEMENT_WIDTH) {
 
 		//	restores ostream state with its destructor
 		OStreamState ostream_state;
 
 		std::stringstream result;
 		if (element_width == 0) {
-			result << "ERROR: printTags() called with element_width == 0" << trailer;
+			result << "ERROR: printTags() called with element_width == 0";
 			return result.str();
 		}
 
@@ -322,12 +325,59 @@ namespace BlockSort {
 				break;
 			}
 		}
+		return result.str();
+	}
+
+	template <typename T>
+	std::string tagArrayToString(std::string trailer,
+								 std::unique_ptr<BlockTag<T>[]> &tags, int num_tags,
+								 int element_width = ELEMENT_WIDTH)
+	{
+		OStreamState ostream_state;
+		std::stringstream result;
+		result << tagArrayToString(tags, num_tags, element_width);
 		result << trailer;
 		return result.str();
 	}
 
+	template <typename T>
+	std::string arrayElementsToString(T** array, array_size_t size, int value_width, int element_width) {
+		OStreamState current_state;
+		std::stringstream result;
+		int spacer_width = element_width - value_width;
+		for (int i = 0; i < size-1; i++) {
+			result << std::right << std::setw(value_width) << *array[i];
+			if (spacer_width) {
+				result << std::setw(spacer_width) << ' ';
+			}
+		}
+		result << std::right << std::setw(value_width) << *array[size-1];
+		return result.str();
+	}
+
+	template <typename T>
+	std::string arrayElementsToString(std::string trailer, T** array, array_size_t size, int value_width, int element_width) {
+		OStreamState current_state;
+		std::stringstream result;
+		result << arrayElementsToString(array, size, value_width, element_width);
+		result << trailer;
+		return result.str();
+	}
+
+	template <typename T>
+	std::string blockSortToString(T** array, array_size_t size, index_t v,
+							 	  std::unique_ptr<BlockTag<T>[]> &tags, int num_tags,
+								  int value_width = 3, int element_width = 4) {
+		OStreamState ostream_state;
+		std::stringstream result;
+		result << arrayIndicesToString(size, v, element_width) << std::endl;
+		result << arrayElementsToString(array, size, value_width, element_width) << std::endl;
+		result << tagArrayToString(tags, num_tags, element_width);
+		return result.str();
+	}
+
 	/*	**************************************************	*/
-	/*				print the values on a line				*/
+	/*				print the entire structure				*/
 	/*	**************************************************	*/
 
 	template <typename T>
@@ -668,7 +718,7 @@ namespace BlockSort {
 		/*				Debugging					*/
 		/*	**************************************	*/
 
-		bool debug_verbose = true;
+		bool debug_verbose = false;
 
 		auto tagIndicesToString = [&](int i) ->std::string {
 			std::stringstream tag_indices_string;
