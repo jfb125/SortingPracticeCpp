@@ -73,20 +73,3 @@ std::ostream& operator<<(std::ostream& out, BlockType object) {
 	out << to_char(object);
 	return out;
 }
-
-/*
- * blockSortModulo(element_rotation_amount, span)
- *
- * 	this converts values of 'element_rotation_amount' that are either
- * 		negative of greater than span into an amount < span
- */
-
-array_size_t blockSortModulo(array_size_t rotation_count, array_size_t span) {
-
-	while (rotation_count < 0) {
-		rotation_count += span;
-	}
-	rotation_count %= span;
-	return rotation_count;
-}
-

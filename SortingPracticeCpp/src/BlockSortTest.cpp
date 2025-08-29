@@ -76,7 +76,7 @@ std::string printLineArrayIndices(array_size_t size, int value_width, int elemen
 	return result.str();
 }
 
-std::string printArrayStartMiddleEnd(array_size_t size, index_t start, index_t mid, index_t end, int element_width) {
+std::string printArrayStartMiddleEnd(array_size_t size, array_size_t start, array_size_t mid, array_size_t end, int element_width) {
 	OStreamState state;	// destructor will restore ostream state
 	std::stringstream result;
 
@@ -95,7 +95,7 @@ std::string printArrayStartMiddleEnd(array_size_t size, index_t start, index_t m
 	return result.str();
 }
 
-std::string printLineArrayStartMiddleEnd(array_size_t size, index_t start, index_t mid, index_t end, int element_width) {
+std::string printLineArrayStartMiddleEnd(array_size_t size, array_size_t start, array_size_t mid, array_size_t end, int element_width) {
 	std::stringstream result;
 	result << printArrayStartMiddleEnd(size, start, mid, end, element_width);
 	result << std::endl;
@@ -103,7 +103,7 @@ std::string printLineArrayStartMiddleEnd(array_size_t size, index_t start, index
 }
 
 template <typename T>
-std::string arrayToString(T** array, index_t array_size,
+std::string arrayToString(T** array, array_size_t array_size,
 				const int object_width = 3, const int element_width = 4,
 				const char separator = ' ', std::string trailer = "")
 {
@@ -136,11 +136,11 @@ std::string arrayToString(T** array, index_t array_size,
 //#define TEST_MODULO
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
-#define TEST_BLOCK_SORT_ROTATE_BLOCKS
+//#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_MERGE
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
-//#define TEST_BLOCK_SORT_SORT_BLOCKS
+#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortModulo();
@@ -164,12 +164,12 @@ bool testBlockSort();
 } while(false)
 
 template<typename T>
-void randomizeArray(T **array, index_t size) {
+void randomizeArray(T **array, array_size_t size) {
 
 	static SimpleRandomizer randomizer;
 
-	for (index_t i = 0; i != size; i++) {
-		index_t r = randomizer.rand(i, size);
+	for (array_size_t i = 0; i != size; i++) {
+		array_size_t r = randomizer.rand(i, size);
 		T *temp = array[i];
 		array[i] = array[r];
 		array[r] = temp;
@@ -244,7 +244,7 @@ bool testFloorLog2() {
 
 	//	a way of calculating that uses a loop,
 	//		which is slow due to branching
-	auto calc_expected = [](index_t num) {
+	auto calc_expected = [](array_size_t num) {
 		if (num == 0)
 			return 0;
 		for (int i = 1; i <= 1 << 30; i *= 2) {
@@ -260,8 +260,8 @@ bool testFloorLog2() {
 
 	constexpr int num_width = 10;
 	bool passed = true;
-	index_t value = floorLog2(0);
-	index_t expected = calc_expected(0);
+	array_size_t value = floorLog2(0);
+	array_size_t expected = calc_expected(0);
 	std::cout << "floor(log2(" << std::setw(num_width) << 0 << ")) = "
 			<< std::setw(num_width) << value;
 	if (value != expected) {
@@ -272,7 +272,7 @@ bool testFloorLog2() {
 	}
 	std::cout << std::endl;
 
-	for (index_t i = 2; i < (1 << 30); i <<= 1) {
+	for (array_size_t i = 2; i < (1 << 30); i <<= 1) {
 		// one less than a power of 2
 		value = floorLog2(i - 1);
 		expected = calc_expected(i - 1);
@@ -303,22 +303,22 @@ bool testFloorLog2() {
 }
 
 template<typename T>
-void rotateArrayElementsLongWay(T **array, index_t size, index_t count) {
+void rotateArrayElementsRightLongWay(T **array, array_size_t size, array_size_t count) {
 
 	T *tmp;
 
 	if (count < 0) {
-		for (index_t i = count; i != 0; i++) {
+		for (array_size_t i = count; i != 0; i++) {
 			tmp = array[0];
-			for (index_t j = 0; j != size - 1; j++) {
+			for (array_size_t j = 0; j != size - 1; j++) {
 				array[j] = array[j + 1];
 			}
 			array[size - 1] = tmp;
 		}
 	} else {
-		for (index_t i = 0; i != count; i++) {
+		for (array_size_t i = 0; i != count; i++) {
 			tmp = array[size - 1];
-			for (index_t j = size - 1; j != 0; j--) {
+			for (array_size_t j = size - 1; j != 0; j--) {
 				array[j] = array[j - 1];
 			}
 			array[0] = tmp;
@@ -454,7 +454,7 @@ bool testBlockSortBlockMerge() {
 bool testBlockSortModulo() {
 	bool test_passed = true;
 	//	handles negative amounts and amounts > span
-	auto calculateRotateAmount = [](amount_t _i, amount_t _span) -> amount_t {
+	auto calculateRotateAmount = [](array_size_t _i, array_size_t _span) -> array_size_t {
 		while (_i < 0)
 			_i += _span;
 		_i %= _span;
@@ -464,7 +464,7 @@ bool testBlockSortModulo() {
 	for (array_size_t span = 7; span <= 9; span++) {
 		for (array_size_t i = -9; i <= 9; i++) {
 			array_size_t expected = calculateRotateAmount(i, span);
-			array_size_t calculated = blockSortModulo(i, span);
+			array_size_t calculated = blockSortModulo<char>(i, span);
 			std::cout << std::setw(2) << i << " % " << span << " = " << expected
 					<< " vs " << calculated << " | ";
 			if (expected != calculated) {
@@ -484,27 +484,27 @@ bool testBlockSortRotateArrayElements() {
 
 	bool test_passed = true;
 	ComparesAndMoves rotate_result;
-	constexpr index_t array_size = 8;
+	constexpr array_size_t array_size = 8;
 	char *test_array[array_size] = { new char('a'), new char('b'), new char(
 			'c'), new char('d'), new char('e'), new char('f'), new char('g'),
 			new char('h') };
 
 	// test an array of even size and an array of odd size
-	for (index_t sub_array_size = array_size; sub_array_size >= array_size - 1;
+	for (array_size_t sub_array_size = array_size; sub_array_size >= array_size - 1;
 			sub_array_size--) {
 		// test different rotate amounts, left and right,
 		//	from -2*sub_array_size - 1 (left) to +2*sub_array_size + 1 (right)
-		for (index_t i = -sub_array_size - 1; i <= 2 * sub_array_size + 1;
+		for (array_size_t i = -sub_array_size - 1; i <= 2 * sub_array_size + 1;
 				i++) {
 			// 	create an array to test rotation and an array of expecteds
 			char *rotated_array[sub_array_size];
 			char *expected_array[sub_array_size];
-			for (index_t j = 0; j != sub_array_size; j++) {
+			for (array_size_t j = 0; j != sub_array_size; j++) {
 				rotated_array[j] = test_array[j];
 				expected_array[j] = test_array[j];
 			}
-			rotateArrayElementsLongWay(expected_array, sub_array_size, i);
-			rotate_result = rotateArrayElements<char>(rotated_array, i, 0,
+			rotateArrayElementsRightLongWay(expected_array, sub_array_size, i);
+			rotate_result = rotateArrayElementsRight<char>(rotated_array, i, 0,
 					sub_array_size - 1);
 			//	check results
 			for (int i = 0, j = sub_array_size - 1; i < sub_array_size;
@@ -717,15 +717,15 @@ bool testBlockSortRotateBlocks() {
 
 			for (int anchor_block = 0; anchor_block < num_tags; ++anchor_block)
 			{
-				for (index_t block_span = num_tags-anchor_block; block_span > 0; --block_span)
+				for (array_size_t block_span = num_tags-anchor_block; block_span > 0; --block_span)
 				{
-					index_t first_block	 = anchor_block;
-					index_t last_block = anchor_block + block_span - 1;
+					array_size_t first_block	 = anchor_block;
+					array_size_t last_block = anchor_block + block_span - 1;
 					//	move right the group of blocks [left:right]that will be rotated
 					for ( ; last_block < num_tags; ++first_block, ++last_block)
 					{
 						// rotate blocks [first:last] within [anchor:anchor+span] by { 0, 1, ... }
-						for (index_t rotate_count = block_span; rotate_count >= 0; --rotate_count)
+						for (array_size_t rotate_count = block_span; rotate_count >= 0; --rotate_count)
 						{
 							num_test_permutations++;
 							ComparesAndMoves compares_and_moves(0,0);
@@ -759,8 +759,8 @@ bool testBlockSortRotateBlocks() {
 
 							// perform the operation under test
 							compares_and_moves +=
-							rotateBlocks(test_array, test_tags,
-										 first_block, last_block, rotate_count);
+							rotateBlocksRight(test_array, test_tags,
+										 	  first_block, last_block, rotate_count);
 
 							test_debug_message << "result:\n"
 											   << blockSortToString(test_array, array_size,
@@ -825,10 +825,10 @@ bool testBlockSortSortBlocks() {
 	constexpr const int moves_precision = 1;
 
 	constexpr const int num_tests = 10000;
-	constexpr const index_t min_array_size = 10;
-	constexpr const index_t max_array_size = 52;
+	constexpr const array_size_t min_array_size = 10;
+	constexpr const array_size_t max_array_size = 52;
 
-	auto out = [object_width, element_width, separator](char ** array, index_t array_size, std::string trailer) {
+	auto out = [object_width, element_width, separator](char ** array, array_size_t array_size, std::string trailer) {
 		return arrayToString(array, array_size, object_width, element_width, separator, trailer);
 	};
 
@@ -861,8 +861,8 @@ bool testBlockSortSortBlocks() {
 	//	OStreamState destructor will restore state of ostream
 	OStreamState ostream_state;
 
-	for (index_t array_size = min_array_size; array_size <= max_array_size; array_size++) {
-		int min_block_size = static_cast<index_t>(sqrt(array_size));
+	for (array_size_t array_size = min_array_size; array_size <= max_array_size; array_size++) {
+		int min_block_size = static_cast<array_size_t>(sqrt(array_size));
 		int max_block_size = min_block_size;
 		bool all_unique_elements = true;
 		bool few_unique_elements = false;
@@ -908,7 +908,7 @@ bool testBlockSortSortBlocks() {
 				messages << printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
 				messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
 				messages << out(array, array_size, "\n");
-				result = BlockSort::sortBlocksLeftToRight(array, array_size, tags, num_tags);
+				result = BlockSort::sortBlocksRightToLeft(array, array_size, tags, num_tags);
 				messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
 				messages << out(array, array_size, " after sorting blocks\n");
 				if (!areTagsSorted(tags, num_tags)) {
@@ -957,6 +957,7 @@ bool testBlockSortSortBlocks() {
 					   << " moves"
 					   << std::endl;
 		}
+		break;
 	}
 TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL:
 	return test_passed;
@@ -965,8 +966,8 @@ TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL:
 bool testBlockSortSort() {
 	bool passed = true;
 	ComparesAndMoves sort_result;
-	constexpr index_t array_size = 35;
-	index_t v = 16 ; // /2
+	constexpr array_size_t array_size = 35;
+	array_size_t v = 16 ; // /2
 	int *test_array[array_size];
 
 	for (int i = 0, val = 0; i < v; val += 2, i++) {
