@@ -133,11 +133,11 @@ std::string arrayToString(T** array, array_size_t array_size,
 /*	**********************************************	*/
 /*	**********************************************	*/
 
-//#define TEST_MODULO
-//#define TEST_BLOCK_SORT_FLOOR_LOG_2
-//#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
-//#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-//#define TEST_BLOCK_MERGE
+#define TEST_MODULO
+#define TEST_BLOCK_SORT_FLOOR_LOG_2
+#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
+#define TEST_BLOCK_SORT_ROTATE_BLOCKS
+#define TEST_BLOCK_MERGE
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
 #define TEST_BLOCK_SORT_SORT_BLOCKS
@@ -190,7 +190,6 @@ bool testBlockSort() {
 	runTest(passed, testBlockSortModulo, "function blockSortModulo()");
 	if (!passed)
 		return passed;
-	//	handles negative amounts and amounts > span
 #endif
 
 #ifdef TEST_BLOCK_SORT_FLOOR_LOG_2
@@ -212,14 +211,14 @@ bool testBlockSort() {
 		return passed;
 #endif
 
-#ifdef TEST_BLOCK_MERGE
-	runTest(passed, testBlockMerge, "function testBlockSortBlockMerge()");
-	if (!passed)
-		return passed;
-#endif
-
 #ifdef TEST_BLOCK_SORT_SORT_BLOCKS
 	runTest(passed, testBlockSortSortBlocks, "function testBlockSortSortBlocks()");
+#endif
+
+#ifdef TEST_BLOCK_MERGE
+	runTest(passed, testBlockSortBlockMerge, "function testBlockSortBlockMerge()");
+	if (!passed)
+		return passed;
 #endif
 
 #ifdef TEST_BLOCK_SORT_SWAP_BLOCKS
@@ -361,13 +360,11 @@ bool testBlockSortBlockMerge() {
 				return result;
 			};
 
-	int min_array_size = 2;
-	int max_array_size = 128;
-
-	for (int array_size = min_array_size; array_size <= max_array_size;
-			array_size *= 2) {
-
-		bool verbose = false;
+	array_size_t array_sizes[] = { 31, 32, 33, 63, 64, 65, 127, 128, 129 };
+	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
+	for (int array_size_i = 0; array_size_i != num_array_sizes; ++array_size_i) {
+		array_size_t array_size = array_sizes[array_size_i];
+		bool verbose = true;
 		ComparesAndMoves total_result(0, 0);
 		int num_tests = 100;
 
@@ -409,8 +406,7 @@ bool testBlockSortBlockMerge() {
 			}
 
 #ifdef BLOCK_MERGE_BY_ROTATE
-			result += blockMergeByRotate(array, 0, array_size / 2,
-					array_size - 1);
+			result += mergeBlocksByRotating(array, 0, array_size / 2, array_size - 1);
 #endif
 			total_result += result;
 
@@ -440,10 +436,13 @@ bool testBlockSortBlockMerge() {
 			if (verbose)
 				std::cout << std::endl;
 		}
-		std::cout << "  Array size " << array_size << " nlog2(n)(array_size) = "
-				<< array_size * std::log2(array_size) << " averages "
+		std::cout << "Merging blocks on an array of size  Array size "
+				<< std::setw(4) << array_size
+				<< " took on average "
+				<< std::fixed << std::setprecision(1) << std::setw(6)
 				<< static_cast<double>(total_result._compares) / num_tests
 				<< " compares and "
+				<< std::fixed << std::setprecision(1) << std::setw(6)
 				<< static_cast<double>(total_result._moves) / num_tests
 				<< " moves" << std::endl;
 	}
@@ -823,10 +822,7 @@ bool testBlockSortSortBlocks() {
 	constexpr const char separator = ' ';
 	constexpr const int compares_precision = 1;
 	constexpr const int moves_precision = 1;
-
-	constexpr const int num_tests = 10000;
-	constexpr const array_size_t min_array_size = 10;
-	constexpr const array_size_t max_array_size = 52;
+	constexpr const int num_unique_values = 5;
 
 	auto out = [object_width, element_width, separator](char ** array, array_size_t array_size, std::string trailer) {
 		return arrayToString(array, array_size, object_width, element_width, separator, trailer);
@@ -858,25 +854,40 @@ bool testBlockSortSortBlocks() {
 		return true;
 	};
 
+
+	constexpr const int num_tests = 10000;
+
+	constexpr const array_size_t array_sizes[] = { 7, 8, 9, 15, 16, 17, 31, 32, 33,
+												  63, 64, 65, 127, 128, 129, 255, 256, 257 };
+	constexpr const int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
+
 	//	OStreamState destructor will restore state of ostream
 	OStreamState ostream_state;
 
-	for (array_size_t array_size = min_array_size; array_size <= max_array_size; array_size++) {
+	for (int array_size_i = 0; array_size_i < num_array_sizes; ++array_size_i)
+	{
+		array_size_t array_size = array_sizes[array_size_i];
 		int min_block_size = static_cast<array_size_t>(sqrt(array_size));
 		int max_block_size = min_block_size;
 		bool all_unique_elements = true;
 		bool few_unique_elements = false;
-		int num_unique = 5;
-		for (int block_size = min_block_size; block_size <= max_block_size; ) {
+		int num_unique = num_unique_values;
+		for (int block_size = min_block_size; block_size <= max_block_size; )
+		{
 			ComparesAndMoves total_results(0,0);
-			for (int test_num = 0; test_num != num_tests; test_num++) {
+			int num_non_zero_results = 0;
+			int this_passes_unique_value_count;
+
+			for (int test_num = 0; test_num != num_tests; test_num++)
+			{
 				std::stringstream messages;
 				char *array[array_size];
 
 				if (all_unique_elements && !few_unique_elements) {
 					for (int i = 0; i != array_size; i++) {
-						array[i] = new char('a' + (i % 26));
+						array[i] = new char('a' + 25 - (i % 26));
 					}
+					this_passes_unique_value_count = array_size < 26 ? array_size : 26;
 				} else
 				if (!all_unique_elements && few_unique_elements) {
 					for (int i = 0, unique_counter = 0; i != array_size; i++) {
@@ -885,6 +896,7 @@ bool testBlockSortSortBlocks() {
 							unique_counter = 0;
 						}
 					}
+					this_passes_unique_value_count = num_unique;
 				} else {
 					messages << "ERROR: conflicted array composition directives \n";
 					test_passed = false;
@@ -892,10 +904,10 @@ bool testBlockSortSortBlocks() {
 				}
 
 				ComparesAndMoves result(0,0);
-				int num_tags = 4;
 				int start = 0;
 				int mid = array_size / 2;
 				int end = array_size - 1;
+				int num_tags = 0;
 				TagArray tags;
 
 				messages << printLineArrayIndices(array_size, object_width, element_width);
@@ -932,32 +944,30 @@ bool testBlockSortSortBlocks() {
 							  << test_num;
 					std::cout << " *****************\n\n";
 				}
+				num_non_zero_results++;
 				total_results += result;
 			}
+			std::cout  << "Sorting blocks of an array of size " << std::setw(4) << array_size
+					   << " with " << std::setw(3) << this_passes_unique_value_count
+					   << " unique values and a block size of "
+					   << std::setw(3) << block_size << " took on average "
+					   << std::fixed << std::setprecision(compares_precision) << std::setw(6)
+					   << static_cast<double>(total_results._compares) / num_non_zero_results
+					   << " compares and "
+					   << std::fixed << std::setprecision(moves_precision) << std::setw(6)
+					   << static_cast<double>(total_results._moves) / num_non_zero_results
+					   << " moves"
+					   << std::endl;
 			if (all_unique_elements) {
 				few_unique_elements = true;
 				all_unique_elements = false;
-				std::cout << array_size << " elements "
-						  << "with block size " << block_size << " "
-						  << num_tests << " times"
-						  << std::endl
-				          << " .. " << std::setw(2) << 0;
+				break;
 			} else {
-				std::cout << " .. " << std::setw(2) << num_unique;
 				few_unique_elements = false;
 				all_unique_elements = true;
-				block_size++;
+				break;
 			}
-			std::cout  << " unique values took on average "
-					   << std::fixed << std::setprecision(compares_precision)
-					   << static_cast<double>(total_results._compares) / num_tests
-					   << " compares and "
-					   << std::fixed << std::setprecision(moves_precision)
-					   << static_cast<double>(total_results._moves) / num_tests
-					   << " moves"
-					   << std::endl;
 		}
-		break;
 	}
 TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL:
 	return test_passed;
