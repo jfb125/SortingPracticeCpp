@@ -133,11 +133,11 @@ std::string arrayToString(T** array, array_size_t array_size,
 /*	**********************************************	*/
 /*	**********************************************	*/
 
-#define TEST_MODULO
-#define TEST_BLOCK_SORT_FLOOR_LOG_2
-#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
-#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-#define TEST_BLOCK_MERGE
+//#define TEST_MODULO
+//#define TEST_BLOCK_SORT_FLOOR_LOG_2
+//#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
+//#define TEST_BLOCK_SORT_ROTATE_BLOCKS
+//#define TEST_BLOCK_MERGE
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
 #define TEST_BLOCK_SORT_SORT_BLOCKS
@@ -885,7 +885,7 @@ bool testBlockSortSortBlocks() {
 
 				if (all_unique_elements && !few_unique_elements) {
 					for (int i = 0; i != array_size; i++) {
-						array[i] = new char('a' + 25 - (i % 26));
+						array[i] = new char('a' + (i % 26));
 					}
 					this_passes_unique_value_count = array_size < 26 ? array_size : 26;
 				} else
@@ -913,6 +913,11 @@ bool testBlockSortSortBlocks() {
 				messages << printLineArrayIndices(array_size, object_width, element_width);
 				messages << out(array, array_size, " generated\n");
 				randomizeArray(array, array_size);
+				randomizeArray(array, array_size);
+				randomizeArray(array, array_size);
+				//	the randomizing algorithm leaves most of the larger elements in the
+				//	  right had side of the array.  Swap the two halves so that the
+				//	  larger elements are in the left side of the array
 				InsertionSort::sortPointersToObjects(array, mid);
 				InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
 				messages << out(array, array_size, " after randomizing\n");
@@ -932,7 +937,7 @@ bool testBlockSortSortBlocks() {
 				if (echo_every_test_step) {
 					std::cout << messages.str();
 				}
-				if (echo_every_test_result) {
+				if (echo_every_test_result && (test_num % 1000 == 0)) {
 					std::cout << "sorting an array of " << array_size << " elements "
 							  << " with block size " << block_size
 							  << " took "

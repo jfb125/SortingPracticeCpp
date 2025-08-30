@@ -1154,6 +1154,8 @@ namespace BlockSort {
 			}\
 		} while(false)
 
+		_debug("sortBlocksRightToLeft()");
+
 		ComparesAndMoves result(0,0);
 
 		//	if the array consists of all A_Blocks, we are done
@@ -1176,7 +1178,6 @@ namespace BlockSort {
 				break;
 		}
 
-		_debug("sortBlocksRightToLeft()");
 		bool tagsAreSorted = true;
 		for (int i = 1; i != num_tags; i++) {
 			result._compares++;
@@ -1221,20 +1222,48 @@ namespace BlockSort {
 				break;
 			}
 
+
+			// there will be at least one A_Block that is rotated left
+			//	 to the right-hand side of the B_Block < [a_block_index]
+			int tag_rotate_count = -1;
+
+			//	continue looking through the A_Blocks to the left for
+			//	  A_Blocks that are less than [b_block_index] which
+			//	  can also be included in the rotate count
+			a_block_index--;
+
+			//	con
+			while (a_block_index >= 0) {
+				result._compares++;
+				if (*tags[a_block_index].key <= *tags[b_block_index].key)
+					break;
+				a_block_index--;
+				tag_rotate_count--;
+			}
+
 			if (debug_verbose) {
 				array_size_t array_size = tags[num_tags-1].end_index+1;
 				array_size_t v = tags[num_a_blocks].start_index;
-				std::cout << "BEFORE: \n"
+				std::cout << "BEFORE: "
+						  << " b_index (end) = " << std::setw(2) << b_block_index
+						  << " a_index+1 (start) = " << std::setw(2) << a_block_index+1
+						  << " rotation count = " << std::setw(2) << tag_rotate_count
+						  << "\n"
 						  << blockSortToString(array, array_size, v, tags, num_tags)
 						  << std::endl;
 			}
-
-			//	A [b_block_index]  < this [a_block_index],
-			//	  rotate [a_block_index] to the right side end of
-			//	  the span	[A[a_block_index]:B[b_block_index]]
-			result += rotateBlocksRight(array, tags, a_block_index, b_block_index, -1);
-			b_block_index--;
-			a_block_index--;
+			// At this point 'a_block_index' points to the largest A_Block
+			//	that is <= [b_block_index],  but [a_block_index+1] is greater
+			//	than [b_block_index] b/c the previous while loop exited
+			//	because a [b_block_index] that was smaller was found, and
+			//	the comparison b_block_index == a_block_index return false
+			result += rotateBlocksRight(array, tags,
+										a_block_index+1, b_block_index,
+										tag_rotate_count);
+			// the B_Block has been shifted left by 'tag_rotate_count'
+			b_block_index += tag_rotate_count;
+			// a_block_index points to the block to the left of the span
+			//	that was rotated, and the span that was rotated is now in order
 
 			if (debug_verbose) {
 				array_size_t array_size = tags[num_tags-1].end_index+1;
@@ -1248,7 +1277,7 @@ namespace BlockSort {
 		if (debug_verbose) {
 			array_size_t array_size = tags[num_tags-1].end_index+1;
 			array_size_t v = tags[num_a_blocks].start_index;
-			std::cout << "AFTER: \n"
+			std::cout << "EXITING: \n"
 					  << blockSortToString(array, array_size, v, tags, num_tags)
 					  << std::endl;
 			if (areTagsSorted(tags, num_tags)) {
