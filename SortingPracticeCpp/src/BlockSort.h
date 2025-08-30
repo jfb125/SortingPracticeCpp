@@ -32,7 +32,7 @@
 
 array_size_t floorLog2(array_size_t num);
 
-std::string printArrayIndices(array_size_t size, int value_width, int element_width);
+std::string arrayIndicesToString(array_size_t size, int value_width, int element_width);
 std::string printLineArrayIndices(array_size_t size, int value_width, int element_width);
 //std::string printArrayIndices(std::string header, array_size_t size, int value_width, int element_width);
 std::string arrayIndicesToString(std::string trailer, array_size_t size, array_size_t v, int element_width);
@@ -530,42 +530,72 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves mergeBlocksByRotating(T** array, array_size_t start, array_size_t mid, array_size_t end) {
 
+		bool debug_verbosely = false;
+
 		ComparesAndMoves result(0,0);
 
-		array_size_t u = 0;
-		array_size_t v = mid;
+		array_size_t u = mid-1;
+		array_size_t v = end;
 		array_size_t rotate_count;
 
-		while (1) {
-			// find the first in u that is > v,
-			//	which is the first u value that is out of order
-			result._compares++;
-			while (u < v && *array[u] <= *array[v]) {
-				u++;
+		while (u >= start) {
+			//	find the first [v] that is less than [u]
+			while (v > u) {
 				result._compares++;
+				if (*array[u] > *array[v])
+					break;
+				--v;
 			}
-			if (u >= v)
+
+			//	if v is pointing to u, then all elements in [v+1:end]
+			//	  and all elements [start:u] are in order and [u] < [v+1]
+			//	  therefore the array is in order
+			if (u == v)
 				break;
 
-			// find the first value in v that > u
-			rotate_count = 0;
-			// search for an element in v that is greater than array[u]
-			result._compares++;
-			while (v <= end && *array[v] <= *array[u]) {
-				v++;
+			//	u is pointing to a value that is > v
+			//	it is possible that lesser values to the left of [u]
+			//	  are also > v. Keep moving --u until a value is
+			//	  found that is <= [v].  At that point, everything
+			rotate_count = -1;
+			u--;
+			while (u >= start) {
 				result._compares++;
-				rotate_count++;
+				if (*array[u] <= *array[v]) {
+					break;
+				}
+				--u;
+				--rotate_count;
+			}
+
+			if (debug_verbosely) {
+				std::cout << "BEFORE\n";
+				std::cout << "start " << start << " end " << end
+						  << " u+1 " << u+1 << " v " << v
+						  << " rotating " << rotate_count
+						  << std::endl;
+				std::cout << arrayIndicesToString(26, 3, 4) << std::endl;
+				std::cout << arrayElementsToString(array, end-start+1, 3, 4)
+						  << std::endl;
 			}
 			//	at this point `
 			//	rotate u to the right in the array
 			//	  past the last value in v that was equal to u_value
-			result += rotateArrayElementsRight(array, rotate_count, u, v-1);
+			result += rotateArrayElementsRight(array, rotate_count, u+1, v);
+
+			if (debug_verbosely) {
+				std::cout << "AFTER\n";
+				std::cout << arrayElementsToString(array, end-start+1, 3, 4)
+						  << std::endl;
+			}
 			//  point to the element that is one past the element
 			//    that u was pointing to which has now been rotated
-			u = u + rotate_count + 1;
-			if (v > end)
-				break;
+			v = v + rotate_count;
 		}
+
+		if (debug_verbosely)
+			std::cout << "Exiting mergeBlocksByRotation()\n\n";
+
 		return result;
 	}
 
@@ -1138,7 +1168,6 @@ namespace BlockSort {
      *	Tags:	  A_Block		A_Block		  B_Block		B_Block		  B_Block
      *	Values:	{ H, I, J } : { E, F, G } : { A, B, C } : { C, D, E } : { E, F, G }
      *	Index:    0  1  2       3  4  5       6  7  8       9  10 11      12 13 14
-     *
 	 */
 
 	template <typename T>

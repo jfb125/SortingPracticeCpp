@@ -1,21 +1,8 @@
-Sorting Performance In C++ built on Aug 30 2025 at 13:31:19
+Sorting Performance In C++ built on Aug 30 2025 at 15:03:50
 testBlockSort()
-Sorting blocks of an array of size    7 with   7 unique values and a block size of   2 took on average    4.6 compares and   11.9 moves
-Sorting blocks of an array of size    8 with   8 unique values and a block size of   2 took on average    5.1 compares and   15.8 moves
-Sorting blocks of an array of size    9 with   9 unique values and a block size of   3 took on average    3.9 compares and    7.6 moves
-Sorting blocks of an array of size   15 with  15 unique values and a block size of   3 took on average    8.1 compares and   28.3 moves
-Sorting blocks of an array of size   16 with  16 unique values and a block size of   4 took on average    5.0 compares and   19.9 moves
-Sorting blocks of an array of size   17 with  17 unique values and a block size of   4 took on average    6.3 compares and   23.6 moves
-Sorting blocks of an array of size   31 with  26 unique values and a block size of   5 took on average   10.1 compares and   63.6 moves
-Sorting blocks of an array of size   32 with  26 unique values and a block size of   5 took on average   11.3 compares and   67.3 moves
-Sorting blocks of an array of size   33 with  26 unique values and a block size of   5 took on average   11.4 compares and   72.8 moves
-Sorting blocks of an array of size   63 with  26 unique values and a block size of   7 took on average   15.5 compares and  188.2 moves
-Sorting blocks of an array of size   64 with  26 unique values and a block size of   8 took on average   12.7 compares and  174.9 moves
-Sorting blocks of an array of size   65 with  26 unique values and a block size of   8 took on average   13.8 compares and  179.3 moves
-Sorting blocks of an array of size  127 with  26 unique values and a block size of  11 took on average   19.8 compares and  481.2 moves
-Sorting blocks of an array of size  128 with  26 unique values and a block size of  11 took on average   20.1 compares and  493.6 moves
-Sorting blocks of an array of size  129 with  26 unique values and a block size of  11 took on average   20.1 compares and  503.2 moves
-Sorting blocks of an array of size  255 with  26 unique values and a block size of  15 took on average   30.8 compares and 1453.5 moves
-Sorting blocks of an array of size  256 with  26 unique values and a block size of  16 took on average   27.9 compares and 1363.0 moves
-Sorting blocks of an array of size  257 with  26 unique values and a block size of  16 took on average   29.0 compares and 1377.3 moves
-PASS:  function testBlockSortSortBlocks() returns TRUE
+test blockMerge with the rotate algorithm
+Merging blocks 100 times on an test_array of size   16 took on average   97.5 compares and  154.6 moves
+Merging blocks 100 times on an test_array of size   32 took on average  332.4 compares and  608.0 moves
+Merging blocks 100 times on an test_array of size   64 took on average 1181.0 compares and 2354.1 moves
+Merging blocks 100 times on an test_array of size  128 took on average 4432.1 compares and 9278.8 moves
+PASS:  function testBlockSortMergeBlocks() returns TRUE

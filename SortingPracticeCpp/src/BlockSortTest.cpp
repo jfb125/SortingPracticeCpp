@@ -43,19 +43,19 @@ std::string arrayIndicesToString(std::string trailer, array_size_t size, array_s
 	return result.str();
 }
 
-std::string printArrayIndices(array_size_t size, int value_width, int element_width) {
+std::string arrayIndicesToString(array_size_t size, int value_width, int element_width) {
 
 	std::stringstream result;
 
 	if (size != 0) {
-		constexpr const char separator = '.';
+		constexpr const char separator = ' ';
 		OStreamState io_state;	// the destructor will restore state
 		std::cout.fill(separator);
 		std::cout << std::right;
 
 		for (int i = 0; i < size-1; i++) {
 			result << std::setw(element_width-1) << i;
-			result << '.';
+			result << ' ';
 		}
 		result << std::setw(element_width-1) << size-1;
 	}
@@ -64,14 +64,14 @@ std::string printArrayIndices(array_size_t size, int value_width, int element_wi
 
 std::string printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width) {
 	std::stringstream result;
-	result << printArrayIndices(size, value_width, element_width);
+	result << arrayIndicesToString(size, value_width, element_width);
 	result << trailer;
 	return result.str();
 }
 
 std::string printLineArrayIndices(array_size_t size, int value_width, int element_width) {
 	std::stringstream result;
-	result << printArrayIndices(size, value_width, element_width);
+	result << arrayIndicesToString(size, value_width, element_width);
 	result << std::endl;
 	return result.str();
 }
@@ -137,15 +137,15 @@ std::string arrayToString(T** array, array_size_t array_size,
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-//#define TEST_BLOCK_MERGE
+#define TEST_BLOCK_SORT_MERGE_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
-#define TEST_BLOCK_SORT_SORT_BLOCKS
+//#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortModulo();
 bool testFloorLog2();
-bool testBlockSortBlockMerge();
+bool testBlockSortMergeBlocks();
 bool testBlockSortRotateArrayElements();
 bool testBlockSortRotateBlocks();
 bool testBlockSortSort();
@@ -215,8 +215,8 @@ bool testBlockSort() {
 	runTest(passed, testBlockSortSortBlocks, "function testBlockSortSortBlocks()");
 #endif
 
-#ifdef TEST_BLOCK_MERGE
-	runTest(passed, testBlockSortBlockMerge, "function testBlockSortBlockMerge()");
+#ifdef TEST_BLOCK_SORT_MERGE_BLOCKS
+	runTest(passed, testBlockSortMergeBlocks, "function testBlockSortMergeBlocks()");
 	if (!passed)
 		return passed;
 #endif
@@ -325,14 +325,14 @@ void rotateArrayElementsRightLongWay(T **array, array_size_t size, array_size_t 
 	}
 }
 
-bool testBlockSortBlockMerge() {
+bool testBlockSortMergeBlocks() {
 #ifdef BLOCK_MERGE_BY_ROTATE
 	std::cout << "test blockMerge with the rotate algorithm" << std::endl;
 #endif
 	bool test_passed = true;
 	SimpleRandomizer randomizer;
 
-	void (*printArray)(char**, int) = [] (char **l_array, int l_size) {
+	void (*printArray)(int**, int) = [] (int **l_array, int l_size) {
 		std::cout << "\"";
 		for (int i = 0; i != l_size; i++) {
 			std::cout << *l_array[i];
@@ -340,14 +340,13 @@ bool testBlockSortBlockMerge() {
 		std::cout << "\"";
 	};
 
-	ComparesAndMoves (*sortArray)(char**, int,
-			int) = [] (char **l_array, int l_start, int l_end) {
+	ComparesAndMoves (*sortArray)(int**, int, int) = [] (int **l_array, int l_start, int l_end) {
 				ComparesAndMoves result(0,0);
 				for (int i = l_start+1; i <= l_end; i++) {
 					for (int j = i; j != l_start; j--) {
 						result._compares++;
 						if (*l_array[j-1] > *l_array[j]) {
-							char *tmp = l_array[j-1];
+							int *tmp = l_array[j-1];
 							l_array[j-1] = l_array[j];
 							l_array[j] = tmp;
 							result._moves += 3;
@@ -360,94 +359,95 @@ bool testBlockSortBlockMerge() {
 				return result;
 			};
 
-	array_size_t array_sizes[] = { 31, 32, 33, 63, 64, 65, 127, 128, 129 };
+	int num_test_passes = 100;
+	array_size_t array_sizes[] = { 16, 32, 64, 128 };
 	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
+
 	for (int array_size_i = 0; array_size_i != num_array_sizes; ++array_size_i) {
 		array_size_t array_size = array_sizes[array_size_i];
-		bool verbose = true;
+		bool verbose = false;
 		ComparesAndMoves total_result(0, 0);
-		int num_tests = 100;
+		int num_tests = num_test_passes;
 
-		char *array[array_size];
-		char *before[array_size];
-		char *expected[array_size];
+		int *test_array[array_size];
+		int *reference_array[array_size];
+		int *initial_array[array_size];
+
+		for (int i = 0; i != array_size; i++) {
+			reference_array[i] = new int(i);
+		}
+
+		sortArray(reference_array, 0, array_size-1);
 
 		for (int test_number = 0; test_number != num_tests; test_number++) {
 
 			ComparesAndMoves result(0, 0);
 			//	create a linear array
 			for (int i = 0; i != array_size; i++) {
-				char value = 'a' + (i % 26);
-				array[i] = new char(value);
-				expected[i] = new char(value);
+				test_array[i] 		= reference_array[i];
 			}
 
-			sortArray(expected, 0, array_size - 1);
-
-			//	randomize the array
-			for (int i = 0; i != array_size; i++) {
-				int r = randomizer.rand(i, array_size);
-				char *tmp = array[i];
-				array[i] = array[r];
-				array[r] = tmp;
-			}
+			randomizeArray(test_array, array_size);
 
 			for (int i = 0; i != array_size; i++) {
-				before[i] = new char(*array[i]);
+				initial_array[i] = test_array[i];
 			}
-
 			//	sort each subarray, u & v, using an insertion sort
-			result += sortArray(array, 0, array_size / 2 - 1);
-			result += sortArray(array, array_size / 2, array_size - 1);
-
+			result += sortArray(test_array, 0, array_size / 2);
+			result += sortArray(test_array, array_size / 2, array_size - 1);
 			if (verbose) {
-				std::cout << "  before: ";
-				printArray(before, array_size);
+				std::cout << "  initial_array: ";
+				printArray(initial_array, array_size);
 			}
 
 #ifdef BLOCK_MERGE_BY_ROTATE
-			result += mergeBlocksByRotating(array, 0, array_size / 2, array_size - 1);
+			result += mergeBlocksByRotating(test_array, 0, array_size / 2, array_size - 1);
 #endif
 			total_result += result;
 
 			if (verbose) {
 				std::cout << " after: ";
-				printArray(array, array_size);
+				printArray(test_array, array_size);
 				std::cout << " used: " << result;
 			}
 
 			for (int i = 0; i != array_size; i++) {
-				if (*array[i] != *expected[i]) {
+				if (*test_array[i] != *reference_array[i]) {
 					test_passed = false;
 					std::cout << "array size " << array_size << " test pass "
-							<< test_number << " before ";
-					printArray(before, array_size);
-					std::cout << " expected ";
-					printArray(expected, array_size);
-					std::cout << " actual ";
-					printArray(array, array_size);
+							<< test_number << std::endl;
+					std::cout << " initial_array  ";
+					printArray(initial_array, array_size);
 					std::cout << std::endl;
+					std::cout << " result array   ";
+					printArray(test_array, array_size);
+					std::cout << std::endl;
+					std::cout << " expected array ";
+					printArray(reference_array, array_size);
+					std::cout << std::endl;
+
 					std::cout << " FAILED: [" << std::setw(3) << i << "]"
-							<< " expected " << expected[i] << " vs actual "
-							<< *array[i] << std::endl;
-					goto TEST_BLOCK_MERGE_RETURN_LABEL;
+							<< " expected_array " << initial_array[i] << " vs actual "
+							<< *test_array[i] << std::endl;
+					goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
 				}
 			}
 			if (verbose)
 				std::cout << std::endl;
 		}
-		std::cout << "Merging blocks on an array of size  Array size "
-				<< std::setw(4) << array_size
-				<< " took on average "
-				<< std::fixed << std::setprecision(1) << std::setw(6)
-				<< static_cast<double>(total_result._compares) / num_tests
-				<< " compares and "
-				<< std::fixed << std::setprecision(1) << std::setw(6)
-				<< static_cast<double>(total_result._moves) / num_tests
-				<< " moves" << std::endl;
+		std::cout << "Merging blocks " << num_test_passes
+				 << " times on an test_array of size "
+				 << std::setw(4) << array_size
+				 << " took on average "
+				 << std::fixed << std::setprecision(1) << std::setw(6)
+				 << static_cast<double>(total_result._compares) / num_tests
+				 << " compares and "
+				 << std::fixed << std::setprecision(1) << std::setw(6)
+				 << static_cast<double>(total_result._moves) / num_tests
+				 << " moves" << std::endl;
 	}
 
-	TEST_BLOCK_MERGE_RETURN_LABEL: return test_passed;
+	TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL: return test_passed;
 }
 
 bool testBlockSortModulo() {
@@ -854,7 +854,6 @@ bool testBlockSortSortBlocks() {
 		return true;
 	};
 
-
 	constexpr const int num_tests = 10000;
 
 	constexpr const array_size_t array_sizes[] = { 7, 8, 9, 15, 16, 17, 31, 32, 33,
@@ -867,7 +866,12 @@ bool testBlockSortSortBlocks() {
 	for (int array_size_i = 0; array_size_i < num_array_sizes; ++array_size_i)
 	{
 		array_size_t array_size = array_sizes[array_size_i];
-		int min_block_size = static_cast<array_size_t>(sqrt(array_size));
+		int min_block_size = static_cast<array_size_t>(sqrt(array_size/2));
+//		std::cout << "array_size " << array_size
+//				  << " array_size/2 " << array_size / 2
+//				  << " sqrt(array_size/2) " << sqrt(array_size/2)
+//				  << " static_cast<array_size_t>(sqrt(array_size/2)) " << min_block_size
+//				  << std::endl;
 		int max_block_size = min_block_size;
 		bool all_unique_elements = true;
 		bool few_unique_elements = false;
