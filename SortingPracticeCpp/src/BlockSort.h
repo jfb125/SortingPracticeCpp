@@ -465,7 +465,7 @@ namespace BlockSort {
 	/*	******************************************************************	*/
 
 	template <typename T>
-	ComparesAndMoves blockMergeByRotate(T** array, array_size_t start, array_size_t mid, array_size_t end);
+	ComparesAndMoves mergeBlocksByRotating(T** array, array_size_t start, array_size_t mid, array_size_t end);
 	template <typename T>
 	int createBlockTags( T** array, array_size_t start, array_size_t mid, array_size_t end,
 			    	int block_size, std::unique_ptr<BlockTag<T>[]> &tags);
@@ -528,7 +528,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves blockMergeByRotate(T** array, array_size_t start, array_size_t mid, array_size_t end) {
+	ComparesAndMoves mergeBlocksByRotating(T** array, array_size_t start, array_size_t mid, array_size_t end) {
 
 		ComparesAndMoves result(0,0);
 
@@ -845,6 +845,7 @@ namespace BlockSort {
 			return compares_and_moves;
 		}
 
+		//	if they are in the opposite order, correct them
 		if (last < first) {
 			array_size_t tmp = first;
 			first = last;
@@ -872,7 +873,7 @@ namespace BlockSort {
 		/*	rotate the underlying array	*/
 
 		compares_and_moves += rotateArrayElementsRight(array, array_rotate_count,
-												  first_start_index, last_end_index);
+												  	   first_start_index, last_end_index);
 
 		/*	rotate the tags	*/
 
@@ -882,13 +883,18 @@ namespace BlockSort {
 
 		_debug(rotateParametersToString(array_rotate_count));
 
+		//	The tag.type & tag.key are in the correct place in the tag array
+		//	The indices still point the the original place in the underlying array
+		//	Although each tag's indices are incorrect, the span between the
+		//	  incorrect indices has not changed.  Use this to assign new indices
+
 		array_size_t _start_index = first_start_index;
-		for (int i = first; i <= last; i++) {
-			array_size_t _end_index  = _start_index + tags[i].numElements() - 1;
-			tags[i].start_index = _start_index;
-			tags[i].end_index   = _end_index;
+		for (int tag_i = first; tag_i <= last; tag_i++) {
+			array_size_t _end_index = _start_index + tags[tag_i].numElements() - 1;
+			tags[tag_i].start_index = _start_index;
+			tags[tag_i].end_index   = _end_index;
 			_start_index 		= _end_index + 1;
-			_debug(tagIndicesToString(i));
+			_debug(tagIndicesToString(tag_i));
 		}
 		_debug(tagsToString());
 
@@ -1139,7 +1145,7 @@ namespace BlockSort {
 	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size,
 										   std::unique_ptr<BlockTag<T>[]> &tags, int num_tags) {
 
-		constexpr bool debug_verbose = true;
+		constexpr bool debug_verbose = false;
 
 		#pragma push_macro("_debug")
 		#define _debug(_dbg_msg_) do {\
@@ -1171,8 +1177,18 @@ namespace BlockSort {
 		}
 
 		_debug("sortBlocksRightToLeft()");
-		if (areTagsSorted(tags, num_tags)) {
-			_debug("...Tags are initially sorted");
+		bool tagsAreSorted = true;
+		for (int i = 1; i != num_tags; i++) {
+			result._compares++;
+			if (tags[i-1] > tags[i]) {
+				tagsAreSorted = false;
+				break;
+			}
+		}
+
+		if (tagsAreSorted) {
+			_debug("...Tags are initially sorted\n");
+			return result;
 		} else {
 			_debug("...Tags are not sorted");
 		}
@@ -1187,11 +1203,10 @@ namespace BlockSort {
 		//	continue until j == i or i < 0
 		array_size_t a_block_index = num_a_blocks-1;
 		array_size_t b_block_index = num_tags-1;
-		while (b_block_index > a_block_index && a_block_index >= 0) {
+		while (a_block_index >= 0) {
 
-			//	Find first b_block that is less than this a_block
-			//	It is possible that there is no b_block that is greater
-			//	   than this a_block
+			//	Find first B_Block that is less than this A_Block
+			//	There may not be a B_Block that is greater than this A_Block
 			while (b_block_index > a_block_index) {
 				result._compares++;
 				if (*tags[b_block_index].key < *tags[a_block_index].key) {
@@ -1607,7 +1622,7 @@ namespace BlockSort {
 			// merge the A_Block
 #ifdef BLOCK_MERGE_BY_ROTATE
 			result +=
-				blockMergeByRotate(array, block_tags[right_block-1].start_index,//	start
+				mergeBlocksByRotating(array, block_tags[right_block-1].start_index,//	start
 							  	  	      block_tags[right_block].start_index,	//  mid
 										  block_tags[right_block].end_index);	//  end;
 #endif
