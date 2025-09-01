@@ -5,6 +5,37 @@
  *      Author: joe
  */
 
+/*	TODO - List
+ *		<< Remember in all merging algorithms, you do not have to merge
+ *		   consecutive B Blocks - their elements are in ascending order >>
+ *		<< Optimization: if you go to merge two blocks, and the last element
+ *		   of the block on the left <= the first element of the right block
+ *		   there is no need to merge - all of the elements are in order >>
+ *
+ *	Change 'BlockTag' to be 'BlockInfo'
+ *	Change 'key' to be be a function that returns the underlying array element
+ *	Create a 'rollAndDrop() for sorting the blocks.  Probably won't be
+ *
+ *		any more efficient as the method I am using
+ *
+ * 	Fix rotateMerge() to use a binary sort & to keep track of least A element
+ * 		which will reduce the amount of time it takes for the binary search
+ *
+ * 	Create a sqrtMerge() that uses an auxiliary array the size of an A_Block
+ * 		to hold the A_Block, then merges the A_Block & B_Block into the
+ * 		place in the original array where the A_Block is.
+ *  Aux                Aux                Aux            	Aux
+ *  0 3 5 6            x 3 5 6            x x x 6           x x x x
+ * 	A	    B          A       B          A       B         A       B
+ * 	0 3 5 6 1 2 4 7    0 1 2 3 1 2 4 7    0 1 2 3 4 5 4 7   0 1 2 3 4 5 6 7
+ *
+ *	Create a merge that, given an A_Block of size m, uses the m strictly
+ *		ascending values to the left of the A_Block as the Aux array
+ *
+ *	Grail sort strictly uses merging where the auxialliary array is
+ *		the left 'block_size' distincet elements
+ */
+
 #ifndef BLOCKSORT_H_
 #define BLOCKSORT_H_
 
@@ -55,7 +86,6 @@ std::ostream& operator<<(std::ostream& out, BlockType object);
 
 namespace BlockSort {
 	using array_size_t = array_size_t;
-	using array_size_t	= array_size_t;
 
 	template <typename T>
 	class BlockTag {
@@ -67,6 +97,26 @@ namespace BlockSort {
 
 		array_size_t	numElements() const {
 			return end_index - start_index + 1;
+		}
+
+		T* assignKey(T**array) {
+			switch(type) {
+			case BlockType::A_BLOCK:
+				key = array[start_index];
+				break;
+			case BlockType::B_BLOCK:
+				key = array[end_index];
+				break;
+			case BlockType::UNSPECIFIED:
+				//	TODO - throw exception
+				key = nullptr;
+				break;
+			default:
+				key = nullptr;
+				//	TODO - throw exception
+				break;
+			}
+			return key;
 		}
 
 		std::string spanString(int index_width = 1) const {
@@ -1644,47 +1694,52 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves sortPointersToObjects(T **array, array_size_t size) {
-		ComparesAndMoves result(0,0);
-		int element_width = 4;
-		int value_width = 3;
-		//	sort both the u half and the v half
-		array_size_t v = size / 2;
-		result += InsertionSort::sortPointersToObjects(array, v);
-		result += InsertionSort::sortPointersToObjects(&array[v], size-v);
+//		constexpr int debug_element_width = 4;
+//		constexpr int debug_value_width = 3;
+		constexpr array_size_t min_array_size_to_sort = 32;
 
-#ifdef DEBUG_VERBOSE_BLOCK_SORT
-		printElements(std::string(" after insertion sorting halves\n"), array, size, value_width, element_width);
-#endif
-
-		array_size_t u_size = v;
-		array_size_t block_size = static_cast<array_size_t>(std::sqrt(u_size));
-		std::unique_ptr<BlockTag<T>[]> block_tags;
-		int num_blocks = 0;
-
-		num_blocks = createBlockTags(array, 0, v, size-1, block_size, block_tags);
-		std::cout << "Result of tagging blocks is:" << std::endl;
-		std::cout << tagArrayToString(std::string(" created tags\n"), block_tags, num_blocks, element_width);
-		return result;
-//#ifdef SORT_BLOCKS_LEFT_TO_RIGHT
-//		result = sortBlocksLeftToRight(array, size, block_tags, num_blocks);
-//#else
-		result = sortBlocksRightToLeft(array, size, block_tags, num_blocks);
-//#endif
-		// merge consecutive blocks
-		for (int right_block = num_blocks; right_block > 0; right_block--) {
-			// two consecutive B_Blocks are in ascending order because
-			//	they came out of the v side of the array that was sorted
-			if (block_tags[right_block-1].type == BlockType::B_BLOCK) {
-				continue;
-			}
-			// merge the A_Block
-#ifdef BLOCK_MERGE_BY_ROTATE
-			result +=
-				mergeBlocksByRotating(array, block_tags[right_block-1].start_index,//	start
-							  	  	      block_tags[right_block].start_index,	//  mid
-										  block_tags[right_block].end_index);	//  end;
-#endif
+		if (size < min_array_size_to_sort) {
+			return InsertionSort::sortPointersToObjects(array, size);
 		}
+
+		//	The first time tags are created on the unsorted array,
+		//	  the elements within the tags will need to be sorted.
+		//	  This sorting may cause the 'key' value pointer
+		//	  of the BlockTag to no longer point to the correct value,
+		//	  which needs to be corrected by going through the tags
+		bool sort_within_blocks = true;
+
+		ComparesAndMoves result(0,0);
+
+		for (array_size_t span = min_array_size_to_sort; span < size/2; span *= 2) {
+			for (array_size_t start = 0; start < size; start++) {
+ 				std::unique_ptr<BlockTag<T>[]> tags;
+				int num_tags;
+				array_size_t end = start + span - 1;
+				if (end >= size)
+					end = size-1;
+				array_size_t mid = start + (end-start+1) / 2;
+				array_size_t block_size = static_cast<array_size_t>(std::sqrt(span/2));
+				num_tags = createBlockTags(array, start, mid, end, block_size, tags);
+				if (sort_within_blocks) {
+					sort_within_blocks = false;
+					for (int i = 0; i != num_tags; i++) {
+						InsertionSort::sortPointersToObjects(&array[tags[i].start_index], tags[i].numElements());
+					}
+					//	The underlying array has changed, so the keys are state
+					for (int i = 0; i != num_tags; i++) {
+						tags[i].assignKey(array);
+					}
+				}
+				sortBlocksRightToLeft(array, span, tags, num_tags);
+				for (int i = num_tags-1; i > 0; i--) {
+					//	TODO - this merges the entire array, not the blocks
+					//		 - need to create a block merge
+					mergeBlocksByRotating(array, start, mid, end);
+				}
+			}
+		}
+
 		return result;
 	}
 

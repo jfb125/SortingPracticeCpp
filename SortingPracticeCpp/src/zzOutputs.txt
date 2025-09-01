@@ -1,8 +1,180 @@
 Sorting Performance In C++ built on Aug 30 2025 at 15:03:50
 testBlockSort()
-test blockMerge with the rotate algorithm
-Merging blocks 100 times on an test_array of size   16 took on average   97.5 compares and  154.6 moves
-Merging blocks 100 times on an test_array of size   32 took on average  332.4 compares and  608.0 moves
-Merging blocks 100 times on an test_array of size   64 took on average 1181.0 compares and 2354.1 moves
-Merging blocks 100 times on an test_array of size  128 took on average 4432.1 compares and 9278.8 moves
-PASS:  function testBlockSortMergeBlocks() returns TRUE
+ 8 % 7 = 1 vs 1 |  7 % 7 = 0 vs 0 |  6 % 7 = 6 vs 6 |  5 % 7 = 5 vs 5 |  4 % 7 = 4 vs 4 |  3 % 7 = 3 vs 3 |  2 % 7 = 2 vs 2 |  1 % 7 = 1 vs 1 |  0 % 7 = 0 vs 0 | -1 % 7 = 6 vs 6 | -2 % 7 = 5 vs 5 | -3 % 7 = 4 vs 4 | -4 % 7 = 3 vs 3 | -5 % 7 = 2 vs 2 | -6 % 7 = 1 vs 1 | -7 % 7 = 0 vs 0 | -8 % 7 = 6 vs 6 | 
+ 9 % 8 = 1 vs 1 |  8 % 8 = 0 vs 0 |  7 % 8 = 7 vs 7 |  6 % 8 = 6 vs 6 |  5 % 8 = 5 vs 5 |  4 % 8 = 4 vs 4 |  3 % 8 = 3 vs 3 |  2 % 8 = 2 vs 2 |  1 % 8 = 1 vs 1 |  0 % 8 = 0 vs 0 | -1 % 8 = 7 vs 7 | -2 % 8 = 6 vs 6 | -3 % 8 = 5 vs 5 | -4 % 8 = 4 vs 4 | -5 % 8 = 3 vs 3 | -6 % 8 = 2 vs 2 | -7 % 8 = 1 vs 1 | -8 % 8 = 0 vs 0 | -9 % 8 = 7 vs 7 | 
+10 % 9 = 1 vs 1 |  9 % 9 = 0 vs 0 |  8 % 9 = 8 vs 8 |  7 % 9 = 7 vs 7 |  6 % 9 = 6 vs 6 |  5 % 9 = 5 vs 5 |  4 % 9 = 4 vs 4 |  3 % 9 = 3 vs 3 |  2 % 9 = 2 vs 2 |  1 % 9 = 1 vs 1 |  0 % 9 = 0 vs 0 | -1 % 9 = 8 vs 8 | -2 % 9 = 7 vs 7 | -3 % 9 = 6 vs 6 | -4 % 9 = 5 vs 5 | -5 % 9 = 4 vs 4 | -6 % 9 = 3 vs 3 | -7 % 9 = 2 vs 2 | -8 % 9 = 1 vs 1 | -9 % 9 = 0 vs 0 | -10 % 9 = 8 vs 8 | 
+PASS:  function blockSortModulo() returns TRUE
+floor(log2(         0)) =          0
+floor(log2(         1)) =          1
+floor(log2(         2)) =          2
+floor(log2(         3)) =          2
+floor(log2(         4)) =          4
+floor(log2(         7)) =          4
+floor(log2(         8)) =          8
+floor(log2(        15)) =          8
+floor(log2(        16)) =         16
+floor(log2(        31)) =         16
+floor(log2(        32)) =         32
+floor(log2(        63)) =         32
+floor(log2(        64)) =         64
+floor(log2(       127)) =         64
+floor(log2(       128)) =        128
+floor(log2(       255)) =        128
+floor(log2(       256)) =        256
+floor(log2(       511)) =        256
+floor(log2(       512)) =        512
+floor(log2(      1023)) =        512
+floor(log2(      1024)) =       1024
+floor(log2(      2047)) =       1024
+floor(log2(      2048)) =       2048
+floor(log2(      4095)) =       2048
+floor(log2(      4096)) =       4096
+floor(log2(      8191)) =       4096
+floor(log2(      8192)) =       8192
+floor(log2(     16383)) =       8192
+floor(log2(     16384)) =      16384
+floor(log2(     32767)) =      16384
+floor(log2(     32768)) =      32768
+floor(log2(     65535)) =      32768
+floor(log2(     65536)) =      65536
+floor(log2(    131071)) =      65536
+floor(log2(    131072)) =     131072
+floor(log2(    262143)) =     131072
+floor(log2(    262144)) =     262144
+floor(log2(    524287)) =     262144
+floor(log2(    524288)) =     524288
+floor(log2(   1048575)) =     524288
+floor(log2(   1048576)) =    1048576
+floor(log2(   2097151)) =    1048576
+floor(log2(   2097152)) =    2097152
+floor(log2(   4194303)) =    2097152
+floor(log2(   4194304)) =    4194304
+floor(log2(   8388607)) =    4194304
+floor(log2(   8388608)) =    8388608
+floor(log2(  16777215)) =    8388608
+floor(log2(  16777216)) =   16777216
+floor(log2(  33554431)) =   16777216
+floor(log2(  33554432)) =   33554432
+floor(log2(  67108863)) =   33554432
+floor(log2(  67108864)) =   67108864
+floor(log2( 134217727)) =   67108864
+floor(log2( 134217728)) =  134217728
+floor(log2( 268435455)) =  134217728
+floor(log2( 268435456)) =  268435456
+floor(log2( 536870911)) =  268435456
+floor(log2( 536870912)) =  536870912
+PASS:  function floorLog2() returns TRUE
+PASSED array size 8 rotate( -9) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
+PASSED array size 8 rotate( -8) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
+PASSED array size 8 rotate( -7) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
+PASSED array size 8 rotate( -6) "abcdefgh" yields "ghabcdef" vs expected "ghabcdef" took: 24 moves
+PASSED array size 8 rotate( -5) "abcdefgh" yields "fghabcde" vs expected "fghabcde" took: 21 moves
+PASSED array size 8 rotate( -4) "abcdefgh" yields "efghabcd" vs expected "efghabcd" took: 24 moves
+PASSED array size 8 rotate( -3) "abcdefgh" yields "defghabc" vs expected "defghabc" took: 21 moves
+PASSED array size 8 rotate( -2) "abcdefgh" yields "cdefghab" vs expected "cdefghab" took: 24 moves
+PASSED array size 8 rotate( -1) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
+PASSED array size 8 rotate(  0) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
+PASSED array size 8 rotate(  1) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
+PASSED array size 8 rotate(  2) "abcdefgh" yields "ghabcdef" vs expected "ghabcdef" took: 24 moves
+PASSED array size 8 rotate(  3) "abcdefgh" yields "fghabcde" vs expected "fghabcde" took: 21 moves
+PASSED array size 8 rotate(  4) "abcdefgh" yields "efghabcd" vs expected "efghabcd" took: 24 moves
+PASSED array size 8 rotate(  5) "abcdefgh" yields "defghabc" vs expected "defghabc" took: 21 moves
+PASSED array size 8 rotate(  6) "abcdefgh" yields "cdefghab" vs expected "cdefghab" took: 24 moves
+PASSED array size 8 rotate(  7) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
+PASSED array size 8 rotate(  8) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
+PASSED array size 8 rotate(  9) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
+PASSED array size 8 rotate( 10) "abcdefgh" yields "ghabcdef" vs expected "ghabcdef" took: 24 moves
+PASSED array size 8 rotate( 11) "abcdefgh" yields "fghabcde" vs expected "fghabcde" took: 21 moves
+PASSED array size 8 rotate( 12) "abcdefgh" yields "efghabcd" vs expected "efghabcd" took: 24 moves
+PASSED array size 8 rotate( 13) "abcdefgh" yields "defghabc" vs expected "defghabc" took: 21 moves
+PASSED array size 8 rotate( 14) "abcdefgh" yields "cdefghab" vs expected "cdefghab" took: 24 moves
+PASSED array size 8 rotate( 15) "abcdefgh" yields "bcdefgha" vs expected "bcdefgha" took: 21 moves
+PASSED array size 8 rotate( 16) "abcdefgh" yields "abcdefgh" vs expected "abcdefgh" took:  0 moves
+PASSED array size 8 rotate( 17) "abcdefgh" yields "habcdefg" vs expected "habcdefg" took: 21 moves
+PASSED array size 7 rotate( -8) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
+PASSED array size 7 rotate( -7) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
+PASSED array size 7 rotate( -6) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
+PASSED array size 7 rotate( -5) "abcdefg" yields "fgabcde" vs expected "fgabcde" took: 18 moves
+PASSED array size 7 rotate( -4) "abcdefg" yields "efgabcd" vs expected "efgabcd" took: 18 moves
+PASSED array size 7 rotate( -3) "abcdefg" yields "defgabc" vs expected "defgabc" took: 18 moves
+PASSED array size 7 rotate( -2) "abcdefg" yields "cdefgab" vs expected "cdefgab" took: 18 moves
+PASSED array size 7 rotate( -1) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
+PASSED array size 7 rotate(  0) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
+PASSED array size 7 rotate(  1) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
+PASSED array size 7 rotate(  2) "abcdefg" yields "fgabcde" vs expected "fgabcde" took: 18 moves
+PASSED array size 7 rotate(  3) "abcdefg" yields "efgabcd" vs expected "efgabcd" took: 18 moves
+PASSED array size 7 rotate(  4) "abcdefg" yields "defgabc" vs expected "defgabc" took: 18 moves
+PASSED array size 7 rotate(  5) "abcdefg" yields "cdefgab" vs expected "cdefgab" took: 18 moves
+PASSED array size 7 rotate(  6) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
+PASSED array size 7 rotate(  7) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
+PASSED array size 7 rotate(  8) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
+PASSED array size 7 rotate(  9) "abcdefg" yields "fgabcde" vs expected "fgabcde" took: 18 moves
+PASSED array size 7 rotate( 10) "abcdefg" yields "efgabcd" vs expected "efgabcd" took: 18 moves
+PASSED array size 7 rotate( 11) "abcdefg" yields "defgabc" vs expected "defgabc" took: 18 moves
+PASSED array size 7 rotate( 12) "abcdefg" yields "cdefgab" vs expected "cdefgab" took: 18 moves
+PASSED array size 7 rotate( 13) "abcdefg" yields "bcdefga" vs expected "bcdefga" took: 18 moves
+PASSED array size 7 rotate( 14) "abcdefg" yields "abcdefg" vs expected "abcdefg" took:  0 moves
+PASSED array size 7 rotate( 15) "abcdefg" yields "gabcdef" vs expected "gabcdef" took: 18 moves
+PASS:  function testBlockSortRotateArrayElements() returns TRUE
+Test run         2 on an array of size   15 with  15 blocks total rotating blocks [  0: 14] of maximum size   1 by 14 took 0 compares and   84 moves
+Test run      3742 on an array of size   15 with   8 blocks total rotating blocks [  0:  7] of maximum size   2 by  7 took 0 compares and   63 moves
+Test run      4192 on an array of size   15 with   6 blocks total rotating blocks [  0:  5] of maximum size   3 by  5 took 0 compares and   57 moves
+Test run      4374 on an array of size   16 with  16 blocks total rotating blocks [  0: 15] of maximum size   1 by 15 took 0 compares and   90 moves
+Test run      9066 on an array of size   16 with   8 blocks total rotating blocks [  0:  7] of maximum size   2 by  7 took 0 compares and   69 moves
+Test run      9516 on an array of size   16 with   6 blocks total rotating blocks [  0:  5] of maximum size   3 by  5 took 0 compares and   63 moves
+Test run      9698 on an array of size   17 with  17 blocks total rotating blocks [  0: 16] of maximum size   1 by 16 took 0 compares and   96 moves
+Test run     15512 on an array of size   17 with   9 blocks total rotating blocks [  0:  8] of maximum size   2 by  8 took 0 compares and   72 moves
+Test run     16172 on an array of size   17 with   6 blocks total rotating blocks [  0:  5] of maximum size   3 by  5 took 0 compares and   63 moves
+Test run     16354 on an array of size   31 with  16 blocks total rotating blocks [  0: 15] of maximum size   2 by 15 took 0 compares and  135 moves
+Test run     21046 on an array of size   31 with  11 blocks total rotating blocks [  0: 10] of maximum size   3 by 10 took 0 compares and  120 moves
+Test run     22333 on an array of size   31 with   8 blocks total rotating blocks [  0:  7] of maximum size   4 by  7 took 0 compares and  111 moves
+Test run     22783 on an array of size   32 with  12 blocks total rotating blocks [  0: 11] of maximum size   3 by 11 took 0 compares and  126 moves
+Test run     24512 on an array of size   32 with   8 blocks total rotating blocks [  0:  7] of maximum size   4 by  7 took 0 compares and  117 moves
+Test run     24962 on an array of size   32 with   8 blocks total rotating blocks [  0:  7] of maximum size   5 by  7 took 0 compares and  114 moves
+Test run     25412 on an array of size   33 with  12 blocks total rotating blocks [  0: 11] of maximum size   3 by 11 took 0 compares and  129 moves
+Test run     27141 on an array of size   33 with   9 blocks total rotating blocks [  0:  8] of maximum size   4 by  8 took 0 compares and  120 moves
+Test run     27801 on an array of size   33 with   8 blocks total rotating blocks [  0:  7] of maximum size   5 by  7 took 0 compares and  117 moves
+Test run     28251 on an array of size   63 with  16 blocks total rotating blocks [  0: 15] of maximum size   4 by 15 took 0 compares and  231 moves
+Test run     32943 on an array of size   63 with  14 blocks total rotating blocks [  0: 13] of maximum size   5 by 13 took 0 compares and  225 moves
+Test run     35883 on an array of size   63 with  12 blocks total rotating blocks [  0: 11] of maximum size   6 by 11 took 0 compares and  219 moves
+Test run     37612 on an array of size   64 with  16 blocks total rotating blocks [  0: 15] of maximum size   4 by 15 took 0 compares and  237 moves
+Test run     42304 on an array of size   64 with  14 blocks total rotating blocks [  0: 13] of maximum size   5 by 13 took 0 compares and  231 moves
+Test run     45244 on an array of size   64 with  12 blocks total rotating blocks [  0: 11] of maximum size   6 by 11 took 0 compares and  225 moves
+Test run     46973 on an array of size   65 with  17 blocks total rotating blocks [  0: 16] of maximum size   4 by 16 took 0 compares and  240 moves
+Test run     52787 on an array of size   65 with  14 blocks total rotating blocks [  0: 13] of maximum size   5 by 13 took 0 compares and  231 moves
+Test run     55727 on an array of size   65 with  12 blocks total rotating blocks [  0: 11] of maximum size   6 by 11 took 0 compares and  225 moves
+Test run     57456 on an array of size  127 with  22 blocks total rotating blocks [  0: 21] of maximum size   6 by 21 took 0 compares and  441 moves
+Test run     72130 on an array of size  127 with  19 blocks total rotating blocks [  0: 18] of maximum size   7 by 18 took 0 compares and  432 moves
+Test run     80775 on an array of size  127 with  16 blocks total rotating blocks [  0: 15] of maximum size   8 by 15 took 0 compares and  423 moves
+Test run     85467 on an array of size  128 with  20 blocks total rotating blocks [  0: 19] of maximum size   7 by 19 took 0 compares and  438 moves
+Test run     95862 on an array of size  128 with  16 blocks total rotating blocks [  0: 15] of maximum size   8 by 15 took 0 compares and  429 moves
+Test run    100554 on an array of size  128 with  16 blocks total rotating blocks [  0: 15] of maximum size   9 by 15 took 0 compares and  426 moves
+Test run    105246 on an array of size  129 with  20 blocks total rotating blocks [  0: 19] of maximum size   7 by 19 took 0 compares and  441 moves
+Test run    115641 on an array of size  129 with  17 blocks total rotating blocks [  0: 16] of maximum size   8 by 16 took 0 compares and  432 moves
+Test run    121455 on an array of size  129 with  16 blocks total rotating blocks [  0: 15] of maximum size   9 by 15 took 0 compares and  429 moves
+Test run    126147 on an array of size  255 with  26 blocks total rotating blocks [  0: 25] of maximum size  10 by 25 took 0 compares and  837 moves
+Test run    153174 on an array of size  255 with  24 blocks total rotating blocks [  0: 23] of maximum size  11 by 23 took 0 compares and  831 moves
+Test run    173324 on an array of size  255 with  22 blocks total rotating blocks [  0: 21] of maximum size  12 by 21 took 0 compares and  825 moves
+Test run    187998 on an array of size  256 with  26 blocks total rotating blocks [  0: 25] of maximum size  10 by 25 took 0 compares and  843 moves
+Test run    215025 on an array of size  256 with  24 blocks total rotating blocks [  0: 23] of maximum size  11 by 23 took 0 compares and  834 moves
+Test run    235175 on an array of size  256 with  22 blocks total rotating blocks [  0: 21] of maximum size  12 by 21 took 0 compares and  831 moves
+Test run    249849 on an array of size  257 with  26 blocks total rotating blocks [  0: 25] of maximum size  10 by 25 took 0 compares and  843 moves
+Test run    276876 on an array of size  257 with  24 blocks total rotating blocks [  0: 23] of maximum size  11 by 23 took 0 compares and  837 moves
+Test run    297026 on an array of size  257 with  22 blocks total rotating blocks [  0: 21] of maximum size  12 by 21 took 0 compares and  831 moves
+ All 311698 tests passed
+
+PASS:  function testBlockSortRotateBlocks() returns TRUE
+ 10000 tests of sorting blocks of   31 array with  26 unique values and a block size of   3 took on average   17.5 compares and  125.2 moves
+ 10000 tests of sorting blocks of   32 array with  26 unique values and a block size of   4 took on average   12.7 compares and   98.5 moves
+ 10000 tests of sorting blocks of   33 array with  26 unique values and a block size of   4 took on average   13.9 compares and  106.5 moves
+ 10000 tests of sorting blocks of   63 array with  26 unique values and a block size of   5 took on average   22.7 compares and  282.9 moves
+ 10000 tests of sorting blocks of   64 array with  26 unique values and a block size of   5 took on average   22.9 compares and  290.2 moves
+ 10000 tests of sorting blocks of   65 array with  26 unique values and a block size of   5 took on average   23.0 compares and  302.1 moves
+ 10000 tests of sorting blocks of  127 array with  26 unique values and a block size of   7 took on average   32.6 compares and  788.2 moves
+ 10000 tests of sorting blocks of  128 array with  26 unique values and a block size of   8 took on average   27.8 compares and  709.3 moves
+ 10000 tests of sorting blocks of  129 array with  26 unique values and a block size of   8 took on average   28.9 compares and  724.2 moves
+ 10000 tests of sorting blocks of  255 array with  26 unique values and a block size of  11 took on average   42.3 compares and 2011.9 moves
+ 10000 tests of sorting blocks of  256 array with  26 unique values and a block size of  11 took on average   42.5 compares and 2021.3 moves
+ 10000 tests of sorting blocks of  257 array with  26 unique values and a block size of  11 took on average   42.5 compares and 2033.9 moves
+PASS:  function testBlockSortSortBlocks() returns TRUE
+testBlockSort() ran 5 successful tests

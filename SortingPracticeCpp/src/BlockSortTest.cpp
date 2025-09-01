@@ -133,14 +133,14 @@ std::string arrayToString(T** array, array_size_t array_size,
 /*	**********************************************	*/
 /*	**********************************************	*/
 
-//#define TEST_MODULO
-//#define TEST_BLOCK_SORT_FLOOR_LOG_2
-//#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
-//#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-#define TEST_BLOCK_SORT_MERGE_BLOCKS
+#define TEST_MODULO
+#define TEST_BLOCK_SORT_FLOOR_LOG_2
+#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
+#define TEST_BLOCK_SORT_ROTATE_BLOCKS
+//#define TEST_BLOCK_SORT_MERGE_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
-//#define TEST_BLOCK_SORT_SORT_BLOCKS
+#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortModulo();
@@ -184,52 +184,75 @@ void randomizeArray(T **array, array_size_t size) {
 
 bool testBlockSort() {
 	bool passed = true;
+	int num_tests = 0;
+	int tests_passed = 0;
 	std::cout << "testBlockSort()" << std::endl;
 
 #ifdef TEST_MODULO
+	num_tests++;
 	runTest(passed, testBlockSortModulo, "function blockSortModulo()");
 	if (!passed)
 		return passed;
+	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_FLOOR_LOG_2
+	num_tests++;
 	runTest(passed, testFloorLog2, "function floorLog2()");
 	if (!passed)
 		return passed;
+	tests_passed++;
 #endif
 
 #ifdef	TEST_BLOCK_SORT_ROTATE_ELEMENTS
+	num_tests++;
 	runTest(passed, testBlockSortRotateArrayElements, "function testBlockSortRotateArrayElements()");
 	if (!passed)
 		return passed;
+	tests_passed++;
 #endif
 
 #ifdef	TEST_BLOCK_SORT_ROTATE_BLOCKS
+	num_tests++;
 	runTest(passed, testBlockSortRotateBlocks,
 			"function testBlockSortRotateBlocks()");
 	if (!passed)
 		return passed;
+	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_SORT_BLOCKS
+	num_tests++;
 	runTest(passed, testBlockSortSortBlocks, "function testBlockSortSortBlocks()");
+	if (!passed)
+		return passed;
+	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_MERGE_BLOCKS
+	num_tests++;
 	runTest(passed, testBlockSortMergeBlocks, "function testBlockSortMergeBlocks()");
 	if (!passed)
 		return passed;
+	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_SWAP_BLOCKS
+	num_tests++;
 	runTest(passed, testBlockSortSwapBlocks, "function testBlockSwap()");
+	if (!passed)
+		return passed;
+	tests_passed++;
 #endif
 
 #ifdef	TEST_BLOCK_SORT_SORT
+	num_tests++;
 	runTest(passed, testBlockSortSort, "function testBlockSortSort()");
 	if (!passed)
 		return passed;
+	tests_passed++;
 #endif
+	std::cout << "testBlockSort() ran " << tests_passed << " successful tests\n";
 	return passed;
 }
 
@@ -452,24 +475,21 @@ bool testBlockSortMergeBlocks() {
 
 bool testBlockSortModulo() {
 	bool test_passed = true;
-	//	handles negative amounts and amounts > span
-	auto calculateRotateAmount = [](array_size_t _i, array_size_t _span) -> array_size_t {
-		while (_i < 0)
-			_i += _span;
-		_i %= _span;
-		return _i;
-	};
 
 	for (array_size_t span = 7; span <= 9; span++) {
-		for (array_size_t i = -9; i <= 9; i++) {
-			array_size_t expected = calculateRotateAmount(i, span);
-			array_size_t calculated = blockSortModulo<char>(i, span);
-			std::cout << std::setw(2) << i << " % " << span << " = " << expected
+		array_size_t dividend = span+1;
+		array_size_t expected = 1;
+		for (; dividend >= -span-1; dividend--) {
+			array_size_t calculated = blockSortModulo<char>(dividend, span);
+			std::cout << std::setw(2) << dividend << " % " << span << " = " << expected
 					<< " vs " << calculated << " | ";
 			if (expected != calculated) {
 				std::cout << " ERROR ";
 				test_passed = false;
 				break;
+			}
+			if (--expected < 0) {
+				expected = span-1;
 			}
 		}
 		std::cout << std::endl;
@@ -665,8 +685,8 @@ bool testBlockSortRotateBlocks() {
 		//	will be equal or larger than the size of left side of the array, 'u'
 		int v = array_size / 2;
 
-		//	'v' also is the number of elements in the smaller half of the array, 'u'
-		//	the algorithm authors define the block size as <= sqrt(sizeof(u))
+		//	'v' also is the number of elements in the smaller 'u' half of the array
+		//	The algorithm authors define the block size as <= sqrt(sizeof(u))
 		int max_block_size = static_cast<int>(std::sqrt(v)+1);
 		int min_block_size = max_block_size-2;
 
@@ -806,7 +826,7 @@ bool testBlockSortRotateBlocks() {
 			}
 		}
 	}
-	std::cout << " All " << num_test_permutations << " tests passed\n\n";
+	std::cout << " All " << num_test_permutations << " tests passed\n";
 	return test_result;
 }
 
@@ -856,8 +876,8 @@ bool testBlockSortSortBlocks() {
 
 	constexpr const int num_tests = 10000;
 
-	constexpr const array_size_t array_sizes[] = { 7, 8, 9, 15, 16, 17, 31, 32, 33,
-												  63, 64, 65, 127, 128, 129, 255, 256, 257 };
+	constexpr const array_size_t array_sizes[] =
+		 	 	 	 	 	 	 { 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256, 257 };
 	constexpr const int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
 	//	OStreamState destructor will restore state of ostream
@@ -956,8 +976,9 @@ bool testBlockSortSortBlocks() {
 				num_non_zero_results++;
 				total_results += result;
 			}
-			std::cout  << "Sorting blocks of an array of size " << std::setw(4) << array_size
-					   << " with " << std::setw(3) << this_passes_unique_value_count
+			std::cout  << std::setw(6) << num_tests << " tests of "
+					   << "sorting blocks of " << std::setw(4) << array_size
+					   << " array with " << std::setw(3) << this_passes_unique_value_count
 					   << " unique values and a block size of "
 					   << std::setw(3) << block_size << " took on average "
 					   << std::fixed << std::setprecision(compares_precision) << std::setw(6)
