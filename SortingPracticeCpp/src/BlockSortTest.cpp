@@ -144,7 +144,7 @@ std::string arrayToString(T** array, array_size_t array_size,
 //#define TEST_BLOCK_SORT_SORT
 #define TEST_BLOCK_SORT_BINARY_TAG_SEARCH
 
-bool testBlockSortBinaryTagSearch();
+bool testBlockSortBinaryBlockSearch();
 bool testBlockSortModulo();
 bool testFloorLog2();
 bool testBlockSortMergeBlocks();
@@ -208,7 +208,7 @@ bool testBlockSort() {
 
 #ifdef	TEST_BLOCK_SORT_BINARY_TAG_SEARCH
 	num_tests++;
-	runTest(passed, testBlockSortBinaryTagSearch, "function testBlockSortBinaryTagSearch()");
+	runTest(passed, testBlockSortBinaryBlockSearch, "function testBlockSortBinaryTagSearch()");
 	if (!passed)
 		return passed;
 	tests_passed++;
@@ -338,89 +338,196 @@ bool testFloorLog2() {
 /*				Binary Search					*/
 /*	******************************************	*/
 
-bool testBlockSortBinaryTagSearch() {
+std::stringstream findRightMostSmallerValue_message;
+template <typename T>
+ComparesAndMoves findRightmostSmallerValue(T** array, array_size_t start, array_size_t end,
+							   	   	   	   T* key, array_size_t &key_location,
+										   array_size_t failure_value = -1) {
 
-	constexpr array_size_t binary_search_done = -1;
+	//	TODO - throw and exception
+	if (array == nullptr || key == nullptr) {
+		return failure_value;
+	}
 
-	auto nextIndex =
-	[binary_search_done](array_size_t start, array_size_t end) -> array_size_t {
-		if (start > end) {
-			return binary_search_done;
+	auto nextIndex = [] (array_size_t l_start, array_size_t l_end) -> array_size_t {
+
+		if (l_start == l_end) {
+			return l_start;
 		}
-		if (start == end) {
-			return start;
+		if (l_start < l_end) {
+			array_size_t tmp = l_start;
+			l_start = l_end;
+			l_end = tmp;
 		}
-		if ((end - start) >= 2) {
-			return start + (end-start) / 2;
+		if (l_end - l_start == 1) {
+			return l_start + 1;
 		} else {
-			return start + 1;
+			return l_start + (l_end-l_start)/2;
 		}
 	};
 
+	ComparesAndMoves result(0,0);
+
+	key_location = failure_value;
+	array_size_t guess = start;
+	array_size_t smaller_value_index = failure_value;
+
+	findRightMostSmallerValue_message.str("");
+	findRightMostSmallerValue_message.clear();
+
+	if (start == end) {
+		findRightMostSmallerValue_message
+			<< "start == end == " << std::setw(2) << start
+			<< ", trying guess [" << std::setw(2) << guess
+			<< "] = " << std::setw(2) << *array[guess]
+			<< (*key > *array[guess] ? " is    " : " is NOT")
+			<< " smaller than " << *key;
+
+		result._compares++;
+		if (*key > *array[start]) {
+			key_location = start;
+		}
+		findRightMostSmallerValue_message << " returning " << std::setw(2) << start;
+		return result;
+	}
+
+	if (end < start) {
+		array_size_t tmp = start;
+		start = end;
+		end = tmp;
+	}
+
+	if (start-end == 1) {
+		guess = start + 1;
+	} else {
+		guess = start + (end-start) / 2;
+	}
+
+	while (1) {
+		//	compare the key to array[guess]
+		findRightMostSmallerValue_message
+			<< "previous guess " << std::setw(2) << smaller_value_index
+			<< ", trying guess [" << std::setw(2) << guess
+			<< "] = " << std::setw(2) << *array[guess]
+			<< (*key > *array[guess] ? " is    " : " is NOT")
+			<< " smaller than " << *key;
+		result._compares++;
+		if (*key > *array[guess]) {
+			// check to see if any elements further to the right
+			//	 of this to see if there are larger values
+			//	 in the array that are < the key
+			smaller_value_index = guess;
+			start = guess+1;
+			if (start > end) {
+				key_location = smaller_value_index;
+				break;
+			}
+			guess = nextIndex(start, end);
+		} else {
+			// key <= array which means too far to the right
+			//   look to the left for an element
+			//	 which is smaller than the key
+			end = guess-1;
+			if (end < start) {
+				break;
+			}
+			guess = nextIndex(start, end);
+		}
+		findRightMostSmallerValue_message
+			<< " next guess = " << std::setw(2) << guess << std::endl;
+	}
+
+	key_location = smaller_value_index;
+	findRightMostSmallerValue_message
+		<< " returning " << key_location << std::endl;
+	return result;
+}
+
+bool testBlockSortBinaryBlockSearch() {
+
+	constexpr array_size_t binary_search_done = -1;
+
 	bool debug_verbose = false;
+	bool announce_each_test_result = true;
 	bool test_passed = true;
+
 	SimpleRandomizer randomizer;
 
-	array_size_t array_sizes[] = { 32 };
-	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
+	array_size_t test_arrays[][] = {
+		{  0,  1,  2,  3,  4,  5,  6,  7 },
+		{  1,  3,  5,  7,  9, 11, 13, 15 },
+		{  2,  4,  6,  8, 10, 12, 14, 16 },
+		{  0,  1,  2,  3,  4,  5,  6,  7,  8 },
+		{  1,  3,  5,  7,  9, 11, 13, 15, 17 },
+		{  2,  4,  6,  8, 10, 12, 14, 16, 18 },
+		{  1  },
+		{ }
+	};
+	array_size_t test_array_sizes[] = {
+		8, 8, 8, 9, 9, 9, 1, 0
+	};
+	int num_test_arrays = 8;
 
-	for (int array_size_i = 0; array_size_i != num_array_sizes; array_size_i++)
+	for (int test_array_i = 0; test_array_i != num_test_arrays; test_array_i++)
 	{
-		array_size_t haystack_size = array_sizes[array_size_i];
+		array_size_t haystack_size = test_array_sizes[test_array_i];
 		int *haystack[haystack_size];
 		for (int i = 0; i != haystack_size; i++) {
-			haystack[i] = new int(2*i);
+			haystack[i] = new int(*test_arrays[test_array_i][i]);
 		}
 
-		std::cout << arrayIndicesToString(haystack_size, 3, 4 ) << std::endl;
-		std::cout << arrayToString(haystack, haystack_size) << std::endl;
-
-		for (int test_case_number = -3; test_case_number <= 2*haystack_size+3; test_case_number++) {
+		for (int test_case_number = -1; test_case_number <= 2*haystack_size+1; test_case_number++) {
 			array_size_t haystack_start = 0;
 			array_size_t haystack_end = haystack_size-1;
-			int random = randomizer.rand(0, haystack_size);
 			int *key = new int(test_case_number);
-			int haystack_index = 0;
-			do {
-				if (debug_verbose) {
-					std::cout << "Finding key : " << std::setw(4) << *key
-							  << " over [" << std::setw(3) << haystack_start
-						      << ":" << std::setw(3) << haystack_end
-						      << "] at [" << std::setw(3) << haystack_index << "] = "
-						      << std::setw(4) << *haystack[haystack_index];
-				}
-				if (*key == *haystack[haystack_index]) {
+			array_size_t haystack_index = 0;
+			array_size_t expected_answer = -1;
+			for (array_size_t i = 0; i != haystack_size; i++) {
+				if (*haystack[i] < *key) {
+					expected_answer = i;
+				} else {
 					break;
 				}
-				if (haystack_start == haystack_end) {
-					haystack_index = binary_search_done;
-					break;
-				}
-				if (*key > *haystack[haystack_index]) {
-					//	 the value (if it exists) is to the right of this position
-					haystack_start = haystack_index+1;
-				}
-				if (*key < *haystack[haystack_index]) {
-					//	the value (if it exists) is to the left of this position
-					haystack_end = haystack_index-1;
-				}
-				if (debug_verbose) {
-					std::cout << " now over [" << std::setw(3) << haystack_start
-							  << ":" << std::setw(3) << haystack_end << "]";
-				}
-				haystack_index = nextIndex(haystack_start, haystack_end);
-				if (debug_verbose) {
-					std::cout << " next index = " << std::setw(3) << haystack_index << std::endl;
-				}
-			} while (haystack_index != binary_search_done);
+			}
 
-			if (haystack_index == binary_search_done) {
-				std::cout << " Value NOT FOUND" << std::setw(4) << *key << std::endl;
+			ComparesAndMoves result(0,0);
+			result += findRightmostSmallerValue(haystack, haystack_start, haystack_end,
+										  	    key, haystack_index);
+
+			if (debug_verbose) {
+				std::cout << arrayIndicesToString(haystack_size, 3, 4 ) << std::endl;
+				std::cout << arrayToString(haystack, haystack_size) << std::endl;
+			}
+			if (haystack_index != expected_answer) {
+				std::cout << "ERROR: expected [" << std::setw(2) << expected_answer
+						  << "] = ";
+				if (expected_answer >= 0) {
+					std::cout  << std::setw(2) << *haystack[expected_answer];
+				} else {
+					std::cout  << "(not found)";
+				}
+				std::cout << " < " << std::setw(2) << *key
+						  << " vs received " << std::setw(2) << haystack_index << std::endl;
+				test_passed = false;
+				break;
 			} else {
-				std::cout << " Value " << std::setw(4) << *key
-						  << " found at [" << std::setw(4) << haystack_index << "]\n";
+				if (debug_verbose || announce_each_test_result) {
+					std::cout << findRightMostSmallerValue_message.str() << std::endl;
+					if (haystack_index != -1) {
+						std::cout << "Element [" << haystack_index << "] = "
+								  << std::setw(2) << *haystack[haystack_index]
+								  << " is less than " << std::setw(2) << *key
+								  << " which took " << std::setw(2) << result._compares << " compares\n";
+					} else {
+						std::cout << "NO VALUES less than " << std::setw(2) << *key
+								  << " found in array which took " << std::setw(2) << result._compares << " compares\n";
+					}
+					std::cout << std::endl;
+				}
 			}
 		}
+		if (!test_passed)
+			break;
 	}
 	return test_passed;
 }
@@ -709,15 +816,15 @@ bool testBlockSortRotateBlocks() {
 			_dst[i] = _src[i];
 		}
 	};
-	auto copyTags = [](std::unique_ptr<BlockTag<int> []> &_dst,
-					   std::unique_ptr<BlockTag<int> []> &_src, int num_tags) {
+	auto copyTags = [](std::unique_ptr<BlockDescriptor<int> []> &_dst,
+					   std::unique_ptr<BlockDescriptor<int> []> &_src, int num_tags) {
 		for (int i = 0; i != num_tags; i++) {
 			_dst[i] = _src[i];
 		}
 	};
 	auto compareResult = [](int **_test_array, int **_expected_array, int _array_size,
-			std::unique_ptr<BlockTag<int> []> &_test_tags,
-			std::unique_ptr<BlockTag<int> []> &_expected_tags, int _num_tags,
+			std::unique_ptr<BlockDescriptor<int> []> &_test_tags,
+			std::unique_ptr<BlockDescriptor<int> []> &_expected_tags, int _num_tags,
 			std::stringstream &message) -> bool {
 
 		for (int i = 0; i != _array_size; i++) {
@@ -745,7 +852,7 @@ bool testBlockSortRotateBlocks() {
 	/*	***************************************************	*/
 
 	auto rotateExpectedBlocks = [](int **x_array,
-			std::unique_ptr<BlockTag<int> []> &x_tags, int x_array_size,
+			std::unique_ptr<BlockDescriptor<int> []> &x_tags, int x_array_size,
 			int x_tag_rotate_count, int x_first_tag, int x_last_tag)
 	{
 		int array_start = x_tags[x_first_tag].start_index;
@@ -769,7 +876,7 @@ bool testBlockSortRotateBlocks() {
 			int first_start_index 	= x_tags[x_first_tag].start_index;
 			// make a copy of the tag on the right side of the array
 			//	  so that it can be put into 'first_tag' position in the array
-			BlockTag<int> tmp_block;
+			BlockDescriptor<int> tmp_block;
 			tmp_block = x_tags[x_last_tag];
 			for (int tag_ptr = x_last_tag; tag_ptr > x_first_tag; --tag_ptr) {
 				// copy the tag that is to the left into her
@@ -826,8 +933,8 @@ bool testBlockSortRotateBlocks() {
 			InsertionSort::sortPointersToObjects(reference_array, v);
 			InsertionSort::sortPointersToObjects(&reference_array[v], array_size - v);
 
-			std::unique_ptr<BlockTag<int> []> reference_tags;
-			num_tags = createBlockTags(reference_array, 0, v, array_size - 1,
+			std::unique_ptr<BlockDescriptor<int> []> reference_tags;
+			num_tags = createBlockDescriptors(reference_array, 0, v, array_size - 1,
 									   block_size, reference_tags);
 
 			//	anchor span [left:right] rotate_count
@@ -872,10 +979,10 @@ bool testBlockSortRotateBlocks() {
 
 							int *test_array[array_size];
 							int *expected_array[array_size];
-							std::unique_ptr<BlockTag<int> []> test_tags(
-									new BlockTag<int> [num_tags]);
-							std::unique_ptr<BlockTag<int> []> expected_tags(
-									new BlockTag<int> [num_tags]);
+							std::unique_ptr<BlockDescriptor<int> []> test_tags(
+									new BlockDescriptor<int> [num_tags]);
+							std::unique_ptr<BlockDescriptor<int> []> expected_tags(
+									new BlockDescriptor<int> [num_tags]);
 
 							copyArray(test_array, reference_array, array_size);
 							copyTags(test_tags, reference_tags, num_tags);
@@ -953,7 +1060,7 @@ bool testBlockSortSortBlocks() {
 
 	std::cout << __FUNCTION__ << std::endl;
 
-	using TagArray = std::unique_ptr<BlockSort::BlockTag<int>[]>;
+	using TagArray = std::unique_ptr<BlockSort::BlockDescriptor<int>[]>;
 
 	constexpr const bool echo_every_test_step = false;
 	constexpr const bool echo_every_test_result = false;
@@ -1061,7 +1168,7 @@ bool testBlockSortSortBlocks() {
 				InsertionSort::sortPointersToObjects(array, mid);
 				InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
 				messages << out(array, array_size, " after randomizing\n");
-				num_tags = BlockSort::createBlockTags(array, start, mid, end, block_size, tags);
+				num_tags = BlockSort::createBlockDescriptors(array, start, mid, end, block_size, tags);
 				messages << printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
 				messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
 				messages << out(array, array_size, "\n");

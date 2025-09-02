@@ -1,77 +1,122 @@
-Sorting Performance In C++ built on Sep  1 2025 at 14:56:04
+Sorting Performance In C++ built on Sep  2 2025 at 12:38:36
 testBlockSort()
-  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31
-  0   2   4   6   8  10  12  14  16  18  20  22  24  26  28  30  32  34  36  38  40  42  44  46  48  50  52  54  56  58  60  62
- Value NOT FOUND  -3
- Value NOT FOUND  -2
- Value NOT FOUND  -1
- Value    0 found at [   0]
- Value NOT FOUND   1
- Value    2 found at [   1]
- Value NOT FOUND   3
- Value    4 found at [   2]
- Value NOT FOUND   5
- Value    6 found at [   3]
- Value NOT FOUND   7
- Value    8 found at [   4]
- Value NOT FOUND   9
- Value   10 found at [   5]
- Value NOT FOUND  11
- Value   12 found at [   6]
- Value NOT FOUND  13
- Value   14 found at [   7]
- Value NOT FOUND  15
- Value   16 found at [   8]
- Value NOT FOUND  17
- Value   18 found at [   9]
- Value NOT FOUND  19
- Value   20 found at [  10]
- Value NOT FOUND  21
- Value   22 found at [  11]
- Value NOT FOUND  23
- Value   24 found at [  12]
- Value NOT FOUND  25
- Value   26 found at [  13]
- Value NOT FOUND  27
- Value   28 found at [  14]
- Value NOT FOUND  29
- Value   30 found at [  15]
- Value NOT FOUND  31
- Value   32 found at [  16]
- Value NOT FOUND  33
- Value   34 found at [  17]
- Value NOT FOUND  35
- Value   36 found at [  18]
- Value NOT FOUND  37
- Value   38 found at [  19]
- Value NOT FOUND  39
- Value   40 found at [  20]
- Value NOT FOUND  41
- Value   42 found at [  21]
- Value NOT FOUND  43
- Value   44 found at [  22]
- Value NOT FOUND  45
- Value   46 found at [  23]
- Value NOT FOUND  47
- Value   48 found at [  24]
- Value NOT FOUND  49
- Value   50 found at [  25]
- Value NOT FOUND  51
- Value   52 found at [  26]
- Value NOT FOUND  53
- Value   54 found at [  27]
- Value NOT FOUND  55
- Value   56 found at [  28]
- Value NOT FOUND  57
- Value   58 found at [  29]
- Value NOT FOUND  59
- Value   60 found at [  30]
- Value NOT FOUND  61
- Value   62 found at [  31]
- Value NOT FOUND  63
- Value NOT FOUND  64
- Value NOT FOUND  65
- Value NOT FOUND  66
- Value NOT FOUND  67
+previous guess -1, trying guess [ 3] =  6 is NOT smaller than -1 next guess =  1
+previous guess -1, trying guess [ 1] =  2 is NOT smaller than -1 next guess =  0
+previous guess -1, trying guess [ 0] =  0 is NOT smaller than -1 returning -1
+
+NO VALUES less than -1 found in array which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is NOT smaller than 0 next guess =  1
+previous guess -1, trying guess [ 1] =  2 is NOT smaller than 0 next guess =  0
+previous guess -1, trying guess [ 0] =  0 is NOT smaller than 0 returning -1
+
+NO VALUES less than  0 found in array which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is NOT smaller than 1 next guess =  1
+previous guess -1, trying guess [ 1] =  2 is NOT smaller than 1 next guess =  0
+previous guess -1, trying guess [ 0] =  0 is     smaller than 1 returning 0
+
+Element [0] =  0 is less than  1 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is NOT smaller than 2 next guess =  1
+previous guess -1, trying guess [ 1] =  2 is NOT smaller than 2 next guess =  0
+previous guess -1, trying guess [ 0] =  0 is     smaller than 2 returning 0
+
+Element [0] =  0 is less than  2 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is NOT smaller than 3 next guess =  1
+previous guess -1, trying guess [ 1] =  2 is     smaller than 3 next guess =  2
+previous guess  1, trying guess [ 2] =  4 is NOT smaller than 3 returning 1
+
+Element [1] =  2 is less than  3 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is NOT smaller than 4 next guess =  1
+previous guess -1, trying guess [ 1] =  2 is     smaller than 4 next guess =  2
+previous guess  1, trying guess [ 2] =  4 is NOT smaller than 4 returning 1
+
+Element [1] =  2 is less than  4 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is NOT smaller than 5 next guess =  1
+previous guess -1, trying guess [ 1] =  2 is     smaller than 5 next guess =  2
+previous guess  1, trying guess [ 2] =  4 is     smaller than 5 returning 2
+
+Element [2] =  4 is less than  5 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is NOT smaller than 6 next guess =  1
+previous guess -1, trying guess [ 1] =  2 is     smaller than 6 next guess =  2
+previous guess  1, trying guess [ 2] =  4 is     smaller than 6 returning 2
+
+Element [2] =  4 is less than  6 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 7 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is NOT smaller than 7 next guess =  5
+previous guess  3, trying guess [ 5] = 10 is NOT smaller than 7 next guess =  4
+previous guess  3, trying guess [ 4] =  8 is NOT smaller than 7 returning 3
+
+Element [3] =  6 is less than  7 which took  4 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 8 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is NOT smaller than 8 next guess =  5
+previous guess  3, trying guess [ 5] = 10 is NOT smaller than 8 next guess =  4
+previous guess  3, trying guess [ 4] =  8 is NOT smaller than 8 returning 3
+
+Element [3] =  6 is less than  8 which took  4 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 9 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is NOT smaller than 9 next guess =  5
+previous guess  3, trying guess [ 5] = 10 is NOT smaller than 9 next guess =  4
+previous guess  3, trying guess [ 4] =  8 is     smaller than 9 returning 4
+
+Element [4] =  8 is less than  9 which took  4 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 10 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is NOT smaller than 10 next guess =  5
+previous guess  3, trying guess [ 5] = 10 is NOT smaller than 10 next guess =  4
+previous guess  3, trying guess [ 4] =  8 is     smaller than 10 returning 4
+
+Element [4] =  8 is less than 10 which took  4 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 11 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is NOT smaller than 11 next guess =  5
+previous guess  3, trying guess [ 5] = 10 is     smaller than 11 returning 5
+
+Element [5] = 10 is less than 11 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 12 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is NOT smaller than 12 next guess =  5
+previous guess  3, trying guess [ 5] = 10 is     smaller than 12 returning 5
+
+Element [5] = 10 is less than 12 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 13 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is     smaller than 13 next guess =  7
+previous guess  6, trying guess [ 7] = 14 is NOT smaller than 13 returning 6
+
+Element [6] = 12 is less than 13 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 14 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is     smaller than 14 next guess =  7
+previous guess  6, trying guess [ 7] = 14 is NOT smaller than 14 returning 6
+
+Element [6] = 12 is less than 14 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 15 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is     smaller than 15 next guess =  7
+previous guess  6, trying guess [ 7] = 14 is     smaller than 15 returning 7
+
+Element [7] = 14 is less than 15 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 16 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is     smaller than 16 next guess =  7
+previous guess  6, trying guess [ 7] = 14 is     smaller than 16 returning 7
+
+Element [7] = 14 is less than 16 which took  3 compares
+
+previous guess -1, trying guess [ 3] =  6 is     smaller than 17 next guess =  6
+previous guess  3, trying guess [ 6] = 12 is     smaller than 17 next guess =  7
+previous guess  6, trying guess [ 7] = 14 is     smaller than 17 returning 7
+
+Element [7] = 14 is less than 17 which took  3 compares
+
 PASS:  function testBlockSortBinaryTagSearch() returns TRUE
 testBlockSort() ran 1 successful tests

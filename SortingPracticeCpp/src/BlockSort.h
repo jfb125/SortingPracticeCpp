@@ -82,7 +82,7 @@ namespace BlockSort {
 	using array_size_t = array_size_t;
 
 	template <typename T>
-	class BlockTag {
+	class BlockDescriptor {
 	public:
 		BlockType type;
 		T* key;
@@ -119,19 +119,19 @@ namespace BlockSort {
 			return sstring.str();
 		}
 
-		BlockTag() {
+		BlockDescriptor() {
 			type = BlockType::UNSPECIFIED;
 			key = nullptr;
 			start_index = 0;
 			end_index = 0;
 		}
-		BlockTag(BlockType t, T* k, array_size_t s, array_size_t e) {
+		BlockDescriptor(BlockType t, T* k, array_size_t s, array_size_t e) {
 			type = t;
 			key = k;
 			start_index = s;
 			end_index = e;
 		}
-		BlockTag(const BlockTag &other) {
+		BlockDescriptor(const BlockDescriptor &other) {
 			if (this != &other) {
 				type = other.type;
 				key = other.key;
@@ -139,7 +139,7 @@ namespace BlockSort {
 				end_index = other.end_index;
 			}
 		}
-		BlockTag& operator=(const BlockTag &other) {
+		BlockDescriptor& operator=(const BlockDescriptor &other) {
 			if (this != &other) {
 				type = other.type;
 				key = other.key;
@@ -149,32 +149,32 @@ namespace BlockSort {
 			return *this;
 		}
 
-		bool operator==(const BlockTag &other) const {
+		bool operator==(const BlockDescriptor &other) const {
 			if (key != nullptr && other.key != nullptr) {
 				return *key == *other.key;
 			}
 			return false;
 		}
-		bool operator<(const BlockTag &other) const {
+		bool operator<(const BlockDescriptor &other) const {
 			if (key != nullptr && other.key != nullptr) {
 				return *key < *other.key;
 			}
 			return false;
 		}
-		bool operator<=(const BlockTag &other) const {
+		bool operator<=(const BlockDescriptor &other) const {
 			return *this == other || *this < other;
 		}
-		bool operator>(const BlockTag &other) const {
+		bool operator>(const BlockDescriptor &other) const {
 			return  !(*this == other || *this < other);
  		}
-		bool operator>=(const BlockTag &other) const {
+		bool operator>=(const BlockDescriptor &other) const {
 			return !(*this < other);
 		}
-		bool operator!=(const BlockTag &other) const {
+		bool operator!=(const BlockDescriptor &other) const {
 			return !(*this == other);
 		}
 
-		bool isExactlyEqual(const BlockTag &other) const {
+		bool isExactlyEqual(const BlockDescriptor &other) const {
 			if (type != other.type) 				return false;
 			if (key != other.key)					return false;
 			if (start_index != other.start_index)	return false;
@@ -211,7 +211,7 @@ namespace BlockSort {
 	};
 
 	template <typename T>
-	std::ostream& operator<<(std::ostream& out, const BlockTag<T> &object) {
+	std::ostream& operator<<(std::ostream& out, const BlockDescriptor<T> &object) {
 		out << object.to_string();
 		return out;
 	}
@@ -236,7 +236,7 @@ namespace BlockSort {
 	/*	***********************************************	*/
 
 	template <typename T>
-	bool areTagsSorted(std::unique_ptr<BlockTag<T>[]> &tags, int num_tags) {
+	bool areTagsSorted(std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
 
 		for (int i = 0; i != num_tags-1; i++) {
 			if (tags[i+1] < tags[i])
@@ -249,7 +249,7 @@ namespace BlockSort {
 	//		where width of the string is set by 'chars_remaining'
 
 	template <typename T>
-	std::string toStringTagOpeningElement(BlockTag<T> &tag, int chars_remaining) {
+	std::string toStringTagOpeningElement(BlockDescriptor<T> &tag, int chars_remaining) {
 		std::stringstream result;
 		result.fill(TAG_SPACE_CHAR);
 		switch (chars_remaining) {
@@ -286,7 +286,7 @@ namespace BlockSort {
 	//		where width of the string is set by 'chars_remaining'
 
 	template <typename T>
-	std::string toStringTagClosingElement(BlockTag<T> &tag, int chars_remaining) {
+	std::string toStringTagClosingElement(BlockDescriptor<T> &tag, int chars_remaining) {
 		std::stringstream result;
 		result.fill(TAG_SPACE_CHAR);
 		switch (chars_remaining) {
@@ -318,7 +318,7 @@ namespace BlockSort {
 	//	is equal to the passed param 'element_width'
 
 	template <typename T>
-	std::string toStringTagSingleElement(BlockTag<T> &tag, int chars_remaining) {
+	std::string toStringTagSingleElement(BlockDescriptor<T> &tag, int chars_remaining) {
 		std::stringstream result;
 		result.fill(TAG_SPACE_CHAR);
 
@@ -371,7 +371,7 @@ namespace BlockSort {
 
 	// 	prints a line where the blocks a represented graphically
 	template <typename T>
-	std::string tagArrayToString(std::unique_ptr<BlockTag<T>[]> &tags, int num_tags,
+	std::string tagArrayToString(std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
 								 int element_width = ELEMENT_WIDTH) {
 
 		//	restores ostream state with its destructor
@@ -411,7 +411,7 @@ namespace BlockSort {
 
 	template <typename T>
 	std::string tagArrayToString(std::string trailer,
-								 std::unique_ptr<BlockTag<T>[]> &tags, int num_tags,
+								 std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
 								 int element_width = ELEMENT_WIDTH)
 	{
 		OStreamState ostream_state;
@@ -447,7 +447,7 @@ namespace BlockSort {
 
 	template <typename T>
 	std::string blockSortToString(T** array, array_size_t size, array_size_t v,
-							 	  std::unique_ptr<BlockTag<T>[]> &tags, int num_tags,
+							 	  std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
 								  int value_width = 3, int element_width = 4) {
 		OStreamState ostream_state;
 		std::stringstream result;
@@ -477,7 +477,7 @@ namespace BlockSort {
 
 	template <typename T>
 	void printBlockSortArray(std::string trailer, T** array, array_size_t size, array_size_t v,
-							 std::unique_ptr<BlockTag<T>[]> &tags, int num_tags) {
+							 std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
 
 		constexpr const int 	element_width = 3;
 		constexpr const int 	value_width = element_width - 1;
@@ -511,25 +511,25 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves mergeBlocksByRotating(T** array, array_size_t start, array_size_t mid, array_size_t end);
 	template <typename T>
-	int createBlockTags( T** array, array_size_t start, array_size_t mid, array_size_t end,
-			    	int block_size, std::unique_ptr<BlockTag<T>[]> &tags);
+	int createBlockDescriptors( T** array, array_size_t start, array_size_t mid, array_size_t end,
+			    	int block_size, std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
 	template <typename T>
 	ComparesAndMoves rotateArrayElementsRight(T** array, array_size_t start, array_size_t end, array_size_t amount);
 	template <typename T>
-	ComparesAndMoves rotateBlocksRight(T** array, std::unique_ptr<BlockTag<T>[]> &tags,
+	ComparesAndMoves rotateBlocksRight(T** array, std::unique_ptr<BlockDescriptor<T>[]> &tags,
 					array_size_t first_tag, array_size_t last_tag, int tag_rotate_count);
 	template <typename T>
 	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size,
-			std::unique_ptr<BlockTag<T>[]> &tags, int num_tags);
+			std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags);
 	template <typename T>
 	ComparesAndMoves sortBlocksBinarySearch(T **array, array_size_t size,
-			std::unique_ptr<BlockTag<T>[]> &tags, int num_tags);
+			std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags);
 	template <typename T>
 	ComparesAndMoves swapBlocks(T** array,
 								array_size_t block1_start, array_size_t block1_end,
 								array_size_t block2_start, array_size_t block2_end);
 	template<typename T>
-	ComparesAndMoves swapTags(std::unique_ptr<BlockTag<T[]>> &tags, int i, int j);
+	ComparesAndMoves swapTags(std::unique_ptr<BlockDescriptor<T[]>> &tags, int i, int j);
 
 	/*
 	 * ComparesAndMoves blockMerge(arr, start, mid, end);
@@ -672,8 +672,8 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	int  createBlockTags(T** array, array_size_t start, array_size_t mid, array_size_t end,
-			    		 int block_size, std::unique_ptr<BlockTag<T>[]> &tags) {
+	int  createBlockDescriptors(T** array, array_size_t start, array_size_t mid, array_size_t end,
+			    		 int block_size, std::unique_ptr<BlockDescriptor<T>[]> &tags) {
 
 		ComparesAndMoves result(0,0);
 		array_size_t lower_span = mid-start;
@@ -690,7 +690,7 @@ namespace BlockSort {
 			num_blocks++;
 
 		// create the block storage
-		tags = std::unique_ptr<BlockTag<T>[]>(new BlockTag<T>[num_blocks]);
+		tags = std::unique_ptr<BlockDescriptor<T>[]>(new BlockDescriptor<T>[num_blocks]);
 
 		//	assign values to the blocks
 		int block_number = 0;
@@ -834,7 +834,7 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves rotateBlocksRight(T** array,
-									   std::unique_ptr<BlockTag<T>[]> &tags,
+									   std::unique_ptr<BlockDescriptor<T>[]> &tags,
 							           array_size_t first, array_size_t last,
 									   int tag_rotate_count)
 	{
@@ -882,7 +882,7 @@ namespace BlockSort {
 		/*	**************************************	*/
 
 		auto swapTags = [&tags] (int i, int j) -> ComparesAndMoves {
-			BlockSort::BlockTag<T> tmp = tags[i];
+			BlockSort::BlockDescriptor<T> tmp = tags[i];
 			tags[i] = tags[j];
 			tags[j] = tmp;
 			return ComparesAndMoves(0,3);
@@ -985,7 +985,7 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves sortBlocksBinarySearch(T **array, array_size_t size,
-											std::unique_ptr<BlockTag<T>[]> &tags,
+											std::unique_ptr<BlockDescriptor<T>[]> &tags,
 											int num_tags) {
 		constexpr bool debug_verbose = false;
 
@@ -1227,7 +1227,7 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size,
-										   std::unique_ptr<BlockTag<T>[]> &tags, int num_tags) {
+										   std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
 
 		constexpr bool debug_verbose = false;
 
@@ -1458,11 +1458,11 @@ namespace BlockSort {
 	}
 
 	template<typename T>
-	ComparesAndMoves swapTags(std::unique_ptr<BlockTag<T[]>> &tags, int i, int j) {
+	ComparesAndMoves swapTags(std::unique_ptr<BlockDescriptor<T[]>> &tags, int i, int j) {
 
 		//	swapping the Tag.key, which is an array element, takes three moves
 		ComparesAndMoves result(0,3);
-		BlockTag<T>tmp = tags[i];
+		BlockDescriptor<T>tmp = tags[i];
 		tags[i] = tags[j];
 		tags[j] = tmp;
 		return result;
@@ -1522,25 +1522,25 @@ namespace BlockSort {
 
 		for (array_size_t span = min_array_size_to_sort; span < size/2; span *= 2) {
 			for (array_size_t start = 0; start < size; start++) {
- 				std::unique_ptr<BlockTag<T>[]> tags;
+ 				std::unique_ptr<BlockDescriptor<T>[]> block_descriptors;
 				int num_tags;
 				array_size_t end = start + span - 1;
 				if (end >= size)
 					end = size-1;
 				array_size_t mid = start + (end-start+1) / 2;
 				array_size_t block_size = static_cast<array_size_t>(std::sqrt(span/2));
-				num_tags = createBlockTags(array, start, mid, end, block_size, tags);
+				num_tags = createBlockDescriptors(array, start, mid, end, block_size, block_descriptors);
 				if (sort_within_blocks) {
 					sort_within_blocks = false;
 					for (int i = 0; i != num_tags; i++) {
-						InsertionSort::sortPointersToObjects(&array[tags[i].start_index], tags[i].numElements());
+						InsertionSort::sortPointersToObjects(&array[block_descriptors[i].start_index], block_descriptors[i].numElements());
 					}
 					//	The underlying array has changed, so the keys are state
 					for (int i = 0; i != num_tags; i++) {
-						tags[i].assignKey(array);
+						block_descriptors[i].assignKey(array);
 					}
 				}
-				sortBlocksRightToLeft(array, span, tags, num_tags);
+				sortBlocksRightToLeft(array, span, block_descriptors, num_tags);
 				for (int i = num_tags-1; i > 0; i--) {
 					//	TODO - this merges the entire array, not the blocks
 					//		 - need to create a block merge
