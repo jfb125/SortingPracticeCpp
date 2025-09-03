@@ -1,122 +1,35 @@
-Sorting Performance In C++ built on Sep  2 2025 at 12:38:36
+Sorting Performance In C++ built on Sep  3 2025 at 16:07:15
 testBlockSort()
-previous guess -1, trying guess [ 3] =  6 is NOT smaller than -1 next guess =  1
-previous guess -1, trying guess [ 1] =  2 is NOT smaller than -1 next guess =  0
-previous guess -1, trying guess [ 0] =  0 is NOT smaller than -1 returning -1
-
-NO VALUES less than -1 found in array which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is NOT smaller than 0 next guess =  1
-previous guess -1, trying guess [ 1] =  2 is NOT smaller than 0 next guess =  0
-previous guess -1, trying guess [ 0] =  0 is NOT smaller than 0 returning -1
-
-NO VALUES less than  0 found in array which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is NOT smaller than 1 next guess =  1
-previous guess -1, trying guess [ 1] =  2 is NOT smaller than 1 next guess =  0
-previous guess -1, trying guess [ 0] =  0 is     smaller than 1 returning 0
-
-Element [0] =  0 is less than  1 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is NOT smaller than 2 next guess =  1
-previous guess -1, trying guess [ 1] =  2 is NOT smaller than 2 next guess =  0
-previous guess -1, trying guess [ 0] =  0 is     smaller than 2 returning 0
-
-Element [0] =  0 is less than  2 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is NOT smaller than 3 next guess =  1
-previous guess -1, trying guess [ 1] =  2 is     smaller than 3 next guess =  2
-previous guess  1, trying guess [ 2] =  4 is NOT smaller than 3 returning 1
-
-Element [1] =  2 is less than  3 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is NOT smaller than 4 next guess =  1
-previous guess -1, trying guess [ 1] =  2 is     smaller than 4 next guess =  2
-previous guess  1, trying guess [ 2] =  4 is NOT smaller than 4 returning 1
-
-Element [1] =  2 is less than  4 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is NOT smaller than 5 next guess =  1
-previous guess -1, trying guess [ 1] =  2 is     smaller than 5 next guess =  2
-previous guess  1, trying guess [ 2] =  4 is     smaller than 5 returning 2
-
-Element [2] =  4 is less than  5 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is NOT smaller than 6 next guess =  1
-previous guess -1, trying guess [ 1] =  2 is     smaller than 6 next guess =  2
-previous guess  1, trying guess [ 2] =  4 is     smaller than 6 returning 2
-
-Element [2] =  4 is less than  6 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 7 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is NOT smaller than 7 next guess =  5
-previous guess  3, trying guess [ 5] = 10 is NOT smaller than 7 next guess =  4
-previous guess  3, trying guess [ 4] =  8 is NOT smaller than 7 returning 3
-
-Element [3] =  6 is less than  7 which took  4 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 8 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is NOT smaller than 8 next guess =  5
-previous guess  3, trying guess [ 5] = 10 is NOT smaller than 8 next guess =  4
-previous guess  3, trying guess [ 4] =  8 is NOT smaller than 8 returning 3
-
-Element [3] =  6 is less than  8 which took  4 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 9 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is NOT smaller than 9 next guess =  5
-previous guess  3, trying guess [ 5] = 10 is NOT smaller than 9 next guess =  4
-previous guess  3, trying guess [ 4] =  8 is     smaller than 9 returning 4
-
-Element [4] =  8 is less than  9 which took  4 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 10 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is NOT smaller than 10 next guess =  5
-previous guess  3, trying guess [ 5] = 10 is NOT smaller than 10 next guess =  4
-previous guess  3, trying guess [ 4] =  8 is     smaller than 10 returning 4
-
-Element [4] =  8 is less than 10 which took  4 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 11 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is NOT smaller than 11 next guess =  5
-previous guess  3, trying guess [ 5] = 10 is     smaller than 11 returning 5
-
-Element [5] = 10 is less than 11 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 12 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is NOT smaller than 12 next guess =  5
-previous guess  3, trying guess [ 5] = 10 is     smaller than 12 returning 5
-
-Element [5] = 10 is less than 12 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 13 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is     smaller than 13 next guess =  7
-previous guess  6, trying guess [ 7] = 14 is NOT smaller than 13 returning 6
-
-Element [6] = 12 is less than 13 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 14 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is     smaller than 14 next guess =  7
-previous guess  6, trying guess [ 7] = 14 is NOT smaller than 14 returning 6
-
-Element [6] = 12 is less than 14 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 15 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is     smaller than 15 next guess =  7
-previous guess  6, trying guess [ 7] = 14 is     smaller than 15 returning 7
-
-Element [7] = 14 is less than 15 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 16 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is     smaller than 16 next guess =  7
-previous guess  6, trying guess [ 7] = 14 is     smaller than 16 returning 7
-
-Element [7] = 14 is less than 16 which took  3 compares
-
-previous guess -1, trying guess [ 3] =  6 is     smaller than 17 next guess =  6
-previous guess  3, trying guess [ 6] = 12 is     smaller than 17 next guess =  7
-previous guess  6, trying guess [ 7] = 14 is     smaller than 17 returning 7
-
-Element [7] = 14 is less than 17 which took  3 compares
-
-PASS:  function testBlockSortBinaryTagSearch() returns TRUE
+testBlockSortSortBlocks()
+  1000 tests of  rightToLeft  sorting blocks of   32 array with  26 unique values and a block size of   3 took on average      9.5 compares and       69.0 moves
+  1000 tests of  binarySearch sorting blocks of   32 array with  26 unique values and a block size of   3 took on average     11.0 compares and       69.5 moves
+  1000 tests of  rightToLeft  sorting blocks of   32 array with  26 unique values and a block size of   4 took on average      6.0 compares and       49.5 moves
+  1000 tests of  binarySearch sorting blocks of   32 array with  26 unique values and a block size of   4 took on average      7.0 compares and       50.0 moves
+  1000 tests of  rightToLeft  sorting blocks of   32 array with  26 unique values and a block size of   5 took on average      5.0 compares and       24.0 moves
+  1000 tests of  binarySearch sorting blocks of   32 array with  26 unique values and a block size of   5 took on average      5.0 compares and       24.5 moves
+  1000 tests of  rightToLeft  sorting blocks of   64 array with  26 unique values and a block size of   4 took on average     14.0 compares and      172.5 moves
+  1000 tests of  binarySearch sorting blocks of   64 array with  26 unique values and a block size of   4 took on average     17.0 compares and      173.0 moves
+  1000 tests of  rightToLeft  sorting blocks of   64 array with  26 unique values and a block size of   5 took on average     11.0 compares and       99.0 moves
+  1000 tests of  binarySearch sorting blocks of   64 array with  26 unique values and a block size of   5 took on average     12.0 compares and       99.5 moves
+  1000 tests of  rightToLeft  sorting blocks of   64 array with  26 unique values and a block size of   6 took on average     10.0 compares and      123.0 moves
+  1000 tests of  binarySearch sorting blocks of   64 array with  26 unique values and a block size of   6 took on average     11.5 compares and      123.5 moves
+  1000 tests of  rightToLeft  sorting blocks of  128 array with  26 unique values and a block size of   7 took on average     17.5 compares and      447.0 moves
+  1000 tests of  binarySearch sorting blocks of  128 array with  26 unique values and a block size of   7 took on average     23.0 compares and      447.5 moves
+  1000 tests of  rightToLeft  sorting blocks of  128 array with  26 unique values and a block size of   8 took on average     13.5 compares and      384.0 moves
+  1000 tests of  binarySearch sorting blocks of  128 array with  26 unique values and a block size of   8 took on average     17.0 compares and      384.5 moves
+  1000 tests of  rightToLeft  sorting blocks of  128 array with  26 unique values and a block size of   9 took on average     12.0 compares and      201.0 moves
+  1000 tests of  binarySearch sorting blocks of  128 array with  26 unique values and a block size of   9 took on average     13.0 compares and      201.5 moves
+  1000 tests of  rightToLeft  sorting blocks of  256 array with  26 unique values and a block size of  10 took on average     24.0 compares and     1189.5 moves
+  1000 tests of  binarySearch sorting blocks of  256 array with  26 unique values and a block size of  10 took on average     33.5 compares and     1190.0 moves
+  1000 tests of  rightToLeft  sorting blocks of  256 array with  26 unique values and a block size of  11 took on average     20.5 compares and      885.0 moves
+  1000 tests of  binarySearch sorting blocks of  256 array with  26 unique values and a block size of  11 took on average     26.0 compares and      885.5 moves
+  1000 tests of  rightToLeft  sorting blocks of  256 array with  26 unique values and a block size of  12 took on average     19.5 compares and      906.0 moves
+  1000 tests of  binarySearch sorting blocks of  256 array with  26 unique values and a block size of  12 took on average     26.0 compares and      906.5 moves
+  1000 tests of  rightToLeft  sorting blocks of  512 array with  26 unique values and a block size of  15 took on average     32.5 compares and     2892.0 moves
+  1000 tests of  binarySearch sorting blocks of  512 array with  26 unique values and a block size of  15 took on average     45.5 compares and     2892.5 moves
+  1000 tests of  rightToLeft  sorting blocks of  512 array with  26 unique values and a block size of  16 took on average     30.5 compares and     3319.5 moves
+  1000 tests of  binarySearch sorting blocks of  512 array with  26 unique values and a block size of  16 took on average     46.5 compares and     3320.0 moves
+  1000 tests of  rightToLeft  sorting blocks of  512 array with  26 unique values and a block size of  17 took on average     28.5 compares and     2880.0 moves
+  1000 tests of  binarySearch sorting blocks of  512 array with  26 unique values and a block size of  17 took on average     41.5 compares and     2880.5 moves
+PASS:  function testBlockSortSortBlocks() returns TRUE
 testBlockSort() ran 1 successful tests

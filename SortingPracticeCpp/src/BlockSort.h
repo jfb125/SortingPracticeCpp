@@ -509,6 +509,10 @@ namespace BlockSort {
 	/*	******************************************************************	*/
 
 	template <typename T>
+	ComparesAndMoves findRightmostSmallerValue(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+											   array_size_t first, array_size_t last,
+								   	   	   	   T* key, array_size_t &key_location);
+	template <typename T>
 	ComparesAndMoves mergeBlocksByRotating(T** array, array_size_t start, array_size_t mid, array_size_t end);
 	template <typename T>
 	int createBlockDescriptors( T** array, array_size_t start, array_size_t mid, array_size_t end,
@@ -523,7 +527,7 @@ namespace BlockSort {
 			std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags);
 	template <typename T>
 	ComparesAndMoves sortBlocksBinarySearch(T **array, array_size_t size,
-			std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags);
+			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_tags);
 	template <typename T>
 	ComparesAndMoves swapBlocks(T** array,
 								array_size_t block1_start, array_size_t block1_end,
@@ -737,6 +741,125 @@ namespace BlockSort {
 		return num_blocks;
 	}
 
+	/*	******************************************	*/
+	/*				Binary Search					*/
+	/*	******************************************	*/
+
+	constexpr array_size_t findRightMostSmallerValue_failure = -1;
+
+	template <typename T>
+	ComparesAndMoves findRightmostSmallerValue(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+											   array_size_t first, array_size_t last,
+								   	   	   	   T* key, array_size_t &key_location)
+	{
+		constexpr bool debug_verbose = false;
+		std::stringstream findRightMostSmallerValue_message;
+
+		auto nextIndex = [] (array_size_t l_first, array_size_t l_last) -> array_size_t {
+
+			if (l_first == l_last) {
+				return l_first;
+			}
+			if (l_first < l_last) {
+				array_size_t tmp = l_first;
+				l_first = l_last;
+				l_last = tmp;
+			}
+			if (l_last - l_first == 1) {
+				return l_first + 1;
+			} else {
+				return l_first + (l_last-l_first)/2;
+			}
+		};
+
+		ComparesAndMoves result(0,0);
+
+		key_location = findRightMostSmallerValue_failure;
+		array_size_t guess = first;
+		array_size_t smaller_value_index = findRightMostSmallerValue_failure;
+
+		//	TODO - throw and exception
+		if (key == nullptr) {
+			if (debug_verbose) {
+				std::cout << __FUNCTION__ << " passed nullptr array\n";
+			}
+			return result;
+		}
+
+		if (first == last) {
+			findRightMostSmallerValue_message
+				<< "start == end == " << std::setw(2) << first
+				<< ", trying guess [" << std::setw(2) << guess
+				<< "] = " << std::setw(2) << *blocks[guess].key
+				<< (*key > *blocks[guess].key ? " is    " : " is NOT")
+				<< " smaller than " << *key;
+
+			result._compares++;
+			if (*key > *blocks[first].key) {
+				key_location = first;
+			}
+			findRightMostSmallerValue_message << " returning " << std::setw(2) << first;
+			if (debug_verbose) {
+				std::cout << findRightMostSmallerValue_message.str() << std::endl;
+			}
+			return result;
+		}
+
+		if (last < first) {
+			array_size_t tmp = first;
+			first = last;
+			last = tmp;
+		}
+
+		if (first-last == 1) {
+			guess = first + 1;
+		} else {
+			guess = first + (last-first) / 2;
+		}
+
+		while (1) {
+			//	compare *key to *blocks[guess].key
+			findRightMostSmallerValue_message
+				<< "previous guess " << std::setw(2) << smaller_value_index
+				<< ", trying guess [" << std::setw(2) << guess
+				<< "] = " << std::setw(2) << *blocks[guess].key
+				<< (*key > *blocks[guess].key ? " is    " : " is NOT")
+				<< " smaller than " << *key;
+			result._compares++;
+			if (*key > *blocks[guess].key) {
+				// check to see if any elements further to the right
+				//	 of this to see if there are larger values
+				//	 in the array that are < the key
+				smaller_value_index = guess;
+				first = guess+1;
+				if (first > last) {
+					key_location = smaller_value_index;
+					break;
+				}
+				guess = nextIndex(first, last);
+			} else {
+				// key <= array which means too far to the right
+				//   look to the left for an element
+				//	 which is smaller than the key
+				last = guess-1;
+				if (last < first) {
+					break;
+				}
+				guess = nextIndex(first, last);
+			}
+			findRightMostSmallerValue_message
+				<< " next guess = " << std::setw(2) << guess << std::endl;
+		}
+
+		key_location = smaller_value_index;
+		findRightMostSmallerValue_message
+			<< " returning " << key_location << std::endl;
+		if (debug_verbose) {
+			std::cout << findRightMostSmallerValue_message.str();
+		}
+		return result;
+	}
+
 	/*
 	 * 	ComparesAndSwaps rotateArray(array, amount, start, end);
 	 *
@@ -759,7 +882,6 @@ namespace BlockSort {
 	ComparesAndMoves rotateArrayElementsRight(T** array,
 											  array_size_t start, array_size_t end,
 											  array_size_t amount) {
-
 		ComparesAndMoves result(0,0);
 
 		if (end <= start)
@@ -985,7 +1107,7 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves sortBlocksBinarySearch(T **array, array_size_t size,
-											std::unique_ptr<BlockDescriptor<T>[]> &tags,
+											std::unique_ptr<BlockDescriptor<T>[]> &blocks,
 											int num_tags) {
 		constexpr bool debug_verbose = false;
 
@@ -1000,47 +1122,24 @@ namespace BlockSort {
 
 		ComparesAndMoves result(0,0);
 
-		constexpr array_size_t binary_search_done = -1;
-
-		auto nextIndex =
-			[binary_search_done](array_size_t start, array_size_t end) -> array_size_t {
-				if (start > end) {
-					return binary_search_done;
-				}
-				if (start == end) {
-					return start;
-				}
-				if ((end - start) >= 2) {
-					return start + (end-start) / 2;
-				} else {
-					return start + 1;
-				}
-			};
+//		constexpr array_size_t binary_search_done = findRightMostSmallerValue_failure;
 
 		//	if the array consists of all A_Blocks, we are done
-		if (tags[num_tags-1].type == BlockType::A_BLOCK) {
+		if (blocks[num_tags-1].type == BlockType::A_BLOCK) {
 			_debug("All blocks are A Blocks");
 			return result;
 		}
 
 		// 	if the array consists of all B_Blocks, we are done
-		if (tags[0].type == BlockType::B_BLOCK) {
+		if (blocks[0].type == BlockType::B_BLOCK) {
 			 _debug("All blocks are B Blocks");
 			return result;
-		}
-
-		int num_a_blocks = 0;
-		for (int i = 0; i != num_tags; i++) {
-			if (tags[i].type == BlockType::A_BLOCK)
-				num_a_blocks++;
-			else
-				break;
 		}
 
 		bool tagsAreSorted = true;
 		for (int i = 1; i != num_tags; i++) {
 			result._compares++;
-			if (tags[i-1] > tags[i]) {
+			if (blocks[i-1] > blocks[i]) {
 				tagsAreSorted = false;
 				break;
 			}
@@ -1061,85 +1160,116 @@ namespace BlockSort {
 		//	 	A[m] ... B[n] are now in order and i = 7 while j = 9
 		//		update i = 6 (Am-1) and j = 8 (B1)
 		//	continue until j == i or i < 0
-		array_size_t a_block_index = num_a_blocks-1;
-		array_size_t b_block_index = num_tags-1;
+
+		int num_a_blocks = 0;
+		for (int i = 0; i != num_tags; i++) {
+			if (blocks[i].type == BlockType::A_BLOCK)
+				num_a_blocks++;
+			else
+				break;
+		}
+
+		array_size_t a_block_index  = num_a_blocks-1;
+		array_size_t b_block_start  = num_a_blocks;
+		array_size_t b_block_end	= num_tags-1;
+
 		while (a_block_index >= 0) {
 
-			//	Find first B_Block that is less than this A_Block
-			//	There may not be a B_Block that is greater than this A_Block
-			while (b_block_index > a_block_index) {
-				result._compares++;
-				if (*tags[b_block_index].key < *tags[a_block_index].key) {
-					break;
-				}
-				b_block_index--;
-			}
+			//	Binary search for the largest B_Block that is less than this A_Block
+			//	There may not be a B_Block that is less than this A_Block
 
-			//	if no B_Blocks were found that are less than this A_Block
-			//	the tags are in order
-			if (a_block_index == b_block_index) {
+			//	0	1	2	3	4	5	6   7
+			//			ai  st              end
+			//	A4, A6, A7, B5, B5, B6, B7, B8
+
+			// b_block_end is passed by value to the function
+			// b_block_end receives the value by reference
+			result += findRightmostSmallerValue(blocks, b_block_start, b_block_end,
+											    blocks[a_block_index].key, b_block_end);
+
+			//	0	1	2	3	4	5	6   7
+			//			ai  st      end
+			//	A4, A7, A8, B5, B5, B6, B9, B9
+
+			//	If all B_Blocks are greater than this A_Block, the blocks are in order
+			if (b_block_end == findRightMostSmallerValue_failure) {
 				break;
 			}
 
+			//	blocks[a_index] > blocks[b_end]
+			//	determine how many smaller A_Blocks
+			//	  are still larger than this B_Block
 
-			// there will be at least one A_Block that is rotated left
-			//	 to the right-hand side of the B_Block < [a_block_index]
-			int tag_rotate_count = -1;
-
-			//	continue looking through the A_Blocks to the left for
-			//	  A_Blocks that are less than [b_block_index] which
-			//	  can also be included in the rotate count
-			a_block_index--;
-
-			//	con
 			while (a_block_index >= 0) {
 				result._compares++;
-				if (*tags[a_block_index].key <= *tags[b_block_index].key)
+				if (*blocks[a_block_index].key <= *blocks[b_block_end].key) {
 					break;
+				}
 				a_block_index--;
-				tag_rotate_count--;
 			}
 
+			//	0	1	2	3	4	5	6   7
+			//	ai		    st      end
+			//	A4, A7, A8, B5, B5, B6, B9, B9
+
+			//	The above loop terminated because either
+			//		[a_block_index] goes to the left of the [b_block_index]
+			//	 or a_block_index < 0, which means all B_Blocks go to the
+			//		are less than [0] and go to the left of [0]
+			a_block_index++;
+
+			//	0	1	2	3	4	5	6   7
+			//	    ai	    st      end
+			//	A4, A7, A8, B5, B5, B6, B9, B9	rotate count = -2
+
+			// there will be at least one A_Block that is rotated **left** (-)
+			//	 to the right-hand side of the B_Block < [a_block_index]
+			int block_rotate_count = -(b_block_start - a_block_index);
+
 			if (debug_verbose) {
-				array_size_t array_size = tags[num_tags-1].end_index+1;
-				array_size_t v = tags[num_a_blocks].start_index;
+				array_size_t array_size = blocks[num_tags-1].end_index+1;
+				array_size_t v = blocks[num_a_blocks].start_index;
 				std::cout << "BEFORE: "
-						  << " b_index (end) = " << std::setw(2) << b_block_index
-						  << " a_index+1 (start) = " << std::setw(2) << a_block_index+1
-						  << " rotation count = " << std::setw(2) << tag_rotate_count
+						  << " b_index (end) = " << std::setw(2) << b_block_end
+						  << " a_index (start) = " << std::setw(2) << a_block_index
+						  << " rotation count = " << std::setw(2) << block_rotate_count
 						  << "\n"
-						  << blockSortToString(array, array_size, v, tags, num_tags)
+						  << blockSortToString(array, array_size, v, blocks, num_tags)
 						  << std::endl;
 			}
-			// At this point 'a_block_index' points to the largest A_Block
-			//	that is <= [b_block_index],  but [a_block_index+1] is greater
-			//	than [b_block_index] b/c the previous while loop exited
-			//	because a [b_block_index] that was smaller was found, and
-			//	the comparison b_block_index == a_block_index return false
-			result += rotateBlocksRight(array, tags,
-										a_block_index+1, b_block_index,
-										tag_rotate_count);
-			// the B_Block has been shifted left by 'tag_rotate_count'
-			b_block_index += tag_rotate_count;
-			// a_block_index points to the block to the left of the span
-			//	that was rotated, and the span that was rotated is now in order
+			result += rotateBlocksRight(array, blocks,
+										a_block_index, b_block_end,
+										block_rotate_count);
+
+			//	0	1	2	3	4	5	6   7
+			//	    ai	    st      end
+			//	A4, B5, B5, B6, A7  A8  B9, B9	rotate count = -2
+
+			// the B_Block has been shifted left by 'rotate_count'
+			b_block_start += block_rotate_count;
+			b_block_end += block_rotate_count;
+			a_block_index--;
+
+			//	0	1	2	3	4	5	6   7
+			//	ai	st      end
+			//	A4, B5, B5, B6, A7  A8  B9, B9
 
 			if (debug_verbose) {
-				array_size_t array_size = tags[num_tags-1].end_index+1;
-				array_size_t v = tags[num_a_blocks].start_index;
+				array_size_t array_size = blocks[num_tags-1].end_index+1;
+				array_size_t v = blocks[num_a_blocks].start_index;
 				std::cout << "AFTER: \n"
-						  << blockSortToString(array, array_size, v, tags, num_tags)
+						  << blockSortToString(array, array_size, v, blocks, num_tags)
 						  << std::endl;
 			}
 		}
 
 		if (debug_verbose) {
-			array_size_t array_size = tags[num_tags-1].end_index+1;
-			array_size_t v = tags[num_a_blocks].start_index;
+			array_size_t array_size = blocks[num_tags-1].end_index+1;
+			array_size_t v = blocks[num_a_blocks].start_index;
 			std::cout << "EXITING: \n"
-					  << blockSortToString(array, array_size, v, tags, num_tags)
+					  << blockSortToString(array, array_size, v, blocks, num_tags)
 					  << std::endl;
-			if (areTagsSorted(tags, num_tags)) {
+			if (areTagsSorted(blocks, num_tags)) {
 				_debug("Tags are sorted");
 			} else {
 				_debug("Tags are NOT sorted");
