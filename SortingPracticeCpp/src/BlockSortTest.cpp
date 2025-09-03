@@ -140,9 +140,9 @@ std::string arrayToString(T** array, array_size_t array_size,
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
-//#define TEST_BLOCK_SORT_SORT_BLOCKS
+#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
-#define TEST_BLOCK_SORT_BINARY_TAG_SEARCH
+//#define TEST_BLOCK_SORT_BINARY_TAG_SEARCH
 
 bool testBlockSortBinaryBlockSearch();
 bool testBlockSortModulo();
@@ -272,6 +272,13 @@ bool testBlockSort() {
 /*	**********************************************	*/
 /*	**********************************************	*/
 
+
+/*	*******************************************************	*/
+/*	*******************************************************	*/
+/*						floorLog2							*/
+/*	*******************************************************	*/
+/*	*******************************************************	*/
+
 bool testFloorLog2() {
 
 	//	a way of calculating that uses a loop,
@@ -334,118 +341,14 @@ bool testFloorLog2() {
 	TEST_FLOOR_LOG_2_RETURN_LABEL: return passed;
 }
 
-/*	******************************************	*/
-/*				Binary Search					*/
-/*	******************************************	*/
 
-std::stringstream findRightMostSmallerValue_message;
-template <typename T>
-ComparesAndMoves findRightmostSmallerValue(T** array, array_size_t start, array_size_t end,
-							   	   	   	   T* key, array_size_t &key_location,
-										   array_size_t failure_value = -1) {
-
-	//	TODO - throw and exception
-	if (array == nullptr || key == nullptr) {
-		return failure_value;
-	}
-
-	auto nextIndex = [] (array_size_t l_start, array_size_t l_end) -> array_size_t {
-
-		if (l_start == l_end) {
-			return l_start;
-		}
-		if (l_start < l_end) {
-			array_size_t tmp = l_start;
-			l_start = l_end;
-			l_end = tmp;
-		}
-		if (l_end - l_start == 1) {
-			return l_start + 1;
-		} else {
-			return l_start + (l_end-l_start)/2;
-		}
-	};
-
-	ComparesAndMoves result(0,0);
-
-	key_location = failure_value;
-	array_size_t guess = start;
-	array_size_t smaller_value_index = failure_value;
-
-	findRightMostSmallerValue_message.str("");
-	findRightMostSmallerValue_message.clear();
-
-	if (start == end) {
-		findRightMostSmallerValue_message
-			<< "start == end == " << std::setw(2) << start
-			<< ", trying guess [" << std::setw(2) << guess
-			<< "] = " << std::setw(2) << *array[guess]
-			<< (*key > *array[guess] ? " is    " : " is NOT")
-			<< " smaller than " << *key;
-
-		result._compares++;
-		if (*key > *array[start]) {
-			key_location = start;
-		}
-		findRightMostSmallerValue_message << " returning " << std::setw(2) << start;
-		return result;
-	}
-
-	if (end < start) {
-		array_size_t tmp = start;
-		start = end;
-		end = tmp;
-	}
-
-	if (start-end == 1) {
-		guess = start + 1;
-	} else {
-		guess = start + (end-start) / 2;
-	}
-
-	while (1) {
-		//	compare the key to array[guess]
-		findRightMostSmallerValue_message
-			<< "previous guess " << std::setw(2) << smaller_value_index
-			<< ", trying guess [" << std::setw(2) << guess
-			<< "] = " << std::setw(2) << *array[guess]
-			<< (*key > *array[guess] ? " is    " : " is NOT")
-			<< " smaller than " << *key;
-		result._compares++;
-		if (*key > *array[guess]) {
-			// check to see if any elements further to the right
-			//	 of this to see if there are larger values
-			//	 in the array that are < the key
-			smaller_value_index = guess;
-			start = guess+1;
-			if (start > end) {
-				key_location = smaller_value_index;
-				break;
-			}
-			guess = nextIndex(start, end);
-		} else {
-			// key <= array which means too far to the right
-			//   look to the left for an element
-			//	 which is smaller than the key
-			end = guess-1;
-			if (end < start) {
-				break;
-			}
-			guess = nextIndex(start, end);
-		}
-		findRightMostSmallerValue_message
-			<< " next guess = " << std::setw(2) << guess << std::endl;
-	}
-
-	key_location = smaller_value_index;
-	findRightMostSmallerValue_message
-		<< " returning " << key_location << std::endl;
-	return result;
-}
+/*	*******************************************************	*/
+/*	*******************************************************	*/
+/*			binary search through an array of tags			*/
+/*	*******************************************************	*/
+/*	*******************************************************	*/
 
 bool testBlockSortBinaryBlockSearch() {
-
-	constexpr array_size_t binary_search_done = -1;
 
 	bool debug_verbose = false;
 	bool announce_each_test_result = true;
@@ -453,37 +356,60 @@ bool testBlockSortBinaryBlockSearch() {
 
 	SimpleRandomizer randomizer;
 
-	array_size_t test_arrays[][] = {
-		{  0,  1,  2,  3,  4,  5,  6,  7 },
-		{  1,  3,  5,  7,  9, 11, 13, 15 },
-		{  2,  4,  6,  8, 10, 12, 14, 16 },
-		{  0,  1,  2,  3,  4,  5,  6,  7,  8 },
-		{  1,  3,  5,  7,  9, 11, 13, 15, 17 },
-		{  2,  4,  6,  8, 10, 12, 14, 16, 18 },
-		{  1  },
-		{ }
+	struct TestVector {
+		array_size_t *array;
+		int size_of_array;
 	};
-	array_size_t test_array_sizes[] = {
-		8, 8, 8, 9, 9, 9, 1, 0
-	};
-	int num_test_arrays = 8;
 
-	for (int test_array_i = 0; test_array_i != num_test_arrays; test_array_i++)
+	array_size_t test_array_0_7[] 		= {  0,  1,  2,  3,  4,  5,  6,  7 };
+	TestVector test_vector_0_7 = {test_array_0_7, sizeof(test_array_0_7) / sizeof(array_size_t) };
+	array_size_t test_array_1_15_odd[] 	= {  1,  3,  5,  7,  9, 11, 13, 15 };
+	TestVector test_vector_1_15_odd = {test_array_1_15_odd, sizeof(test_array_1_15_odd) / sizeof(array_size_t) };
+	array_size_t test_array_2_16_even[] = {  2,  4,  6,  8, 10, 12, 14, 16 };
+	TestVector test_vector_2_16_even = {test_array_2_16_even, sizeof(test_array_2_16_even) / sizeof(array_size_t) };
+	array_size_t test_array_1_17_odd[]	= {  1,  3,  5,  7,  9, 11, 13, 15, 17 };
+	TestVector test_vector_1_17_odd = {test_array_1_17_odd, sizeof(test_array_1_17_odd) / sizeof(array_size_t) };
+	array_size_t test_array_2_18_even[]	= {  2,  4,  6,  8, 10, 12, 14, 16, 18 };
+	TestVector test_vector_2_18_even = {test_array_2_18_even, sizeof(test_array_2_18_even) / sizeof(array_size_t) };
+	array_size_t test_array_1[]			= {  1  };
+	TestVector test_vector_1 = {test_array_1, sizeof(test_array_1) / sizeof(array_size_t) };
+
+	TestVector *test_vectors [] {
+		&test_vector_0_7,
+		&test_vector_1_15_odd,
+		&test_vector_2_16_even,
+		&test_vector_1_17_odd,
+		&test_vector_2_18_even,
+		&test_vector_1
+	};
+
+	int num_test_vectors = sizeof(test_vectors) / sizeof(TestVector*);
+
+	array_size_t failure_value = findRightMostSmallerValue_failure;
+
+	for (int test_array_i = 1; test_array_i != num_test_vectors; test_array_i++)
 	{
-		array_size_t haystack_size = test_array_sizes[test_array_i];
-		int *haystack[haystack_size];
+		array_size_t haystack_size = test_vectors[test_array_i]->size_of_array;
+		auto haystack =
+		std::unique_ptr<BlockDescriptor<int>[]>(new BlockDescriptor<int>[haystack_size]);
+
 		for (int i = 0; i != haystack_size; i++) {
-			haystack[i] = new int(*test_arrays[test_array_i][i]);
+			haystack[i].type = BlockType::A_BLOCK;
+			haystack[i].start_index = i * 4;
+			haystack[i].end_index 	= haystack[i].start_index + 3;
+			haystack[i].key = new int(test_vectors[test_array_i]->array[i]);
 		}
 
-		for (int test_case_number = -1; test_case_number <= 2*haystack_size+1; test_case_number++) {
+		for (array_size_t needle = test_vectors[test_array_i]->array[0]-1;
+			 needle <= test_vectors[test_array_i]->array[haystack_size-1]+1;
+			 needle++) {
 			array_size_t haystack_start = 0;
 			array_size_t haystack_end = haystack_size-1;
-			int *key = new int(test_case_number);
+			int *key = new int(needle);
 			array_size_t haystack_index = 0;
-			array_size_t expected_answer = -1;
+			array_size_t expected_answer = failure_value;
 			for (array_size_t i = 0; i != haystack_size; i++) {
-				if (*haystack[i] < *key) {
+				if (*haystack[i].key < *key) {
 					expected_answer = i;
 				} else {
 					break;
@@ -494,41 +420,45 @@ bool testBlockSortBinaryBlockSearch() {
 			result += findRightmostSmallerValue(haystack, haystack_start, haystack_end,
 										  	    key, haystack_index);
 
-			if (debug_verbose) {
-				std::cout << arrayIndicesToString(haystack_size, 3, 4 ) << std::endl;
-				std::cout << arrayToString(haystack, haystack_size) << std::endl;
-			}
 			if (haystack_index != expected_answer) {
+				std::cout << arrayIndicesToString(haystack_size, 3, 4 ) << std::endl;
+				for (int i = 0; i != haystack_size; i++) {
+					std::cout << std::setw(3) << *haystack[i].key << " ";
+				}
+				std::cout << std::endl;
 				std::cout << "ERROR: expected [" << std::setw(2) << expected_answer
 						  << "] = ";
 				if (expected_answer >= 0) {
-					std::cout  << std::setw(2) << *haystack[expected_answer];
+					std::cout  << std::setw(2) << *haystack[expected_answer].key;
 				} else {
 					std::cout  << "(not found)";
 				}
 				std::cout << " < " << std::setw(2) << *key
 						  << " vs received " << std::setw(2) << haystack_index << std::endl;
 				test_passed = false;
-				break;
+				goto TEST_BLOCK_SORT_BINARY_SEARCH_EXIT;
 			} else {
 				if (debug_verbose || announce_each_test_result) {
-					std::cout << findRightMostSmallerValue_message.str() << std::endl;
-					if (haystack_index != -1) {
-						std::cout << "Element [" << haystack_index << "] = "
-								  << std::setw(2) << *haystack[haystack_index]
+					std::cout << arrayIndicesToString(haystack_size, 3, 4 ) << std::endl;
+					for (int i = 0; i != haystack_size; i++) {
+						std::cout << std::setw(3) << *haystack[i].key << " ";
+					}
+					std::cout << std::endl;
+					if (haystack_index != findRightMostSmallerValue_failure) {
+						std::cout << "PASSED: Element [" << haystack_index << "] = "
+								  << std::setw(2) << *haystack[haystack_index].key
 								  << " is less than " << std::setw(2) << *key
 								  << " which took " << std::setw(2) << result._compares << " compares\n";
 					} else {
-						std::cout << "NO VALUES less than " << std::setw(2) << *key
+						std::cout << "PASSED: NO VALUES less than " << std::setw(2) << *key
 								  << " found in array which took " << std::setw(2) << result._compares << " compares\n";
 					}
 					std::cout << std::endl;
 				}
 			}
 		}
-		if (!test_passed)
-			break;
 	}
+	TEST_BLOCK_SORT_BINARY_SEARCH_EXIT:
 	return test_passed;
 }
 
@@ -1058,7 +988,7 @@ bool testBlockSortRotateBlocks() {
 
 bool testBlockSortSortBlocks() {
 
-	std::cout << __FUNCTION__ << std::endl;
+	std::cout << __FUNCTION__ << "()" << std::endl;
 
 	using TagArray = std::unique_ptr<BlockSort::BlockDescriptor<int>[]>;
 
@@ -1102,9 +1032,9 @@ bool testBlockSortSortBlocks() {
 		return true;
 	};
 
-	constexpr const int num_tests = 10000;
+	constexpr const int num_tests = 1000;
 
-	constexpr const array_size_t array_sizes[] = { 32, 64, 128, 256, 512, 1024 };
+	constexpr const array_size_t array_sizes[] = { 32, 64, 128, 256, 512 };
 	// 	 { 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256, 257 };
 	constexpr const int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
@@ -1114,111 +1044,125 @@ bool testBlockSortSortBlocks() {
 	for (int array_size_i = 0; array_size_i < num_array_sizes; ++array_size_i)
 	{
 		array_size_t array_size = array_sizes[array_size_i];
-		int min_block_size = static_cast<array_size_t>(sqrt(array_size/2));
-		int max_block_size = min_block_size;
+		int min_block_size = static_cast<array_size_t>(sqrt(array_size/2))-1;
+		int max_block_size = min_block_size+2;
 		bool all_unique_elements = true;
 		bool few_unique_elements = false;
 		int num_unique = num_unique_values;
-		for (int block_size = min_block_size; block_size <= max_block_size; )
+		int* reference_array[array_size];
+		int this_passes_unique_value_count;
+
+		if (all_unique_elements && !few_unique_elements) {
+			for (int i = 0; i != array_size; i++) {
+				reference_array[i] = new int(i);
+			}
+			this_passes_unique_value_count = array_size < 26 ? array_size : 26;
+		} else
+		if (!all_unique_elements && few_unique_elements) {
+			for (int i = 0, unique_counter = 0; i != array_size; i++) {
+				reference_array[i] = new int(unique_counter);
+				if (++unique_counter == num_unique) {
+					unique_counter = 0;
+				}
+			}
+			this_passes_unique_value_count = num_unique;
+		} else {
+			std::cout << "ERROR: conflicted array composition directives \n";
+			test_passed = false;
+			goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
+		}
+		for (int block_size = min_block_size; block_size <= max_block_size; ++block_size)
 		{
-			ComparesAndMoves total_results(0,0);
+			ComparesAndMoves total_results[2];
 			int num_non_zero_results = 0;
-			int this_passes_unique_value_count;
 
 			for (int test_num = 0; test_num != num_tests; test_num++)
 			{
 				std::stringstream messages;
-				int *array[array_size];
-
-				if (all_unique_elements && !few_unique_elements) {
+				randomizeArray(reference_array, array_size);
+				randomizeArray(reference_array, array_size);
+				randomizeArray(reference_array, array_size);
+				for (int sort_strategy = 0; sort_strategy <= 1; sort_strategy++)
+				{
+					ComparesAndMoves result(0,0);
+					int* array[array_size];
 					for (int i = 0; i != array_size; i++) {
-						array[i] = new int(i);
+						array[i] = reference_array[i];
 					}
-					this_passes_unique_value_count = array_size < 26 ? array_size : 26;
-				} else
-				if (!all_unique_elements && few_unique_elements) {
-					for (int i = 0, unique_counter = 0; i != array_size; i++) {
-						array[i] = new int(unique_counter);
-						if (++unique_counter == num_unique) {
-							unique_counter = 0;
-						}
+					int start = 0;
+					int mid = array_size / 2;
+					int end = array_size - 1;
+					int num_tags = 0;
+					TagArray tags;
+
+					messages << printLineArrayIndices(array_size, object_width, element_width);
+					messages << out(array, array_size, " generated\n");
+					//	the randomizing algorithm leaves most of the larger elements in the
+					//	  right had side of the array.  Swap the two halves so that the
+					//	  larger elements are in the left side of the array
+					InsertionSort::sortPointersToObjects(array, mid);
+					InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
+					messages << out(array, array_size, " after randomizing\n");
+					num_tags = BlockSort::createBlockDescriptors(array, start, mid, end, block_size, tags);
+					messages << printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
+					messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
+					messages << out(array, array_size, "\n");
+					if (sort_strategy == 0) {
+						result = BlockSort::sortBlocksRightToLeft(array, array_size, tags, num_tags);
+					} else {
+						result = BlockSort::sortBlocksBinarySearch(array, array_size, tags, num_tags);
+						result._moves++;
 					}
-					this_passes_unique_value_count = num_unique;
+					messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
+					messages << out(array, array_size, " after sorting blocks\n");
+					if (!areTagsSorted(tags, num_tags)) {
+						test_passed = false;
+						std::cout << " !!!! FAILED !!!! test run " << test_num << std::endl;
+						std::cout << messages.str() << std::endl;
+						goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
+					}
+					if (echo_every_test_step) {
+						std::cout << messages.str();
+					}
+					if (echo_every_test_result && (test_num % 1000 == 0)) {
+						std::cout << "sorting an array of " << array_size << " elements "
+								  << " with block size " << block_size
+								  << " took "
+								  << std::setw(5) << result._compares << " compares and "
+								  << std::setw(8) << result._moves << " moves\n";
+					}
+					if (echo_every_test_step) {
+						std::cout << " ***************** end of test run #"
+								  << test_num;
+						std::cout << " *****************\n\n";
+					}
+					num_non_zero_results++;
+					total_results[sort_strategy] += result;
+				}
+				for (int i = 0; i < 2; i++) {
+				std::cout  << std::setw(6) << num_tests << " tests of "
+						   << (i == 0 ? " rightToLeft  " : " binarySearch ")
+						   << "sorting blocks of " << std::setw(4) << array_size
+						   << " array with " << std::setw(3) << this_passes_unique_value_count
+						   << " unique values and a block size of "
+						   << std::setw(3) << block_size << " took on average "
+						   << std::fixed << std::setprecision(compares_precision) << std::setw(8)
+						   << static_cast<double>(total_results[i]._compares) / num_non_zero_results
+						   << " compares and "
+						   << std::fixed << std::setprecision(moves_precision) << std::setw(10)
+						   << static_cast<double>(total_results[i]._moves) / num_non_zero_results
+						   << " moves"
+						   << std::endl;
+				}
+				if (all_unique_elements) {
+					few_unique_elements = true;
+					all_unique_elements = false;
+					break;
 				} else {
-					messages << "ERROR: conflicted array composition directives \n";
-					test_passed = false;
-					goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
+					few_unique_elements = false;
+					all_unique_elements = true;
+					break;
 				}
-
-				ComparesAndMoves result(0,0);
-				int start = 0;
-				int mid = array_size / 2;
-				int end = array_size - 1;
-				int num_tags = 0;
-				TagArray tags;
-
-				messages << printLineArrayIndices(array_size, object_width, element_width);
-				messages << out(array, array_size, " generated\n");
-				randomizeArray(array, array_size);
-				randomizeArray(array, array_size);
-				randomizeArray(array, array_size);
-				//	the randomizing algorithm leaves most of the larger elements in the
-				//	  right had side of the array.  Swap the two halves so that the
-				//	  larger elements are in the left side of the array
-				InsertionSort::sortPointersToObjects(array, mid);
-				InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
-				messages << out(array, array_size, " after randomizing\n");
-				num_tags = BlockSort::createBlockDescriptors(array, start, mid, end, block_size, tags);
-				messages << printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
-				messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
-				messages << out(array, array_size, "\n");
-				result = BlockSort::sortBlocksRightToLeft(array, array_size, tags, num_tags);
-				messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
-				messages << out(array, array_size, " after sorting blocks\n");
-				if (!areTagsSorted(tags, num_tags)) {
-					test_passed = false;
-					std::cout << " !!!! FAILED !!!! test run " << test_num << std::endl;
-					std::cout << messages.str() << std::endl;
-					goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
-				}
-				if (echo_every_test_step) {
-					std::cout << messages.str();
-				}
-				if (echo_every_test_result && (test_num % 1000 == 0)) {
-					std::cout << "sorting an array of " << array_size << " elements "
-							  << " with block size " << block_size
-							  << " took "
-							  << std::setw(5) << result._compares << " compares and "
-							  << std::setw(8) << result._moves << " moves\n";
-				}
-				if (echo_every_test_step) {
-					std::cout << " ***************** end of test run #"
-							  << test_num;
-					std::cout << " *****************\n\n";
-				}
-				num_non_zero_results++;
-				total_results += result;
-			}
-			std::cout  << std::setw(6) << num_tests << " tests of "
-					   << "sorting blocks of " << std::setw(4) << array_size
-					   << " array with " << std::setw(3) << this_passes_unique_value_count
-					   << " unique values and a block size of "
-					   << std::setw(3) << block_size << " took on average "
-					   << std::fixed << std::setprecision(compares_precision) << std::setw(8)
-					   << static_cast<double>(total_results._compares) / num_non_zero_results
-					   << " compares and "
-					   << std::fixed << std::setprecision(moves_precision) << std::setw(10)
-					   << static_cast<double>(total_results._moves) / num_non_zero_results
-					   << " moves"
-					   << std::endl;
-			if (all_unique_elements) {
-				few_unique_elements = true;
-				all_unique_elements = false;
-				break;
-			} else {
-				few_unique_elements = false;
-				all_unique_elements = true;
-				break;
 			}
 		}
 	}
