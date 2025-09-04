@@ -1,40 +1,135 @@
-Sorting Performance In C++ built on Sep  3 2025 at 16:07:15
+Sorting Performance In C++ built on Sep  4 2025 at 14:53:21
 testBlockSort()
 testBlockSortSortBlocks()
-  1000 tests of binarySearch sorting blocks of   32 array with  26 unique values and a block size of   3 took on average       69.0 moves    11.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of   32 array with  26 unique values and a block size of   3 took on average       69.0 moves     9.5 compares and 
-  1000 tests of binarySearch sorting blocks of   32 array with  26 unique values and a block size of   4 took on average       49.5 moves     7.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of   32 array with  26 unique values and a block size of   4 took on average       49.5 moves     6.0 compares and 
-  1000 tests of binarySearch sorting blocks of   32 array with  26 unique values and a block size of   5 took on average       24.0 moves     5.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of   32 array with  26 unique values and a block size of   5 took on average       24.0 moves     5.0 compares and 
+  1000 tests of Binary        sorting blocks of   32 array with  32 unique values and a block size of   3 took on average      134.7 moves and     22.1 compares
+  1000 tests of Right to left sorting blocks of   32 array with  32 unique values and a block size of   3 took on average      134.7 moves and     19.0 compares
+  1000 tests of Hybrid        sorting blocks of   32 array with  32 unique values and a block size of   3 took on average      134.7 moves and     19.2 compares
 
-  1000 tests of binarySearch sorting blocks of   64 array with  26 unique values and a block size of   4 took on average      172.5 moves    17.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of   64 array with  26 unique values and a block size of   4 took on average      172.5 moves    14.0 compares and 
-  1000 tests of binarySearch sorting blocks of   64 array with  26 unique values and a block size of   5 took on average       99.0 moves    12.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of   64 array with  26 unique values and a block size of   5 took on average       99.0 moves    11.0 compares and 
-  1000 tests of binarySearch sorting blocks of   64 array with  26 unique values and a block size of   6 took on average      123.0 moves    11.5 compares and 
-  1000 tests of rightToLeft  sorting blocks of   64 array with  26 unique values and a block size of   6 took on average      123.0 moves    10.0 compares and 
+  1000 tests of Binary        sorting blocks of   32 array with  32 unique values and a block size of   4 took on average       97.5 moves and     14.9 compares
+  1000 tests of Right to left sorting blocks of   32 array with  32 unique values and a block size of   4 took on average       97.5 moves and     12.6 compares
+  1000 tests of Hybrid        sorting blocks of   32 array with  32 unique values and a block size of   4 took on average       97.5 moves and     13.2 compares
 
-  1000 tests of binarySearch sorting blocks of  128 array with  26 unique values and a block size of   7 took on average      447.0 moves    23.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of  128 array with  26 unique values and a block size of   7 took on average      447.0 moves    17.5 compares and 
-  1000 tests of binarySearch sorting blocks of  128 array with  26 unique values and a block size of   8 took on average      384.0 moves    17.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of  128 array with  26 unique values and a block size of   8 took on average      384.0 moves    13.5 compares and 
-  1000 tests of binarySearch sorting blocks of  128 array with  26 unique values and a block size of   9 took on average      201.0 moves    13.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of  128 array with  26 unique values and a block size of   9 took on average      201.0 moves    12.0 compares and 
+  1000 tests of Binary        sorting blocks of   32 array with  32 unique values and a block size of   5 took on average       70.0 moves and     12.4 compares
+  1000 tests of Right to left sorting blocks of   32 array with  32 unique values and a block size of   5 took on average       70.0 moves and     11.4 compares
+  1000 tests of Hybrid        sorting blocks of   32 array with  32 unique values and a block size of   5 took on average       70.0 moves and     11.1 compares
 
-  1000 tests of binarySearch sorting blocks of  256 array with  26 unique values and a block size of  10 took on average     1189.5 moves    33.5 compares and 
-  1000 tests of rightToLeft  sorting blocks of  256 array with  26 unique values and a block size of  10 took on average     1189.5 moves    24.0 compares and 
-  1000 tests of binarySearch sorting blocks of  256 array with  26 unique values and a block size of  11 took on average      885.0 moves    26.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of  256 array with  26 unique values and a block size of  11 took on average      885.0 moves    20.5 compares and 
-  1000 tests of binarySearch sorting blocks of  256 array with  26 unique values and a block size of  12 took on average      906.0 moves    26.0 compares and 
-  1000 tests of rightToLeft  sorting blocks of  256 array with  26 unique values and a block size of  12 took on average      906.0 moves    19.5 compares and 
 
-  1000 tests of binarySearch sorting blocks of  512 array with  26 unique values and a block size of  15 took on average     2892.0 moves    45.5 compares and 
-  1000 tests of rightToLeft  sorting blocks of  512 array with  26 unique values and a block size of  15 took on average     2892.0 moves    32.5 compares and 
-  1000 tests of binarySearch sorting blocks of  512 array with  26 unique values and a block size of  16 took on average     3319.5 moves    46.5 compares and 
-  1000 tests of rightToLeft  sorting blocks of  512 array with  26 unique values and a block size of  16 took on average     3319.5 moves    30.5 compares and 
-  1000 tests of binarySearch sorting blocks of  512 array with  26 unique values and a block size of  17 took on average     2880.0 moves    41.5 compares and 
-  1000 tests of rightToLeft  sorting blocks of  512 array with  26 unique values and a block size of  17 took on average     2880.0 moves    28.5 compares and 
+  1000 tests of Binary        sorting blocks of   32 array with   5 unique values and a block size of   3 took on average      113.3 moves and     20.8 compares
+  1000 tests of Right to left sorting blocks of   32 array with   5 unique values and a block size of   3 took on average      113.3 moves and     18.5 compares
+  1000 tests of Hybrid        sorting blocks of   32 array with   5 unique values and a block size of   3 took on average      113.3 moves and     18.0 compares
+
+  1000 tests of Binary        sorting blocks of   32 array with   5 unique values and a block size of   4 took on average       80.8 moves and     14.0 compares
+  1000 tests of Right to left sorting blocks of   32 array with   5 unique values and a block size of   4 took on average       80.8 moves and     12.2 compares
+  1000 tests of Hybrid        sorting blocks of   32 array with   5 unique values and a block size of   4 took on average       80.8 moves and     12.6 compares
+
+  1000 tests of Binary        sorting blocks of   32 array with   5 unique values and a block size of   5 took on average       55.0 moves and     11.1 compares
+  1000 tests of Right to left sorting blocks of   32 array with   5 unique values and a block size of   5 took on average       55.0 moves and     10.7 compares
+  1000 tests of Hybrid        sorting blocks of   32 array with   5 unique values and a block size of   5 took on average       55.0 moves and     10.1 compares
+
+
+  1000 tests of Binary        sorting blocks of   64 array with  64 unique values and a block size of   4 took on average      387.1 moves and     34.6 compares
+  1000 tests of Right to left sorting blocks of   64 array with  64 unique values and a block size of   4 took on average      387.1 moves and     27.6 compares
+  1000 tests of Hybrid        sorting blocks of   64 array with  64 unique values and a block size of   4 took on average      387.1 moves and     28.3 compares
+
+  1000 tests of Binary        sorting blocks of   64 array with  64 unique values and a block size of   5 took on average      295.9 moves and     27.8 compares
+  1000 tests of Right to left sorting blocks of   64 array with  64 unique values and a block size of   5 took on average      295.9 moves and     23.1 compares
+  1000 tests of Hybrid        sorting blocks of   64 array with  64 unique values and a block size of   5 took on average      295.9 moves and     23.1 compares
+
+  1000 tests of Binary        sorting blocks of   64 array with  64 unique values and a block size of   6 took on average      247.5 moves and     22.4 compares
+  1000 tests of Right to left sorting blocks of   64 array with  64 unique values and a block size of   6 took on average      247.5 moves and     19.1 compares
+  1000 tests of Hybrid        sorting blocks of   64 array with  64 unique values and a block size of   6 took on average      247.5 moves and     19.0 compares
+
+
+  1000 tests of Binary        sorting blocks of   64 array with   5 unique values and a block size of   4 took on average      294.6 moves and     29.6 compares
+  1000 tests of Right to left sorting blocks of   64 array with   5 unique values and a block size of   4 took on average      294.6 moves and     25.8 compares
+  1000 tests of Hybrid        sorting blocks of   64 array with   5 unique values and a block size of   4 took on average      294.6 moves and     25.9 compares
+
+  1000 tests of Binary        sorting blocks of   64 array with   5 unique values and a block size of   5 took on average      253.8 moves and     25.7 compares
+  1000 tests of Right to left sorting blocks of   64 array with   5 unique values and a block size of   5 took on average      253.8 moves and     22.2 compares
+  1000 tests of Hybrid        sorting blocks of   64 array with   5 unique values and a block size of   5 took on average      253.8 moves and     21.9 compares
+
+  1000 tests of Binary        sorting blocks of   64 array with   5 unique values and a block size of   6 took on average      221.5 moves and     21.3 compares
+  1000 tests of Right to left sorting blocks of   64 array with   5 unique values and a block size of   6 took on average      221.5 moves and     18.7 compares
+  1000 tests of Hybrid        sorting blocks of   64 array with   5 unique values and a block size of   6 took on average      221.5 moves and     18.1 compares
+
+
+  1000 tests of Binary        sorting blocks of  128 array with 128 unique values and a block size of   7 took on average      827.3 moves and     43.2 compares
+  1000 tests of Right to left sorting blocks of  128 array with 128 unique values and a block size of   7 took on average      827.3 moves and     34.0 compares
+  1000 tests of Hybrid        sorting blocks of  128 array with 128 unique values and a block size of   7 took on average      827.3 moves and     34.5 compares
+
+  1000 tests of Binary        sorting blocks of  128 array with 128 unique values and a block size of   8 took on average      741.1 moves and     36.1 compares
+  1000 tests of Right to left sorting blocks of  128 array with 128 unique values and a block size of   8 took on average      741.1 moves and     28.1 compares
+  1000 tests of Hybrid        sorting blocks of  128 array with 128 unique values and a block size of   8 took on average      741.1 moves and     28.7 compares
+
+  1000 tests of Binary        sorting blocks of  128 array with 128 unique values and a block size of   9 took on average      638.5 moves and     32.7 compares
+  1000 tests of Right to left sorting blocks of  128 array with 128 unique values and a block size of   9 took on average      638.5 moves and     26.5 compares
+  1000 tests of Hybrid        sorting blocks of  128 array with 128 unique values and a block size of   9 took on average      638.5 moves and     26.5 compares
+
+
+  1000 tests of Binary        sorting blocks of  128 array with   5 unique values and a block size of   7 took on average      547.4 moves and     33.2 compares
+  1000 tests of Right to left sorting blocks of  128 array with   5 unique values and a block size of   7 took on average      547.4 moves and     30.9 compares
+  1000 tests of Hybrid        sorting blocks of  128 array with   5 unique values and a block size of   7 took on average      547.4 moves and     29.9 compares
+
+  1000 tests of Binary        sorting blocks of  128 array with   5 unique values and a block size of   8 took on average      535.7 moves and     29.9 compares
+  1000 tests of Right to left sorting blocks of  128 array with   5 unique values and a block size of   8 took on average      535.7 moves and     25.9 compares
+  1000 tests of Hybrid        sorting blocks of  128 array with   5 unique values and a block size of   8 took on average      535.7 moves and     25.9 compares
+
+  1000 tests of Binary        sorting blocks of  128 array with   5 unique values and a block size of   9 took on average      504.6 moves and     29.6 compares
+  1000 tests of Right to left sorting blocks of  128 array with   5 unique values and a block size of   9 took on average      504.6 moves and     25.0 compares
+  1000 tests of Hybrid        sorting blocks of  128 array with   5 unique values and a block size of   9 took on average      504.6 moves and     25.0 compares
+
+
+  1000 tests of Binary        sorting blocks of  256 array with 256 unique values and a block size of  10 took on average     2312.5 moves and     65.0 compares
+  1000 tests of Right to left sorting blocks of  256 array with 256 unique values and a block size of  10 took on average     2312.5 moves and     46.9 compares
+  1000 tests of Hybrid        sorting blocks of  256 array with 256 unique values and a block size of  10 took on average     2312.5 moves and     48.3 compares
+
+  1000 tests of Binary        sorting blocks of  256 array with 256 unique values and a block size of  11 took on average     2090.2 moves and     58.3 compares
+  1000 tests of Right to left sorting blocks of  256 array with 256 unique values and a block size of  11 took on average     2090.2 moves and     42.8 compares
+  1000 tests of Hybrid        sorting blocks of  256 array with 256 unique values and a block size of  11 took on average     2090.2 moves and     44.0 compares
+
+  1000 tests of Binary        sorting blocks of  256 array with 256 unique values and a block size of  12 took on average     1929.7 moves and     52.4 compares
+  1000 tests of Right to left sorting blocks of  256 array with 256 unique values and a block size of  12 took on average     1929.7 moves and     39.1 compares
+  1000 tests of Hybrid        sorting blocks of  256 array with 256 unique values and a block size of  12 took on average     1929.7 moves and     40.3 compares
+
+
+  1000 tests of Binary        sorting blocks of  256 array with   5 unique values and a block size of  10 took on average     1106.4 moves and     40.9 compares
+  1000 tests of Right to left sorting blocks of  256 array with   5 unique values and a block size of  10 took on average     1106.4 moves and     39.8 compares
+  1000 tests of Hybrid        sorting blocks of  256 array with   5 unique values and a block size of  10 took on average     1106.4 moves and     39.7 compares
+
+  1000 tests of Binary        sorting blocks of  256 array with   5 unique values and a block size of  11 took on average     1083.8 moves and     38.9 compares
+  1000 tests of Right to left sorting blocks of  256 array with   5 unique values and a block size of  11 took on average     1083.8 moves and     36.9 compares
+  1000 tests of Hybrid        sorting blocks of  256 array with   5 unique values and a block size of  11 took on average     1083.8 moves and     36.8 compares
+
+  1000 tests of Binary        sorting blocks of  256 array with   5 unique values and a block size of  12 took on average     1076.2 moves and     35.9 compares
+  1000 tests of Right to left sorting blocks of  256 array with   5 unique values and a block size of  12 took on average     1076.2 moves and     34.0 compares
+  1000 tests of Hybrid        sorting blocks of  256 array with   5 unique values and a block size of  12 took on average     1076.2 moves and     33.1 compares
+
+
+  1000 tests of Binary        sorting blocks of  512 array with 512 unique values and a block size of  15 took on average     6106.0 moves and     94.3 compares
+  1000 tests of Right to left sorting blocks of  512 array with 512 unique values and a block size of  15 took on average     6106.0 moves and     65.2 compares
+  1000 tests of Hybrid        sorting blocks of  512 array with 512 unique values and a block size of  15 took on average     6106.0 moves and     66.2 compares
+
+  1000 tests of Binary        sorting blocks of  512 array with 512 unique values and a block size of  16 took on average     5745.8 moves and     86.3 compares
+  1000 tests of Right to left sorting blocks of  512 array with 512 unique values and a block size of  16 took on average     5745.8 moves and     59.2 compares
+  1000 tests of Hybrid        sorting blocks of  512 array with 512 unique values and a block size of  16 took on average     5745.8 moves and     60.8 compares
+
+  1000 tests of Binary        sorting blocks of  512 array with 512 unique values and a block size of  17 took on average     5384.4 moves and     81.6 compares
+  1000 tests of Right to left sorting blocks of  512 array with 512 unique values and a block size of  17 took on average     5384.4 moves and     57.5 compares
+  1000 tests of Hybrid        sorting blocks of  512 array with 512 unique values and a block size of  17 took on average     5384.4 moves and     58.1 compares
+
+
+  1000 tests of Binary        sorting blocks of  512 array with   5 unique values and a block size of  15 took on average     2164.2 moves and     51.8 compares
+  1000 tests of Right to left sorting blocks of  512 array with   5 unique values and a block size of  15 took on average     2164.2 moves and     53.1 compares
+  1000 tests of Hybrid        sorting blocks of  512 array with   5 unique values and a block size of  15 took on average     2164.2 moves and     51.5 compares
+
+  1000 tests of Binary        sorting blocks of  512 array with   5 unique values and a block size of  16 took on average     2153.7 moves and     48.8 compares
+  1000 tests of Right to left sorting blocks of  512 array with   5 unique values and a block size of  16 took on average     2153.7 moves and     48.2 compares
+  1000 tests of Hybrid        sorting blocks of  512 array with   5 unique values and a block size of  16 took on average     2153.7 moves and     47.5 compares
+
+  1000 tests of Binary        sorting blocks of  512 array with   5 unique values and a block size of  17 took on average     2135.9 moves and     47.3 compares
+  1000 tests of Right to left sorting blocks of  512 array with   5 unique values and a block size of  17 took on average     2135.9 moves and     47.6 compares
+  1000 tests of Hybrid        sorting blocks of  512 array with   5 unique values and a block size of  17 took on average     2135.9 moves and     46.2 compares
+
 
 PASS:  function testBlockSortSortBlocks() returns TRUE
 testBlockSort() ran 1 successful tests
