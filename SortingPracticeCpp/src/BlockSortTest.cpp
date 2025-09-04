@@ -990,6 +990,8 @@ bool testBlockSortSortBlocks() {
 
 	std::cout << __FUNCTION__ << "()" << std::endl;
 
+	enum SortingStrategy { BINARY, LEFT_TO_RIGHT, RIGHT_TO_LEFT };
+
 	using TagArray = std::unique_ptr<BlockSort::BlockDescriptor<int>[]>;
 
 	constexpr const bool echo_every_test_step = false;
@@ -1032,8 +1034,6 @@ bool testBlockSortSortBlocks() {
 		return true;
 	};
 
-	constexpr const int num_tests = 1000;
-
 	constexpr const array_size_t array_sizes[] = { 32, 64, 128, 256, 512 };
 	// 	 { 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256, 257 };
 	constexpr const int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
@@ -1071,10 +1071,16 @@ bool testBlockSortSortBlocks() {
 			test_passed = false;
 			goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
 		}
+
+		constexpr SortingStrategy sorting_strategies[] = { BINARY, RIGHT_TO_LEFT };
+		int num_sorting_strategies = sizeof(sorting_strategies) / sizeof(SortingStrategy);
+
 		for (int block_size = min_block_size; block_size <= max_block_size; ++block_size)
 		{
-			ComparesAndMoves total_results[2];
+			ComparesAndMoves total_results[num_sorting_strategies];
 			int num_non_zero_results = 0;
+
+			constexpr int num_tests = 1000;
 
 			for (int test_num = 0; test_num != num_tests; test_num++)
 			{
@@ -1082,7 +1088,8 @@ bool testBlockSortSortBlocks() {
 				randomizeArray(reference_array, array_size);
 				randomizeArray(reference_array, array_size);
 				randomizeArray(reference_array, array_size);
-				for (int sort_strategy = 0; sort_strategy <= 1; sort_strategy++)
+
+				for (int strategy_i = 0; strategy_i < num_sorting_strategies; strategy_i++)
 				{
 					ComparesAndMoves result(0,0);
 					int* array[array_size];
@@ -1097,24 +1104,33 @@ bool testBlockSortSortBlocks() {
 
 					messages << printLineArrayIndices(array_size, object_width, element_width);
 					messages << out(array, array_size, " generated\n");
+
 					//	the randomizing algorithm leaves most of the larger elements in the
 					//	  right had side of the array.  Swap the two halves so that the
 					//	  larger elements are in the left side of the array
 					InsertionSort::sortPointersToObjects(array, mid);
 					InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
+
 					messages << out(array, array_size, " after randomizing\n");
 					num_tags = BlockSort::createBlockDescriptors(array, start, mid, end, block_size, tags);
 					messages << printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
 					messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
 					messages << out(array, array_size, "\n");
-					if (sort_strategy == 0) {
+
+					switch(sorting_strategies[strategy_i]) {
+					case RIGHT_TO_LEFT:
 						result = BlockSort::sortBlocksRightToLeft(array, array_size, tags, num_tags);
-					} else {
+						break;
+					case BINARY:
 						result = BlockSort::sortBlocksBinarySearch(array, array_size, tags, num_tags);
-						result._moves++;
+						break;
+					default:
+						break;
 					}
+
 					messages << BlockSort::tagArrayToString(std::string("\n"), tags, num_tags, element_width);
 					messages << out(array, array_size, " after sorting blocks\n");
+
 					if (!areTagsSorted(tags, num_tags)) {
 						test_passed = false;
 						std::cout << " !!!! FAILED !!!! test run " << test_num << std::endl;
@@ -1137,38 +1153,55 @@ bool testBlockSortSortBlocks() {
 						std::cout << " *****************\n\n";
 					}
 					num_non_zero_results++;
-					total_results[sort_strategy] += result;
+					total_results[strategy_i] += result;
 				}
-				for (int i = 0; i < 2; i++) {
-				std::cout  << std::setw(6) << num_tests << " tests of "
-						   << (i == 0 ? " rightToLeft  " : " binarySearch ")
-						   << "sorting blocks of " << std::setw(4) << array_size
-						   << " array with " << std::setw(3) << this_passes_unique_value_count
-						   << " unique values and a block size of "
-						   << std::setw(3) << block_size << " took on average "
-						   << std::fixed << std::setprecision(compares_precision) << std::setw(8)
-						   << static_cast<double>(total_results[i]._compares) / num_non_zero_results
-						   << " compares and "
-						   << std::fixed << std::setprecision(moves_precision) << std::setw(10)
-						   << static_cast<double>(total_results[i]._moves) / num_non_zero_results
-						   << " moves"
-						   << std::endl;
-				}
-				if (all_unique_elements) {
-					few_unique_elements = true;
-					all_unique_elements = false;
-					break;
-				} else {
-					few_unique_elements = false;
-					all_unique_elements = true;
-					break;
+				for (int strategy_i = 0; strategy_i < num_sorting_strategies; strategy_i++) {
+					std::string strategy_str;
+					ComparesAndMoves strategy_result;
+					switch(sorting_strategies[strategy_i]) {
+					case BINARY:
+						strategy_str = "binarySearch ";
+						strategy_result = total_results[strategy_i];
+						break;
+					case RIGHT_TO_LEFT:
+						strategy_str = "rightToLeft  ";
+						strategy_result = total_results[strategy_i];
+						break;
+					default:
+						strategy_str = "??? strategy ";
+						strategy_result = total_results[strategy_i];
+						break;
+					}
+					std::cout  << std::setw(6) << num_tests << " tests of "
+							   << strategy_str
+							   << "sorting blocks of " << std::setw(4) << array_size
+							   << " array with " << std::setw(3) << this_passes_unique_value_count
+							   << " unique values and a block size of "
+							   << std::setw(3) << block_size << " took on average "
+							   << std::fixed << std::setprecision(moves_precision) << std::setw(10)
+							   << static_cast<double>(strategy_result._moves) / num_non_zero_results
+							   << " moves"
+							   << std::fixed << std::setprecision(compares_precision) << std::setw(8)
+							   << static_cast<double>(strategy_result._compares) / num_non_zero_results
+							   << " compares and "
+							   << std::endl;
+					}
+					if (all_unique_elements) {
+						few_unique_elements = true;
+						all_unique_elements = false;
+						break;
+					} else {
+						few_unique_elements = false;
+						all_unique_elements = true;
+						break;
+					}
 				}
 			}
+			std::cout << std::endl;
 		}
-	}
-TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL:
+	TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL:
 	return test_passed;
-}
+	}
 
 bool testBlockSortSort() {
 	bool passed = true;
