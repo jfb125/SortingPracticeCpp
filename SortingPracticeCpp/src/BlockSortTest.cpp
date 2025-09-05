@@ -137,10 +137,10 @@ std::string arrayToString(T** array, array_size_t array_size,
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-//#define TEST_BLOCK_SORT_MERGE_BLOCKS
+#define TEST_BLOCK_SORT_MERGE_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
-#define TEST_BLOCK_SORT_SORT_BLOCKS
+//#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 //#define TEST_BLOCK_SORT_BINARY_TAG_SEARCH
 
@@ -460,6 +460,91 @@ bool testBlockSortBinaryBlockSearch() {
 	}
 	TEST_BLOCK_SORT_BINARY_SEARCH_EXIT:
 	return test_passed;
+}
+
+/*
+ *	ComparesAndMoves mergeBLocksIndirectionArray(array, left_start, left_end, right_start, right_end);
+ *
+ *		Merges two blocks, giving priority if two elements array[left] == array[right]
+ *			to the element on the left.  This is to preserve stability, since the elements
+ *			on the left appeared in the unsorted array to the left of the elements in the right
+ *
+ *		Merging in place is accomplished by creating a temporary array of pointers to the
+ *			elements in the left block. If swapping a value into the dst causes an element
+ *			that was initially in the left_block to move, the array of pointers to the
+ *			un-merged elements in the left block gets updated to keep track of where the
+ *			left value is now located
+ *  ls   le  rs   re
+ *	0  1  2  3  4  5   i[0] i[1] i[2]  l r d  i[l] a[i[l]] a[r]
+ *	A  C  E  B  D  F    0    1    2    0 3 0   0     'A'    'B'		i[0] is ignored
+ *	A  C  E  B  D  F    -    1    2    1 3 1   1     'C'    'B'	    i[1] 'C' moves to 3
+ *	A  B  E  C  D  F    -    3    2    1 4 2   3     'C'    'D'     i[2] 'E' moves to 4
+ *	A  B  C  E  D  F    -    -    3    2 4 3   3     'E'    'D'     i[2] 'E' moves to 5
+ *	A  B  C  D  E  F    -    -    5    2 4 4   5     'E'    'F'     i[2] 'E' does not move
+ *	A  B  C  D  E  F    -    -    -    3 5 5   x	flush the right side
+ *	A  B  C  D  E  F    -    -    -    3 6 x   x
+ */
+
+template <typename T>
+ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
+											 array_size_t left_start, array_size_t left_end,
+											 array_size_t right_start, array_size_t right_end) {
+	ComparesAndMoves result(0,0);
+
+	array_size_t left_span = left_end - left_start + 1;
+	array_size_t right_span = right_end - right_start + 1;
+
+	if (right_span < left_span) {
+		// TODO - throw an error
+		return result;
+	}
+
+	if (left_span == 0 || right_span == 0) {
+		return result;
+	}
+
+	//
+	array_size_t right_i 	= right_start;
+	array_size_t dst    	= left_start;
+
+	array_size_t indirection_i;
+	array_size_t indirection_stop = left_span;
+	array_size_t indirections[left_span];
+	for (array_size_t i = 0, src = left_start; i != left_span; ++i, ++src) {
+		indirections[i] = src;
+	}
+
+	while (1) {
+		array_size_t left_source = indirections[indirection_i];
+		if (array[left_source] <= array[right_i]) {
+			// the value comes for the left block
+			T* tmp = array[dest];
+			array[dest] = array[left_source];
+			array[left_source] = tmp;
+			//	if the value that was swapped was a member of the indirection,
+			//	  which are the A_Block values, we need to update it's indirection
+			//	  (note that the last A value, [left_stop-1], does not have
+			//	   an indirection[] member after it)
+			if (indirection_i < indirection_stop-2) {
+				if (indirections[indirection_i+1] == dest) {
+					indirections[indirection_i+1] = left_source;
+				}
+			}
+			indirection_i++;
+			if (++dst > left_end) {
+				dst = right_start;
+			}
+			dest++;
+			//	if we have moved / merged all of the A_Block values, done
+			if (indirection_i == indirection_stop) {
+				break;
+			}
+		} else {
+
+		}
+	}
+
+	return result;
 }
 
 bool testBlockSortMergeBlocks() {
