@@ -148,6 +148,7 @@ bool testBlockSortBinaryBlockSearch();
 bool testBlockSortModulo();
 bool testFloorLog2();
 bool testBlockSortMergeBlocks();
+bool testBlockSortMergeBlocksExhaustively();
 bool testBlockSortRotateArrayElements();
 bool testBlockSortRotateBlocks();
 bool testBlockSortSort();
@@ -241,7 +242,7 @@ bool testBlockSort() {
 
 #ifdef TEST_BLOCK_SORT_MERGE_BLOCKS
 	num_tests++;
-	runTest(passed, testBlockSortMergeBlocks, "function testBlockSortMergeBlocks()");
+	runTest(passed, testBlockSortMergeBlocksExhaustively, "function testBlockSortMergeBlocksExhaustively()");
 	if (!passed)
 		return passed;
 	tests_passed++;
@@ -474,15 +475,38 @@ bool testBlockSortBinaryBlockSearch() {
  *			that was initially in the left_block to move, the array of pointers to the
  *			un-merged elements in the left block gets updated to keep track of where the
  *			left value is now located
+ *	A_Block  B_Block
  *  ls   le  rs   re
- *	0  1  2  3  4  5   i[0] i[1] i[2]  l r d  i[l] a[i[l]] a[r]
+ *	0  1  2  3  4  5   i[0] i[1] i[2]  q r d  i[q] a[i[q]] a[r]
  *	A  C  E  B  D  F    0    1    2    0 3 0   0     'A'    'B'		i[0] is ignored
  *	A  C  E  B  D  F    -    1    2    1 3 1   1     'C'    'B'	    i[1] 'C' moves to 3
  *	A  B  E  C  D  F    -    3    2    1 4 2   3     'C'    'D'     i[2] 'E' moves to 4
  *	A  B  C  E  D  F    -    -    3    2 4 3   3     'E'    'D'     i[2] 'E' moves to 5
  *	A  B  C  D  E  F    -    -    5    2 4 4   5     'E'    'F'     i[2] 'E' does not move
- *	A  B  C  D  E  F    -    -    -    3 5 5   x	flush the right side
- *	A  B  C  D  E  F    -    -    -    3 6 x   x
+ *	A  B  C  D  E  F    -    -    -    3 5 5    left side has been merged, exit
+ *
+ *  A_Block  B_Block
+ *  ls   le  rs   re
+ *	0  1  2  3  4  5   i[0] i[1] i[2]  q r d  i[q] a[i[q]] a[r]
+ *	A  E1 E2 B  C  D    0    1    2    0 3 0   0     'A'    'B'		i[0] is ignored
+ *	A  E1 E2 B  C  D    -    1    2    1 3 1   1     'E1'   'B'	    i[1] 'E' moves to 3
+ *	A  B  E2 E1 C  D    -    3    2    1 4 2   3     'E2'   'C'     i[2] 'F' moves to 4
+ *	A  B  C  E1 E2 D    -    4    4    1 5 3   3     'E1'   'D'     i[2] 'E' moves to 5
+ *	A  B  C  D  E2 E1   -    5    4    1 6 4    right side is has been merged,
+ *												restore the order of the A_Block which
+ *												is at the end of the B_Block
+ *	Note that a simple (eg) insertion sort on the remaining un-merged A_Block elements
+ *		may not preserve stability b/c they may no longer be in sequence
+ *
+ *	Find the [q] that matches the destination (i.e. - where does the dst = 4
+ *		occur in the indirections[]) - in this case, q==2 contains dst == 4
+ *		xchng(dst,i[q=1]=5), i[2] = 5
+ *	A  B  C  D  E1 E2   -    -    5    2 6 5
+ *
+ *	Find the [q] that matches the destination (i.e. - where does the dst = 5
+ *		occur in the indirections[]) - in this case, q==2 contains dst == 5
+ *		xchng(dst, i[1=2]=5)
+ *	A  B  C  D  E1 E2   -    -    5    3 6 5	q = 3 & r = r_stop
  */
 
 template <typename T>
@@ -491,11 +515,17 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 											 array_size_t right_start, array_size_t right_end) {
 	ComparesAndMoves result(0,0);
 
-	array_size_t left_span = left_end - left_start + 1;
+	array_size_t left_span 	= left_end - left_start + 1;
 	array_size_t right_span = right_end - right_start + 1;
+
+	auto nextDestination = [left_end, right_start] (array_size_t &_dst) {
+		if (_dst == left_end)	_dst = right_start;
+		else					_dst++;
+	};
 
 	if (right_span < left_span) {
 		// TODO - throw an error
+		std::cout << "ERROR " << __FUNCTION__ << "() has A_Block on right side: may cause instability, exiting\n";
 		return result;
 	}
 
@@ -507,44 +537,201 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 	array_size_t right_i 	= right_start;
 	array_size_t dst    	= left_start;
 
-	array_size_t indirection_i;
-	array_size_t indirection_stop = left_span;
-	array_size_t indirections[left_span];
-	for (array_size_t i = 0, src = left_start; i != left_span; ++i, ++src) {
-		indirections[i] = src;
+	array_size_t num_indirections = left_span;
+	array_size_t indirections[num_indirections];
+	for (array_size_t i = 0, src = left_start; i < num_indirections; ) {
+		indirections[i++] = src++;
 	}
+	array_size_t indirection_i = 0;
 
-	while (1) {
+	while (dst <= right_end)
+	{
 		array_size_t left_source = indirections[indirection_i];
+
+		result._compares++;
 		if (array[left_source] <= array[right_i]) {
 			// the value comes for the left block
-			T* tmp = array[dest];
-			array[dest] = array[left_source];
+			result._moves += 3;
+			T* tmp = array[dst];
+			array[dst] = array[left_source];
 			array[left_source] = tmp;
-			//	if the value that was swapped was a member of the indirection,
-			//	  which are the A_Block values, we need to update it's indirection
-			//	  (note that the last A value, [left_stop-1], does not have
-			//	   an indirection[] member after it)
-			if (indirection_i < indirection_stop-2) {
-				if (indirections[indirection_i+1] == dest) {
+
+			//	if the value that was swapped out of [dst] was a member of the
+			//	  indirection (a left block element), update its new position
+			//	  in the indirections[]
+			//	  (note that the last A value, [indirection_stop-1], does not have
+			//	   an indirection[indirection_i+1] member after it)
+			if (indirection_i < num_indirections-2) {
+				if (indirections[indirection_i+1] == dst) {
 					indirections[indirection_i+1] = left_source;
 				}
 			}
-			indirection_i++;
-			if (++dst > left_end) {
-				dst = right_start;
-			}
-			dest++;
-			//	if we have moved / merged all of the A_Block values, done
-			if (indirection_i == indirection_stop) {
-				break;
-			}
-		} else {
 
+			//	if we have moved / merged all of the A_Block values, done
+			if (++indirection_i == num_indirections)	break;
+
+			//	if all of the locations in the left block have a merged value
+			//	  stored in them, move 'dst' to the right block
+			nextDestination(dst);
+		}
+		else
+		{
+			// value from the right block is < value from the left block
+			result._moves += 3;
+			T* tmp = array[dst];
+			array[dst] = array[right_i];
+			array[right_i] = array[dst];
+
+			//	if the value that was exchanged with [dst] was an unmreged A_Block value,
+			//	keep track of where it went
+			if (indirection_i < num_indirections) {
+				if (indirections[indirection_i] == dst) {
+					indirections[indirection_i] = right_i;
+				}
+			}
+
+			//	if all the positions in the left block have been used,
+			//	  move 'dst' to the start of the right block
+			nextDestination(dst);
+			right_i++;
+
+			if (right_i == right_end)
+			{
+				while (indirection_i < num_indirections)  {
+					// The value that is currently at 'dst' will get swapped
+					//	to a different location in the array, which means
+					//	that its value in 'indirections' will change.
+					//
+					//	Array	  _dst   _i		indirections[]
+					//	4  5  6     4     2	 [2]=6='E1', [3]=4='E2', [3]=5='E3'
+					//	E2 E3 E1
+					//
+					//	E2 will get moved to array[6], so indirection[3] needs to change to 6
+					//
+					array_size_t src = indirections[indirection_i];	// [2]=6
+					//	value at dst's indirections entry will change
+					array_size_t existings_table_location = -1;
+					for (int i = indirection_i; i != num_indirections; i++) {
+						if (indirections[i] == dst) {
+							existings_table_location = dst;
+							break;
+						}
+					}
+
+					if (existings_table_location == -1) {
+						//	TODO - throw exception
+						std::cout << "ERROR " << __FUNCTION__ << "() unabled to restore A_Block values at end of merge\n";
+						break;
+					}
+					left_source = indirections[indirection_i];
+					result._moves += 3;
+					T* tmp = array[dst];
+					array[dst] = array[left_source];
+					array[left_source] = tmp;
+					indirections[existings_table_location] = left_source;
+
+					//	if all the positions in the left block have been used,
+					//	  move 'dst' to the start of the right block
+					nextDestination(dst);
+					indirection_i++;
+				}
+				break;	// the loop that restored the a_block's values (left) is done
+			}
+		}
+	}
+	return result;
+}
+
+bool testBlockSortMergeBlocksExhaustively() {
+
+	auto testVectorToString = [] (int test_num, int num_tests, char** array, int num) -> std::string {
+		std::stringstream result;
+		result << std::setw(4) << test_num << " of " << std::setw(4) << num_tests
+				  << ": \"";
+		for (int i = num-1; i >= 0; i--) {
+			result << *array[i];
+		}
+		result << '"';
+		return result.str();
+	};
+
+	auto indicesToString = [] (int* array, int num) -> std::string {
+		std::stringstream result;
+		for (int i = 0; i != num; i++) {
+			result << array[i];
+		}
+		result << '"';
+		return result.str();
+	};
+
+	auto rotateIndicesRight = [] (int *array, int start, int end, int amount) {
+		auto xchng = [] (int *array, int i, int j) {
+			int tmp = array[i];
+			array[i] = array[j];
+			array[j] = tmp;
+		};
+
+		for (int i = start, j = end; i < j; i++, j--) {
+			xchng(array, i, j);
+		}
+		for (int i = start, j = start+amount-1; i < j; i++, j--) {
+			xchng(array, i, j);
+		}
+		for (int i = start+amount, j = end; i < j; i++, j--) {
+			xchng(array, i, j);
+		}
+	};
+
+	auto rotateValuesRight = [] (char **array, int start, int end, int amount) {
+		auto xchng = [] (char **array, int i, int j) {
+			char *tmp = array[i];
+			array[i] = array[j];
+			array[j] = tmp;
+		};
+
+		for (int i = start, j = end; i < j; i++, j--) {
+			xchng(array, i, j);
+		}
+		for (int i = start, j = start+amount-1; i < j; i++, j--) {
+			xchng(array, i, j);
+		}
+		for (int i = start+amount, j = end; i < j; i++, j--) {
+			xchng(array, i, j);
+		}
+	};
+
+	OStreamState ostream_state;
+
+	bool test_passed = true;
+
+	int test_array_size = 3;
+
+	char *test_values[test_array_size];
+	for (int i = 0; i != test_array_size; i++) {
+		test_values[i] = new char('A' + i % 26);
+	}
+
+	int num_test_vectors = 1;
+	for (int i = 1; i <= test_array_size; i++) {
+		num_test_vectors *= i;
+	}
+
+	int source_indices[test_array_size];
+	for (int i = 0;  i != test_array_size; i++) {
+		source_indices[i] = (test_array_size-1) - i;
+	}
+
+	for (int test_vector_number = 0; test_vector_number < num_test_vectors; test_vector_number++) {
+		for (int rotate_count_2_0 = 3; rotate_count_2_0; --rotate_count_2_0) {
+			for (int rotate_count_1_0 = 2; rotate_count_1_0; --rotate_count_1_0) {
+				std::cout << testVectorToString(test_vector_number++, num_test_vectors, test_values, test_array_size) << std::endl;
+				rotateValuesRight(test_values, 0, 1, 1);
+			}
+			rotateValuesRight(test_values, 0, 2, 1);
 		}
 	}
 
-	return result;
+	return test_passed;
 }
 
 bool testBlockSortMergeBlocks() {
