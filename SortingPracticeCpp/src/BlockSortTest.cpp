@@ -547,26 +547,26 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 	while (dst <= right_end)
 	{
 		array_size_t left_source = indirections[indirection_i];
-
 		result._compares++;
-		if (array[left_source] <= array[right_i]) {
-			// the value comes for the left block
-			result._moves += 3;
-			T* tmp = array[dst];
-			array[dst] = array[left_source];
-			array[left_source] = tmp;
+		if (*array[left_source] <= *array[right_i]) {
+			// the value to go in the destination is the left_block value
+			if (dst != left_source) {
+				result._moves += 3;
+				T* tmp = array[dst];
+				array[dst] = array[left_source];
+				array[left_source] = tmp;
 
-			//	if the value that was swapped out of [dst] was a member of the
-			//	  indirection (a left block element), update its new position
-			//	  in the indirections[]
-			//	  (note that the last A value, [indirection_stop-1], does not have
-			//	   an indirection[indirection_i+1] member after it)
-			if (indirection_i < num_indirections-2) {
-				if (indirections[indirection_i+1] == dst) {
-					indirections[indirection_i+1] = left_source;
+				//	if the value that was swapped out of [dst] was a member of the
+				//	  indirection (a left block element), update its new position
+				//	  in the indirections[]
+				//	  (note that the last A value, [indirection_stop-1], does not have
+				//	   an indirection[(indirection_i-1)+1] member after it)
+				if (indirection_i < num_indirections-1) {
+					if (indirections[indirection_i+1] == dst) {
+						indirections[indirection_i+1] = left_source;
+					}
 				}
 			}
-
 			//	if we have moved / merged all of the A_Block values, done
 			if (++indirection_i == num_indirections)	break;
 
@@ -580,13 +580,16 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 			result._moves += 3;
 			T* tmp = array[dst];
 			array[dst] = array[right_i];
-			array[right_i] = array[dst];
+			array[right_i] = tmp;
 
 			//	if the value that was exchanged with [dst] was an unmreged A_Block value,
-			//	keep track of where it went
+			//	update the new location of the value in the indirection table
 			if (indirection_i < num_indirections) {
-				if (indirections[indirection_i] == dst) {
-					indirections[indirection_i] = right_i;
+				for (int i = indirection_i; i != num_indirections; i++) {
+					if (indirections[i] == dst) {
+						indirections[i] = right_i;
+						break;
+					}
 				}
 			}
 
@@ -595,7 +598,10 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 			nextDestination(dst);
 			right_i++;
 
-			if (right_i == right_end)
+			//	if all of the right_block values have been placed,
+			//	  we need to arrange all the reamining a_block values
+			//	  into / at the end of the array
+			if (right_i > right_end)
 			{
 				while (indirection_i < num_indirections)  {
 					// The value that is currently at 'dst' will get swapped
@@ -608,8 +614,6 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 					//
 					//	E2 will get moved to array[6], so indirection[3] needs to change to 6
 					//
-					array_size_t src = indirections[indirection_i];	// [2]=6
-					//	value at dst's indirections entry will change
 					array_size_t existings_table_location = -1;
 					for (int i = indirection_i; i != num_indirections; i++) {
 						if (indirections[i] == dst) {
@@ -617,12 +621,12 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 							break;
 						}
 					}
-
 					if (existings_table_location == -1) {
 						//	TODO - throw exception
 						std::cout << "ERROR " << __FUNCTION__ << "() unabled to restore A_Block values at end of merge\n";
 						break;
 					}
+
 					left_source = indirections[indirection_i];
 					result._moves += 3;
 					T* tmp = array[dst];
@@ -642,12 +646,15 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 	return result;
 }
 
-bool testBlockSortMergeBlocksExhaustively() {
+bool generateTestVectors(char** test_vectors[], char **test_values, int num_test_vectors, int test_vector_size) {
 
-	auto testVectorToString = [] (int test_num, int num_tests, char** array, int num) -> std::string {
+	bool result = true;
+
+	constexpr bool verbose_messages = false;
+
+	auto testVectorToString = [] (char** array, int num) -> std::string {
 		std::stringstream result;
-		result << std::setw(4) << test_num << " of " << std::setw(4) << num_tests
-				  << ": \"";
+		result << '"';
 		for (int i = num-1; i >= 0; i--) {
 			result << *array[i];
 		}
@@ -655,81 +662,187 @@ bool testBlockSortMergeBlocksExhaustively() {
 		return result.str();
 	};
 
-	auto indicesToString = [] (int* array, int num) -> std::string {
-		std::stringstream result;
-		for (int i = 0; i != num; i++) {
-			result << array[i];
+	auto rotateValuesRight = [] (char **array, int start, int end, int amount)
+	{
+		auto xchng = [] (char **array, int i, int j) {
+			char *tmp = array[i]; 	array[i] = array[j]; 	array[j] = tmp;
+		};
+
+		for (int i = start, j = end; i < j; i++, j--)  				xchng(array, i, j);
+		for (int i = start, j = start+amount-1; i < j; i++, j--)  	xchng(array, i, j);
+		for (int i = start+amount, j = end; i < j; i++, j--) 		xchng(array, i, j);
+	};
+
+	auto validateTestVectors = [testVectorToString] (char *** &_vectors, int _num, int _size) -> bool {
+		for (int i = 0; i < _num-1; i++) {
+			for (int j = i+1; j < _num; j++) {
+				bool different = false;
+				for (int k = 0; k != _size; k++) {
+					if (*_vectors[i][k] != *_vectors[j][k]) {
+						different = true;
+						break;
+					}
+				}
+				if (!different) {
+					std::cout << "ERROR: vector[" << i << "] "
+							  << testVectorToString(_vectors[i], _size)
+							  << " == vector[" << j << "] "
+							  << testVectorToString(_vectors[j], _size)
+							  << std::endl;
+					return false;;
+				}
+			}
 		}
-		result << '"';
+		return true;
+	};
+
+	auto copyTestVector = [ ](char** &dst, char**src, int size) {
+		for (int i = 0; i != size; i++) {
+			dst[i] = src[i];
+		}
+	};
+
+	auto rotateCounterToString = [] (int *array, int size) -> std::string {
+		std::stringstream result;
+		result << "<";
+		for (int i = size-1; i > 0; i--) {
+			result << std::setw(2) << array[i] << " :";
+		}
+		result <<  std::setw(2) << array[0] << " >";
 		return result.str();
 	};
 
-	auto rotateIndicesRight = [] (int *array, int start, int end, int amount) {
-		auto xchng = [] (int *array, int i, int j) {
-			int tmp = array[i];
-			array[i] = array[j];
-			array[j] = tmp;
-		};
+	/*	**********************************************	*/
+	/*				code starts here					*/
+	/*	**********************************************	*/
 
-		for (int i = start, j = end; i < j; i++, j--) {
-			xchng(array, i, j);
+	// note that most array logic in programming is done from [0:n]
+	//	in factorials, the start of the sequence is 1 * 2 * ... * n
+
+	//	consider an test space of 6 possible values for a digit
+	//	there will be 6! = 720 vectors
+	//	6 5 4 3 2 1  indices
+	//	A B C D E F  digits
+	//  7 6 5 4 3 2  counters
+	//	every time change digit 0
+	//	every second time change digit 1
+
+	int num_rotate_digits = test_vector_size-1;
+
+	int rotate_counts[num_rotate_digits];
+	int rotate_counters[num_rotate_digits];
+	for (int i = 0; i < num_rotate_digits; i++) {
+		rotate_counts[i] 	= i+1;
+		rotate_counters[i] 	= i+1;
+	}
+
+	for (int i = 0; i != num_test_vectors; i++) {
+		(test_vectors)[i] = new char*[test_vector_size];
+	}
+
+	int test_vector_number = 0;
+	int active_digit = 0;
+	while(test_vector_number < num_test_vectors) {
+		if (verbose_messages) {
+			std::cout << "test_vector[" << std::setw(3) << test_vector_number << "] = "
+					  << testVectorToString(test_values, test_vector_size)
+					  << " " << rotateCounterToString(rotate_counters, num_rotate_digits) << std::endl;
 		}
-		for (int i = start, j = start+amount-1; i < j; i++, j--) {
-			xchng(array, i, j);
+		copyTestVector(test_vectors[test_vector_number++], test_values, test_vector_size);
+		while(active_digit <= num_rotate_digits) {
+			rotateValuesRight(test_values, 0, active_digit+1, 1);
+			if (--rotate_counters[active_digit] < 0) {
+				// if the current digit's count is 0, all permutations have been stored
+				rotate_counters[active_digit] = rotate_counts[active_digit];
+				active_digit++;
+			} else {
+				// the current digit's count is not 0, so we do not need to rotate the next count
+				break;
+			}
 		}
-		for (int i = start+amount, j = end; i < j; i++, j--) {
-			xchng(array, i, j);
+		active_digit = 0;
+	}
+	if (verbose_messages) {
+		std::cout << "Validating that " << num_test_vectors << " are unique\n";
+	}
+	if (!validateTestVectors(test_vectors, num_test_vectors, test_vector_size)) {
+		result = false;
+	}
+	if (verbose_messages) {
+		std::cout << __FUNCTION__ << " returns " << result << std::endl;
+	}
+	return result;
+}
+
+
+bool testBlockSortMergeBlocksExhaustively() {
+
+	auto testVectorToString = [] (char** array, int num) -> std::string {
+		std::stringstream result;
+		result << '\'';
+		for (int i = 0; i < num; i++) {
+			result << *array[i];
 		}
+		result << '\'';
+		return result.str();
 	};
 
-	auto rotateValuesRight = [] (char **array, int start, int end, int amount) {
-		auto xchng = [] (char **array, int i, int j) {
-			char *tmp = array[i];
-			array[i] = array[j];
-			array[j] = tmp;
-		};
-
-		for (int i = start, j = end; i < j; i++, j--) {
-			xchng(array, i, j);
+	bool (*isSorted)(char**, int) = [](char ** array, int num) -> bool {
+		for (int i = 0; i != num-1; i++) {
+			if (*array[i+1] < *array[i])
+				return false;
 		}
-		for (int i = start, j = start+amount-1; i < j; i++, j--) {
-			xchng(array, i, j);
-		}
-		for (int i = start+amount, j = end; i < j; i++, j--) {
-			xchng(array, i, j);
-		}
+		return true;
 	};
 
 	OStreamState ostream_state;
 
 	bool test_passed = true;
 
-	int test_array_size = 3;
+	int test_vector_size = 6;
 
-	char *test_values[test_array_size];
-	for (int i = 0; i != test_array_size; i++) {
-		test_values[i] = new char('A' + i % 26);
+	char *test_values[test_vector_size];
+	for (int i = 0; i != test_vector_size; i++) {
+		test_values[i] = new char('A' + ((test_vector_size-1)-i) % 26);
 	}
 
 	int num_test_vectors = 1;
-	for (int i = 1; i <= test_array_size; i++) {
+	for (int i = 1; i <= test_vector_size; i++) {
 		num_test_vectors *= i;
 	}
 
-	int source_indices[test_array_size];
-	for (int i = 0;  i != test_array_size; i++) {
-		source_indices[i] = (test_array_size-1) - i;
+	char **test_vectors[num_test_vectors];
+	if (!generateTestVectors(test_vectors, test_values, num_test_vectors, test_vector_size)) {
+		std::cout << __FUNCTION__ << " failed b/c generateTestVectos() failed\n";
+		return false;
 	}
+	array_size_t mid = test_vector_size / 2 ;
+	array_size_t left_start = 0;
+	array_size_t left_end = mid - 1;
+	array_size_t right_start = mid;
+	array_size_t right_end = test_vector_size-1;
 
-	for (int test_vector_number = 0; test_vector_number < num_test_vectors; test_vector_number++) {
-		for (int rotate_count_2_0 = 3; rotate_count_2_0; --rotate_count_2_0) {
-			for (int rotate_count_1_0 = 2; rotate_count_1_0; --rotate_count_1_0) {
-				std::cout << testVectorToString(test_vector_number++, num_test_vectors, test_values, test_array_size) << std::endl;
-				rotateValuesRight(test_values, 0, 1, 1);
-			}
-			rotateValuesRight(test_values, 0, 2, 1);
+	for (int i = 0; i != num_test_vectors; i++) {
+		std::cout << std::setw(5) << i << " "
+				  << testVectorToString(test_vectors[i], test_vector_size);
+		InsertionSort::sortPointersToObjects(&test_vectors[i][left_start], mid);
+		InsertionSort::sortPointersToObjects(&test_vectors[i][mid], right_end-right_start+1);
+		std::cout << " when divided into two subarrays, each sorted: "
+				  << testVectorToString(test_vectors[i], test_vector_size);
+		ComparesAndMoves result;
+		result = mergeBlocksIndirectionArray(test_vectors[i], left_start, left_end, right_start, right_end);
+		std::cout << " merged to "
+				  << testVectorToString(test_vectors[i], test_vector_size)
+				  << " which took "
+				  << result;
+		if (isSorted(test_vectors[i], test_vector_size)) {
+			std::cout << " which is correct" << std::endl;
+		} else {
+			std::cout << " which is in ERROR" << std::endl;
+			return false;
 		}
 	}
+
 
 	return test_passed;
 }

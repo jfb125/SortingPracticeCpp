@@ -332,7 +332,7 @@ void	printSideBySide(StudentDataArray &a, StudentDataArray &b) {
 
 std::ostream& operator<<(std::ostream& out, const ComparesAndMoves& object) {
 
-	out << "compares " << object._compares << ", swaps " << object._moves;
+	out << object._compares << " compares and " << object._moves << " swaps";
 	return out;
 }
 

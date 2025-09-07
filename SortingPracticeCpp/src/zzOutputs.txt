@@ -1,10 +1,22 @@
-Sorting Performance In C++ built on Sep  6 2025 at 13:11:23
+Sorting Performance In C++ built on Sep  6 2025 at 21:04:38
 testBlockSort()
-   0 of    6: "CBA"
-   1 of    6: "CAB"
-   2 of    6: "BAC"
-   3 of    6: "BCA"
-   4 of    6: "ACB"
-   5 of    6: "ABC"
-PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
-testBlockSort() ran 1 successful tests
+    0 'FEDCBA' when divided into two subarrays, each sorted: 'DEFABC' merged to 'ABCDEF' which took 3 compares and 18 swaps which is correct
+    1 'EFDCBA' when divided into two subarrays, each sorted: 'DEFABC' merged to 'ABCDEF' which took 3 compares and 18 swaps which is correct
+    2 'DFECBA' when divided into two subarrays, each sorted: 'DEFABC' merged to 'ABCDEF' which took 3 compares and 18 swaps which is correct
+    3 'FDECBA' when divided into two subarrays, each sorted: 'DEFABC' merged to 'ABCDEF' which took 3 compares and 18 swaps which is correct
+    4 'EDFCBA' when divided into two subarrays, each sorted: 'DEFABC' merged to 'ABCDEF' which took 3 compares and 18 swaps which is correct
+    5 'DEFCBA' when divided into two subarrays, each sorted: 'DEFABC' merged to 'ABCDEF' which took 3 compares and 18 swaps which is correct
+    6 'CFEDBA' when divided into two subarrays, each sorted: 'CEFABD'ERROR mergeBlocksIndirectionArray() unabled to restore A_Block values at end of merge
+ merged to 'ABCDEF' which took 4 compares and 15 swaps which is correct
+    7 'FCEDBA' when divided into two subarrays, each sorted: 'CEFABD'ERROR mergeBlocksIndirectionArray() unabled to restore A_Block values at end of merge
+ merged to 'ABCDEF' which took 4 compares and 15 swaps which is correct
+    8 'ECFDBA' when divided into two subarrays, each sorted: 'CEFABD'ERROR mergeBlocksIndirectionArray() unabled to restore A_Block values at end of merge
+ merged to 'ABCDEF' which took 4 compares and 15 swaps which is correct
+    9 'CEFDBA' when divided into two subarrays, each sorted: 'CEFABD'ERROR mergeBlocksIndirectionArray() unabled to restore A_Block values at end of merge
+ merged to 'ABCDEF' which took 4 compares and 15 swaps which is correct
+   10 'FECDBA' when divided into two subarrays, each sorted: 'CEFABD'ERROR mergeBlocksIndirectionArray() unabled to restore A_Block values at end of merge
+ merged to 'ABCDEF' which took 4 compares and 15 swaps which is correct
+   11 'EFCDBA' when divided into two subarrays, each sorted: 'CEFABD'ERROR mergeBlocksIndirectionArray() unabled to restore A_Block values at end of merge
+ merged to 'ABCDEF' which took 4 compares and 15 swaps which is correct
+   12 'DCFEBA' when divided into two subarrays, each sorted: 'CDFABE' merged to 'ABFDCE' which took 5 compares and 15 swaps which is in ERROR
+ERROR: function testBlockSortMergeBlocksExhaustively() returns FALSE
