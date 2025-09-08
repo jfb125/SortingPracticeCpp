@@ -10,121 +10,32 @@
 #include <string>
 #include <numeric>
 #include <cmath>
+#include <vector>
+#include <algorithm>
 
 #include "BlockSort.h"
 
 using namespace BlockSort;
 
-/*	**********************************************************************	*/
-/*	**********************************************************************	*/
-/*								debugging resources							*/
-/*	**********************************************************************	*/
-/*	**********************************************************************	*/
 
-std::string arrayIndicesToString(array_size_t size, array_size_t v, int element_width) {
+enum class MergeStrategy {
+	 TABLE, AUXILLIARY, ROTATE
+};
 
-	OStreamState io_state;	// the destructor will restore state
-	std::stringstream result;
-	if (size != 0) {
-		for (int i = 0; i < size-1; i++) {
-			result << std::right << std::setw(element_width-1) << i;
-			result << ' ';
-		}
-		result << std::right << std::setw(element_width-1) << size-1;
-	}
-	return result.str();
+std::string toString(MergeStrategy strategy) {
+	switch (strategy) {
+	case MergeStrategy::AUXILLIARY:
+		return std::string("AUXILIARY");
+	case MergeStrategy::TABLE:
+		return std::string("TABLE    ");
+	case MergeStrategy::ROTATE:
+		return std::string("ROTATE   ");
+	default:
+		return std::string("UKNOWN   ");
+	};
 }
 
-std::string arrayIndicesToString(std::string trailer, array_size_t size, array_size_t v, int element_width) {
-	OStreamState ostream_state;
-	std::stringstream result;
-	result << arrayIndicesToString(size, v, element_width);
-	result << trailer;
-	return result.str();
-}
-
-std::string arrayIndicesToString(array_size_t size, int value_width, int element_width) {
-
-	std::stringstream result;
-
-	if (size != 0) {
-		constexpr const char separator = ' ';
-		OStreamState io_state;	// the destructor will restore state
-		std::cout.fill(separator);
-		std::cout << std::right;
-
-		for (int i = 0; i < size-1; i++) {
-			result << std::setw(element_width-1) << i;
-			result << ' ';
-		}
-		result << std::setw(element_width-1) << size-1;
-	}
-	return result.str();
-}
-
-std::string printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width) {
-	std::stringstream result;
-	result << arrayIndicesToString(size, value_width, element_width);
-	result << trailer;
-	return result.str();
-}
-
-std::string printLineArrayIndices(array_size_t size, int value_width, int element_width) {
-	std::stringstream result;
-	result << arrayIndicesToString(size, value_width, element_width);
-	result << std::endl;
-	return result.str();
-}
-
-std::string printArrayStartMiddleEnd(array_size_t size, array_size_t start, array_size_t mid, array_size_t end, int element_width) {
-	OStreamState state;	// destructor will restore ostream state
-	std::stringstream result;
-
-	for (int i = 0; i < start ; i++) {
-		result << std::setw(element_width) << ' ';
-	}
-	result << std::setw(element_width-1) << 's' << ' ';
-	for (int i = start+1; i < mid; i++) {
-		result << std::setw(element_width) << ' ';
-	}
-	result << std::setw(element_width-1) << 'm' << ' ';
-	for (int i = mid+1; i < end;  i++) {
-		result << std::setw(element_width) << ' ';
-	}
-	result << std::setw(element_width-1) << 'e' << ' ';
-	return result.str();
-}
-
-std::string printLineArrayStartMiddleEnd(array_size_t size, array_size_t start, array_size_t mid, array_size_t end, int element_width) {
-	std::stringstream result;
-	result << printArrayStartMiddleEnd(size, start, mid, end, element_width);
-	result << std::endl;
-	return result.str();
-}
-
-template <typename T>
-std::string arrayToString(T** array, array_size_t array_size,
-				const int object_width = 3, const int element_width = 4,
-				const char separator = ' ', std::string trailer = "")
-{
-	// will restore state in destructor
-	OStreamState ostream_state;
-	std::stringstream result;
-
-	if (array_size) {
-		//	all the elements before the final element have separator
-		for (int i = 0; i != array_size-1; i++) {
-			result << std::setw(object_width) << *array[i];
-			for (int i = element_width - object_width; i != 0; i--) {
-				result << separator;
-			}
-		}
-		// no separator after final element
-		result << std::setw(object_width) << *array[array_size-1];
-	}
-	result << trailer;
-	return result.str();
-}
+MergeStrategy merge_strategy = MergeStrategy::TABLE;
 
 
 /*	**********************************************	*/
@@ -137,7 +48,8 @@ std::string arrayToString(T** array, array_size_t array_size,
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-#define TEST_BLOCK_SORT_MERGE_BLOCKS
+#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
+#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
@@ -145,10 +57,9 @@ std::string arrayToString(T** array, array_size_t array_size,
 //#define TEST_BLOCK_SORT_BINARY_TAG_SEARCH
 
 bool testBlockSortBinaryBlockSearch();
-bool testBlockSortModulo();
-bool testFloorLog2();
-bool testBlockSortMergeBlocks();
+bool testBlockSortMergeBlocksRandomly();
 bool testBlockSortMergeBlocksExhaustively();
+bool testBlockSortModulo();
 bool testBlockSortRotateArrayElements();
 bool testBlockSortRotateBlocks();
 bool testBlockSortSort();
@@ -156,6 +67,7 @@ bool testBlockSortSortBlocks();
 bool testBlockSortSwapBlocks();
 bool testBlockSortSwapTags();
 bool testBlockSort();
+bool testFloorLog2();
 
 #define runTest(result, func, name_str) do {\
 	if (!func()) {\
@@ -166,18 +78,16 @@ bool testBlockSort();
 	}\
 } while(false)
 
+
+template <typename T>
+bool generateAllPermutationsOfValues(T** test_vectors[],
+									 T** test_values,
+						 	 	 	 int num_test_vectors,
+									 int test_vector_size);
+
 template<typename T>
-void randomizeArray(T **array, array_size_t size) {
+void randomizeArray(T **array, array_size_t size);
 
-	static SimpleRandomizer randomizer;
-
-	for (array_size_t i = 0; i != size; i++) {
-		array_size_t r = randomizer.rand(i, size);
-		T *temp = array[i];
-		array[i] = array[r];
-		array[r] = temp;
-	}
-}
 
 /*	**********************************************	*/
 /*	**********************************************	*/
@@ -240,8 +150,30 @@ bool testBlockSort() {
 	tests_passed++;
 #endif
 
-#ifdef TEST_BLOCK_SORT_MERGE_BLOCKS
+#ifdef TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 	num_tests++;
+	merge_strategy = MergeStrategy::ROTATE;
+	runTest(passed, testBlockSortMergeBlocksRandomly, "function testBlockSortMergeBlocksRandomly()");
+	if (!passed)
+		return passed;
+	tests_passed++;
+	num_tests++;
+	merge_strategy = MergeStrategy::TABLE;
+	runTest(passed, testBlockSortMergeBlocksRandomly, "function testBlockSortMergeBlocksRandomly()");
+	if (!passed)
+		return passed;
+	tests_passed++;
+#endif
+
+#ifdef TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+	num_tests++;
+	merge_strategy = MergeStrategy::ROTATE;
+	runTest(passed, testBlockSortMergeBlocksExhaustively, "function testBlockSortMergeBlocksExhaustively()");
+	if (!passed)
+		return passed;
+	tests_passed++;
+	num_tests++;
+	merge_strategy = MergeStrategy::TABLE;
 	runTest(passed, testBlockSortMergeBlocksExhaustively, "function testBlockSortMergeBlocksExhaustively()");
 	if (!passed)
 		return passed;
@@ -464,370 +396,27 @@ bool testBlockSortBinaryBlockSearch() {
 }
 
 
-/*
- *	ComparesAndMoves mergeBLocksIndirectionArray(array, left_start, left_end, right_start, right_end);
- *
- *		Merges two blocks, giving priority if two elements array[left] == array[right]
- *			to the element on the left.  This is to preserve stability, since the elements
- *			on the left appeared in the unsorted array to the left of the elements in the right
- *
- *		Merging in place is accomplished by creating a temporary array of pointers to the
- *			elements in the left block. If swapping a value into the dst causes an element
- *			that was initially in the left_block to move, the array of pointers to the
- *			un-merged elements in the left block gets updated to keep track of where the
- *			left value is now located
- *	A_Block  B_Block
- *  ls   le  rs   re
- *	0  1  2  3  4  5   i[0] i[1] i[2]  q r d  i[q] a[i[q]] a[r]
- *	A  C  E  B  D  F    0    1    2    0 3 0   0     'A'    'B'		i[0] is ignored
- *	A  C  E  B  D  F    -    1    2    1 3 1   1     'C'    'B'	    i[1] 'C' moves to 3
- *	A  B  E  C  D  F    -    3    2    1 4 2   3     'C'    'D'     i[2] 'E' moves to 4
- *	A  B  C  E  D  F    -    -    3    2 4 3   3     'E'    'D'     i[2] 'E' moves to 5
- *	A  B  C  D  E  F    -    -    5    2 4 4   5     'E'    'F'     i[2] 'E' does not move
- *	A  B  C  D  E  F    -    -    -    3 5 5    left side has been merged, exit
- *
- *  A_Block  B_Block
- *  ls   le  rs   re
- *	0  1  2  3  4  5   i[0] i[1] i[2]  q r d  i[q] a[i[q]] a[r]
- *	A  E1 E2 B  C  D    0    1    2    0 3 0   0     'A'    'B'		i[0] is ignored
- *	A  E1 E2 B  C  D    -    1    2    1 3 1   1     'E1'   'B'	    i[1] 'E' moves to 3
- *	A  B  E2 E1 C  D    -    3    2    1 4 2   3     'E2'   'C'     i[2] 'F' moves to 4
- *	A  B  C  E1 E2 D    -    4    4    1 5 3   3     'E1'   'D'     i[2] 'E' moves to 5
- *	A  B  C  D  E2 E1   -    5    4    1 6 4    right side is has been merged,
- *												restore the order of the A_Block which
- *												is at the end of the B_Block
- *	Note that a simple (eg) insertion sort on the remaining un-merged A_Block elements
- *		may not preserve stability b/c they may no longer be in sequence
- *
- *	Find the [q] that matches the destination (i.e. - where does the dst = 4
- *		occur in the indirections[]) - in this case, q==2 contains dst == 4
- *		xchng(dst,i[q=1]=5), i[2] = 5
- *	A  B  C  D  E1 E2   -    -    5    2 6 5
- *
- *	Find the [q] that matches the destination (i.e. - where does the dst = 5
- *		occur in the indirections[]) - in this case, q==2 contains dst == 5
- *		xchng(dst, i[1=2]=5)
- *	A  B  C  D  E1 E2   -    -    5    3 6 5	q = 3 & r = r_stop
- */
-
-template <typename T>
-ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
-											 array_size_t left_start, array_size_t left_end,
-											 array_size_t right_start, array_size_t right_end) {
-	ComparesAndMoves result(0,0);
-
-	bool debug_verbose = false;
-	std::stringstream message;
-//	std::cout << std::endl;
-
-	array_size_t left_span 	= left_end - left_start + 1;
-	array_size_t right_span = right_end - right_start + 1;
-
-	auto nextDestination = [left_end, right_start] (array_size_t &_dst) {
-		if (_dst == left_end)	_dst = right_start;
-		else					_dst++;
-	};
-
-	if (right_span < left_span) {
-		// TODO - throw an error
-		message << "ERROR " << __FUNCTION__ << "() has A_Block on right side: may cause instability, exiting\n";
-		std::cout << message.str();
-		return result;
-	}
-
-	if (left_span == 0 || right_span == 0) {
-		return result;
-	}
-
-	//
-	array_size_t right_i 	= right_start;
-	array_size_t dst    	= left_start;
-
-	array_size_t num_indirections = left_span;
-	array_size_t indirections[num_indirections];
-	for (array_size_t i = 0, src = left_start; i < num_indirections; ) {
-		indirections[i++] = src++;
-	}
-	array_size_t indirection_i = 0;
-
-	auto debug_string = [&](array_size_t left_source) -> std::string {
-		std::stringstream result;
-		result << "\"";
-		for (array_size_t i = left_start; i <= right_end; ) {
-			result << *array[i];
-			i++;
-			if (i-1 == left_end) {
-				i = right_start;
-			}
-		}
-		result << "\" " << indirection_i
-			   << " into table [";
-		for (int i = 0; i != num_indirections; i++) {
-			if (i < indirection_i) {
-				result << "..";
-			} else {
-				result << std::setw(2) << indirections[i];
-			}
-		}
-		result << "] "
-			   << " dst " << dst << " ls " << left_source << " rt " << right_i;
-		return result.str();
-	};
-
-	while (dst <= right_end)
-	{
-		array_size_t left_source = indirections[indirection_i];
-		message << debug_string(left_source);
-		result._compares++;
-		if (*array[left_source] <= *array[right_i]) {
-			// the value to go in the destination is the left_block value
-			if (dst != left_source) {
-				result._moves += 3;
-				T* tmp = array[dst];
-				array[dst] = array[left_source];
-				array[left_source] = tmp;
-
-				//	if the value that was swapped out of [dst] was a member of the
-				//	  indirection (a left block element), update its new position
-				//	  in the indirections[]
-				//	  (note that the last A value, [indirection_stop-1], does not have
-				//	   an indirection[(indirection_i-1)+1] member after it)
-				for (int i = indirection_i; i < num_indirections; i++) {
-					if (indirections[i] == dst) {
-						indirections[i] = left_source;
-						break;
-					}
-				}
-			}
-			message << " ----      left      ---- "
-					<< debug_string(left_source) << std::endl;
-			//	if we have moved / merged all of the A_Block values, done
-			if (++indirection_i == num_indirections)	break;
-
-			//	if all of the locations in the left block have a merged value
-			//	  stored in them, move 'dst' to the right block
-			nextDestination(dst);
-		}
-		else
-		{
-			// value from the right block is < value from the left block
-			result._moves += 3;
-			T* tmp = array[dst];
-			array[dst] = array[right_i];
-			array[right_i] = tmp;
-
-			//	if the value that was exchanged with [dst] was an unmerged A_Block value,
-			//	update the new location of the value in the indirection table
-			for (int i = indirection_i; i < num_indirections; i++) {
-				if (indirections[i] == dst) {
-					indirections[i] = right_i;
-					break;
-				}
-			}
-			message << " ----      right     ---- "
-					<< debug_string(left_source) << std::endl;
-
-			//	if all the positions in the left block have been used,
-			//	  move 'dst' to the start of the right block
-			nextDestination(dst);
-			right_i++;
-
-			//	if all of the right_block values have been placed,
-			//	  we need to arrange all the reamining a_block values
-			//	  into / at the end of the array
-			if (right_i > right_end)
-			{
-				while (indirection_i < num_indirections)  {
-					left_source = indirections[indirection_i];
-					if (left_source != dst) {
-						result._moves += 3;
-						T* tmp = array[dst];
-						array[dst] = array[left_source];
-						array[left_source] = tmp;
-						//	check to see if we moved an unmerged A_Block (left)
-						//	  value to a different location in the array
-						for (int i = indirection_i; i < num_indirections; i++) {
-							if (indirections[i] == dst) {
-								indirections[i] = left_source;
-							}
-						}
-					}
-					//	if all the positions in the left block have been used,
-					//	  move 'dst' to the start of the right block
-					nextDestination(dst);
-					indirection_i++;
-				}
-				break;	// the loop that restored the a_block's values (left) is done
-			}
-		}
-	}
-	if (debug_verbose) {
-		std::cout << message.str();
-	}
-	return result;
-}
-
-
-bool generateTestVectors(char** test_vectors[], char **test_values, int num_test_vectors, int test_vector_size) {
-
-	bool result = true;
-
-	constexpr bool verbose_messages = false;
-
-	auto testVectorToString = [] (char** array, int num) -> std::string {
-		std::stringstream result;
-		result << '"';
-		for (int i = num-1; i >= 0; i--) {
-			result << *array[i];
-		}
-		result << '"';
-		return result.str();
-	};
-
-	auto rotateValuesRight = [] (char **array, int start, int end, int amount)
-	{
-		auto xchng = [] (char **array, int i, int j) {
-			char *tmp = array[i]; 	array[i] = array[j]; 	array[j] = tmp;
-		};
-
-		for (int i = start, j = end; i < j; i++, j--)  				xchng(array, i, j);
-		for (int i = start, j = start+amount-1; i < j; i++, j--)  	xchng(array, i, j);
-		for (int i = start+amount, j = end; i < j; i++, j--) 		xchng(array, i, j);
-	};
-
-	auto validateTestVectors = [testVectorToString] (char *** &_vectors, int _num, int _size) -> bool {
-		for (int i = 0; i < _num-1; i++) {
-			for (int j = i+1; j < _num; j++) {
-				bool different = false;
-				for (int k = 0; k != _size; k++) {
-					if (*_vectors[i][k] != *_vectors[j][k]) {
-						different = true;
-						break;
-					}
-				}
-				if (!different) {
-					std::cout << "ERROR: vector[" << i << "] "
-							  << testVectorToString(_vectors[i], _size)
-							  << " == vector[" << j << "] "
-							  << testVectorToString(_vectors[j], _size)
-							  << std::endl;
-					return false;;
-				}
-			}
-		}
-		return true;
-	};
-
-	auto copyTestVector = [ ](char** &dst, char**src, int size) {
-		for (int i = 0; i != size; i++) {
-			dst[i] = src[i];
-		}
-	};
-
-	auto rotateCounterToString = [] (int *array, int size) -> std::string {
-		std::stringstream result;
-		result << "<";
-		for (int i = size-1; i > 0; i--) {
-			result << std::setw(2) << array[i] << " :";
-		}
-		result <<  std::setw(2) << array[0] << " >";
-		return result.str();
-	};
-
-	/*	**********************************************	*/
-	/*				code starts here					*/
-	/*	**********************************************	*/
-
-	// note that most array logic in programming is done from [0:n]
-	//	in factorials, the start of the sequence is 1 * 2 * ... * n
-
-	//	consider an test space of 6 possible values for a digit
-	//	there will be 6! = 720 vectors
-	//	6 5 4 3 2 1  indices
-	//	A B C D E F  digits
-	//  7 6 5 4 3 2  counters
-	//	every time change digit 0
-	//	every second time change digit 1
-
-	int num_rotate_digits = test_vector_size-1;
-
-	int rotate_counts[num_rotate_digits];
-	int rotate_counters[num_rotate_digits];
-	for (int i = 0; i < num_rotate_digits; i++) {
-		rotate_counts[i] 	= i+1;
-		rotate_counters[i] 	= i+1;
-	}
-
-	for (int i = 0; i != num_test_vectors; i++) {
-		(test_vectors)[i] = new char*[test_vector_size];
-	}
-
-	int test_vector_number = 0;
-	int active_digit = 0;
-	while(test_vector_number < num_test_vectors) {
-		if (verbose_messages) {
-			std::cout << "test_vector[" << std::setw(3) << test_vector_number << "] = "
-					  << testVectorToString(test_values, test_vector_size)
-					  << " " << rotateCounterToString(rotate_counters, num_rotate_digits) << std::endl;
-		}
-		copyTestVector(test_vectors[test_vector_number++], test_values, test_vector_size);
-		while(active_digit < num_rotate_digits) {
-			rotateValuesRight(test_values, 0, active_digit+1, 1);
-			if (--rotate_counters[active_digit] < 0) {
-				// if the current digit's count is 0, all permutations have been stored
-				rotate_counters[active_digit] = rotate_counts[active_digit];
-				active_digit++;
-			} else {
-				// the current digit's count is not 0, so we do not need to rotate the next count
-				break;
-			}
-		}
-		active_digit = 0;
-	}
-	if (verbose_messages) {
-		std::cout << "Validating that " << num_test_vectors << " are unique\n";
-	}
-	if (!validateTestVectors(test_vectors, num_test_vectors, test_vector_size)) {
-		result = false;
-	}
-	if (verbose_messages) {
-		std::cout << __FUNCTION__ << " returns " << result << std::endl;
-	}
-	return result;
-}
-
 /*	***********************************************************	*/
 /*		Tests merging by presenting all possible permutations	*/
-/* 			of a given sequence of lenght 'test_vector_size'	*/
+/* 			of a given sequence of length 'test_vector_size'	*/
 /*	***********************************************************	*/
 
 bool testBlockSortMergeBlocksExhaustively() {
 
-	bool debug_verbose = true;
+	bool debug_verbose = false;
+	bool echo_result = true;
 	std::stringstream test_message;
 	bool test_passed = true;
 
-	enum class MergeStrategy {
-		 INDIRECTLY, AUXILLIARY, ROTATE
-	};
+	int test_vector_size = 8;
 
-	int test_vector_size = 7;
-	MergeStrategy merge_strategy = MergeStrategy::INDIRECTLY;
+	#pragma push_macro("DATA_TYPE")
+	#define DATA_TYPE c
+	using data_type = char;
+//	#define DATA_TYPE i
+//	using data_type = int;
 
-	auto strategy_string = [merge_strategy] () -> std::string {
-		switch(merge_strategy) {
-		case MergeStrategy::INDIRECTLY:
-			return "INDIRECTLY";
-		case MergeStrategy::AUXILLIARY:
-			return "AUXILLIARY";
-		case MergeStrategy::ROTATE:
-			return "ROTATION  ";
-		default:
-			return "UNKNOWN   ";
-		}
-	};
-
-	auto testVectorToString = [] (char** array, int num) -> std::string {
+	auto testVectorToString = [] (data_type** array, int num) -> std::string {
 		std::stringstream result;
 		result << '\'';
 		for (int i = 0; i < num; i++) {
@@ -837,7 +426,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 		return result.str();
 	};
 
-	bool (*isSorted)(char**, int) = [](char ** array, int num) -> bool {
+	bool (*isSorted)(data_type**, int) = [](data_type** array, int num) -> bool {
 		for (int i = 0; i != num-1; i++) {
 			if (*array[i+1] < *array[i])
 				return false;
@@ -847,10 +436,13 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	OStreamState ostream_state;
 
-
-	char *test_values[test_vector_size];
+	data_type *test_values[test_vector_size];
 	for (int i = 0; i != test_vector_size; i++) {
-		test_values[i] = new char('A' + ((test_vector_size-1)-i) % 26);
+		#if (DATA_TYPE == c)
+			test_values[i] = new char('A' + ((test_vector_size-1)-i) % 26);
+		#elif (DATA_TYPE == i)
+			test_values[i] = new int(i);
+		#endif
 	}
 
 	int num_test_vectors = 1;
@@ -859,8 +451,8 @@ bool testBlockSortMergeBlocksExhaustively() {
 	}
 
 	char **test_vectors[num_test_vectors];
-	if (!generateTestVectors(test_vectors, test_values, num_test_vectors, test_vector_size)) {
-		std::cout << __FUNCTION__ << " failed b/c generateTestVectos() failed\n";
+	if (!generateAllPermutationsOfValues(test_vectors, test_values, num_test_vectors, test_vector_size)) {
+		std::cout << __FUNCTION__ << " failed b/c generateTestVectors() failed\n";
 		return false;
 	}
 
@@ -871,6 +463,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 	array_size_t right_end = test_vector_size-1;
 	ComparesAndMoves total_results(0,0);
 
+	int num_tests_run = 0;
 	for (int i = 0; i != num_test_vectors; i++) {
 		test_message.clear();
 		test_message.str("");
@@ -878,12 +471,14 @@ bool testBlockSortMergeBlocksExhaustively() {
 				  	 << testVectorToString(test_vectors[i], test_vector_size);
 		InsertionSort::sortPointersToObjects(&test_vectors[i][left_start], mid);
 		InsertionSort::sortPointersToObjects(&test_vectors[i][mid], right_end-right_start+1);
+		num_tests_run++;
+
 		test_message << " when divided into two subarrays, each sorted: "
 				  	 << testVectorToString(test_vectors[i], test_vector_size);
 		ComparesAndMoves result;
 		switch(merge_strategy) {
-		case MergeStrategy::INDIRECTLY:
-			result = mergeBlocksIndirectionArray(test_vectors[i], left_start, left_end, right_start, right_end);
+		case MergeStrategy::TABLE:
+			result = mergeBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
 			break;
 		case MergeStrategy::ROTATE:
 			result = mergeBlocksByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
@@ -893,7 +488,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 			break;
 		}
 		total_results += result;
-		test_message << " merged using strategy " << strategy_string() << " to "
+		test_message << " merged using strategy " << toString(merge_strategy) << " to "
 				     << testVectorToString(test_vectors[i], test_vector_size)
 				     << " which took "
 				     << result;
@@ -909,147 +504,77 @@ bool testBlockSortMergeBlocksExhaustively() {
 			std::cout << test_message.str();
 		}
 	}
-	std::cout << "Sorting " << num_test_vectors
-			  << " unique arrays using strategy "
-			  << strategy_string()
-			  << " took a total of "
-			  << total_results
-			  << std::endl;
-
+	if (echo_result) {
+		std::cout << "Sorting " << num_tests_run
+				  << " unique arrays of size "
+				  << test_vector_size << " using strategy "
+				  << toString(merge_strategy)
+				  << " took average of "
+				  << total_results._compares / num_tests_run
+				  << " compares and "
+				  << total_results._moves / num_tests_run
+				  << " moves\n";
+	}
 	return test_passed;
-}
 
-/*	***********************************************************	*/
-/*		Tests merging by presenting 'num_tests' pseudo-random	*/
-/* 				sequencies of length test_vector_size'			*/
-/*	***********************************************************	*/
+	#pragma pop_macro("DATA_TYPE")
+}
 
 bool testBlockSortMergeBlocksRandomly() {
 
-	bool debug_verbose = false;
 	bool test_passed = true;
-	std::stringstream test_message;
+//	SimpleRandomizer randomizer;
+	bool debug_verbose = false;
+	bool echo_test_result = true;
+	std::stringstream message;
 
-	int num_tests = 2000;
-	int test_vector_size = 7;
+	int element_width;
 
-	auto testVectorToString = [] (char** array, int num) -> std::string {
+	auto _arrayToString = [&] (int **l_array, int l_size) -> std::string {
 		std::stringstream result;
-		result << '\'';
-		for (int i = 0; i < num; i++) {
-			result << *array[i];
+		result << "[";
+		for (int i = 0; i != l_size; i++) {
+			result << std::setw(element_width) << *l_array[i] << " ";
 		}
-		result << '\'';
+		result << "]";
 		return result.str();
 	};
 
-	bool (*isSorted)(char**, int) = [](char ** array, int num) -> bool {
-		for (int i = 0; i != num-1; i++) {
-			if (*array[i+1] < *array[i])
-				return false;
-		}
-		return true;
-	};
-
-	OStreamState ostream_state;
-
-
-	char *test_values[test_vector_size];
-	for (int i = 0; i != test_vector_size; i++) {
-		test_values[i] = new char('A' + ((test_vector_size-1)-i) % 26);
-	}
-
-	int num_test_vectors = 1;
-	for (int i = 1; i <= test_vector_size; i++) {
-		num_test_vectors *= i;
-	}
-
-	char **test_vectors[num_test_vectors];
-	if (!generateTestVectors(test_vectors, test_values, num_test_vectors, test_vector_size)) {
-		std::cout << __FUNCTION__ << " failed b/c generateTestVectos() failed\n";
-		return false;
-	}
-
-	array_size_t mid = test_vector_size / 2 ;
-	array_size_t left_start = 0;
-	array_size_t left_end = mid - 1;
-	array_size_t right_start = mid;
-	array_size_t right_end = test_vector_size-1;
-	ComparesAndMoves total_results(0,0);
-
-	for (int i = 0; i != num_test_vectors; i++) {
-		test_message.clear();
-		test_message.str("");
-		test_message << std::setw(5) << i << " "
-				  	 << testVectorToString(test_vectors[i], test_vector_size);
-		InsertionSort::sortPointersToObjects(&test_vectors[i][left_start], mid);
-		InsertionSort::sortPointersToObjects(&test_vectors[i][mid], right_end-right_start+1);
-		test_message << " when divided into two subarrays, each sorted: "
-				  	 << testVectorToString(test_vectors[i], test_vector_size);
-		ComparesAndMoves result;
-		result = mergeBlocksIndirectionArray(test_vectors[i], left_start, left_end, right_start, right_end);
-		test_message << " merged to "
-				     << testVectorToString(test_vectors[i], test_vector_size)
-				     << " which took "
-				     << result;
-		if (isSorted(test_vectors[i], test_vector_size)) {
-			test_message << " which is correct" << std::endl;
-		} else {
-			test_message << " which is in ERROR" << std::endl;
-			std::cout << test_message.str();
-			test_passed = false;
-			break;
-		}
-		if (debug_verbose) {
-			std::cout << test_message.str();
-		}
-	}
-	return test_passed;
-}
-
-bool testBlockSortMergeBlocks() {
-#ifdef BLOCK_MERGE_BY_ROTATE
-	std::cout << "test blockMerge with the rotate algorithm" << std::endl;
-#endif
-	bool test_passed = true;
-	SimpleRandomizer randomizer;
-
-	void (*printArray)(int**, int) = [] (int **l_array, int l_size) {
-		std::cout << "\"";
-		for (int i = 0; i != l_size; i++) {
-			std::cout << *l_array[i];
-		}
-		std::cout << "\"";
-	};
-
 	ComparesAndMoves (*sortArray)(int**, int, int) = [] (int **l_array, int l_start, int l_end) {
-				ComparesAndMoves result(0,0);
-				for (int i = l_start+1; i <= l_end; i++) {
-					for (int j = i; j != l_start; j--) {
-						result._compares++;
-						if (*l_array[j-1] > *l_array[j]) {
-							int *tmp = l_array[j-1];
-							l_array[j-1] = l_array[j];
-							l_array[j] = tmp;
-							result._moves += 3;
-							result._compares++;
-						} else {
-							break;
-						}
-					}
+		ComparesAndMoves result(0,0);
+		for (int i = l_start+1; i <= l_end; i++) {
+			for (int j = i; j != l_start; j--) {
+				result._compares++;
+				if (*l_array[j-1] > *l_array[j]) {
+					int *tmp = l_array[j-1];
+					l_array[j-1] = l_array[j];
+					l_array[j] = tmp;
+					result._moves += 3;
+					result._compares++;
+				} else {
+					break;
 				}
-				return result;
-			};
+			}
+		}
+		return result;
+	};
 
 	int num_test_passes = 100;
-	array_size_t array_sizes[] = { 16, 32, 64, 128 };
+	array_size_t array_sizes[] = { 8, 16, 32, 64, 128 };
+//	array_size_t array_sizes[] = { 16, 32 };
 	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
 	for (int array_size_i = 0; array_size_i != num_array_sizes; ++array_size_i) {
 		array_size_t array_size = array_sizes[array_size_i];
-		bool verbose = false;
 		ComparesAndMoves total_result(0, 0);
 		int num_tests = num_test_passes;
+		array_size_t width = array_size;
+
+		element_width = 1;
+		while (width > 9) {
+			width /= 10;
+			element_width++;
+		}
 
 		int *test_array[array_size];
 		int *reference_array[array_size];
@@ -1074,59 +599,89 @@ bool testBlockSortMergeBlocks() {
 			for (int i = 0; i != array_size; i++) {
 				initial_array[i] = test_array[i];
 			}
-			//	sort each subarray, u & v, using an insertion sort
-			result += sortArray(test_array, 0, array_size / 2);
-			result += sortArray(test_array, array_size / 2, array_size - 1);
-			if (verbose) {
-				std::cout << "  initial_array: ";
-				printArray(initial_array, array_size);
+			//	sort each array, u & v, using an insertion sort
+			index_t mid = array_size/2;
+			index_t left_start = 0;
+			index_t left_end = mid-1;
+			index_t left_span = mid;
+			index_t right_start = mid;
+			index_t right_end = array_size-1;
+			index_t right_span = array_size-mid;
+
+			InsertionSort::sortPointersToObjects(test_array, left_span);
+			InsertionSort::sortPointersToObjects(&test_array[mid], right_span);
+			message.clear();
+			message.str("");
+			if (debug_verbose) {
+				message << "  initial_array: "
+						<< _arrayToString(initial_array, array_size);
 			}
 
-#ifdef BLOCK_MERGE_BY_ROTATE
-			result += mergeBlocksByRotating(test_array, 0, array_size / 2, array_size - 1);
-#endif
+			switch(merge_strategy) {
+			case MergeStrategy::ROTATE:
+				result += mergeBlocksByRotating(test_array,
+												left_start, mid, right_end);
+				break;
+			case MergeStrategy::TABLE:
+				result += mergeBlocksByTable(test_array,
+											 left_start, left_end,
+											 right_start, right_end);
+				break;
+			case MergeStrategy::AUXILLIARY:
+				std::cout << __FUNCTION__ << " using strategy "
+						  << toString(merge_strategy)
+						  << " which is not implemented\n";
+				test_passed = false;
+				goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
+			}
 			total_result += result;
 
-			if (verbose) {
-				std::cout << " after: ";
-				printArray(test_array, array_size);
-				std::cout << " used: " << result;
+			if (debug_verbose) {
+				message << " after: "
+						<< _arrayToString(test_array, array_size)
+						<< " used: " << result
+						<< "\n";
+				std::cout << message.str();
 			}
 
 			for (int i = 0; i != array_size; i++) {
 				if (*test_array[i] != *reference_array[i]) {
 					test_passed = false;
-					std::cout << "array size " << array_size << " test pass "
-							<< test_number << std::endl;
-					std::cout << " initial_array  ";
-					printArray(initial_array, array_size);
-					std::cout << std::endl;
-					std::cout << " result array   ";
-					printArray(test_array, array_size);
-					std::cout << std::endl;
-					std::cout << " expected array ";
-					printArray(reference_array, array_size);
-					std::cout << std::endl;
+					message.clear();
+					message.str();
+					message << "array size " << array_size << " test pass "
+							<< test_number << std::endl
+							<< " initial_array  "
+							<< _arrayToString(initial_array, array_size)
+							<< std::endl
+							<< " result array   "
+							<< _arrayToString(test_array, array_size)
+							<< std::endl
+							<< " expected array "
+							<< _arrayToString(reference_array, array_size)
+							<< std::endl;
 
-					std::cout << " FAILED: [" << std::setw(3) << i << "]"
+					message << " FAILED: [" << std::setw(3) << i << "]"
 							<< " expected_array " << initial_array[i] << " vs actual "
 							<< *test_array[i] << std::endl;
+					std::cout << message.str();
 					goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
 				}
 			}
-			if (verbose)
-				std::cout << std::endl;
 		}
-		std::cout << "Merging blocks " << num_test_passes
-				 << " times on an test_array of size "
-				 << std::setw(4) << array_size
-				 << " took on average "
-				 << std::fixed << std::setprecision(1) << std::setw(6)
-				 << static_cast<double>(total_result._compares) / num_tests
-				 << " compares and "
-				 << std::fixed << std::setprecision(1) << std::setw(6)
-				 << static_cast<double>(total_result._moves) / num_tests
-				 << " moves" << std::endl;
+		if (echo_test_result) {
+			std::cout << "Merging blocks " << num_test_passes
+					 << " times on an test_array of size "
+					 << std::setw(4) << array_size
+					 << " using stategy " << toString(merge_strategy)
+					 << " took on average "
+					 << std::fixed << std::setprecision(1) << std::setw(6)
+					 << static_cast<double>(total_result._compares) / num_tests
+					 << " compares and "
+					 << std::fixed << std::setprecision(1) << std::setw(6)
+					 << static_cast<double>(total_result._moves) / num_tests
+					 << " moves" << std::endl;
+		}
 	}
 
 	TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL: return test_passed;
@@ -1139,7 +694,7 @@ bool testBlockSortModulo() {
 		array_size_t dividend = span+1;
 		array_size_t expected = 1;
 		for (; dividend >= -span-1; dividend--) {
-			array_size_t calculated = blockSortModulo<char>(dividend, span);
+			array_size_t calculated = blockSortModulo(dividend, span);
 			std::cout << std::setw(2) << dividend << " % " << span << " = " << expected
 					<< " vs " << calculated << " | ";
 			if (expected != calculated) {
@@ -1559,8 +1114,13 @@ bool testBlockSortSortBlocks() {
 	constexpr const int moves_precision = 1;
 	constexpr const int num_unique_values = 5;
 
-	auto out = [object_width, element_width, separator](int ** array, array_size_t array_size, std::string trailer) {
-		return arrayToString(array, array_size, object_width, element_width, separator, trailer);
+	auto out = [object_width, element_width, separator]
+					(int ** array, array_size_t array_size,
+					 std::string trailer) {
+		std::stringstream result;
+		result << arrayElementsToString(array, array_size, object_width, element_width)
+			   << trailer;
+		return result.str();
 	};
 
 	bool test_passed = true;
@@ -1674,7 +1234,7 @@ bool testBlockSortSortBlocks() {
 					messages << out(array, array_size, " after randomizing\n");
 					num_blocks = BlockSort::createBlockDescriptors(array, start, mid, end, block_size, blocks);
 					messages << printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
-					messages << BlockSort::tagArrayToString(std::string("\n"), blocks, num_blocks, element_width);
+					messages << BlockSort::blockDescriptorsToString(std::string("\n"), blocks, num_blocks, element_width);
 					messages << out(array, array_size, "\n");
 
 					switch(sorting_strategies[strategy_i]) {
@@ -1692,7 +1252,7 @@ bool testBlockSortSortBlocks() {
 					}
 					total_results[strategy_i] += result;
 
-					messages << BlockSort::tagArrayToString(std::string("\n"), blocks, num_blocks, element_width);
+					messages << BlockSort::blockDescriptorsToString(std::string("\n"), blocks, num_blocks, element_width);
 					messages << out(array, array_size, " after sorting blocks\n");
 
 					if (!areBlocksSorted(blocks, num_blocks)) {
@@ -1879,7 +1439,8 @@ bool testBlockSortSwapBlocks() {
 						expected[i] = expected[j];
 						expected[j] = tmp;
 					}
-					messages << " testing:  " << arrayToString(array, array_size, value_width, element_width)
+					messages << " testing:  "
+							 << arrayElementsToString(array, array_size, value_width, element_width)
 							 << std::endl;
 					if (block_gap >= 0) {
 						//	if the block gap is not negative,
@@ -1892,9 +1453,13 @@ bool testBlockSortSwapBlocks() {
 						BlockSort::swapBlocks(array, right_block_begin, right_block_end,
 													left_block_begin, left_block_end);
 					}
-					messages << " expected: " << arrayToString(expected, array_size, value_width, element_width)
+					messages << " expected: "
+							 << arrayElementsToString(expected, array_size,
+												      value_width, element_width)
 							 << std::endl;
-					messages << " received: " << arrayToString(array, array_size, value_width, element_width)
+					messages << " received: "
+							 << arrayElementsToString(array, array_size,
+												      value_width, element_width)
 							 << std::endl;
 					for (int i = 0; i != array_size; i++) {
 						if (*array[i] != *expected[i]) {
@@ -1923,4 +1488,149 @@ bool testBlockSortSwapTags() {
 	return test_passed;
 }
 
+
+template <typename T>
+bool generateAllPermutationsOfValues(T** test_vectors[],
+									 T **test_values,
+									 int num_test_vectors,
+									 int test_vector_size) {
+
+	bool result = true;
+
+	constexpr bool verbose_messages = false;
+
+	auto testVectorToString = [] (char** array, int num) -> std::string {
+		std::stringstream result;
+		result << '"';
+		for (int i = num-1; i >= 0; i--) {
+			result << *array[i];
+		}
+		result << '"';
+		return result.str();
+	};
+
+	auto rotateValuesRight = [] (char **array, int start, int end, int amount)
+	{
+		auto xchng = [] (char **array, int i, int j) {
+			char *tmp = array[i]; 	array[i] = array[j]; 	array[j] = tmp;
+		};
+
+		for (int i = start, j = end; i < j; i++, j--)  				xchng(array, i, j);
+		for (int i = start, j = start+amount-1; i < j; i++, j--)  	xchng(array, i, j);
+		for (int i = start+amount, j = end; i < j; i++, j--) 		xchng(array, i, j);
+	};
+
+	auto validateTestVectors = [testVectorToString] (char *** &_vectors, int _num, int _size) -> bool {
+		for (int i = 0; i < _num-1; i++) {
+			for (int j = i+1; j < _num; j++) {
+				bool different = false;
+				for (int k = 0; k != _size; k++) {
+					if (*_vectors[i][k] != *_vectors[j][k]) {
+						different = true;
+						break;
+					}
+				}
+				if (!different) {
+					std::cout << "ERROR: vector[" << i << "] "
+							  << testVectorToString(_vectors[i], _size)
+							  << " == vector[" << j << "] "
+							  << testVectorToString(_vectors[j], _size)
+							  << std::endl;
+					return false;;
+				}
+			}
+		}
+		return true;
+	};
+
+	auto copyTestVector = [ ](char** &dst, char**src, int size) {
+		for (int i = 0; i != size; i++) {
+			dst[i] = src[i];
+		}
+	};
+
+	auto rotateCounterToString = [] (int *array, int size) -> std::string {
+		std::stringstream result;
+		result << "<";
+		for (int i = size-1; i > 0; i--) {
+			result << std::setw(2) << array[i] << " :";
+		}
+		result <<  std::setw(2) << array[0] << " >";
+		return result.str();
+	};
+
+	/*	**********************************************	*/
+	/*				code starts here					*/
+	/*	**********************************************	*/
+
+	// note that most array logic in programming is done from [0:n]
+	//	in factorials, the start of the sequence is 1 * 2 * ... * n
+
+	//	consider an test space of 6 possible values for a digit
+	//	there will be 6! = 720 vectors
+	//	6 5 4 3 2 1  indices
+	//	A B C D E F  digits
+	//  7 6 5 4 3 2  counters
+	//	every time change digit 0
+	//	every second time change digit 1
+
+	int num_rotate_digits = test_vector_size-1;
+
+	int rotate_counts[num_rotate_digits];
+	int rotate_counters[num_rotate_digits];
+	for (int i = 0; i < num_rotate_digits; i++) {
+		rotate_counts[i] 	= i+1;
+		rotate_counters[i] 	= i+1;
+	}
+
+	for (int i = 0; i != num_test_vectors; i++) {
+		(test_vectors)[i] = new char*[test_vector_size];
+	}
+
+	int test_vector_number = 0;
+	int active_digit = 0;
+	while(test_vector_number < num_test_vectors) {
+		if (verbose_messages) {
+			std::cout << "test_vector[" << std::setw(3) << test_vector_number << "] = "
+					  << testVectorToString(test_values, test_vector_size)
+					  << " " << rotateCounterToString(rotate_counters, num_rotate_digits) << std::endl;
+		}
+		copyTestVector(test_vectors[test_vector_number++], test_values, test_vector_size);
+		while(active_digit < num_rotate_digits) {
+			rotateValuesRight(test_values, 0, active_digit+1, 1);
+			if (--rotate_counters[active_digit] < 0) {
+				// if the current digit's count is 0, all permutations have been stored
+				rotate_counters[active_digit] = rotate_counts[active_digit];
+				active_digit++;
+			} else {
+				// the current digit's count is not 0, so we do not need to rotate the next count
+				break;
+			}
+		}
+		active_digit = 0;
+	}
+	if (verbose_messages) {
+		std::cout << "Validating that " << num_test_vectors << " are unique\n";
+	}
+	if (!validateTestVectors(test_vectors, num_test_vectors, test_vector_size)) {
+		result = false;
+	}
+	if (verbose_messages) {
+		std::cout << __FUNCTION__ << " returns " << result << std::endl;
+	}
+	return result;
+}
+
+template<typename T>
+void randomizeArray(T **array, array_size_t size) {
+
+	static SimpleRandomizer randomizer;
+
+	for (array_size_t i = 0; i != size; i++) {
+		array_size_t r = randomizer.rand(i, size);
+		T *temp = array[i];
+		array[i] = array[r];
+		array[r] = temp;
+	}
+}
 

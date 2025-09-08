@@ -34,186 +34,26 @@
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
 
+#include "BlockSortBlockDescriptor.h"
+
 //#define DEBUG_VERBOSE_SORT_BLOCKS 1
 //#define DEBUG_SUMMARY_SORT_BLOCKS
 #define DEBUG_VERBOSE_BLOCK_SORT
-#define SORT_BLOCKS_LEFT_TO_RIGHT 1
-#define SORT_BLOCKS_RIGHT_TO_LEFT 2
 
-#define TAG_BOUNDARY_CHAR '|'
-#define TAG_SPACE_CHAR ' '
-#define ELEMENT_WIDTH 4
-#define VALUE_WIDTH 3
+using index_t = array_size_t;
 
-
-array_size_t floorLog2(array_size_t num);
+index_t	floorLog2(index_t num);
+index_t blockSortModulo(index_t rotation_count, index_t span);
 
 std::string arrayIndicesToString(array_size_t size, int value_width, int element_width);
-std::string printLineArrayIndices(array_size_t size, int value_width, int element_width);
 std::string arrayIndicesToString(std::string trailer, array_size_t size, array_size_t v, int element_width);
 std::string arrayIndicesToString(array_size_t size, array_size_t v, int element_width);
-
-
-enum class BlockType {
-	A_BLOCK,
-	B_BLOCK,
-	UNSPECIFIED
-};
-#define A_BLOCK_CHAR 'A'
-#define B_BLOCK_CHAR 'B'
-#define U_BLOCK_CHAR 'U'
-
-char to_char(BlockType type);
-std::ostream& operator<<(std::ostream& out, BlockType object);
-
-#define BLOCK_MERGE_BY_ROTATE
+std::string printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width);
+std::string printArrayStartMiddleEnd(array_size_t size, array_size_t start, array_size_t mid, array_size_t end, int element_width);
+std::string printLineArrayIndices(array_size_t size, int value_width, int element_width);
+std::string printLineArrayStartMiddleEnd(array_size_t size, array_size_t start, array_size_t mid, array_size_t end, int element_width);
 
 namespace BlockSort {
-	using index_t = array_size_t;
-
-	template <typename T>
-	class BlockDescriptor {
-	public:
-		BlockType type;
-		T* key;
-		index_t start_index;
-		index_t end_index;
-
-		index_t	numElements() const {
-			return end_index - start_index + 1;
-		}
-
-		T* assignKey(T**array) {
-			switch(type) {
-			case BlockType::A_BLOCK:
-				key = array[start_index];
-				break;
-			case BlockType::B_BLOCK:
-				key = array[end_index];
-				break;
-			case BlockType::UNSPECIFIED:
-				//	TODO - throw exception
-				key = nullptr;
-				break;
-			default:
-				key = nullptr;
-				//	TODO - throw exception
-				break;
-			}
-			return key;
-		}
-
-		std::string spanString(int index_width = 1) const {
-			std::stringstream sstring;
-			sstring << "[" << start_index << ":" << end_index << "]";
-			return sstring.str();
-		}
-
-		BlockDescriptor() {
-			type = BlockType::UNSPECIFIED;
-			key = nullptr;
-			start_index = 0;
-			end_index = 0;
-		}
-		BlockDescriptor(BlockType t, T* k, index_t s, index_t e) {
-			type = t;
-			key = k;
-			start_index = s;
-			end_index = e;
-		}
-		BlockDescriptor(const BlockDescriptor &other) {
-			if (this != &other) {
-				type = other.type;
-				key = other.key;
-				start_index = other.start_index;
-				end_index = other.end_index;
-			}
-		}
-		BlockDescriptor& operator=(const BlockDescriptor &other) {
-			if (this != &other) {
-				type = other.type;
-				key = other.key;
-				start_index = other.start_index;
-				end_index = other.end_index;
-			}
-			return *this;
-		}
-
-		bool operator==(const BlockDescriptor &other) const {
-			if (key != nullptr && other.key != nullptr) {
-				return *key == *other.key;
-			}
-			return false;
-		}
-		bool operator<(const BlockDescriptor &other) const {
-			if (key != nullptr && other.key != nullptr) {
-				return *key < *other.key;
-			}
-			return false;
-		}
-		bool operator<=(const BlockDescriptor &other) const {
-			return *this == other || *this < other;
-		}
-		bool operator>(const BlockDescriptor &other) const {
-			return  !(*this == other || *this < other);
- 		}
-		bool operator>=(const BlockDescriptor &other) const {
-			return !(*this < other);
-		}
-		bool operator!=(const BlockDescriptor &other) const {
-			return !(*this == other);
-		}
-
-		bool isExactlyEqual(const BlockDescriptor &other) const {
-			if (type != other.type) 				return false;
-			if (key != other.key)					return false;
-			if (start_index != other.start_index)	return false;
-			if (end_index != other.end_index)		return false;
-			return true;
-		}
-
-		std::string to_string(int index_width = 0) const {
-			std::stringstream result;
-			if (type != BlockType::UNSPECIFIED) {
-				result 	<< (type == BlockType::A_BLOCK ? "A block " : "B block ");
-				result 	<< "[" << std::setw(index_width) << start_index << ":"
-						<< std::setw(index_width) << end_index << "] ";
-				if (type == BlockType::A_BLOCK) {
-					result << "[" << std::setw(index_width) << start_index << "] = ";
-					if (key != nullptr) {
-						result << *key;
-					} else {
-						result << "key is nullptr";
-					}
-				} else {
-					result << "[" << std::setw(index_width) << end_index << "] = ";
-					if (key != nullptr) {
-						result << *key;
-					} else {
-						result << "key is nullptr";
-					}
-				}
-			} else {
-				result << "Unintialized block";
-			}
-			return result.str();
-		}
-	};
-
-	template <typename T>
-	std::ostream& operator<<(std::ostream& out, const BlockDescriptor<T> &object) {
-		out << object.to_string();
-		return out;
-	}
-
-	template <typename T>
-	index_t blockSortModulo(index_t rotation_count, index_t span) {
-		while (rotation_count < 0) {
-			rotation_count += span;
-		}
-		rotation_count %= span;
-		return rotation_count;
-	}
 
 	/*	******************************************************************	*/
 	/*	******************************************************************	*/
@@ -221,275 +61,53 @@ namespace BlockSort {
 	/*	******************************************************************	*/
 	/*	******************************************************************	*/
 
-	/*	***********************************************	*/
+	constexpr char 	TAG_BOUNDARY_CHAR 	= '|';
+	constexpr char 	TAG_SPACE_CHAR 		= ' ';
+	constexpr int 	ELEMENT_WIDTH 		= 4;
+	constexpr int 	VALUE_WIDTH 		= 3;
+
+	template <typename T>
+	bool areBlocksSorted(std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags);
+	/*		outputing the contentes of the array		*/
+	template <typename T>
+	std::string arrayElementsToString(T** array, index_t size,
+									  int value_width = VALUE_WIDTH,
+									  int element_width = ELEMENT_WIDTH);
+	template <typename T>
+	std::string arrayElementsToString(std::string trailer, T** array, index_t size,
+									  int value_width = VALUE_WIDTH,
+									  int element_width = ELEMENT_WIDTH);
 	/*		outputting graphic representation of tags	*/
-	/*	***********************************************	*/
-
 	template <typename T>
-	bool areTagsSorted(std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
-
-		for (int i = 0; i != num_tags-1; i++) {
-			if (tags[i+1] < tags[i])
-				return false;
-		}
-		return true;
-	}
-
-	//	creates either	"|A   " for an A_BLOCK or "|    " for a B_BLOCK
-	//		where width of the string is set by 'chars_remaining'
-
+	std::string blockDescriptorsToString(std::unique_ptr<BlockDescriptor<T>[]> &tags,
+										 int num_tags,
+										 int element_width = ELEMENT_WIDTH);
 	template <typename T>
-	std::string toStringTagOpeningElement(BlockDescriptor<T> &tag, int chars_remaining) {
-		std::stringstream result;
-		result.fill(TAG_SPACE_CHAR);
-		switch (chars_remaining) {
-		case 0:
-			result << __FUNCTION__ << " called with element_width == 0";
-			break;
-		case 1:
-			result << to_char(tag.type);
-			break;
-		default:
-			result << TAG_BOUNDARY_CHAR;
-			chars_remaining--;
-			switch (tag.type) {
-			case BlockType::A_BLOCK:
-				result << to_char(tag.type);
-				chars_remaining--;
-				if (chars_remaining >0) {
-					result << std::setw(chars_remaining) << TAG_SPACE_CHAR;
-				}
-				break;
-			case BlockType::B_BLOCK:
-				result << std::setw(chars_remaining) << TAG_SPACE_CHAR;
-				break;
-			case BlockType::UNSPECIFIED:
-				result.fill('?');
-				result << std::setw(chars_remaining) << '?';
-			}
-			break;
-		}
-		return result.str();
-	}
-
-	//	creates either	"     |" for an A_BLOCK or "   B|" for a B_BLOCK
-	//		where width of the string is set by 'chars_remaining'
-
-	template <typename T>
-	std::string toStringTagClosingElement(BlockDescriptor<T> &tag, int chars_remaining) {
-		std::stringstream result;
-		result.fill(TAG_SPACE_CHAR);
-		switch (chars_remaining) {
-		case 0:
-			result << __FUNCTION__ << " called with element_width == 0";
-			break;
-		case 1:
-			result << to_char(tag.type);
-			break;
-		default:
-			if (chars_remaining > 2) {
-				result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
-			}
-			if (tag.type == BlockType::B_BLOCK) {
-				result << to_char(tag.type);
-			} else {
-				result << TAG_SPACE_CHAR;
-			}
-			result << TAG_BOUNDARY_CHAR;
-			break;
-		}
-		return result.str();
-	}
-
-
-	//	creates a string representation of a block
-	//	  |A    |   or |    B|  or |?????|
-	//	where the width of the representation
-	//	is equal to the passed param 'element_width'
-
-	template <typename T>
-	std::string toStringTagSingleElement(BlockDescriptor<T> &tag, int chars_remaining) {
-		std::stringstream result;
-		result.fill(TAG_SPACE_CHAR);
-
-		switch(chars_remaining) {
-		case 0:
-			result << __FUNCTION__ << " called with element_width == 0";
-			break;
-		case 1:
-			result << to_char(tag.type);
-			break;
-		case 2:
-			result << TAG_BOUNDARY_CHAR
-				   << to_char(tag.type);
-			break;
-		case 3:
-			result << TAG_BOUNDARY_CHAR << to_char(tag.type)
-				   << TAG_BOUNDARY_CHAR;
-			break;
-		default:
-			result << TAG_BOUNDARY_CHAR;
-			chars_remaining--;
-			switch (tag.type) {
-			case BlockType::A_BLOCK:
-				result << to_char(tag.type);
-				chars_remaining--;
-				if (chars_remaining > 1) {
-					result << std::setw(chars_remaining-1) << TAG_SPACE_CHAR;
-				}
-				break;
-			case BlockType::B_BLOCK:
-				if (chars_remaining > 2) {
-					result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
-				}
-				result << to_char(tag.type);
-				break;
-			default:
-				result.fill('?');
-				result << std::setw(chars_remaining-1) << '?';
-				break;
-			}
-			result << TAG_BOUNDARY_CHAR;
-			break;
-		}
-		return result.str();
-	}
-
-	/*	**************************************************	*/
-	/*				print the values on a line				*/
-	/*	**************************************************	*/
-
-	// 	prints a line where the blocks a represented graphically
-	template <typename T>
-	std::string tagArrayToString(std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
-								 int element_width = ELEMENT_WIDTH) {
-
-		//	restores ostream state with its destructor
-		OStreamState ostream_state;
-
-		std::stringstream result;
-		if (element_width == 0) {
-			result << "ERROR: printTags() called with element_width == 0";
-			return result.str();
-		}
-
-
-		for (int i = 0; i != num_tags; i++) {
-
-			int elements_remaining = tags[i].numElements();
-
-			switch (elements_remaining) {
-			case 0:
-				result << "!!!!ERROR: printTags() passed a block of size 0 elements: ";
-				return result.str();
-			case 1:
-				result  << toStringTagSingleElement(tags[i], element_width);
-				break;
-			default:
-				result << toStringTagOpeningElement(tags[i], element_width);
-				elements_remaining--;
-				while(elements_remaining-- > 1) {
-					std::cout.fill(TAG_SPACE_CHAR);
-					result << std::setw(element_width) << TAG_SPACE_CHAR;
-				}
-				result << toStringTagClosingElement(tags[i], element_width);
-				break;
-			}
-		}
-		return result.str();
-	}
-
-	template <typename T>
-	std::string tagArrayToString(std::string trailer,
-								 std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
-								 int element_width = ELEMENT_WIDTH)
-	{
-		OStreamState ostream_state;
-		std::stringstream result;
-		result << tagArrayToString(tags, num_tags, element_width);
-		result << trailer;
-		return result.str();
-	}
-
-	template <typename T>
-	std::string arrayElementsToString(T** array, index_t size, int value_width, int element_width) {
-		OStreamState current_state;
-		std::stringstream result;
-		int spacer_width = element_width - value_width;
-		for (int i = 0; i < size-1; i++) {
-			result << std::right << std::setw(value_width) << *array[i];
-			if (spacer_width) {
-				result << std::setw(spacer_width) << ' ';
-			}
-		}
-		result << std::right << std::setw(value_width) << *array[size-1];
-		return result.str();
-	}
-
-	template <typename T>
-	std::string arrayElementsToString(std::string trailer, T** array, index_t size, int value_width, int element_width) {
-		OStreamState current_state;
-		std::stringstream result;
-		result << arrayElementsToString(array, size, value_width, element_width);
-		result << trailer;
-		return result.str();
-	}
-
+	std::string blockDescriptorsToString(std::string trailer,
+								 	 	 std::unique_ptr<BlockDescriptor<T>[]> &tags,
+										 int num_tags,
+										 int element_width = ELEMENT_WIDTH);
 	template <typename T>
 	std::string blockSortToString(T** array, index_t size, index_t v,
-							 	  std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
-								  int value_width = 3, int element_width = 4) {
-		OStreamState ostream_state;
-		std::stringstream result;
-		result << arrayIndicesToString(size, v, element_width) << std::endl;
-		result << arrayElementsToString(array, size, value_width, element_width) << std::endl;
-		result << tagArrayToString(tags, num_tags, element_width);
-		return result.str();
-	}
-
-	/*	**************************************************	*/
-	/*				print the entire structure				*/
-	/*	**************************************************	*/
-
+							 	  std::unique_ptr<BlockDescriptor<T>[]> &tags,
+								  int num_tags,
+								  int value_width = VALUE_WIDTH,
+								  int element_width = ELEMENT_WIDTH);
 	template <typename T>
-	void printElements(std::string trailer, T** array, index_t size, int value_width, int element_width) {
-		OStreamState current_state;
-
-		int spacer_width = element_width - value_width;
-		for (int i = 0; i != size; i++) {
-			if (spacer_width) {
-				std::cout << std::setw(spacer_width) << ' ';
-			std::cout << std::setw(value_width) << *array[i];
-			}
-		}
-		std::cout << trailer;
-	}
-
+	void printBlockSortArray(std::string trailer,
+							 T** array, index_t size, index_t v,
+							 std::unique_ptr<BlockDescriptor<T>[]> &tags,
+							 int num_tags);
 	template <typename T>
-	void printBlockSortArray(std::string trailer, T** array, index_t size, index_t v,
-							 std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
-
-		constexpr const int 	element_width = 3;
-		constexpr const int 	value_width = element_width - 1;
-		constexpr const char 	spacer = ' ';
-		// hand edit these to make them 'element_width' wide
-		constexpr const char*   midpoint 	= "\\V/";
-
-		//	preserve state of ostream; destructor will restore state
-		OStreamState ostream_state;
-
-		//	print out the index of the array
-		for (int i = 0; i < size; i++) {
-			if (i != v) std::cout << std::setw(value_width) << i << spacer;
-			else std::cout << midpoint;
-		}
-		std::cout << std::endl;
-
-		printElements(std::string(), array, size, value_width, element_width);
-		std::cout << std::endl;
-		std::cout << tagArrayToString(std::string(), tags, num_tags, element_width);
-		std::cout << trailer;
-	}
+	void printElements(std::string trailer, T** array, index_t size,
+					   int value_width = VALUE_WIDTH,
+					   int element_width = ELEMENT_WIDTH);
+	template <typename T>
+	std::string toStringTagClosingElement(BlockDescriptor<T> &tag, int chars_remaining);
+	template <typename T>
+	std::string toStringTagOpeningElement(BlockDescriptor<T> &tag, int chars_remaining);
+	template <typename T>
+	std::string toStringTagSingleElement(BlockDescriptor<T> &tag, int chars_remaining);
 
 
 	/*	**************************************************************************	*/
@@ -502,19 +120,20 @@ namespace BlockSort {
 	int createBlockDescriptors( T** array, index_t start, index_t mid, index_t end,
 			    				int block_size,
 								std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
-
+	/*
+	 * 	In an array of blockDescriptors, find the rightmost block that is < key
+	 */
 	template <typename T>
 	ComparesAndMoves findRightmostSmallerBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
 											   index_t first, index_t last,
 								   	   	   	   T* key, index_t &key_location);
-
 	/*
 	 * 	Blocks do not have to be continguous,
 	 */
 	template <typename T>
-	ComparesAndMoves mergeBlocksByIndirection(T** array,
-											  index_t left_start, index_t left_end,
-											  index_t right_start, index_t right_end);
+	ComparesAndMoves mergeBlocksByTable(T** array,
+										index_t left_start, index_t left_end,
+										index_t right_start, index_t right_end);
 	/*
 	 * 	Blocks must be contiguous
 	 */
@@ -805,7 +424,7 @@ namespace BlockSort {
 
 
 	/*
-	 * 	mergeBocksIndirectionArray(array, left_start, left_end, right_start, right_end)
+	 * 	mergeBocksByTable(array, left_start, left_end, right_start, right_end)
 	 *
 	 * 	This function merges the values the two blocks [l_start:l_end] with [r_start:r_end]
 	 * 	It is assumed that the values within each block are in ascending order
@@ -929,11 +548,11 @@ namespace BlockSort {
 	 *
 	 *
 	 */
-#if 0
+
 	template <typename T>
-	ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
-												 index_t left_start, index_t left_end,
-												 index_t right_start, index_t right_end) {
+	ComparesAndMoves mergeBlocksByTable(T ** array,
+										index_t left_start, index_t left_end,
+										index_t right_start, index_t right_end) {
 		ComparesAndMoves result(0,0);
 
 		bool debug_verbose = false;
@@ -970,37 +589,40 @@ namespace BlockSort {
 		}
 		index_t table_ptr = 0;
 
-		if (debug_verbose) {
-			auto debug_string = [&](index_t left_source) -> std::string {
-				std::stringstream result;
-				result << "\"";
-				for (index_t i = left_start; i <= right_end; ) {
-					result << *array[i];
-					i++;
-					if (i-1 == left_end) {
-						i = right_start;
-					}
+		auto debug_string = [&](index_t left_source) -> std::string {
+			std::stringstream result;
+			result << "\"";
+			for (index_t i = left_start; i <= right_end; ) {
+				result << *array[i];
+				i++;
+				if (i-1 == left_end) {
+					i = right_start;
 				}
-				result << "\" " << table_ptr
-					   << " into table [";
-				for (int i = 0; i != left_indices_table_size; i++) {
-					if (i < table_ptr) {
-						result << "..";
-					} else {
-						result << std::setw(2) << left_indices_table[i];
-					}
+			}
+			result << "\" " << table_ptr
+				   << " into table [";
+			for (int i = 0; i != left_indices_table_size; i++) {
+				if (i < table_ptr) {
+					result << "..";
+				} else {
+					result << std::setw(2) << left_indices_table[i];
 				}
-				result << "] "
-					   << " dst " << dst_ptr << " ls " << left_source << " rt " << right_ptr;
-				return result.str();
-			};
-		}
+			}
+			result << "] "
+				   << " dst " << dst_ptr << " ls " << left_source << " rt " << right_ptr;
+			return result.str();
+		};
+
+
+		/*	******************************************************	*/
+		/*					the algorithm code						*/
+		/*	******************************************************	*/
 
 		while (dst_ptr <= right_end)
 		{
 			index_t left_source = left_indices_table[table_ptr];
 			if (debug_verbose) {
-				message << debug_string(left_source)#endif;
+				message << debug_string(left_source);
 			}
 			result._compares++;
 			if (*array[left_source] <= *array[right_ptr]) {
@@ -1095,7 +717,7 @@ namespace BlockSort {
 		}
 		return result;
 	}
-#endif
+
 
 	/*
 	 * 	TODO -  add optimization of looking for all values on the left (u[]) side
@@ -1247,7 +869,7 @@ namespace BlockSort {
 			return result;
 
 		//	converts amounts that are not in [0,span) to in range
-		amount = blockSortModulo<T>(amount, span);
+		amount = blockSortModulo(amount, span);
 
 		if (amount == 0)
 			return result;
@@ -1410,7 +1032,7 @@ namespace BlockSort {
 		}
 
 		index_t tag_span = last - first + 1;
-		tag_rotate_count = blockSortModulo<T>(tag_rotate_count, tag_span);
+		tag_rotate_count = blockSortModulo(tag_rotate_count, tag_span);
 		if (tag_rotate_count == 0) {
 			return compares_and_moves;
 		}
@@ -1717,7 +1339,7 @@ namespace BlockSort {
 			std::cout << "EXITING: \n"
 					  << blockSortToString(array, array_size, v, blocks, num_tags)
 					  << std::endl;
-			if (areTagsSorted(blocks, num_tags)) {
+			if (areBlocksSorted(blocks, num_tags)) {
 				_debug("Tags are sorted");
 			} else {
 				_debug("Tags are NOT sorted");
@@ -1901,7 +1523,7 @@ namespace BlockSort {
 			std::cout << "EXITING: \n"
 					  << blockSortToString(array, array_size, v, blocks, num_blocks)
 					  << std::endl;
-			if (areTagsSorted(blocks, num_blocks)) {
+			if (areBlocksSorted(blocks, num_blocks)) {
 				_debug("Tags are sorted");
 			} else {
 				_debug("Tags are NOT sorted");
@@ -2070,7 +1692,7 @@ namespace BlockSort {
 			std::cout << "EXITING: \n"
 					  << blockSortToString(array, array_size, v, blocks, num_blocks)
 					  << std::endl;
-			if (areTagsSorted(blocks, num_blocks)) {
+			if (areBlocksSorted(blocks, num_blocks)) {
 				_debug("Tags are sorted");
 			} else {
 				_debug("Tags are NOT sorted");
@@ -2256,6 +1878,277 @@ namespace BlockSort {
 		}
 
 		return result;
+	}
+
+
+	/*	**************************************************************************	*/
+	/*	**************************************************************************	*/
+	/*								Debugging resources								*/
+	/*	**************************************************************************	*/
+	/*	**************************************************************************	*/
+
+	//	compares an array of block descriptors using the operator< overload
+
+	template <typename T>
+	bool areBlocksSorted(std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
+
+		for (int i = 0; i != num_tags-1; i++) {
+			if (tags[i+1] < tags[i])
+				return false;
+		}
+		return true;
+	}
+
+	template <typename T>
+	std::string arrayElementsToString(T** array, index_t size, int value_width, int element_width) {
+		OStreamState current_state;
+		std::stringstream result;
+		int spacer_width = element_width - value_width;
+		for (int i = 0; i < size-1; i++) {
+			result << std::right << std::setw(value_width) << *array[i];
+			if (spacer_width) {
+				result << std::setw(spacer_width) << ' ';
+			}
+		}
+		result << std::right << std::setw(value_width) << *array[size-1];
+		return result.str();
+	}
+
+	template <typename T>
+	std::string arrayElementsToString(std::string trailer, T** array, index_t size, int value_width, int element_width) {
+		OStreamState current_state;
+		std::stringstream result;
+		result << arrayElementsToString(array, size, value_width, element_width);
+		result << trailer;
+		return result.str();
+	}
+
+	// 	prints a line where the blocks a represented graphically
+	template <typename T>
+	std::string blockDescriptorsToString(std::unique_ptr<BlockDescriptor<T>[]> &tags,
+										 int num_tags,
+										 int element_width) {
+
+		//	restores ostream state with its destructor
+		OStreamState ostream_state;
+
+		std::stringstream result;
+		if (element_width == 0) {
+			result << "ERROR: printTags() called with element_width == 0";
+			return result.str();
+		}
+
+
+		for (int i = 0; i != num_tags; i++) {
+
+			int elements_remaining = tags[i].numElements();
+
+			switch (elements_remaining) {
+			case 0:
+				result << "!!!!ERROR: printTags() passed a block of size 0 elements: ";
+				return result.str();
+			case 1:
+				result  << toStringTagSingleElement(tags[i], element_width);
+				break;
+			default:
+				result << toStringTagOpeningElement(tags[i], element_width);
+				elements_remaining--;
+				while(elements_remaining-- > 1) {
+					std::cout.fill(TAG_SPACE_CHAR);
+					result << std::setw(element_width) << TAG_SPACE_CHAR;
+				}
+				result << toStringTagClosingElement(tags[i], element_width);
+				break;
+			}
+		}
+		return result.str();
+	}
+
+	template <typename T>
+	std::string blockDescriptorsToString(std::string trailer,
+								 	 	 std::unique_ptr<BlockDescriptor<T>[]> &tags,
+										 int num_tags,
+										 int element_width)
+	{
+		OStreamState ostream_state;
+		std::stringstream result;
+		result << blockDescriptorsToString(tags, num_tags, element_width);
+		result << trailer;
+		return result.str();
+	}
+
+	/*
+	 * 	create a string that prints the whole array, including the blockDescriptors
+	 */
+	template <typename T>
+	std::string blockSortToString(T** array, index_t size, index_t v,
+							 	  std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
+								  int value_width, int element_width) {
+		OStreamState ostream_state;
+		std::stringstream result;
+		result << arrayIndicesToString(size, v, element_width) << std::endl;
+		result << arrayElementsToString(array, size, value_width, element_width) << std::endl;
+		result << blockDescriptorsToString(tags, num_tags, element_width);
+		return result.str();
+	}
+
+	template <typename T>
+	void printBlockSortArray(std::string trailer, T** array, index_t size, index_t v,
+							 std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
+
+		constexpr const int 	element_width = 3;
+		constexpr const int 	value_width = element_width - 1;
+		constexpr const char 	spacer = ' ';
+		// hand edit these to make them 'element_width' wide
+		constexpr const char*   midpoint 	= "\\V/";
+
+		//	preserve state of ostream; destructor will restore state
+		OStreamState ostream_state;
+
+		//	print out the index of the array
+		for (int i = 0; i < size; i++) {
+			if (i != v) std::cout << std::setw(value_width) << i << spacer;
+			else std::cout << midpoint;
+		}
+		std::cout << std::endl;
+
+		printElements(std::string(), array, size, value_width, element_width);
+		std::cout << std::endl;
+		std::cout << blockDescriptorsToString(std::string(), tags, num_tags, element_width);
+		std::cout << trailer;
+	}
+
+	template <typename T>
+	void printElements(std::string trailer, T** array, index_t size, int value_width, int element_width) {
+		OStreamState current_state;
+
+		int spacer_width = element_width - value_width;
+		for (int i = 0; i != size; i++) {
+			if (spacer_width) {
+				std::cout << std::setw(spacer_width) << ' ';
+			std::cout << std::setw(value_width) << *array[i];
+			}
+		}
+		std::cout << trailer;
+	}
+
+	//	creates either	"     |" for an A_BLOCK or "   B|" for a B_BLOCK
+	//		where width of the string is set by 'chars_remaining'
+
+	template <typename T>
+	std::string toStringTagClosingElement(BlockDescriptor<T> &tag, int chars_remaining) {
+		std::stringstream result;
+		result.fill(TAG_SPACE_CHAR);
+		switch (chars_remaining) {
+		case 0:
+			result << __FUNCTION__ << " called with element_width == 0";
+			break;
+		case 1:
+			result << to_char(tag.type);
+			break;
+		default:
+			if (chars_remaining > 2) {
+				result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
+			}
+			if (tag.type == BlockType::B_BLOCK) {
+				result << to_char(tag.type);
+			} else {
+				result << TAG_SPACE_CHAR;
+			}
+			result << TAG_BOUNDARY_CHAR;
+			break;
+		}
+		return result.str();
+	}
+
+	//	creates either	"|A   " for an A_BLOCK or "|    " for a B_BLOCK
+	//		where width of the string is set by 'chars_remaining'
+
+	template <typename T>
+	std::string toStringTagOpeningElement(BlockDescriptor<T> &tag, int chars_remaining) {
+		std::stringstream result;
+		result.fill(TAG_SPACE_CHAR);
+		switch (chars_remaining) {
+		case 0:
+			result << __FUNCTION__ << " called with element_width == 0";
+			break;
+		case 1:
+			result << to_char(tag.type);
+			break;
+		default:
+			result << TAG_BOUNDARY_CHAR;
+			chars_remaining--;
+			switch (tag.type) {
+			case BlockType::A_BLOCK:
+				result << to_char(tag.type);
+				chars_remaining--;
+				if (chars_remaining >0) {
+					result << std::setw(chars_remaining) << TAG_SPACE_CHAR;
+				}
+				break;
+			case BlockType::B_BLOCK:
+				result << std::setw(chars_remaining) << TAG_SPACE_CHAR;
+				break;
+			case BlockType::UNSPECIFIED:
+				result.fill('?');
+				result << std::setw(chars_remaining) << '?';
+			}
+			break;
+		}
+		return result.str();
+	}
+
+	//	creates a string representation of a block
+	//	  |A    |   or |    B|  or |?????|
+	//	where the width of the representation
+	//	is equal to the passed param 'element_width'
+
+	template <typename T>
+	std::string toStringTagSingleElement(BlockDescriptor<T> &tag, int chars_remaining) {
+		std::stringstream result;
+		result.fill(TAG_SPACE_CHAR);
+
+		switch(chars_remaining) {
+		case 0:
+			result << __FUNCTION__ << " called with element_width == 0";
+			break;
+		case 1:
+			result << to_char(tag.type);
+			break;
+		case 2:
+			result << TAG_BOUNDARY_CHAR
+				   << to_char(tag.type);
+			break;
+		case 3:
+			result << TAG_BOUNDARY_CHAR << to_char(tag.type)
+				   << TAG_BOUNDARY_CHAR;
+			break;
+		default:
+			result << TAG_BOUNDARY_CHAR;
+			chars_remaining--;
+			switch (tag.type) {
+			case BlockType::A_BLOCK:
+				result << to_char(tag.type);
+				chars_remaining--;
+				if (chars_remaining > 1) {
+					result << std::setw(chars_remaining-1) << TAG_SPACE_CHAR;
+				}
+				break;
+			case BlockType::B_BLOCK:
+				if (chars_remaining > 2) {
+					result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
+				}
+				result << to_char(tag.type);
+				break;
+			default:
+				result.fill('?');
+				result << std::setw(chars_remaining-1) << '?';
+				break;
+			}
+			result << TAG_BOUNDARY_CHAR;
+			break;
+		}
+		return result.str();
 	}
 
 }	// namespace BlockSort
