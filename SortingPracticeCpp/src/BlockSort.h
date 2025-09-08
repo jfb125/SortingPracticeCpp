@@ -6,8 +6,6 @@
  */
 
 /*	TODO - List
- *		<< Remember in all merging algorithms, you do not have to merge
- *		   consecutive B Blocks - their elements are in ascending order >>
  *
  *		<< Make sure that rotate functions look for the whole span of elements
  *		   on the left side that are > the element on the right side
@@ -128,7 +126,7 @@ namespace BlockSort {
 											   index_t first, index_t last,
 								   	   	   	   T* key, index_t &key_location);
 	/*
-	 * 	Blocks do not have to be continguous,
+	 * 	Blocks do not have to be contiguous,
 	 */
 	template <typename T>
 	ComparesAndMoves mergeBlocksByTable(T** array,
