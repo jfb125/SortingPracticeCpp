@@ -8,9 +8,9 @@
 /*	TODO - List
  *		<< Remember in all merging algorithms, you do not have to merge
  *		   consecutive B Blocks - their elements are in ascending order >>
- *		<< Optimization: if you go to merge two blocks, and the last element
- *		   of the block on the left <= the first element of the right block
- *		   there is no need to merge - all of the elements are in order >>
+ *
+ *		<< Make sure that rotate functions look for the whole span of elements
+ *		   on the left side that are > the element on the right side
  *
  * 	Create a sqrtMerge() that uses an auxiliary array the size of an A_Block
  * 		to hold the A_Block, then merges the A_Block & B_Block into the
@@ -19,9 +19,6 @@
  *  0 3 5 6            x 3 5 6            x x x 6           x x x x
  * 	A	    B          A       B          A       B         A       B
  * 	0 3 5 6 1 2 4 7    0 1 2 3 1 2 4 7    0 1 2 3 4 5 4 7   0 1 2 3 4 5 6 7
- *
- *	Create a merge that, given an A_Block of size m, uses the m strictly
- *		ascending values to the left of the A_Block as the Aux array
  */
 
 #ifndef BLOCKSORT_H_
@@ -72,17 +69,17 @@ std::ostream& operator<<(std::ostream& out, BlockType object);
 #define BLOCK_MERGE_BY_ROTATE
 
 namespace BlockSort {
-	using array_size_t = array_size_t;
+	using index_t = array_size_t;
 
 	template <typename T>
 	class BlockDescriptor {
 	public:
 		BlockType type;
 		T* key;
-		array_size_t start_index;
-		array_size_t end_index;
+		index_t start_index;
+		index_t end_index;
 
-		array_size_t	numElements() const {
+		index_t	numElements() const {
 			return end_index - start_index + 1;
 		}
 
@@ -118,7 +115,7 @@ namespace BlockSort {
 			start_index = 0;
 			end_index = 0;
 		}
-		BlockDescriptor(BlockType t, T* k, array_size_t s, array_size_t e) {
+		BlockDescriptor(BlockType t, T* k, index_t s, index_t e) {
 			type = t;
 			key = k;
 			start_index = s;
@@ -210,7 +207,7 @@ namespace BlockSort {
 	}
 
 	template <typename T>
-	array_size_t blockSortModulo(array_size_t rotation_count, array_size_t span) {
+	index_t blockSortModulo(index_t rotation_count, index_t span) {
 		while (rotation_count < 0) {
 			rotation_count += span;
 		}
@@ -415,7 +412,7 @@ namespace BlockSort {
 	}
 
 	template <typename T>
-	std::string arrayElementsToString(T** array, array_size_t size, int value_width, int element_width) {
+	std::string arrayElementsToString(T** array, index_t size, int value_width, int element_width) {
 		OStreamState current_state;
 		std::stringstream result;
 		int spacer_width = element_width - value_width;
@@ -430,7 +427,7 @@ namespace BlockSort {
 	}
 
 	template <typename T>
-	std::string arrayElementsToString(std::string trailer, T** array, array_size_t size, int value_width, int element_width) {
+	std::string arrayElementsToString(std::string trailer, T** array, index_t size, int value_width, int element_width) {
 		OStreamState current_state;
 		std::stringstream result;
 		result << arrayElementsToString(array, size, value_width, element_width);
@@ -439,7 +436,7 @@ namespace BlockSort {
 	}
 
 	template <typename T>
-	std::string blockSortToString(T** array, array_size_t size, array_size_t v,
+	std::string blockSortToString(T** array, index_t size, index_t v,
 							 	  std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
 								  int value_width = 3, int element_width = 4) {
 		OStreamState ostream_state;
@@ -455,7 +452,7 @@ namespace BlockSort {
 	/*	**************************************************	*/
 
 	template <typename T>
-	void printElements(std::string trailer, T** array, array_size_t size, int value_width, int element_width) {
+	void printElements(std::string trailer, T** array, index_t size, int value_width, int element_width) {
 		OStreamState current_state;
 
 		int spacer_width = element_width - value_width;
@@ -469,7 +466,7 @@ namespace BlockSort {
 	}
 
 	template <typename T>
-	void printBlockSortArray(std::string trailer, T** array, array_size_t size, array_size_t v,
+	void printBlockSortArray(std::string trailer, T** array, index_t size, index_t v,
 							 std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
 
 		constexpr const int 	element_width = 3;
@@ -495,49 +492,621 @@ namespace BlockSort {
 	}
 
 
-	/*	******************************************************************	*/
-	/*	******************************************************************	*/
-	/*							algorithm functions							*/
-	/*	******************************************************************	*/
-	/*	******************************************************************	*/
+	/*	**************************************************************************	*/
+	/*	**************************************************************************	*/
+	/*							algorithm function declarations						*/
+	/*	**************************************************************************	*/
+	/*	**************************************************************************	*/
 
 	template <typename T>
-	ComparesAndMoves findRightmostSmallerValue(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
-											   array_size_t first, array_size_t last,
-								   	   	   	   T* key, array_size_t &key_location);
+	int createBlockDescriptors( T** array, index_t start, index_t mid, index_t end,
+			    				int block_size,
+								std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
+
 	template <typename T>
-	ComparesAndMoves mergeBlocksByRotating(T** array, array_size_t start, array_size_t mid, array_size_t end);
-	template <typename T>
-	int createBlockDescriptors( T** array, array_size_t start, array_size_t mid, array_size_t end,
-			    	int block_size, std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
-	template <typename T>
-	ComparesAndMoves rotateArrayElementsRight(T** array, array_size_t start, array_size_t end, array_size_t amount);
-	template <typename T>
-	ComparesAndMoves rotateBlocksRight(T** array, std::unique_ptr<BlockDescriptor<T>[]> &tags,
-					array_size_t first_tag, array_size_t last_tag, int tag_rotate_count);
-	template <typename T>
-	ComparesAndMoves sortBlocksBinarySearch(T **array, array_size_t size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_tags);
-	template <typename T>
-	ComparesAndMoves sortBlocksHybrid(T **array, array_size_t size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
-	template <typename T>
-	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
-	template <typename T>
-	ComparesAndMoves swapBlocks(T** array,
-								array_size_t block1_start, array_size_t block1_end,
-								array_size_t block2_start, array_size_t block2_end);
-	template<typename T>
-	ComparesAndMoves swapTags(std::unique_ptr<BlockDescriptor<T[]>> &tags, int i, int j);
+	ComparesAndMoves findRightmostSmallerBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+											   index_t first, index_t last,
+								   	   	   	   T* key, index_t &key_location);
 
 	/*
-	 * ComparesAndMoves blockMerge(arr, start, mid, end);
+	 * 	Blocks do not have to be continguous,
+	 */
+	template <typename T>
+	ComparesAndMoves mergeBlocksByIndirection(T** array,
+											  index_t left_start, index_t left_end,
+											  index_t right_start, index_t right_end);
+	/*
+	 * 	Blocks must be contiguous
+	 */
+	template <typename T>
+	ComparesAndMoves mergeBlocksByRotating(T** array, index_t start, index_t mid, index_t end);
+
+	template <typename T>
+	ComparesAndMoves rotateArrayElementsRight(T** array, index_t start, index_t end, index_t amount);
+	template <typename T>
+	ComparesAndMoves rotateBlocksRight(T** array, std::unique_ptr<BlockDescriptor<T>[]> &tags,
+					index_t first_tag, index_t last_tag, int tag_rotate_count);
+
+
+	template <typename T>
+	ComparesAndMoves sortBlocksBinarySearch(T **array, index_t size,
+			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_tags);
+	template <typename T>
+	ComparesAndMoves sortBlocksHybrid(T **array, index_t size,
+			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
+	template <typename T>
+	ComparesAndMoves sortBlocksRightToLeft(T **array, index_t size,
+			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
+
+	template <typename T>
+	ComparesAndMoves swapBlocks(T** array,
+								index_t block1_start, index_t block1_end,
+								index_t block2_start, index_t block2_end);
+	template<typename T>
+	ComparesAndMoves swapBlockDescriptors(std::unique_ptr<BlockDescriptor<T[]>> &tags,
+										  int i, int j);
+
+	/*	**********************************************************************	*/
+	/*	**********************************************************************	*/
+	/*							function definitions							*/
+	/*	**********************************************************************	*/
+	/*	**********************************************************************	*/
+
+	/*
+	 * 	createBlockDescriptors(array, start, mid, end, block_size, descriptor_dst&);
 	 *
-	 *   This uses rotate operations to put the { u[], v[n] } array in order
+	 * 	parses an array from [start:end] into blocks of span <= block_size
+	 * 	 	to create a list of blocks of elements which is stored in descriptor_dst.
+	 * 	 	The underlying array is not modified. The BlockTags contain
+	 * 	 	information about the array, but they are not part of the array
+	 *
+	 *	'A_Block' is defined as a block that has a key value of the first element
+	 *	'B_Block' is defined as a block that has a key value of the last element
+	 *
+	 * 	the blocks are generated in such a way to ensure that
+	 * 		[end-1] is the end_index of the last A-type block and
+	 * 		[end] is the start_index of the first B-type block
+	 *
+	 * 	consider the following array with start = 0, mid = 4, end = 8, block_size = 3
+	 * 		             0  1  2  3  4  5  6  7  8
+	 * 		           { a, c, e, g, i, b, d, f, h }
+	 * 	tags types are  |A||A     ||       B||   B|
+	 *  tag indices are [0] [1:3]       [4:6] [7:8]
+	 *  tag keys are    'a' 'c'           'd'   'h'
+	 *
+	 * 	returns the count of tags which is 4
+	 */
+
+	template <typename T>
+	int  createBlockDescriptors(T** array, index_t start, index_t mid, index_t end,
+			    		 	 	int block_size, std::unique_ptr<BlockDescriptor<T>[]> &blocks) {
+
+		ComparesAndMoves result(0,0);
+		index_t lower_span = mid-start;
+		index_t upper_span = end-mid + 1;
+
+		// calculate the total number of blocks
+		int num_blocks = lower_span / block_size + upper_span / block_size;
+		int first_block_size = lower_span % block_size;
+		// if there is a partial first block
+		//	  it is necessary to calculate the first_block_size in order to
+		//	  know where .end_index is in the first block
+		if (first_block_size != 0)
+			num_blocks++;
+		//	if there is a partial last block
+		//	  it is not necessary to calculate the block_size of the last block
+		//	  the algorithm will make the .end_index of the last block = 'end'
+		if (upper_span % block_size)
+			num_blocks++;
+
+		// create the block storage
+		blocks = std::unique_ptr<BlockDescriptor<T>[]>(new BlockDescriptor<T>[num_blocks]);
+
+		//	assign values to the blocks
+		int block_number = 0;
+		index_t start_of_block = start;
+
+		//	do the A_Blocks first
+		//	if the first A_Block is a partial, it's .end_index != (.start_index+block_size-1)
+		if (first_block_size) {
+			blocks[block_number].type 			= BlockType::A_BLOCK;
+			blocks[block_number].start_index	= start;
+			blocks[block_number].end_index		= first_block_size-1;
+			blocks[block_number].key			= array[start_of_block];
+			start_of_block += first_block_size;
+			block_number = 1;
+		}
+
+		//	the full A_Blocks where .end_index = (.start_index+block_size-1)
+		while (start_of_block < mid) {
+			blocks[block_number].type 			= BlockType::A_BLOCK;
+			blocks[block_number].start_index	= start_of_block;
+			blocks[block_number].end_index		= start_of_block+block_size-1;
+			blocks[block_number].key			= array[start_of_block];
+			start_of_block += block_size;
+			block_number++;
+		}
+
+		//	the full B_Blocks where .end_index = (.start_index+block_size-1)
+		while (block_number < num_blocks-1) {
+			blocks[block_number].type 		= BlockType::B_BLOCK;
+			blocks[block_number].start_index= start_of_block;
+			blocks[block_number].end_index	= start_of_block+block_size-1;
+			blocks[block_number].key		= array[start_of_block + block_size-1];
+			start_of_block += block_size;
+			block_number++;
+		}
+
+		//	the final B_Block may be a partial block, but regardless of its size,
+		//		.end_index = 'end'
+		blocks[block_number].type 			= BlockType::B_BLOCK;
+		blocks[block_number].start_index	= start_of_block;
+		blocks[block_number].end_index		= end;
+		blocks[block_number].key			= array[end];
+
+		return num_blocks;
+	}
+
+
+	/*	**********************************************************	*/
+	/*		Binary Search for the right-most block that is < key	*/
+	/*	**********************************************************	*/
+
+	constexpr index_t smaller_block_not_found = -1;
+
+	template <typename T>
+	ComparesAndMoves findRightmostSmallerBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+											   index_t first, index_t last,
+								   	   	   	   T* key, index_t &key_location)
+	{
+		//	debugging resources
+		constexpr bool debug_verbose = false;
+		std::stringstream findRightMostSmallerValue_message;
+
+		// return number of compares & moves(=0) which is a
+		//	figure of merit in evaluating the algorithm
+		ComparesAndMoves result(0,0);
+
+		if (key == nullptr) {
+			if (debug_verbose) {
+				std::cout << __FUNCTION__ << " passed nullptr key\n";
+			}
+			return result;
+		}
+
+		//	find the midpoint of between [first:last]
+		//	if the span is only 1, return first+1, which is last
+		auto nextIndex = [] (index_t l_first, index_t l_last) -> index_t {
+
+			//	the algorithm requires that first < last
+			if (l_first == l_last) {
+				//	first == last
+				return l_first;
+			}
+
+			if (l_first < l_last) {
+				//	first > last
+				index_t tmp = l_first;
+				l_first = l_last;
+				l_last = tmp;
+			}
+
+			//	The algorithm itself
+			if (l_last - l_first == 1) {
+				return l_last;
+			} else {
+				//	in an odd span, return value less than span/2 = n.5 = n
+				return l_first + (l_last-l_first)/2;
+			}
+		};
+
+		/*
+		 * 	The binary search
+		 */
+
+		//	first == last does not require any calculation
+		//		if the key > block, return first, else return key not found
+		if (first == last)
+		{
+			result._compares++;
+			if (*key > *blocks[first].key) {
+				key_location = first;
+			} else {
+				key_location = smaller_block_not_found;
+			}
+			if (debug_verbose) {
+			//	debugging messages
+				findRightMostSmallerValue_message
+					<< "start == end == " << std::setw(2) << first
+					<< ", trying guess [" << std::setw(2) << first
+					<< "] = " << std::setw(2) << *blocks[first].key
+					<< (*key > *blocks[first].key ? " is    " : " is NOT")
+					<< " smaller than " << *key;
+
+				findRightMostSmallerValue_message << " returning " << std::setw(2) << first;
+				std::cout << findRightMostSmallerValue_message.str() << std::endl;
+			}
+
+			return result;
+		}
+
+
+		key_location = smaller_block_not_found;
+
+		//	algorthm works when last > first
+		if (last < first) {
+			index_t tmp = first;
+			first = last;
+			last = tmp;
+		}
+
+		index_t guess = nextIndex(first, last);
+		//	The algorithm searches through block values < key (if they exist) until it
+		//	  finds a block value > key.  Once it finds a value that is > key,
+		//	  it returns the location of the previous (right-most) value which key > block
+		index_t smaller_value_index = smaller_block_not_found;
+
+		while (1) {
+			//	debug
+			if (debug_verbose) {
+				findRightMostSmallerValue_message
+					<< "previous guess " << std::setw(2) << smaller_value_index
+					<< ", trying guess [" << std::setw(2) << guess
+					<< "] = " << std::setw(2) << *blocks[guess].key
+					<< (*key > *blocks[guess].key ? " is    " : " is NOT")
+					<< " smaller than " << *key;
+			}
+
+			//	compare *key to *blocks[guess].key
+			result._compares++;
+			if (*key > *blocks[guess].key) {
+				// check to see if any elements further to the right
+				//	 of this to see if there are larger values
+				//	 in the array that are < the key
+				smaller_value_index = guess;	// [guess] < key
+				first = guess+1;
+				if (first > last) {
+					//	if there are no more blocks, done
+					key_location = smaller_value_index;
+					break;
+				}
+				guess = nextIndex(first, last);
+			} else {
+				// key <= array which means 'guess' is too far to the right
+				//   look to the left for an element which is smaller than the key
+				last = guess-1;
+				if (last < first) {
+					//	if no more blocks, done
+					break;
+				}
+				guess = nextIndex(first, last);
+			}
+			if (debug_verbose) {
+				//	debug stuff
+				findRightMostSmallerValue_message
+					<< " next guess = " << std::setw(2) << guess << std::endl;
+			}
+		}
+
+		//	the previous found block < key is passed to the caller
+		//	(if no value found, 'key_location' contains 'smaller_value_not_found')
+		key_location = smaller_value_index;
+
+		//	debug stuff
+		if (debug_verbose) {
+			findRightMostSmallerValue_message
+				<< " returning " << key_location << std::endl;
+			std::cout << findRightMostSmallerValue_message.str();
+		}
+
+		//	return diagnostices
+		return result;
+	}
+
+
+	/*
+	 * 	mergeBocksIndirectionArray(array, left_start, left_end, right_start, right_end)
+	 *
+	 * 	This function merges the values the two blocks [l_start:l_end] with [r_start:r_end]
+	 * 	It is assumed that the values within each block are in ascending order
+	 *
+	 * 	Note that this algorithm does not require the blocks to be contiguous,
+	 * 	 nor does it require the size of the left block to be <= size of the right block
+	 *
+	 * 	The algorithm creates a table of where each element of the left block is after
+	 * 	  each swap. This table of array indices allows the algorithm to use O(1) space
+	 * 	  complexity.
+	 *
+	 *	In the following discussion
+	 *		'ls' is left_start		'le' is left end
+	 *		'rs' is right start		're' is right end
+	 *		'-' indicates an index that is no longer part of the algorithm
+	 *
+	 * 	Consider the blocks "BDF" and "ACEG
+	 *
+	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			   table 't'
+	 * 	ls      le      rs      re     ||  dst  [ 0   1   2   ]     t_ptr  l_ptr    r_ptr
+	 * 	B   D   F  ...  A   C   E   G  ||  m    [ m+0 m+1 m+2 ]     0      [0]=m+0  n+0
+	 *
+	 *  [t[0]] = 'B'  > [r_ptr] = 'A' .... xchg(dst, r_ptr); t[0]=r_ptr; r_ptr++;
+	 *
+	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			   table 't'
+	 * 	ls      le      rs      re     ||  dst  [ 0   1   2   ]     t_ptr  l_ptr    r_ptr0
+	 * 	A   D   F  ...  B   C   E   G  ||  m+1  [ n+0 m+1 m+2 ]     0      [0]=n+0  n+1
+	 *
+	 *  [t[0]] = 'B' <= [r_ptr] = 'C' .... xchg(dst, l_ptr); t[1]=l_ptr; t_ptr++;
+	 *
+	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			   table 't'
+	 * 	ls      le      rs      re     ||  dst  [ 0   1   2   ]    t_ptr  l_ptr    r_ptr0
+	 * 	A   B   F  ...  D   C   E   G  ||  m+2  [ -   n+0 m+2 ]    1      [1]=n+0  n+1
+	 *
+	 *  [t[1]] = 'D' >  [r_ptr] = 'C' .... xchg(dst, r_ptr); t[2]=r_ptr; r_ptr++;
+	 *
+	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			   table 't'
+	 * 	ls      le      rs      re     ||  dst  [ 0   1   2   ]     t_ptr  l_ptr    r_ptr0
+	 * 	A   B   C  ...  D   F   E   G  ||  n+0  [ -   n+0 n+1 ]     1      [1]=n+0  n+2
+	 *
+	 * 	[t[1]] = 'D' <= [r_rptr] = 'E' ... xchng(dst, l_ptr); t[1]=l_ptr; t_ptr++
+	 *
+	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			   table 't'
+	 * 	ls      le      rs      re     ||  dst  [ 0   1   2   ]     t_ptr  l_ptr    r_ptr0
+	 * 	A   B   C  ...  D   F   E   G  ||  n+1  [ -   -   n+1 ]     2      [2]=n+1  n+2
+	 *
+	 * 	[t[2]] = 'F' <= [r_rptr] = 'E' ... xchng(dst, r_ptr); t[2]=r_ptr; r_ptr++
+	 *
+	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			   table 't'
+	 * 	ls      le      rs      re     ||  dst  [ 0   1   2   ]     t_ptr  l_ptr    r_ptr0
+	 * 	A   B   C  ...  D   E   F   G  ||  n+2  [ -   -   -   ]     3      [2]=n+0  n+3
+	 *
+	 * 	[t[2]] = 'F' <= [r_rptr] = 'G' ... xchng(dst, l_ptr); t[2]=r_ptr; t_ptr++
+	 *
+	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			   table 't'
+	 * 	ls      le      rs      re     ||  dst  [ 0   1   2   ]     t_ptr  l_ptr    r_ptr0
+	 * 	A   B   C  ...  D   E   F   G  ||  n+3  [ -   -   -   ]     3      [2]=n+0  n+3
+	 *
+	 * 	t_ptr == sizeof(table) = 3, so all left_block elements are in their correct
+	 * 		location.  That means the remaining right_block elements "G" is to the
+	 * 		right of the last left_block element, so the array is sorted
+	 *
+	 *
+	 * 	Note that it is possible to place all of the right block elements before all
+	 * 		of the left block elements have been placed.  In that case, it is quite
+	 * 		possible that the left block elements will not be in sequential order
+	 *
+	 * 	Consider the blocks "EFG" and "ABCD"
+	 *
+	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3   dst      table            t_ptr  l_ptr    r_ptr
+	 * 	E   F   G  ...  A   B   C   D  ||  m+0  [ m+0 m+1 m+2 ]     0      [0]=m+0  n+0
+	 * 	A   F   G  ...  E   B   C   D  ||  m+1  [ n+0 m+1 m+2 ]     0      [0]=n+0  n+1
+	 * 	A   B   C  ...  E   F   G   D  ||  m+2  [ n+0 n+1 m+2 ]     0      [0]=n+0  n+2
+	 * 	A   B   C  ...  D   F   G   E  ||  n+0  [ n+3 n+1 n+2 ]     0      [0]=n+0  n+3
+	 * 	A   B   C  ...  D   F   G   E  ||  n+1  [ n+3 n+1 n+2 ]     0      [0]=n+3  n+4
+	 *
+	 * 	All of the right block values "A:D" have been placed b/c n+4 > right_end = n+3,
+	 * 		but the left block values are no longer in sequence
+	 *
+	 * 	A   B   C  ...  D   F   G   E  ||  n+1  [ n+3 n+1 n+2 ]     0      [0]=n+3  -
+	 * 	A   B   C  ...  D   E   G   F  ||  n+2  [ -   n+3 n+2 ]     1      [1]=n+3  -
+	 * 	A   B   C  ...  D   E   F   G  ||  n+3  [ -   -   n+3 ]     2      [1]=n+3  -
+	 * 	A   B   C  ...  D   E   F   G  ||  n+4  [ -   -   -   ]     3      -        -
+	 *
+	 * 	t_ptr= has exceeded limit of sizeof(table)=2 and all right blocks are in place, done
+	 *
+	 * 									Algorithm:
+	 * 	nextDestination(dst)
+	 *		if (dst == left_end)	dst = r_start
+	 *		else					dst++
+	 *
+	 * 	dst = left_start
+	 * 	t_ptr = 0
+	 * 	r_ptr = right_start
+	 * 	while (dst <= right_end)
+	 * 		l_ptr = table[t_ptr]
+	 * 		if (array[r_ptr] < array[l_ptr]
+	 * 			xchg(dst, r_ptr)
+	 * 			table[t_ptr] = r_ptr
+	 * 			nextDestination(dst)
+	 * 			if (r_ptr > right_end)
+	 * 				// if all of the right elements have been placed
+	 * 				//  restore order of remaining blocks, which are all left elements,
+	 * 				//	which are now on the right
+	 * 				while (t_ptr < size(table) {
+	 * 					xchg(dst,l_ptr)
+	 * 					find 'dst' in table at index 'x'
+	 *					table[x] = dst
+	 *					nextDestiniation(dst)
+	 * 				break
+	 * 		else
+	 * 		    xchg[dst, l_ptr)
+	 * 		    find 'dst' in table at index 'y'
+	 * 		    table[y] = dst
+	 * 		    t_ptr++
+	 * 		    // if all of the left elements have been placed
+	 * 		    //	the remaining elements to the right (if any) are right elements
+	 * 		    if (t_ptr == sizeof(table)
+	 * 		    	break
+	 * 		    nextDestination(dst)
+	 *
+	 *
+	 */
+#if 0
+	template <typename T>
+	ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
+												 index_t left_start, index_t left_end,
+												 index_t right_start, index_t right_end) {
+		ComparesAndMoves result(0,0);
+
+		bool debug_verbose = false;
+		std::stringstream message;
+	//	std::cout << std::endl;
+
+		index_t left_span 	= left_end - left_start + 1;
+		index_t right_span = right_end - right_start + 1;
+
+		auto nextDestination = [left_end, right_start] (index_t &_dst) {
+			if (_dst == left_end)	_dst = right_start;
+			else					_dst++;
+		};
+#if 0
+		if (right_span < left_span) {
+			// TODO - throw an error
+			message << "ERROR " << __FUNCTION__ << "() has A_Block on right side: may cause instability, exiting\n";
+			std::cout << message.str();
+			return result;
+		}
+#endif
+		if (left_span == 0 || right_span == 0) {
+			return result;
+		}
+
+		//
+		index_t right_ptr	= right_start;
+		index_t dst_ptr    	= left_start;
+
+		index_t left_indices_table_size = left_span;
+		index_t left_indices_table[left_indices_table_size];
+		for (index_t i = 0, src = left_start; i < left_indices_table_size; ) {
+			left_indices_table[i++] = src++;
+		}
+		index_t table_ptr = 0;
+
+		if (debug_verbose) {
+			auto debug_string = [&](index_t left_source) -> std::string {
+				std::stringstream result;
+				result << "\"";
+				for (index_t i = left_start; i <= right_end; ) {
+					result << *array[i];
+					i++;
+					if (i-1 == left_end) {
+						i = right_start;
+					}
+				}
+				result << "\" " << table_ptr
+					   << " into table [";
+				for (int i = 0; i != left_indices_table_size; i++) {
+					if (i < table_ptr) {
+						result << "..";
+					} else {
+						result << std::setw(2) << left_indices_table[i];
+					}
+				}
+				result << "] "
+					   << " dst " << dst_ptr << " ls " << left_source << " rt " << right_ptr;
+				return result.str();
+			};
+		}
+
+		while (dst_ptr <= right_end)
+		{
+			index_t left_source = left_indices_table[table_ptr];
+			if (debug_verbose) {
+				message << debug_string(left_source)#endif;
+			}
+			result._compares++;
+			if (*array[left_source] <= *array[right_ptr]) {
+				// the value to go in the destination isn't already in place
+				if (dst_ptr != left_source) {
+					result._moves += 3;
+					T* tmp = array[dst_ptr];
+					array[dst_ptr] = array[left_source];
+					array[left_source] = tmp;
+
+					//	if the value that was swapped out of [dst] was a member of the
+					//	  indirection (a left block element), update its new position
+					//	  in the indirections[]
+					//	  (note that the last A value, [indirection_stop-1], does not have
+					//	   an indirection[(indirection_i-1)+1] member after it)
+					for (int i = table_ptr; i < left_indices_table_size; i++) {
+						if (left_indices_table[i] == dst_ptr) {
+							left_indices_table[i] = left_source;
+							break;
+						}
+					}
+				}
+				if (debug_verbose) {
+					message << " ----      left      ---- "
+							<< debug_string(left_source) << std::endl;
+				}
+				//	if we have moved / merged all of the A_Block values, done
+				if (++table_ptr == left_indices_table_size)	break;
+
+				//	if all of the locations in the left block have
+				//	  any merged value, left or right, stored in them,
+				//	  move 'dst' to the right block
+				nextDestination(dst_ptr);
+			}
+			else
+			{
+				// value from the right block is < value from the left block
+				result._moves += 3;
+				T* tmp = array[dst_ptr];
+				array[dst_ptr] = array[right_ptr];
+				array[right_ptr] = tmp;
+
+				//	if the value that was exchanged with [dst] was an unmerged A_Block value,
+				//	update the new location of the value in the indirection table
+				for (int i = table_ptr; i < left_indices_table_size; i++) {
+					if (left_indices_table[i] == dst_ptr) {
+						left_indices_table[i] = right_ptr;
+						break;
+					}
+				}
+				if (debug_verbose) {
+					message << " ----      right     ---- "
+							<< debug_string(left_source) << std::endl;
+				}
+				//	if all the positions in the left block have been used,
+				//	  move 'dst' to the start of the right block
+				nextDestination(dst_ptr);
+				right_ptr++;
+
+				//	if all of the right_block values have been placed,
+				//	  we need to arrange all the remaining a_block values
+				//	  into / at the end of the array (they may be out of sequence)
+				if (right_ptr > right_end)
+				{
+					while (table_ptr < left_indices_table_size)  {
+						left_source = left_indices_table[table_ptr];
+						if (left_source != dst_ptr) {
+							result._moves += 3;
+							T* tmp = array[dst_ptr];
+							array[dst_ptr] = array[left_source];
+							array[left_source] = tmp;
+							//	check to see if we moved an unmerged A_Block (left)
+							//	  value to a different location in the array
+							for (int i = table_ptr; i < left_indices_table_size; i++) {
+								if (left_indices_table[i] == dst_ptr) {
+									left_indices_table[i] = left_source;
+								}
+							}
+						}
+						//	if all the positions in the left block have been used,
+						//	  move 'dst' to the start of the right block
+						nextDestination(dst_ptr);
+						table_ptr++;
+					}
+					break;	// the loop that restored the a_block's values (left) is done
+				}
+			}
+		}
+
+		if (debug_verbose) {
+			std::cout << message.str();
+		}
+		return result;
+	}
+#endif
+
+	/*
+	 * 	TODO -  add optimization of looking for all values on the left (u[]) side
+	 * 			of the array that are > the v[n]
+	 * ComparesAndMoves mergeBlocksByRotating(arr, start, mid, end);
+	 *
+	 *   This uses rotate operations to put the { u[], v[] } array in order
 	 *   The requirement is that the sub portions of uv_array, u[] and v[]
 	 *   	are in ascending order.
 	 *   		Consider an array where start = 5, mid = 9 & end is equal to 12
+	 *   					 s           m        e
 	 *   		             5  6  7  8  9 10 11 12
 	 *      then array[] = { B, C, C, D, A, C, G, G }
 	 *
@@ -575,15 +1144,15 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves mergeBlocksByRotating(T** array, array_size_t start, array_size_t mid, array_size_t end) {
+	ComparesAndMoves mergeBlocksByRotating(T** array, index_t start, index_t mid, index_t end) {
 
 		bool debug_verbosely = false;
 
 		ComparesAndMoves result(0,0);
 
-		array_size_t u = mid-1;
-		array_size_t v = end;
-		array_size_t rotate_count;
+		index_t u = mid-1;
+		index_t v = end;
+		index_t rotate_count;
 
 		while (u >= start) {
 			//	find the first [v] that is less than [u]
@@ -647,216 +1216,6 @@ namespace BlockSort {
 	}
 
 	/*
-	 * 	createBlockTags(array, start, mid, end, block_size, tags_dst&);
-	 *
-	 * 	parses an array from [start:end] into blocks of span <= block_size
-	 * 	 	to create a list of blocks of elements which is stored in tags_dst.
-	 * 	 	The underlying array is not modified. The BlockTags contain
-	 * 	 	information about the array, but they are not part of the array
-	 *
-	 *	'A_Block' is defined as a block that has a key value of the first element
-	 *	'B_Block' is defined as a block that has a key value of the last element
-	 *
-	 * 	the blocks are generated in such a way to ensure that
-	 * 		[end-1] is the end_index of the last A-type block and
-	 * 		[end] is the start_index of the first B-type block
-	 *
-	 * 	consider the following array with start = 0, mid = 4, end = 8, block_size = 3
-	 * 		             0  1  2  3  4  5  6  7  8
-	 * 		           { a, c, e, g, i, b, d, f, h }
-	 * 	tags types are  |A||A     ||       B||   B|
-	 *  tag indices are [0] [1:3]       [4:6] [7:8]
-	 *  tag keys are    'a' 'c'           'd'   'h'
-	 *
-	 * 	returns the count of tags which is 4
-	 */
-
-	template <typename T>
-	int  createBlockDescriptors(T** array, array_size_t start, array_size_t mid, array_size_t end,
-			    		 int block_size, std::unique_ptr<BlockDescriptor<T>[]> &tags) {
-
-		ComparesAndMoves result(0,0);
-		array_size_t lower_span = mid-start;
-		array_size_t upper_span = end-mid + 1;
-
-		// calculate the total number of blocks
-		int num_blocks = lower_span / block_size + upper_span / block_size;
-		int first_block_size = lower_span % block_size;
-		// if there is a partial first block
-		if (first_block_size != 0)
-			num_blocks++;
-		//	if there is a partial last block
-		if (upper_span % block_size)
-			num_blocks++;
-
-		// create the block storage
-		tags = std::unique_ptr<BlockDescriptor<T>[]>(new BlockDescriptor<T>[num_blocks]);
-
-		//	assign values to the blocks
-		int block_number = 0;
-		array_size_t start_of_block = start;
-
-		//	do the A_Blocks first
-		//	if the first A_Block is a partial
-		if (first_block_size) {
-			tags[block_number].type 		= BlockType::A_BLOCK;
-			tags[block_number].start_index	= start;
-			tags[block_number].end_index	= first_block_size-1;
-			tags[block_number].key			= array[start_of_block];
-			start_of_block += first_block_size;
-			block_number = 1;
-		}
-
-		//	the full A_Blocks
-		while (start_of_block < mid) {
-			tags[block_number].type 		= BlockType::A_BLOCK;
-			tags[block_number].start_index	= start_of_block;
-			tags[block_number].end_index	= start_of_block+block_size-1;
-			tags[block_number].key			= array[start_of_block];
-			start_of_block += block_size;
-			block_number++;
-		}
-
-		//	the full B_Blocks
-		while (block_number < num_blocks-1) {
-			tags[block_number].type 		= BlockType::B_BLOCK;
-			tags[block_number].start_index	= start_of_block;
-			tags[block_number].end_index	= start_of_block+block_size-1;
-			tags[block_number].key			= array[start_of_block + block_size-1];
-			start_of_block += block_size;
-			block_number++;
-		}
-
-		//	the final B_Block may be a partial block,
-		//	  but regardless of its size, it will extend to 'end'
-		tags[block_number].type 		= BlockType::B_BLOCK;
-		tags[block_number].start_index	= start_of_block;
-		tags[block_number].end_index	= end;
-		tags[block_number].key			= array[end];
-
-		return num_blocks;
-	}
-
-	/*	******************************************	*/
-	/*				Binary Search					*/
-	/*	******************************************	*/
-
-	constexpr array_size_t findRightMostSmallerValue_failure = -1;
-
-	template <typename T>
-	ComparesAndMoves findRightmostSmallerValue(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
-											   array_size_t first, array_size_t last,
-								   	   	   	   T* key, array_size_t &key_location)
-	{
-		constexpr bool debug_verbose = false;
-		std::stringstream findRightMostSmallerValue_message;
-
-		auto nextIndex = [] (array_size_t l_first, array_size_t l_last) -> array_size_t {
-
-			if (l_first == l_last) {
-				return l_first;
-			}
-			if (l_first < l_last) {
-				array_size_t tmp = l_first;
-				l_first = l_last;
-				l_last = tmp;
-			}
-			if (l_last - l_first == 1) {
-				return l_first + 1;
-			} else {
-				return l_first + (l_last-l_first)/2;
-			}
-		};
-
-		ComparesAndMoves result(0,0);
-
-		key_location = findRightMostSmallerValue_failure;
-		array_size_t guess = first;
-		array_size_t smaller_value_index = findRightMostSmallerValue_failure;
-
-		//	TODO - throw and exception
-		if (key == nullptr) {
-			if (debug_verbose) {
-				std::cout << __FUNCTION__ << " passed nullptr array\n";
-			}
-			return result;
-		}
-
-		if (first == last) {
-			findRightMostSmallerValue_message
-				<< "start == end == " << std::setw(2) << first
-				<< ", trying guess [" << std::setw(2) << guess
-				<< "] = " << std::setw(2) << *blocks[guess].key
-				<< (*key > *blocks[guess].key ? " is    " : " is NOT")
-				<< " smaller than " << *key;
-
-			result._compares++;
-			if (*key > *blocks[first].key) {
-				key_location = first;
-			}
-			findRightMostSmallerValue_message << " returning " << std::setw(2) << first;
-			if (debug_verbose) {
-				std::cout << findRightMostSmallerValue_message.str() << std::endl;
-			}
-			return result;
-		}
-
-		if (last < first) {
-			array_size_t tmp = first;
-			first = last;
-			last = tmp;
-		}
-
-		if (first-last == 1) {
-			guess = first + 1;
-		} else {
-			guess = first + (last-first) / 2;
-		}
-
-		while (1) {
-			//	compare *key to *blocks[guess].key
-			findRightMostSmallerValue_message
-				<< "previous guess " << std::setw(2) << smaller_value_index
-				<< ", trying guess [" << std::setw(2) << guess
-				<< "] = " << std::setw(2) << *blocks[guess].key
-				<< (*key > *blocks[guess].key ? " is    " : " is NOT")
-				<< " smaller than " << *key;
-			result._compares++;
-			if (*key > *blocks[guess].key) {
-				// check to see if any elements further to the right
-				//	 of this to see if there are larger values
-				//	 in the array that are < the key
-				smaller_value_index = guess;
-				first = guess+1;
-				if (first > last) {
-					key_location = smaller_value_index;
-					break;
-				}
-				guess = nextIndex(first, last);
-			} else {
-				// key <= array which means too far to the right
-				//   look to the left for an element
-				//	 which is smaller than the key
-				last = guess-1;
-				if (last < first) {
-					break;
-				}
-				guess = nextIndex(first, last);
-			}
-			findRightMostSmallerValue_message
-				<< " next guess = " << std::setw(2) << guess << std::endl;
-		}
-
-		key_location = smaller_value_index;
-		findRightMostSmallerValue_message
-			<< " returning " << key_location << std::endl;
-		if (debug_verbose) {
-			std::cout << findRightMostSmallerValue_message.str();
-		}
-		return result;
-	}
-
-	/*
 	 * 	ComparesAndSwaps rotateArray(array, amount, start, end);
 	 *
 	 * 	rotate the contents of the array by 'amount' positions
@@ -876,14 +1235,14 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves rotateArrayElementsRight(T** array,
-											  array_size_t start, array_size_t end,
-											  array_size_t amount) {
+											  index_t start, index_t end,
+											  index_t amount) {
 		ComparesAndMoves result(0,0);
 
 		if (end <= start)
 			return result;
 
-		array_size_t span = end - start + 1;
+		index_t span = end - start + 1;
 		if (span == 0)
 			return result;
 
@@ -895,7 +1254,7 @@ namespace BlockSort {
 
 		//	reverse the entire array
 		T* temp;
-		for (array_size_t i = start, j = end; i < j; i++, j--) {
+		for (index_t i = start, j = end; i < j; i++, j--) {
 			temp = array[i];
 			array[i] = array[j];
 			array[j] = temp;
@@ -903,7 +1262,7 @@ namespace BlockSort {
 		}
 
 		//	reverse the left hand side
-		for (array_size_t i = start, j = start+amount-1; i < j; i++, j--) {
+		for (index_t i = start, j = start+amount-1; i < j; i++, j--) {
 			temp = array[i];
 			array[i] = array[j];
 			array[j] = temp;
@@ -911,7 +1270,7 @@ namespace BlockSort {
 		}
 
 		//	reverse the right hand side
-		for (array_size_t i = start + amount, j = end; i < j; i++, j--) {
+		for (index_t i = start + amount, j = end; i < j; i++, j--) {
 			temp = array[i];
 			array[i] = array[j];
 			array[j] = temp;
@@ -953,7 +1312,7 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves rotateBlocksRight(T** array,
 									   std::unique_ptr<BlockDescriptor<T>[]> &tags,
-							           array_size_t first, array_size_t last,
+							           index_t first, index_t last,
 									   int tag_rotate_count)
 	{
 		/*	**************************************	*/
@@ -987,7 +1346,7 @@ namespace BlockSort {
 			return tags_string.str();
 		};
 
-		auto rotateParametersToString = [&](array_size_t array_rotation) -> std::string {
+		auto rotateParametersToString = [&](index_t array_rotation) -> std::string {
 			std::stringstream sstring;
 			sstring << "tag rotation: " << tag_rotate_count
 					<< " element rotation " << array_rotation << std::endl;
@@ -1045,12 +1404,12 @@ namespace BlockSort {
 
 		//	if they are in the opposite order, correct them
 		if (last < first) {
-			array_size_t tmp = first;
+			index_t tmp = first;
 			first = last;
 			last = tmp;
 		}
 
-		array_size_t tag_span = last - first + 1;
+		index_t tag_span = last - first + 1;
 		tag_rotate_count = blockSortModulo<T>(tag_rotate_count, tag_span);
 		if (tag_rotate_count == 0) {
 			return compares_and_moves;
@@ -1059,8 +1418,8 @@ namespace BlockSort {
 		// make a record of the span of the array covered by the tags
 		//	 rotating the array needs these two indices
 		//	 updating the indices of the rotated tags needs to know the start_index
-		array_size_t first_start_index = tags[first].start_index;
-		array_size_t last_end_index	= tags[last].end_index;
+		index_t first_start_index = tags[first].start_index;
+		index_t last_end_index	= tags[last].end_index;
 		//	calculate how far the array elements on the right of the array span
 		//	  will be rotated off of the end of the span back to the start left
 		int array_rotate_count = 0;
@@ -1086,9 +1445,9 @@ namespace BlockSort {
 		//	Although each tag's indices are incorrect, the span between the
 		//	  incorrect indices has not changed.  Use this to assign new indices
 
-		array_size_t _start_index = first_start_index;
+		index_t _start_index = first_start_index;
 		for (int tag_i = first; tag_i <= last; tag_i++) {
-			array_size_t _end_index = _start_index + tags[tag_i].numElements() - 1;
+			index_t _end_index = _start_index + tags[tag_i].numElements() - 1;
 			tags[tag_i].start_index = _start_index;
 			tags[tag_i].end_index   = _end_index;
 			_start_index 		= _end_index + 1;
@@ -1195,7 +1554,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortBlocksBinarySearch(T **array, array_size_t size,
+	ComparesAndMoves sortBlocksBinarySearch(T **array, index_t size,
 											std::unique_ptr<BlockDescriptor<T>[]> &blocks,
 											int num_tags) {
 		constexpr bool debug_verbose = false;
@@ -1211,7 +1570,7 @@ namespace BlockSort {
 
 		ComparesAndMoves result(0,0);
 
-//		constexpr array_size_t binary_search_done = findRightMostSmallerValue_failure;
+//		constexpr array_size_t binary_search_done = smaller_block_not_found;
 
 		//	if the array consists of all A_Blocks, we are done
 		if (blocks[num_tags-1].type == BlockType::A_BLOCK) {
@@ -1258,9 +1617,9 @@ namespace BlockSort {
 				break;
 		}
 
-		array_size_t a_block_index  = num_a_blocks-1;
-		array_size_t b_block_start  = num_a_blocks;
-		array_size_t b_block_end	= num_tags-1;
+		index_t a_block_index  = num_a_blocks-1;
+		index_t b_block_start  = num_a_blocks;
+		index_t b_block_end	= num_tags-1;
 
 		while (a_block_index >= 0) {
 
@@ -1273,7 +1632,7 @@ namespace BlockSort {
 
 			// b_block_end is passed by value to the function
 			// b_block_end receives the value by reference
-			result += findRightmostSmallerValue(blocks, b_block_start, b_block_end,
+			result += findRightmostSmallerBlock(blocks, b_block_start, b_block_end,
 											    blocks[a_block_index].key, b_block_end);
 
 			//	0	1	2	3	4	5	6   7
@@ -1281,7 +1640,7 @@ namespace BlockSort {
 			//	A4, A7, A8, B5, B5, B6, B9, B9
 
 			//	If all B_Blocks are greater than this A_Block, the blocks are in order
-			if (b_block_end == findRightMostSmallerValue_failure) {
+			if (b_block_end == smaller_block_not_found) {
 				break;
 			}
 
@@ -1316,8 +1675,8 @@ namespace BlockSort {
 			int block_rotate_count = -(b_block_start - a_block_index);
 
 			if (debug_verbose) {
-				array_size_t array_size = blocks[num_tags-1].end_index+1;
-				array_size_t v = blocks[num_a_blocks].start_index;
+				index_t array_size = blocks[num_tags-1].end_index+1;
+				index_t v = blocks[num_a_blocks].start_index;
 				std::cout << "BEFORE: "
 						  << " b_index (end) = " << std::setw(2) << b_block_end
 						  << " a_index (start) = " << std::setw(2) << a_block_index
@@ -1344,8 +1703,8 @@ namespace BlockSort {
 			//	A4, B5, B5, B6, A7  A8  B9, B9
 
 			if (debug_verbose) {
-				array_size_t array_size = blocks[num_tags-1].end_index+1;
-				array_size_t v = blocks[num_a_blocks].start_index;
+				index_t array_size = blocks[num_tags-1].end_index+1;
+				index_t v = blocks[num_a_blocks].start_index;
 				std::cout << "AFTER: \n"
 						  << blockSortToString(array, array_size, v, blocks, num_tags)
 						  << std::endl;
@@ -1353,8 +1712,8 @@ namespace BlockSort {
 		}
 
 		if (debug_verbose) {
-			array_size_t array_size = blocks[num_tags-1].end_index+1;
-			array_size_t v = blocks[num_a_blocks].start_index;
+			index_t array_size = blocks[num_tags-1].end_index+1;
+			index_t v = blocks[num_a_blocks].start_index;
 			std::cout << "EXITING: \n"
 					  << blockSortToString(array, array_size, v, blocks, num_tags)
 					  << std::endl;
@@ -1378,7 +1737,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortBlocksHybrid(T **array, array_size_t size,
+	ComparesAndMoves sortBlocksHybrid(T **array, index_t size,
 			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks)
 	{
 		constexpr bool debug_verbose = false;
@@ -1422,8 +1781,8 @@ namespace BlockSort {
 			_debug("...Blocks are not sorted");
 		}
 
-		array_size_t a_block_index = 0;
-		array_size_t b_block_index = 0;
+		index_t a_block_index = 0;
+		index_t b_block_index = 0;
 
 		//	find the first B_Block
 		while (b_block_index < num_blocks && blocks[b_block_index].type == BlockType::A_BLOCK) {
@@ -1431,7 +1790,7 @@ namespace BlockSort {
 		}
 		a_block_index = b_block_index-1;
 
-		array_size_t debug_middle_index = b_block_index;
+		index_t debug_middle_index = b_block_index;
 
 		bool use_binary_search = true;
 
@@ -1462,7 +1821,7 @@ namespace BlockSort {
 				//	A=4, A=6, A=7, B=5, B=5, B=6, B=7, B=8
 				//	b_block_index is passed by value as the start of the B_Block span
 				//	b_block_index is updated by reference as the result of the binary search
-				result += findRightmostSmallerValue(blocks, b_block_index, num_blocks-1,
+				result += findRightmostSmallerBlock(blocks, b_block_index, num_blocks-1,
 													blocks[a_block_index].key, b_block_index);
 				//	0	 1	  2	   3	4	 5	  6    7
 				//			  ai             bi
@@ -1472,7 +1831,7 @@ namespace BlockSort {
 				//	0	 1	  2	   3	4	 5	  6    7
 				//			  ai
 				//	A=4, A=6, A=7, B=8, B=9, B=10,B=11,B=12
-				if (b_block_index == findRightMostSmallerValue_failure) {
+				if (b_block_index == smaller_block_not_found) {
 					break;
 				}
 			}
@@ -1495,8 +1854,8 @@ namespace BlockSort {
 			}
 
 			if (debug_verbose) {
-				array_size_t array_size = blocks[num_blocks-1].end_index+1;
-				array_size_t v = blocks[debug_middle_index].start_index;
+				index_t array_size = blocks[num_blocks-1].end_index+1;
+				index_t v = blocks[debug_middle_index].start_index;
 				std::cout << "BEFORE: "
 						  << " b_index (end) = " << std::setw(2) << b_block_index
 						  << " a_index+1 (start) = " << std::setw(2) << a_block_index+1
@@ -1519,8 +1878,8 @@ namespace BlockSort {
 			//	that was rotated, and the span that was rotated is now in order
 
 			if (debug_verbose) {
-				array_size_t array_size = blocks[num_blocks-1].end_index+1;
-				array_size_t v = blocks[debug_middle_index].start_index;
+				index_t array_size = blocks[num_blocks-1].end_index+1;
+				index_t v = blocks[debug_middle_index].start_index;
 				std::cout << "AFTER: \n"
 						  << blockSortToString(array, array_size, v, blocks, num_blocks)
 						  << std::endl;
@@ -1529,16 +1888,16 @@ namespace BlockSort {
 
 
 		if (debug_verbose) {
-			array_size_t array_size = blocks[num_blocks-1].end_index+1;
-			array_size_t v = blocks[debug_middle_index].start_index;
+			index_t array_size = blocks[num_blocks-1].end_index+1;
+			index_t v = blocks[debug_middle_index].start_index;
 			std::cout << "AFTER: \n"
 					  << blockSortToString(array, array_size, v, blocks, num_blocks)
 					  << std::endl;
 		}
 
 		if (debug_verbose) {
-			array_size_t array_size = blocks[num_blocks-1].end_index+1;
-			array_size_t v = blocks[debug_middle_index].start_index;
+			index_t array_size = blocks[num_blocks-1].end_index+1;
+			index_t v = blocks[debug_middle_index].start_index;
 			std::cout << "EXITING: \n"
 					  << blockSortToString(array, array_size, v, blocks, num_blocks)
 					  << std::endl;
@@ -1573,7 +1932,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortBlocksRightToLeft(T **array, array_size_t size,
+	ComparesAndMoves sortBlocksRightToLeft(T **array, index_t size,
 										   std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks) {
 
 		constexpr bool debug_verbose = false;
@@ -1633,8 +1992,8 @@ namespace BlockSort {
 		//	 	A[m] ... B[n] are now in order and i = 7 while j = 9
 		//		update i = 6 (Am-1) and j = 8 (B1)
 		//	continue until j == i or i < 0
-		array_size_t a_block_index = num_a_blocks-1;
-		array_size_t b_block_index = num_blocks-1;
+		index_t a_block_index = num_a_blocks-1;
+		index_t b_block_index = num_blocks-1;
 		while (a_block_index >= 0) {
 
 			//	Find first B_Block that is less than this A_Block
@@ -1673,8 +2032,8 @@ namespace BlockSort {
 			}
 
 			if (debug_verbose) {
-				array_size_t array_size = blocks[num_blocks-1].end_index+1;
-				array_size_t v = blocks[num_a_blocks].start_index;
+				index_t array_size = blocks[num_blocks-1].end_index+1;
+				index_t v = blocks[num_a_blocks].start_index;
 				std::cout << "BEFORE: "
 						  << " b_index (end) = " << std::setw(2) << b_block_index
 						  << " a_index+1 (start) = " << std::setw(2) << a_block_index+1
@@ -1697,8 +2056,8 @@ namespace BlockSort {
 			//	that was rotated, and the span that was rotated is now in order
 
 			if (debug_verbose) {
-				array_size_t array_size = blocks[num_blocks-1].end_index+1;
-				array_size_t v = blocks[num_a_blocks].start_index;
+				index_t array_size = blocks[num_blocks-1].end_index+1;
+				index_t v = blocks[num_a_blocks].start_index;
 				std::cout << "AFTER: \n"
 						  << blockSortToString(array, array_size, v, blocks, num_blocks)
 						  << std::endl;
@@ -1706,8 +2065,8 @@ namespace BlockSort {
 		}
 
 		if (debug_verbose) {
-			array_size_t array_size = blocks[num_blocks-1].end_index+1;
-			array_size_t v = blocks[num_a_blocks].start_index;
+			index_t array_size = blocks[num_blocks-1].end_index+1;
+			index_t v = blocks[num_a_blocks].start_index;
 			std::cout << "EXITING: \n"
 					  << blockSortToString(array, array_size, v, blocks, num_blocks)
 					  << std::endl;
@@ -1735,8 +2094,8 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves swapBlocks(T** array,
-								array_size_t block1_start, array_size_t block1_end,
-								array_size_t block2_start, array_size_t block2_end)
+								index_t block1_start, index_t block1_end,
+								index_t block2_start, index_t block2_end)
 	{
 		ComparesAndMoves result(0,0);
 
@@ -1747,12 +2106,12 @@ namespace BlockSort {
 		}
 		//	if necessary, swap indices so that the block is defined left to right
 		if (block1_start > block1_end) {
-			array_size_t tmp  = block1_start;
+			index_t tmp  = block1_start;
 			block1_start = block1_end;
 			block1_end   = tmp;
 		}
 		if (block2_start > block2_end) {
-			array_size_t tmp  = block2_start;
+			index_t tmp  = block2_start;
 			block2_start = block2_end;
 			block2_end   = tmp;
 		}
@@ -1760,8 +2119,8 @@ namespace BlockSort {
 		//	1. same size
 		//	2. if necessary, swap indices
 		//	3. ensure the blocks don't overlap
-		array_size_t block1_span = block1_end-block1_start+1;
-		array_size_t block2_span = block2_end-block2_start+1;
+		index_t block1_span = block1_end-block1_start+1;
+		index_t block2_span = block2_end-block2_start+1;
 
 		//	this is not an exception
 		if (block1_span == 0) {
@@ -1794,7 +2153,7 @@ namespace BlockSort {
 		}
 
 		T* temp;
-		for (array_size_t i = block1_start, j = block2_start;
+		for (index_t i = block1_start, j = block2_start;
 			 i <= block1_end; ++i, ++j) {
 			temp = array[i];
 			array[i] = array[j];
@@ -1805,7 +2164,7 @@ namespace BlockSort {
 	}
 
 	template<typename T>
-	ComparesAndMoves swapTags(std::unique_ptr<BlockDescriptor<T[]>> &tags, int i, int j) {
+	ComparesAndMoves swapBlockDescriptors(std::unique_ptr<BlockDescriptor<T[]>> &tags, int i, int j) {
 
 		//	swapping the Tag.key, which is an array element, takes three moves
 		ComparesAndMoves result(0,3);
@@ -1837,7 +2196,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortArray(T** array, array_size_t start, array_size_t mid, array_size_t end, array_size_t block_size)
+	ComparesAndMoves sortArray(T** array, index_t start, index_t mid, index_t end, index_t block_size)
 	{
 		ComparesAndMoves result(0,0);
 
@@ -1849,10 +2208,10 @@ namespace BlockSort {
 	/*	**************************	*/
 
 	template <typename T>
-	ComparesAndMoves sortPointersToObjects(T **array, array_size_t size) {
+	ComparesAndMoves sortPointersToObjects(T **array, index_t size) {
 //		constexpr int debug_element_width = 4;
 //		constexpr int debug_value_width = 3;
-		constexpr array_size_t min_array_size_to_sort = 32;
+		constexpr index_t min_array_size_to_sort = 32;
 
 		if (size < min_array_size_to_sort) {
 			return InsertionSort::sortPointersToObjects(array, size);
@@ -1867,15 +2226,15 @@ namespace BlockSort {
 
 		ComparesAndMoves result(0,0);
 
-		for (array_size_t span = min_array_size_to_sort; span < size/2; span *= 2) {
-			for (array_size_t start = 0; start < size; start++) {
+		for (index_t span = min_array_size_to_sort; span < size/2; span *= 2) {
+			for (index_t start = 0; start < size; start++) {
  				std::unique_ptr<BlockDescriptor<T>[]> block_descriptors;
 				int num_tags;
-				array_size_t end = start + span - 1;
+				index_t end = start + span - 1;
 				if (end >= size)
 					end = size-1;
-				array_size_t mid = start + (end-start+1) / 2;
-				array_size_t block_size = static_cast<array_size_t>(std::sqrt(span/2));
+				index_t mid = start + (end-start+1) / 2;
+				index_t block_size = static_cast<index_t>(std::sqrt(span/2));
 				num_tags = createBlockDescriptors(array, start, mid, end, block_size, block_descriptors);
 				if (sort_within_blocks) {
 					sort_within_blocks = false;

@@ -386,7 +386,7 @@ bool testBlockSortBinaryBlockSearch() {
 
 	int num_test_vectors = sizeof(test_vectors) / sizeof(TestVector*);
 
-	array_size_t failure_value = findRightMostSmallerValue_failure;
+	array_size_t failure_value = smaller_block_not_found;
 
 	for (int test_array_i = 1; test_array_i != num_test_vectors; test_array_i++)
 	{
@@ -418,7 +418,7 @@ bool testBlockSortBinaryBlockSearch() {
 			}
 
 			ComparesAndMoves result(0,0);
-			result += findRightmostSmallerValue(haystack, haystack_start, haystack_end,
+			result += findRightmostSmallerBlock(haystack, haystack_start, haystack_end,
 										  	    key, haystack_index);
 
 			if (haystack_index != expected_answer) {
@@ -445,7 +445,7 @@ bool testBlockSortBinaryBlockSearch() {
 						std::cout << std::setw(3) << *haystack[i].key << " ";
 					}
 					std::cout << std::endl;
-					if (haystack_index != findRightMostSmallerValue_failure) {
+					if (haystack_index != smaller_block_not_found) {
 						std::cout << "PASSED: Element [" << haystack_index << "] = "
 								  << std::setw(2) << *haystack[haystack_index].key
 								  << " is less than " << std::setw(2) << *key
@@ -462,6 +462,7 @@ bool testBlockSortBinaryBlockSearch() {
 	TEST_BLOCK_SORT_BINARY_SEARCH_EXIT:
 	return test_passed;
 }
+
 
 /*
  *	ComparesAndMoves mergeBLocksIndirectionArray(array, left_start, left_end, right_start, right_end);
@@ -515,6 +516,10 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 											 array_size_t right_start, array_size_t right_end) {
 	ComparesAndMoves result(0,0);
 
+	bool debug_verbose = false;
+	std::stringstream message;
+//	std::cout << std::endl;
+
 	array_size_t left_span 	= left_end - left_start + 1;
 	array_size_t right_span = right_end - right_start + 1;
 
@@ -525,7 +530,8 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 
 	if (right_span < left_span) {
 		// TODO - throw an error
-		std::cout << "ERROR " << __FUNCTION__ << "() has A_Block on right side: may cause instability, exiting\n";
+		message << "ERROR " << __FUNCTION__ << "() has A_Block on right side: may cause instability, exiting\n";
+		std::cout << message.str();
 		return result;
 	}
 
@@ -544,9 +550,34 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 	}
 	array_size_t indirection_i = 0;
 
+	auto debug_string = [&](array_size_t left_source) -> std::string {
+		std::stringstream result;
+		result << "\"";
+		for (array_size_t i = left_start; i <= right_end; ) {
+			result << *array[i];
+			i++;
+			if (i-1 == left_end) {
+				i = right_start;
+			}
+		}
+		result << "\" " << indirection_i
+			   << " into table [";
+		for (int i = 0; i != num_indirections; i++) {
+			if (i < indirection_i) {
+				result << "..";
+			} else {
+				result << std::setw(2) << indirections[i];
+			}
+		}
+		result << "] "
+			   << " dst " << dst << " ls " << left_source << " rt " << right_i;
+		return result.str();
+	};
+
 	while (dst <= right_end)
 	{
 		array_size_t left_source = indirections[indirection_i];
+		message << debug_string(left_source);
 		result._compares++;
 		if (*array[left_source] <= *array[right_i]) {
 			// the value to go in the destination is the left_block value
@@ -561,12 +592,15 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 				//	  in the indirections[]
 				//	  (note that the last A value, [indirection_stop-1], does not have
 				//	   an indirection[(indirection_i-1)+1] member after it)
-				if (indirection_i < num_indirections-1) {
-					if (indirections[indirection_i+1] == dst) {
-						indirections[indirection_i+1] = left_source;
+				for (int i = indirection_i; i < num_indirections; i++) {
+					if (indirections[i] == dst) {
+						indirections[i] = left_source;
+						break;
 					}
 				}
 			}
+			message << " ----      left      ---- "
+					<< debug_string(left_source) << std::endl;
 			//	if we have moved / merged all of the A_Block values, done
 			if (++indirection_i == num_indirections)	break;
 
@@ -582,16 +616,16 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 			array[dst] = array[right_i];
 			array[right_i] = tmp;
 
-			//	if the value that was exchanged with [dst] was an unmreged A_Block value,
+			//	if the value that was exchanged with [dst] was an unmerged A_Block value,
 			//	update the new location of the value in the indirection table
-			if (indirection_i < num_indirections) {
-				for (int i = indirection_i; i != num_indirections; i++) {
-					if (indirections[i] == dst) {
-						indirections[i] = right_i;
-						break;
-					}
+			for (int i = indirection_i; i < num_indirections; i++) {
+				if (indirections[i] == dst) {
+					indirections[i] = right_i;
+					break;
 				}
 			}
+			message << " ----      right     ---- "
+					<< debug_string(left_source) << std::endl;
 
 			//	if all the positions in the left block have been used,
 			//	  move 'dst' to the start of the right block
@@ -604,36 +638,20 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 			if (right_i > right_end)
 			{
 				while (indirection_i < num_indirections)  {
-					// The value that is currently at 'dst' will get swapped
-					//	to a different location in the array, which means
-					//	that its value in 'indirections' will change.
-					//
-					//	Array	  _dst   _i		indirections[]
-					//	4  5  6     4     2	 [2]=6='E1', [3]=4='E2', [3]=5='E3'
-					//	E2 E3 E1
-					//
-					//	E2 will get moved to array[6], so indirection[3] needs to change to 6
-					//
-					array_size_t existings_table_location = -1;
-					for (int i = indirection_i; i != num_indirections; i++) {
-						if (indirections[i] == dst) {
-							existings_table_location = dst;
-							break;
+					left_source = indirections[indirection_i];
+					if (left_source != dst) {
+						result._moves += 3;
+						T* tmp = array[dst];
+						array[dst] = array[left_source];
+						array[left_source] = tmp;
+						//	check to see if we moved an unmerged A_Block (left)
+						//	  value to a different location in the array
+						for (int i = indirection_i; i < num_indirections; i++) {
+							if (indirections[i] == dst) {
+								indirections[i] = left_source;
+							}
 						}
 					}
-					if (existings_table_location == -1) {
-						//	TODO - throw exception
-						std::cout << "ERROR " << __FUNCTION__ << "() unabled to restore A_Block values at end of merge\n";
-						break;
-					}
-
-					left_source = indirections[indirection_i];
-					result._moves += 3;
-					T* tmp = array[dst];
-					array[dst] = array[left_source];
-					array[left_source] = tmp;
-					indirections[existings_table_location] = left_source;
-
 					//	if all the positions in the left block have been used,
 					//	  move 'dst' to the start of the right block
 					nextDestination(dst);
@@ -643,8 +661,12 @@ ComparesAndMoves mergeBlocksIndirectionArray(T ** array,
 			}
 		}
 	}
+	if (debug_verbose) {
+		std::cout << message.str();
+	}
 	return result;
 }
+
 
 bool generateTestVectors(char** test_vectors[], char **test_values, int num_test_vectors, int test_vector_size) {
 
@@ -749,7 +771,7 @@ bool generateTestVectors(char** test_vectors[], char **test_values, int num_test
 					  << " " << rotateCounterToString(rotate_counters, num_rotate_digits) << std::endl;
 		}
 		copyTestVector(test_vectors[test_vector_number++], test_values, test_vector_size);
-		while(active_digit <= num_rotate_digits) {
+		while(active_digit < num_rotate_digits) {
 			rotateValuesRight(test_values, 0, active_digit+1, 1);
 			if (--rotate_counters[active_digit] < 0) {
 				// if the current digit's count is 0, all permutations have been stored
@@ -774,8 +796,36 @@ bool generateTestVectors(char** test_vectors[], char **test_values, int num_test
 	return result;
 }
 
+/*	***********************************************************	*/
+/*		Tests merging by presenting all possible permutations	*/
+/* 			of a given sequence of lenght 'test_vector_size'	*/
+/*	***********************************************************	*/
 
 bool testBlockSortMergeBlocksExhaustively() {
+
+	bool debug_verbose = true;
+	std::stringstream test_message;
+	bool test_passed = true;
+
+	enum class MergeStrategy {
+		 INDIRECTLY, AUXILLIARY, ROTATE
+	};
+
+	int test_vector_size = 7;
+	MergeStrategy merge_strategy = MergeStrategy::INDIRECTLY;
+
+	auto strategy_string = [merge_strategy] () -> std::string {
+		switch(merge_strategy) {
+		case MergeStrategy::INDIRECTLY:
+			return "INDIRECTLY";
+		case MergeStrategy::AUXILLIARY:
+			return "AUXILLIARY";
+		case MergeStrategy::ROTATE:
+			return "ROTATION  ";
+		default:
+			return "UNKNOWN   ";
+		}
+	};
 
 	auto testVectorToString = [] (char** array, int num) -> std::string {
 		std::stringstream result;
@@ -797,9 +847,6 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	OStreamState ostream_state;
 
-	bool test_passed = true;
-
-	int test_vector_size = 6;
 
 	char *test_values[test_vector_size];
 	for (int i = 0; i != test_vector_size; i++) {
@@ -816,34 +863,147 @@ bool testBlockSortMergeBlocksExhaustively() {
 		std::cout << __FUNCTION__ << " failed b/c generateTestVectos() failed\n";
 		return false;
 	}
+
 	array_size_t mid = test_vector_size / 2 ;
 	array_size_t left_start = 0;
 	array_size_t left_end = mid - 1;
 	array_size_t right_start = mid;
 	array_size_t right_end = test_vector_size-1;
+	ComparesAndMoves total_results(0,0);
 
 	for (int i = 0; i != num_test_vectors; i++) {
-		std::cout << std::setw(5) << i << " "
-				  << testVectorToString(test_vectors[i], test_vector_size);
+		test_message.clear();
+		test_message.str("");
+		test_message << std::setw(5) << i << " "
+				  	 << testVectorToString(test_vectors[i], test_vector_size);
 		InsertionSort::sortPointersToObjects(&test_vectors[i][left_start], mid);
 		InsertionSort::sortPointersToObjects(&test_vectors[i][mid], right_end-right_start+1);
-		std::cout << " when divided into two subarrays, each sorted: "
-				  << testVectorToString(test_vectors[i], test_vector_size);
+		test_message << " when divided into two subarrays, each sorted: "
+				  	 << testVectorToString(test_vectors[i], test_vector_size);
 		ComparesAndMoves result;
-		result = mergeBlocksIndirectionArray(test_vectors[i], left_start, left_end, right_start, right_end);
-		std::cout << " merged to "
-				  << testVectorToString(test_vectors[i], test_vector_size)
-				  << " which took "
-				  << result;
+		switch(merge_strategy) {
+		case MergeStrategy::INDIRECTLY:
+			result = mergeBlocksIndirectionArray(test_vectors[i], left_start, left_end, right_start, right_end);
+			break;
+		case MergeStrategy::ROTATE:
+			result = mergeBlocksByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
+			break;
+		case MergeStrategy::AUXILLIARY:
+		default:
+			break;
+		}
+		total_results += result;
+		test_message << " merged using strategy " << strategy_string() << " to "
+				     << testVectorToString(test_vectors[i], test_vector_size)
+				     << " which took "
+				     << result;
 		if (isSorted(test_vectors[i], test_vector_size)) {
-			std::cout << " which is correct" << std::endl;
+			test_message << " which is correct" << std::endl;
 		} else {
-			std::cout << " which is in ERROR" << std::endl;
-			return false;
+			test_message << " which is in ERROR" << std::endl;
+			std::cout << test_message.str();
+			test_passed = false;
+			break;
+		}
+		if (debug_verbose) {
+			std::cout << test_message.str();
 		}
 	}
+	std::cout << "Sorting " << num_test_vectors
+			  << " unique arrays using strategy "
+			  << strategy_string()
+			  << " took a total of "
+			  << total_results
+			  << std::endl;
+
+	return test_passed;
+}
+
+/*	***********************************************************	*/
+/*		Tests merging by presenting 'num_tests' pseudo-random	*/
+/* 				sequencies of length test_vector_size'			*/
+/*	***********************************************************	*/
+
+bool testBlockSortMergeBlocksRandomly() {
+
+	bool debug_verbose = false;
+	bool test_passed = true;
+	std::stringstream test_message;
+
+	int num_tests = 2000;
+	int test_vector_size = 7;
+
+	auto testVectorToString = [] (char** array, int num) -> std::string {
+		std::stringstream result;
+		result << '\'';
+		for (int i = 0; i < num; i++) {
+			result << *array[i];
+		}
+		result << '\'';
+		return result.str();
+	};
+
+	bool (*isSorted)(char**, int) = [](char ** array, int num) -> bool {
+		for (int i = 0; i != num-1; i++) {
+			if (*array[i+1] < *array[i])
+				return false;
+		}
+		return true;
+	};
+
+	OStreamState ostream_state;
 
 
+	char *test_values[test_vector_size];
+	for (int i = 0; i != test_vector_size; i++) {
+		test_values[i] = new char('A' + ((test_vector_size-1)-i) % 26);
+	}
+
+	int num_test_vectors = 1;
+	for (int i = 1; i <= test_vector_size; i++) {
+		num_test_vectors *= i;
+	}
+
+	char **test_vectors[num_test_vectors];
+	if (!generateTestVectors(test_vectors, test_values, num_test_vectors, test_vector_size)) {
+		std::cout << __FUNCTION__ << " failed b/c generateTestVectos() failed\n";
+		return false;
+	}
+
+	array_size_t mid = test_vector_size / 2 ;
+	array_size_t left_start = 0;
+	array_size_t left_end = mid - 1;
+	array_size_t right_start = mid;
+	array_size_t right_end = test_vector_size-1;
+	ComparesAndMoves total_results(0,0);
+
+	for (int i = 0; i != num_test_vectors; i++) {
+		test_message.clear();
+		test_message.str("");
+		test_message << std::setw(5) << i << " "
+				  	 << testVectorToString(test_vectors[i], test_vector_size);
+		InsertionSort::sortPointersToObjects(&test_vectors[i][left_start], mid);
+		InsertionSort::sortPointersToObjects(&test_vectors[i][mid], right_end-right_start+1);
+		test_message << " when divided into two subarrays, each sorted: "
+				  	 << testVectorToString(test_vectors[i], test_vector_size);
+		ComparesAndMoves result;
+		result = mergeBlocksIndirectionArray(test_vectors[i], left_start, left_end, right_start, right_end);
+		test_message << " merged to "
+				     << testVectorToString(test_vectors[i], test_vector_size)
+				     << " which took "
+				     << result;
+		if (isSorted(test_vectors[i], test_vector_size)) {
+			test_message << " which is correct" << std::endl;
+		} else {
+			test_message << " which is in ERROR" << std::endl;
+			std::cout << test_message.str();
+			test_passed = false;
+			break;
+		}
+		if (debug_verbose) {
+			std::cout << test_message.str();
+		}
+	}
 	return test_passed;
 }
 
