@@ -47,13 +47,13 @@ MergeStrategy merge_strategy = MergeStrategy::TABLE;
 //#define TEST_MODULO
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
-#define TEST_BLOCK_SORT_ROTATE_BLOCKS
+//#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
-#define TEST_BLOCK_SORT_SORT_BLOCKS
-//#define TEST_BLOCK_SORT_SORT
+//#define TEST_BLOCK_SORT_SORT_BLOCKS
+#define TEST_BLOCK_SORT_SORT
 //#define TEST_BLOCK_SORT_BINARY_TAG_SEARCH
 
 bool testBlockSortBinaryBlockSearch();
@@ -531,10 +531,10 @@ bool testBlockSortMergeBlocksExhaustively() {
 			ComparesAndMoves result;
 			switch(merge_strategy) {
 			case MergeStrategy::TABLE:
-				result = mergeBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
+				result = mergeTwoBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
 				break;
 			case MergeStrategy::ROTATE:
-				result = mergeBlocksByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
+				result = mergeContiguousBlocksByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
 				break;
 			case MergeStrategy::AUXILLIARY:
 			default:
@@ -679,11 +679,11 @@ bool testBlockSortMergeBlocksRandomly() {
 
 			switch(merge_strategy) {
 			case MergeStrategy::ROTATE:
-				result += mergeBlocksByRotating(test_array,
+				result += mergeContiguousBlocksByRotating(test_array,
 												left_start, mid, right_end);
 				break;
 			case MergeStrategy::TABLE:
-				result += mergeBlocksByTable(test_array,
+				result += mergeTwoBlocksByTable(test_array,
 											 left_start, left_end,
 											 right_start, right_end);
 				break;
@@ -950,7 +950,7 @@ bool testBlockSortRotateBlocks() {
 
 		for (; x_tag_rotate_count > 0; --x_tag_rotate_count) {
 			// rotate the elements in the underlying array
-			int tag_span = x_tags[x_last_tag].numElements();
+			int tag_span = x_tags[x_last_tag].getWidth();
 			for (int element_counter = tag_span; element_counter != 0; element_counter--) {
 				// store the last element.  it will become the first element
 				int *end_key = x_array[array_end];
@@ -1390,7 +1390,7 @@ bool testBlockSortSort() {
 	BlockSort::printElements(std::string(" initially\n"), test_array, array_size, value_width, element_width);
 	SortingUtilities::randomizeArray(test_array, array_size);
 	BlockSort::printElements(std::string(" randomized\n"), test_array, array_size, value_width, element_width);
-	BlockSort::sortPointersToObjects(test_array, array_size);
+	BlockSort::sortPointerstoObjects(test_array, array_size);
 	BlockSort::printElements(std::string(" after sorting\n"), test_array, array_size, value_width, element_width);
 	goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
 

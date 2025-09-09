@@ -39,7 +39,7 @@ enum SortAlgorithms {
 };
 
 #define MIN_SORT_ALGORITHM 		SortAlgorithms::BUBBLE_SORT
-#define MAX_SORT_ALGORITHM 		SortAlgorithms::COUNTING_SORT
+#define MAX_SORT_ALGORITHM 		SortAlgorithms::BLOCK_SORT
 #define INVALID_SORT_ALGORITHM	SortAlgorithms::SORT_ALGORITHMS_COUNT
 
 bool isValid(SortAlgorithms);

@@ -41,7 +41,7 @@ namespace BlockSort {
 		index_t start_index;
 		index_t end_index;
 
-		index_t	numElements() const {
+		index_t	getWidth() const {
 			return end_index - start_index + 1;
 		}
 

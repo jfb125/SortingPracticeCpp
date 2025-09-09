@@ -43,87 +43,24 @@ array_size_t next_power_of_10(array_size_t current_size) {
 int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
-#if 0
-//	using SmartBlockArray = std::shared_ptr<BlockSort::BlockTag<char>[]>;
-	using SmartBlockArray = std::unique_ptr<BlockSort::BlockTag<char>[]>;
 
-	void (*printBlockTag)(std::shared_ptr<BlockSort::BlockTag<char>> &) =
-		[] (std::shared_ptr<BlockSort::BlockTag<char>> &_tag) {
-		std::cout << "print BlockTag reference " << _tag->to_string() << std::endl;
-	};
-
-	void (*printBlockTagObject)(BlockSort::BlockTag<char>) =
-		[] (BlockSort::BlockTag<char> _tag) {
-		std::cout << "print BlockTag object " << _tag.to_string() << std::endl;
-	};
-
-	void (*printOldArrayOfBlockTags)(BlockSort::BlockTag<char> *, int) =
-		[] (BlockSort::BlockTag<char>*_tags, int _num_tags) {
-		for (int i = 0; i != _num_tags; i++) {
-			std::cout << "print c-style array of BlockTags: " << _tags[i].to_string() << std::endl;
-		}
-	};
-
-	void (*printSmartArrayOfBlockTags)(SmartBlockArray &, int) =
-		[] (SmartBlockArray &_tags, int _num_tags) {
-		for (int i = 0; i != _num_tags; i++) {
-			std::cout << "print smart array of BlockTags: " << _tags[i].to_string() << std::endl;
-		}
-	};
-
-	void (*generateOldBlocks)(BlockSort::BlockTag<char>* &, int num_tags) =
-		[] (BlockSort::BlockTag<char>* &_tags, int _num_tags) {
-		_tags = new BlockSort::BlockTag<char>[_num_tags];
-		for (int i = 0; i != _num_tags; i++) {
-			(_tags)[i].type = BlockType::A_BLOCK;
-			(_tags)[i].key = new char('o');
-			(_tags)[i].start_index = 2*i;
-			(_tags)[i].end_index = 2*i + 1;
-		}
-	};
-
-	void (*generateSmartBlocks)(SmartBlockArray &, int num_tags) =
-		[] (SmartBlockArray &_tags, int _num_tags) {
-		_tags = SmartBlockArray(new BlockSort::BlockTag<char>[_num_tags]);
-		for (int i = 0; i != _num_tags; i++) {
-			(_tags)[i].type = BlockType::B_BLOCK;
-			(_tags)[i].key = new char('s');
-			(_tags)[i].start_index = 2*i;
-			(_tags)[i].end_index = 2*i + 1;
-		}
-	};
-
-	int block_count = 5;
-	BlockSort::BlockTag<char> block(BlockType::A_BLOCK, nullptr, 5, 10);
-	BlockSort::BlockTag<char> *old_p_blocks = new BlockSort::BlockTag<char>[block_count];
-
-	std::shared_ptr<BlockSort::BlockTag<char>> p_block(new BlockSort::BlockTag<char>(BlockType::A_BLOCK, nullptr, 100, 101));
-	SmartBlockArray p_blocks(new BlockSort::BlockTag<char>[block_count]);
-
-	generateOldBlocks(old_p_blocks, block_count);
-	generateSmartBlocks(p_blocks, block_count);
-	printOldArrayOfBlockTags(old_p_blocks, block_count);
-	printSmartArrayOfBlockTags(p_blocks, block_count);
-#endif
-	testBlockSort();
-
-#if 0
 	int num_repetitions = 100;
 
-	constexpr array_size_t min_array_size =  8;
-	constexpr array_size_t max_array_size =  128;
+	constexpr array_size_t min_array_size =     16;
+	constexpr array_size_t max_array_size =   4096;
 	array_size_t (*next_size)(array_size_t current) = next_power_of_2;
 	int num_array_sizes = getNumSizes(min_array_size, max_array_size, next_size);
 
 	SortAlgorithms 	sort_algorithms[] = {
-			SortAlgorithms::BUBBLE_SORT,
+//			SortAlgorithms::BUBBLE_SORT,
 //			SortAlgorithms::SELECTION_SORT,
-//			SortAlgorithms::INSERTION_SORT,
+			SortAlgorithms::INSERTION_SORT,
 			SortAlgorithms::MERGE_SORT,
 //			SortAlgorithms::HEAP_SORT,
 //			SortAlgorithms::QUICK_SORT,
 //			SortAlgorithms::OPTIMIZED_QUICK_SORT,
 //			SortAlgorithms::DUTCH_FLAG_SORT,
+			SortAlgorithms::BLOCK_SORT,
 	};
 	int num_sort_algorithms = sizeof(sort_algorithms)/sizeof(SortAlgorithms);
 
@@ -140,8 +77,8 @@ int main(int argc, char *argv[])
 	constexpr array_size_t num_elements_out_of_order = 3;
 	InitialOrdering	initial_orderings[] = {
 			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
-			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
-			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
+//			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
+//			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
 //			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
 	};
 	int num_initial_orderings = sizeof(initial_orderings)/sizeof(InitialOrdering);
@@ -193,7 +130,7 @@ int main(int argc, char *argv[])
 	printTestResults(results, cnt);
 
 	std::cout << "Completed Sorting Performance In C++" << std::endl;
-#endif
+
 	return EXIT_SUCCESS;
 }
 
