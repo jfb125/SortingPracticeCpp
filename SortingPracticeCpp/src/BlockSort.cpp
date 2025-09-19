@@ -125,15 +125,8 @@ std::string arrayIndicesToString(array_size_t size, array_size_t v, int element_
 	return result.str();
 }
 
-std::string arrayIndicesToString(std::string trailer, array_size_t size, array_size_t v, int element_width) {
-	OStreamState ostream_state;
-	std::stringstream result;
-	result << arrayIndicesToString(size, v, element_width);
-	result << trailer;
-	return result.str();
-}
-
-std::string arrayIndicesToString(array_size_t size, int value_width, int element_width) {
+std::string arrayIndicesToString(array_size_t size, array_size_t v,
+								 int value_width, int element_width) {
 
 	std::stringstream result;
 
@@ -143,8 +136,12 @@ std::string arrayIndicesToString(array_size_t size, int value_width, int element
 		std::cout.fill(separator);
 		std::cout << std::right;
 
-		for (int i = 0; i < size-1; i++) {
-			result << std::setw(element_width-1) << i;
+		for (array_size_t i = 0; i < size-1; i++) {
+			if (i != v) {
+				result << std::setw(element_width-1) << i;
+			} else {
+				result << std::setw(element_width-1) << 'V';
+			}
 			result << ' ';
 		}
 		result << std::setw(element_width-1) << size-1;
@@ -152,17 +149,12 @@ std::string arrayIndicesToString(array_size_t size, int value_width, int element
 	return result.str();
 }
 
-std::string printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width) {
+std::string arrayIndicesToString(std::string trailer,
+								 array_size_t size, array_size_t v,
+								 int value_width, int element_width) {
 	std::stringstream result;
-	result << arrayIndicesToString(size, value_width, element_width);
+	result << arrayIndicesToString(size, v, value_width, element_width);
 	result << trailer;
-	return result.str();
-}
-
-std::string printLineArrayIndices(array_size_t size, int value_width, int element_width) {
-	std::stringstream result;
-	result << arrayIndicesToString(size, value_width, element_width);
-	result << std::endl;
 	return result.str();
 }
 

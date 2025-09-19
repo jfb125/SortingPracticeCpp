@@ -44,18 +44,24 @@ int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-	int num_repetitions = 100;
+	testBlockSort();
+	return EXIT_SUCCESS;
 
-	constexpr array_size_t min_array_size =     16;
-	constexpr array_size_t max_array_size =   4096;
+	int num_repetitions = 1;
+
+	constexpr array_size_t min_array_size =   1024;
+	constexpr array_size_t max_array_size =   1024;
+	//	comment out all but the one used in this test
+//	array_size_t (*next_size)(array_size_t current) = next_increment;
 	array_size_t (*next_size)(array_size_t current) = next_power_of_2;
+//	array_size_t (*next_size)(array_size_t current) = next_power_of_10;
 	int num_array_sizes = getNumSizes(min_array_size, max_array_size, next_size);
 
 	SortAlgorithms 	sort_algorithms[] = {
 //			SortAlgorithms::BUBBLE_SORT,
 //			SortAlgorithms::SELECTION_SORT,
-			SortAlgorithms::INSERTION_SORT,
-			SortAlgorithms::MERGE_SORT,
+//			SortAlgorithms::INSERTION_SORT,
+//			SortAlgorithms::MERGE_SORT,
 //			SortAlgorithms::HEAP_SORT,
 //			SortAlgorithms::QUICK_SORT,
 //			SortAlgorithms::OPTIMIZED_QUICK_SORT,

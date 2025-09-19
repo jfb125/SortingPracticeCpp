@@ -43,12 +43,13 @@ using index_t = array_size_t;
 index_t	floorLog2(index_t num);
 index_t blockSortModulo(index_t rotation_count, index_t span);
 
-std::string arrayIndicesToString(array_size_t size, int value_width, int element_width);
-std::string arrayIndicesToString(std::string trailer, array_size_t size, array_size_t v, int element_width);
-std::string arrayIndicesToString(array_size_t size, array_size_t v, int element_width);
-std::string printArrayIndices(std::string trailer, array_size_t size, int value_width, int element_width);
+std::string arrayIndicesToString(array_size_t size, array_size_t v,
+								 int value_width = 3, int element_width = 4);
+std::string arrayIndicesToString(std::string trailer,
+								 array_size_t size, array_size_t v,
+								 int value_width = 3, int element_width = 4);
 std::string printArrayStartMiddleEnd(array_size_t size, array_size_t start, array_size_t mid, array_size_t end, int element_width);
-std::string printLineArrayIndices(array_size_t size, int value_width, int element_width);
+std::string arrayIndicesToStringLine(array_size_t size, int value_width, int element_width);
 std::string printLineArrayStartMiddleEnd(array_size_t size, array_size_t start, array_size_t mid, array_size_t end, int element_width);
 
 namespace BlockSort {
@@ -85,6 +86,9 @@ namespace BlockSort {
 								 	 	 std::unique_ptr<BlockDescriptor<T>[]> &tags,
 										 int num_tags,
 										 int element_width = ELEMENT_WIDTH);
+	template <typename T>
+	std::string blockDescriptorsSummaryToString(std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
+												int num_tags);
 	template <typename T>
 	std::string blockSortToString(T** array, index_t size, index_t v,
 							 	  std::unique_ptr<BlockDescriptor<T>[]> &tags,
@@ -163,7 +167,7 @@ namespace BlockSort {
 	ComparesAndMoves sortBlocksRightToLeft(T **array, index_t size,
 			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
 	template <typename T>
-	ComparesAndMoves sortBlockTypesSeparately(T** array, index_t size,
+	ComparesAndMoves sortEachBlockTypeSeparately(T** array, index_t size,
 			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
 	template <typename T>
 	ComparesAndMoves swapBlocks(T** array,
@@ -874,9 +878,12 @@ namespace BlockSort {
 		return result;
 	}
 
+	//	starting at the right-most block, merge the previous (left) block into
+	//	  the elements to the right
 	template <typename T>
 	ComparesAndMoves mergeAllBlocks(T** array,
-					std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors, int num_blocks) {
+									std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors,
+									int num_blocks) {
 
 		ComparesAndMoves result;
 		index_t right_start	= block_descriptors[num_blocks-1].start_index;
@@ -886,12 +893,13 @@ namespace BlockSort {
 		while (left_block >= 0) {
 			index_t left_start 	= block_descriptors[left_block].start_index;
 			index_t left_end	= block_descriptors[left_block].end_index;
-//			result += mergeContiguousBlocksByRotating(array,
-//											   	   	  left_start, right_start, right_end);
 			result += mergeTwoBlocksByTable(array,
 											left_start, left_end,
 											right_start, right_end);
+			//	all of the elements from the left.start
+			//	  to the end of the array are in order
 			right_start = left_start;
+			//	move the block pointer to the next block to the left
 			left_block--;
 		}
 		return result;
@@ -1772,7 +1780,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortBlockTypesSeparately(T** array, index_t size,
+	ComparesAndMoves sortEachBlockTypeSeparately(T** array, index_t size,
 			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks)
 	{
 		ComparesAndMoves result;
@@ -1901,33 +1909,11 @@ namespace BlockSort {
 	}
 
 
-		/*	**************************************************	*/
-		/*	**************************************************	*/
-		/*						the sort						*/
-		/*	**************************************************	*/
-		/*	**************************************************	*/
-
-	/*
-	 * 	ComparesAndMoves sortArray(array, start, mid, end, block_size);
-	 *
-	 * 	This function sorts the blocks of the 'array' of size 'block_size'
-	 *    S                          M                    E
-	 * 	{ a, c, e, e, e, k, m, o, q, b, c, c, c, d, d, d, d }	block_size = 4
-	 *
-	 * 	  S        A Blocks                   M         B Blocks      E
-	 * 	{ a } { c, e, e, e } { k, m, o, q } { b, c, c, c } { d, d, d, d }
-	 *
-	 * 	{ a } { c, e, e, e } { b, c, c, c } { d, d, d, d } { k, m, o, q }
-	 *
-	 */
-
-	template <typename T>
-	ComparesAndMoves sortArray(T** array, index_t start, index_t mid, index_t end, index_t block_size)
-	{
-		ComparesAndMoves result(0,0);
-
-		return result;
-	}
+	/*	**************************************************	*/
+	/*	**************************************************	*/
+	/*						the sort						*/
+	/*	**************************************************	*/
+	/*	**************************************************	*/
 
 	/*	**************************	*/
 	/*		the sorting function	*/
@@ -1936,7 +1922,8 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves sortPointerstoObjects(T **array, index_t size) {
 
-		bool debug_verbose = false;
+		bool debug_verbose = true;
+		std::stringstream msg;
 		constexpr index_t minimum_block_size = 16;
 
 		ComparesAndMoves result(0,0);
@@ -1947,7 +1934,6 @@ namespace BlockSort {
 			result += InsertionSort::sortPointersToObjects(array, size);
 			return result;
 		}
-
 
 		index_t start = 0;
 		index_t mid = size/2;
@@ -1961,61 +1947,77 @@ namespace BlockSort {
 		// 	The first time, sort the elements within individual blocks
 		int num_blocks = createBlockDescriptors(array, start, mid, end,
 												block_size, block_descriptors);
-		if (debug_verbose) {
-			printBlockSortArray(std::string("  before sorting each block's elements\n\n"),
-								array, size, mid, block_descriptors, num_blocks);
-		}
+		msg << "created " << std::setw(4) << num_blocks << " block descriptors\n"
+			<< blockDescriptorsSummaryToString(block_descriptors, num_blocks)
+			<< "\n\n";
+//		msg	<< blockSortToString(array, size, mid,
+//								 block_descriptors, num_blocks)
+//		    << "\n\n";
+		//	sort the elements within each block
 		for (int i = 0; i != num_blocks; i++) {
 			T** sub_array = &array[block_descriptors[i].start_index];
 			index_t sub_array_size = block_descriptors[i].getWidth();
 			result += InsertionSort::sortPointersToObjects(sub_array, sub_array_size);
 		}
+		//	the array has been re-ordered independently of the block descriptors
+		//	assign the block's key value from the underlying array
 		assignKeys(array, block_descriptors, num_blocks);
-		result += sortBlockTypesSeparately(array, size, block_descriptors, num_blocks);
-		if (debug_verbose) {
-			printBlockSortArray(std::string("  after  sorting each block's elements\n\n"),
-								array, size, mid, block_descriptors, num_blocks);
-		}
+		result += sortEachBlockTypeSeparately(array, size, block_descriptors, num_blocks);
+
+//		msg << "after sorting each block's elements\n"
+//			<< blockSortToString(array, size, mid,
+//								 block_descriptors, num_blocks)
+//		    << "\n\n";
+
 		constexpr bool merge_at_once = false;
+		if (merge_at_once) {
+			result += mergeAllBlocks(array, block_descriptors, num_blocks);
+			if (debug_verbose) {
+				std::cout << msg.str();
+			}
+			return result;
+		}
 		while (block_size < size) {
 			result += sortBlocksHybrid(array, size, block_descriptors, num_blocks);
-			if (merge_at_once) {
-				result += mergeAllBlocks(array, block_descriptors, num_blocks);
-			} else {
-				int left_block = 0;
-				int right_block = 1;
-				while (right_block < num_blocks) {
-					index_t left_start 	= block_descriptors[left_block].start_index;
-					index_t left_end	= block_descriptors[left_block].end_index;
-					index_t right_start	= block_descriptors[right_block].start_index;
-					index_t right_end	= block_descriptors[right_block].end_index;
-					result += mergeTwoBlocksByTable(array, left_start, left_end,
-														   right_start, right_end);
-					left_block  += 2;
-					right_block += 2;
-				}
-				//	there was an odd number of blocks
-				//    merge the combined block n-3:n-2 with the n-1 block
-				if (left_block < num_blocks) {
-					index_t left_start 	= block_descriptors[num_blocks-3].start_index;
-					index_t left_end 	= block_descriptors[num_blocks-2].end_index;
-					index_t right_start	= block_descriptors[num_blocks-1].start_index;
-					index_t right_end	= block_descriptors[num_blocks-1].end_index;
-					result += mergeContiguousBlocksByRotating(array, left_start,
-															  right_start, right_end);
-				}
+			int left_block = 0;
+			int right_block = 1;
+			while (right_block < num_blocks) {
+				index_t left_start 	= block_descriptors[left_block].start_index;
+				index_t left_end	= block_descriptors[left_block].end_index;
+				index_t right_start	= block_descriptors[right_block].start_index;
+				index_t right_end	= block_descriptors[right_block].end_index;
+				result += mergeTwoBlocksByTable(array, left_start, left_end,
+													   right_start, right_end);
+				left_block  = right_block;
+				right_block = left_block+1;
 			}
-			if (debug_verbose) {
-				std::stringstream message;
-				message << " block size " << block_size << std::endl;
-				std::cout << message.str() << std::endl;
-				printBlockSortArray(message.str(), array, size, mid, block_descriptors, num_blocks);
+			//	there was an odd number of blocks
+			//    merge the combined block n-3:n-2 with the n-1 block
+			if (left_block < num_blocks) {
+				index_t left_start 	= block_descriptors[num_blocks-3].start_index;
+//				index_t left_end 	= block_descriptors[num_blocks-2].end_index;
+				index_t right_start	= block_descriptors[num_blocks-1].start_index;
+				index_t right_end	= block_descriptors[num_blocks-1].end_index;
+				result += mergeContiguousBlocksByRotating(array, left_start,
+														  right_start, right_end);
 			}
+
+			msg << "created " << std::setw(4) << num_blocks << " block descriptors\n"
+				<< blockDescriptorsSummaryToString(block_descriptors, num_blocks)
+				<< "\n\n";
+//			msg << "after pair-wise merging of blocks\n"
+//				<< blockSortToString(array, size, mid,
+//								 block_descriptors, num_blocks)
+//				<< "\n\n";
+
 			block_size *= 2;
 			num_blocks = createBlockDescriptors(array, start, mid, end,
 												block_size, block_descriptors);
 		}
 
+		if (debug_verbose) {
+			std::cout << msg.str();
+		}
 		return result;
 	}
 
@@ -2129,6 +2131,27 @@ namespace BlockSort {
 		result << arrayElementsToString(array, size, value_width, element_width) << std::endl;
 		result << blockDescriptorsToString(tags, num_tags, element_width);
 		return result.str();
+	}
+
+	template <typename T>
+	std::string blockDescriptorsSummaryToString(std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors,
+												int num_blocks) {
+		std::stringstream msg;
+		for (int i = 0; i != num_blocks; i++) {
+			msg << (block_descriptors[i].type == BlockType::A_BLOCK ? "A" : "B");
+			msg << "[" << std::setw(5) << block_descriptors[i].start_index << ":"
+				<< std::setw(5) << block_descriptors[i].end_index << "] [";
+			if (block_descriptors[i].type == BlockType::A_BLOCK) {
+				msg << std::setw(5) << block_descriptors[i].start_index;
+			} else {
+				msg << std::setw(5) << block_descriptors[i].end_index;
+			}
+			msg << "] = " << *block_descriptors[i].key;
+			if (i != num_blocks-1) {
+				msg << " | ";
+			}
+		}
+		return msg.str();
 	}
 
 	template <typename T>

@@ -127,6 +127,9 @@ OneTestResult* testOneAlgorithm(SortAlgorithms& algorithm,
 
 		if (!result->_is_sorted) {
 			msg << "****************** FAILURE ON REPETITION #" << i << std::endl;
+			msg << "[" << result->_mismatched_index_i << "] = " << *sorted_data->_array[result->_mismatched_index_i]
+                << " is not less than [" << result->_mismatched_index_j << "] = " << *sorted_data->_array[result->_mismatched_index_j]
+                << std::endl;
 			std::cout << msg.str() << std::endl;
 			retval->_failure_log = new SortFailureLog();
 			retval->_failure_log->_diagnostics = *result;

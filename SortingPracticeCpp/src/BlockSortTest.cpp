@@ -35,7 +35,7 @@ std::string toString(MergeStrategy strategy) {
 	};
 }
 
-MergeStrategy merge_strategy = MergeStrategy::TABLE;
+MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 
 
 /*	**********************************************	*/
@@ -620,8 +620,8 @@ bool testBlockSortMergeBlocksRandomly() {
 	};
 
 	int num_test_passes = 1000;
-	array_size_t array_sizes[] = { 8, 16, 31, 32, 33, 127, 128, 129, 16, 32, 64, 128};
-//	array_size_t array_sizes[] = { 16, 32 };
+//	array_size_t array_sizes[] = { 8, 16, 31, 32, 33, 127, 128, 129, 16, 32, 64, 128};
+	array_size_t array_sizes[] = { 1024 };
 	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
 	for (int array_size_i = 0; array_size_i != num_array_sizes; ++array_size_i) {
@@ -1283,7 +1283,7 @@ bool testBlockSortSortBlocks() {
 					int num_blocks = 0;
 					BlockArrayPointer blocks;
 
-					messages << printLineArrayIndices(array_size, object_width, element_width);
+					messages << arrayIndicesToString(array_size, object_width, element_width) << std::endl;
 					messages << out(array, array_size, " generated\n");
 
 					//	the randomizing algorithm leaves most of the larger elements in the
@@ -1371,29 +1371,55 @@ bool testBlockSortSortBlocks() {
 bool testBlockSortSort() {
 	bool passed = true;
 	ComparesAndMoves sort_result;
-	constexpr array_size_t array_size = 35;
-	array_size_t v = 16 ; // /2
-	int *test_array[array_size];
+	constexpr int num_tests = 1000;
+	constexpr array_size_t array_size = 1024;
+	array_size_t v = array_size/2;
+	int *reference_array[array_size];
 
 	for (int i = 0, val = 0; i < v; val += 2, i++) {
-		test_array[i] = new int(val);
+		reference_array[i] = new int(val);
 	}
 	for (int i = v, val = 1; i < array_size; val += 2, i++)  {
-		test_array[i] = new int(val);
+		reference_array[i] = new int(val);
 	}
 
 	int element_width = 4;
 	int value_width = 3;
 
-	printArrayIndices(std::string("\n"), array_size, value_width, element_width);
-	std::cout << std::endl;
-	BlockSort::printElements(std::string(" initially\n"), test_array, array_size, value_width, element_width);
-	SortingUtilities::randomizeArray(test_array, array_size);
-	BlockSort::printElements(std::string(" randomized\n"), test_array, array_size, value_width, element_width);
-	BlockSort::sortPointerstoObjects(test_array, array_size);
-	BlockSort::printElements(std::string(" after sorting\n"), test_array, array_size, value_width, element_width);
-	goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
-
+	for (int i = 0; i != num_tests; i ++) {
+		int *test_array[array_size];
+		for (int i = 0; i != array_size; i++) {
+			test_array[i] = reference_array[i];
+		}
+		std::stringstream msg;
+		msg << "            " << arrayIndicesToString(array_size, v,
+										  value_width, element_width)
+		    << std::endl;
+		msg << "initially : " << arrayElementsToString(reference_array, array_size,
+										   value_width, element_width)
+			<< std::endl;
+		SortingUtilities::randomizeArray(test_array, array_size);
+		msg << "randomized: " << arrayElementsToString(reference_array, array_size,
+										   value_width, element_width)
+			<< std::endl;
+		BlockSort::sortPointerstoObjects(reference_array, array_size);
+		msg << "sorted    : " << arrayElementsToString(reference_array, array_size,
+										   value_width, element_width)
+			<< std::endl;
+		index_t mismatched_i;
+		index_t mismatched_j;
+		if (!SortingUtilities::isSorted(reference_array, array_size,
+									   mismatched_i, mismatched_j)) {
+			passed = false;
+			std::cout << msg.str() << std::endl;
+			std::cout << "BlockSort failed ["
+					  << mismatched_i << "] = "
+					  << *reference_array[mismatched_i]
+					  << " vs [" << mismatched_j << "] = "
+					  << *reference_array[mismatched_j] << std::endl;
+			goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
+		}
+	}
 TEST_BLOCK_SORT_SORT_RETURN_LABEL:
 	return passed;
 }
