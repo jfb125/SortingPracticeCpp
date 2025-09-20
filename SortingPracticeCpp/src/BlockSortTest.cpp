@@ -1383,32 +1383,32 @@ bool testBlockSortSort() {
 		reference_array[i] = new int(val);
 	}
 
-	int element_width = 4;
-	int value_width = 3;
+	int element_width = 5;
+	int value_width = 4;
 
-	for (int i = 0; i != num_tests; i ++) {
+	for (int test_number = 0; test_number != num_tests; test_number++) {
 		int *test_array[array_size];
 		for (int i = 0; i != array_size; i++) {
 			test_array[i] = reference_array[i];
 		}
 		std::stringstream msg;
 		msg << "            " << arrayIndicesToString(array_size, v,
-										  value_width, element_width)
+										  	  	  	  element_width)
 		    << std::endl;
-		msg << "initially : " << arrayElementsToString(reference_array, array_size,
+		msg << "initially : " << arrayElementsToString(test_array, array_size,
 										   value_width, element_width)
 			<< std::endl;
 		SortingUtilities::randomizeArray(test_array, array_size);
-		msg << "randomized: " << arrayElementsToString(reference_array, array_size,
+		msg << "randomized: " << arrayElementsToString(test_array, array_size,
 										   value_width, element_width)
 			<< std::endl;
-		BlockSort::sortPointerstoObjects(reference_array, array_size);
-		msg << "sorted    : " << arrayElementsToString(reference_array, array_size,
+		BlockSort::sortPointerstoObjects(test_array, array_size);
+		msg << "sorted    : " << arrayElementsToString(test_array, array_size,
 										   value_width, element_width)
 			<< std::endl;
 		index_t mismatched_i;
 		index_t mismatched_j;
-		if (!SortingUtilities::isSorted(reference_array, array_size,
+		if (!SortingUtilities::isSorted(test_array, array_size,
 									   mismatched_i, mismatched_j)) {
 			passed = false;
 			std::cout << msg.str() << std::endl;

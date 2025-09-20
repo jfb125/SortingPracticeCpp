@@ -115,45 +115,21 @@ std::string arrayIndicesToString(array_size_t size, array_size_t v, int element_
 		for (int i = 0; i < size-1; i++) {
 			if (i != v) {
 				result << std::right << std::setw(element_width-1) << i;
-				result << ' ';
 			} else {
 				result << std::setw(element_width) << "\\V/";
 			}
+			result << ' ';
 		}
 		result << std::right << std::setw(element_width-1) << size-1;
 	}
 	return result.str();
 }
 
-std::string arrayIndicesToString(array_size_t size, array_size_t v,
-								 int value_width, int element_width) {
-
-	std::stringstream result;
-
-	if (size != 0) {
-		constexpr const char separator = ' ';
-		OStreamState io_state;	// the destructor will restore state
-		std::cout.fill(separator);
-		std::cout << std::right;
-
-		for (array_size_t i = 0; i < size-1; i++) {
-			if (i != v) {
-				result << std::setw(element_width-1) << i;
-			} else {
-				result << std::setw(element_width-1) << 'V';
-			}
-			result << ' ';
-		}
-		result << std::setw(element_width-1) << size-1;
-	}
-	return result.str();
-}
-
 std::string arrayIndicesToString(std::string trailer,
 								 array_size_t size, array_size_t v,
-								 int value_width, int element_width) {
+								 int element_width) {
 	std::stringstream result;
-	result << arrayIndicesToString(size, v, value_width, element_width);
+	result << arrayIndicesToString(size, v, element_width);
 	result << trailer;
 	return result.str();
 }
