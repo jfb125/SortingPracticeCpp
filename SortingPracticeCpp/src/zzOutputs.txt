@@ -1,17 +1,11 @@
-Sorting Performance In C++ built on Sep 19 2025 at 16:35:14
-64 384 4096
-128 896 16384
-256 2048 65536
-512 4608 262144
-1024 10240 1048576
-Algorithms: 3 Compositions: 1 Orderings: 1 of : 5 different sizes resulting in 15 outcomes over 100 repetitions
+Sorting Performance In C++ built on Sep 20 2025 at 09:42:54
+Algorithms: 2 Compositions: 1 Orderings: 1 of : 6 different sizes resulting in 12 outcomes over 100 repetitions
 ====================================
 Sort Test Results
 ====================================
-                                  Array sizes:             64                        128                        256                        512                       1024             
-number of repetitions: 100                         avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov      
-INSERTION_SORT  ALL_DISCRETE  IN_RANDOM_ORDER:      1065.9 /      1125.2       4178.6 /      4300.6      16604.4 /     16854.7      66063.7 /     66568.9     263736.1 /    264753.5  
-MERGE_SORT      ALL_DISCRETE  IN_RANDOM_ORDER:       306.9 /       384.0        737.5 /       896.0       1728.2 /      2048.0       3965.3 /      4608.0       8949.8 /     10240.0  
-BLOCK_SORT      ALL_DISCRETE  IN_RANDOM_ORDER:       424.6 /       813.0       1120.4 /      2762.2       3228.3 /      9973.1      10330.1 /     37782.8      30150.1 /    114951.1  
+                              Array sizes:           2048                       4096                       8192                      16384                      32768                      65536             
+number of repetitions: 100                     avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov      
+MERGE_SORT  ALL_DISCRETE  IN_RANDOM_ORDER:     19939.8 /     24576.0      43975.4 /     49152.0      96134.3 /    114688.0     208657.5 /    229376.0     450089.9 /    524288.0     965722.6 /   1048576.0  
+BLOCK_SORT  ALL_DISCRETE  IN_RANDOM_ORDER:     82322.2 /    308387.5     234877.0 /    885125.3     656919.6 /   2479524.3    1874339.7 /   7150541.8    5249711.5 /  19884507.4   14899830.0 /  56531432.0  
 
 Completed Sorting Performance In C++

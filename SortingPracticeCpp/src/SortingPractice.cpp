@@ -13,9 +13,6 @@
 #include "SortTest.h"
 #include "ResultOutput.h"
 
-bool testBlockSort();
-
-
 array_size_t next_power_of_2(array_size_t current_size) {
 	return current_size * 2;
 }
@@ -49,25 +46,18 @@ int main(int argc, char *argv[])
 
 	int num_repetitions = 100;
 
-	constexpr array_size_t min_array_size =     64;
-	constexpr array_size_t max_array_size =   1024;
+	constexpr array_size_t min_array_size =   2048;
+	constexpr array_size_t max_array_size =  65536;
 	//	comment out all but the one used in this test
 //	array_size_t (*next_size)(array_size_t current) = next_increment;
 	array_size_t (*next_size)(array_size_t current) = next_power_of_2;
 //	array_size_t (*next_size)(array_size_t current) = next_power_of_10;
 	int num_array_sizes = getNumSizes(min_array_size, max_array_size, next_size);
 
-	std::cout << min_array_size << ", " << min_array_size * std::log2(min_array_size) << " | ";
-
-	for (int i = next_size(min_array_size); i <= max_array_size; i = next_size(i)) {
-		int nlog2n = std::log2(i);
-		int n = std::log2()
-		std::cout << i << " " << i * std::log2(i) << kk
-	}
 	SortAlgorithms 	sort_algorithms[] = {
 //			SortAlgorithms::BUBBLE_SORT,
 //			SortAlgorithms::SELECTION_SORT,
-			SortAlgorithms::INSERTION_SORT,
+//			SortAlgorithms::INSERTION_SORT,
 			SortAlgorithms::MERGE_SORT,
 //			SortAlgorithms::HEAP_SORT,
 //			SortAlgorithms::QUICK_SORT,

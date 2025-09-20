@@ -108,6 +108,7 @@ namespace MergeSort {
 		//	copy aux back into array
 		if (dst_array == aux) {
 //			std::cout << "... copying aux into array" << std::endl;
+			ret_val._moves += size;
 			for (array_size_t i = 0; i != size; i++) {
 				array[i] = aux[i];
 			}
