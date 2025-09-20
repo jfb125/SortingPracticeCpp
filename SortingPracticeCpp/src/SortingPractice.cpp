@@ -37,12 +37,14 @@ array_size_t next_power_of_10(array_size_t current_size) {
 #include "StudentDataGenerator.h"
 #include "BlockSort.h"
 
+bool testBlockSort();
+
 int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-//	testBlockSort();
-//	return EXIT_SUCCESS;
+	testBlockSort();
+	return EXIT_SUCCESS;
 
 	int num_repetitions = 100;
 

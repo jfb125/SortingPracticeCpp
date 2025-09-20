@@ -45,6 +45,8 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 /*	**********************************************	*/
 
 //#define TEST_MODULO
+#define TEST_BLOCK_SORT_BINARY_FIRST
+#define TEST_BLOCK_SORT_BINARY_LAST
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
@@ -53,9 +55,11 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_TAGS
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
-#define TEST_BLOCK_SORT_SORT
+//#define TEST_BLOCK_SORT_SORT
 //#define TEST_BLOCK_SORT_BINARY_TAG_SEARCH
 
+bool testBlockSortBinaryFirst();
+bool testBlockSortBinaryLast();
 bool testBlockSortBinaryBlockSearch();
 bool testBlockSortMergeBlocksRandomly();
 bool testBlockSortMergeBlocksExhaustively();
@@ -195,6 +199,23 @@ bool testBlockSort() {
 		return passed;
 	tests_passed++;
 #endif
+
+#ifdef	TEST_BLOCK_SORT_BINARY_FIRST
+	num_tests++;
+	runTest(passed, testBlockSortBinaryFirst, "function testBlockSortBinaryFirst()");
+	if (!passed)
+		return passed;
+	tests_passed++;
+#endif
+
+#ifdef	TEST_BLOCK_SORT_BINARY_LAST
+	num_tests++;
+	runTest(passed, testBlockSortBinaryLast, "function testBlockSortBinaryLast()");
+	if (!passed)
+		return passed;
+	tests_passed++;
+#endif
+
 	std::cout << "testBlockSort() ran " << tests_passed << " successful tests\n";
 	return passed;
 }
@@ -205,6 +226,184 @@ bool testBlockSort() {
 /*	**********************************************	*/
 /*	**********************************************	*/
 
+	/*	***************************************	*/
+	/*				Binary searching			*/
+	/*	***************************************	*/
+
+std::string toStringValueArrayIndices(int start, int end, int width = 4){
+	std::stringstream result;
+	for (int i = start; i < end; i++) {
+		result << std::setw(width-1) << i << ' ';
+	}
+	result << std::setw(width-1) << end;
+	return result.str();
+}
+
+template <typename T>
+std::string toStringValueArray(T** array, int start, int end, int highlight = -1, int width = 4) {
+
+	std::stringstream result;
+	for (int i = start; i < end; i++) {
+		if (i != highlight) {
+			result << std::setw(width-1) << *array[i] << ' ';
+		} else {
+			result << '_' << std::setw(width-1) << *array[i] << '_';
+		}
+	}
+	result << std::setw(width-1) << *array[end];
+	return result.str();
+}
+
+int *unique_values[] = {
+		new int(0), new int(1), new int(2), new int(3),
+		new int(4), new int(5), new int(6), new int(7)
+};
+int unique_values_size = sizeof(unique_values)/sizeof(int*);
+int minimum_unique_value = 0;
+int maximum_unique_value = 7;
+
+int *triple_repeated_values[] = {
+		new int(0), new int(0), new int(0),
+		new int(1), new int(1), new int(1),
+		new int(2), new int(2), new int(2),
+		new int(3), new int(3), new int(3),
+};
+int triple_repeated_values_size = sizeof(triple_repeated_values)/sizeof(int*);
+int minimum_repeated_value = 0;
+int maximum_repeated_value = 3;
+int num_times_repeated = 3;
+
+bool testBlockSortBinaryFirst() {
+	bool test_passed = true;
+
+	for (int array_end = unique_values_size-2; array_end < unique_values_size; array_end++) {
+		std::cout << "\nTesting binaryFirst() with an array with a "
+				  << array_end << " unique elements\n";
+		std::cout << toStringValueArrayIndices(0, array_end)
+				  << std::endl;
+		for (int i = minimum_unique_value-1; i <= array_end+1; i++) {
+			std::cout << toStringValueArray(unique_values, 0, array_end, -1, 4);
+			int *value = new int(i);
+			index_t result = binaryFirst(unique_values, 0, array_end, value);
+			std::cout << " insert " << std::setw(2) << *value << " before " << result;
+			if ((i <= minimum_unique_value && result != minimum_unique_value) ||
+				(i > minimum_unique_value && result != *value)) {
+				std::cout << " WHICH IS AN ERROR\n";
+				test_passed = false;
+				goto TEST_BINARY_FIRST_RETURN_LABEL;
+			}
+			std::cout << std::endl;
+		}
+	}
+
+	for (int array_end = triple_repeated_values_size-2;
+			 array_end < triple_repeated_values_size; array_end++) {
+		std::cout << "\nTesting binaryFirst() with an array with an "
+				  << ((array_end+1) & 1 ? "odd" : "even")
+				  << " number of unique elements with each repeated "
+				  << num_times_repeated << "\n";
+		std::cout << toStringValueArrayIndices(0, array_end)
+				  << std::endl;
+		for (int i = minimum_repeated_value-1; i <= maximum_repeated_value+1; i++) {
+			std::cout << toStringValueArray(triple_repeated_values, 0, array_end, -1, 4);
+			int *value = new int(i);
+			index_t result = binaryFirst(triple_repeated_values, 0, array_end, value);
+			std::cout << " insert " << std::setw(2) << *value << " before " << result;
+			if (i <= minimum_repeated_value) {
+				if (result != 0) {
+					std::cout << " WHICH IS AN ERROR\n";
+					test_passed = false;
+					goto TEST_BINARY_FIRST_RETURN_LABEL;
+				}
+			} else {
+				if (i <= maximum_repeated_value) {
+					if (result != num_times_repeated * i) {
+						std::cout << " WHICH IS AN ERROR\n";
+						test_passed = false;
+						goto TEST_BINARY_FIRST_RETURN_LABEL;
+					}
+				} else {
+					if (result != array_end+1) {
+						std::cout << " WHICH IS AN ERROR\n";
+						test_passed = false;
+						goto TEST_BINARY_FIRST_RETURN_LABEL;
+					}
+				}
+			}
+			std::cout << std::endl;
+		}
+	}
+TEST_BINARY_FIRST_RETURN_LABEL:
+	return test_passed;
+}
+
+bool testBlockSortBinaryLast() {
+
+	bool test_passed = true;
+
+	for (int array_end = unique_values_size-2;
+			  array_end < unique_values_size; array_end++) {
+		std::cout << "\nTesting binaryLast() with an array with "
+				  << array_end << " unique elements\n";
+		std::cout << toStringValueArrayIndices(0, array_end)
+				  << std::endl;
+		for (int i = minimum_unique_value-1; i <= array_end+1; i++) {
+			std::cout << toStringValueArray(unique_values, 0, array_end, -1, 4);
+			int *value = new int(i);
+			index_t result = binaryLast(unique_values, 0, array_end, value);
+			std::cout << " insert " << std::setw(2) << *value << " before " << result;
+			if ((i <  minimum_unique_value && result != minimum_unique_value) ||
+				(i >= minimum_unique_value && i < maximum_unique_value && result != *value+1) ||
+				(i >=  maximum_unique_value && result != array_end+1)) {
+				std::cout << " WHICH IS AN ERROR\n";
+				test_passed = false;
+				goto TEST_BINARY_LAST_RETURN_LABEL;
+			}
+			std::cout << std::endl;
+		}
+	}
+
+	for (int array_end = triple_repeated_values_size-2;
+			 array_end < triple_repeated_values_size; array_end++) {
+		std::cout << "\nTesting binaryLast() with an array with an "
+				  << ((array_end+1) & 1 ? "odd" : "even")
+				  << " elements each repeated "
+				  << num_times_repeated << "\n";
+		std::cout << toStringValueArrayIndices(0, array_end)
+				  << std::endl;
+		for (int i = minimum_repeated_value-1; i <= maximum_repeated_value+1; i++) {
+			std::cout << toStringValueArray(triple_repeated_values, 0, array_end, -1, 4);
+			int *value = new int(i);
+			index_t result = binaryLast(triple_repeated_values, 0, array_end, value);
+			std::cout << " insert " << std::setw(2) << *value << " before " << result;
+			if (i < minimum_repeated_value) {
+				if (result != 0) {
+					std::cout << " WHICH IS AN ERROR\n";
+					test_passed = false;
+					goto TEST_BINARY_LAST_RETURN_LABEL;
+				}
+			}
+			if (i >= minimum_repeated_value && i < maximum_repeated_value) {
+				if (result != 3*(i+1)) {
+					std::cout << " WHICH IS AN ERROR\n";
+					test_passed = false;
+					goto TEST_BINARY_LAST_RETURN_LABEL;
+				}
+			}
+			if (i >= maximum_repeated_value) {
+				if (result != array_end+1) {
+					std::cout << " WHICH IS AN ERROR\n";
+					test_passed = false;
+					goto TEST_BINARY_LAST_RETURN_LABEL;
+				}
+			}
+			std::cout << std::endl;
+		}
+	}
+
+TEST_BINARY_LAST_RETURN_LABEL:
+	return test_passed;
+}
 
 /*	*******************************************************	*/
 /*	*******************************************************	*/

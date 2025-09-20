@@ -1,11 +1,91 @@
-Sorting Performance In C++ built on Sep 20 2025 at 09:42:54
-Algorithms: 2 Compositions: 1 Orderings: 1 of : 6 different sizes resulting in 12 outcomes over 100 repetitions
-====================================
-Sort Test Results
-====================================
-                              Array sizes:           2048                       4096                       8192                      16384                      32768                      65536             
-number of repetitions: 100                     avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov      
-MERGE_SORT  ALL_DISCRETE  IN_RANDOM_ORDER:     19939.8 /     24576.0      43975.4 /     49152.0      96134.3 /    114688.0     208657.5 /    229376.0     450089.9 /    524288.0     965722.6 /   1048576.0  
-BLOCK_SORT  ALL_DISCRETE  IN_RANDOM_ORDER:     82322.2 /    308387.5     234877.0 /    885125.3     656919.6 /   2479524.3    1874339.7 /   7150541.8    5249711.5 /  19884507.4   14899830.0 /  56531432.0  
+Sorting Performance In C++ built on Sep 20 2025 at 16:27:52
+testBlockSort()
 
-Completed Sorting Performance In C++
+Testing binaryFirst() with an array with a 6 unique elements
+  0   1   2   3   4   5   6
+  0   1   2   3   4   5   6 insert -1 before 0
+  0   1   2   3   4   5   6 insert  0 before 0
+  0   1   2   3   4   5   6 insert  1 before 1
+  0   1   2   3   4   5   6 insert  2 before 2
+  0   1   2   3   4   5   6 insert  3 before 3
+  0   1   2   3   4   5   6 insert  4 before 4
+  0   1   2   3   4   5   6 insert  5 before 5
+  0   1   2   3   4   5   6 insert  6 before 6
+  0   1   2   3   4   5   6 insert  7 before 7
+
+Testing binaryFirst() with an array with a 7 unique elements
+  0   1   2   3   4   5   6   7
+  0   1   2   3   4   5   6   7 insert -1 before 0
+  0   1   2   3   4   5   6   7 insert  0 before 0
+  0   1   2   3   4   5   6   7 insert  1 before 1
+  0   1   2   3   4   5   6   7 insert  2 before 2
+  0   1   2   3   4   5   6   7 insert  3 before 3
+  0   1   2   3   4   5   6   7 insert  4 before 4
+  0   1   2   3   4   5   6   7 insert  5 before 5
+  0   1   2   3   4   5   6   7 insert  6 before 6
+  0   1   2   3   4   5   6   7 insert  7 before 7
+  0   1   2   3   4   5   6   7 insert  8 before 8
+
+Testing binaryFirst() with an array with an odd number of unique elements with each repeated 3
+  0   1   2   3   4   5   6   7   8   9  10
+  0   0   0   1   1   1   2   2   2   3   3 insert -1 before 0
+  0   0   0   1   1   1   2   2   2   3   3 insert  0 before 0
+  0   0   0   1   1   1   2   2   2   3   3 insert  1 before 3
+  0   0   0   1   1   1   2   2   2   3   3 insert  2 before 6
+  0   0   0   1   1   1   2   2   2   3   3 insert  3 before 9
+  0   0   0   1   1   1   2   2   2   3   3 insert  4 before 11
+
+Testing binaryFirst() with an array with an even number of unique elements with each repeated 3
+  0   1   2   3   4   5   6   7   8   9  10  11
+  0   0   0   1   1   1   2   2   2   3   3   3 insert -1 before 0
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  0 before 0
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  1 before 3
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  2 before 6
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  3 before 9
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  4 before 12
+PASS:  function testBlockSortBinaryFirst() returns TRUE
+
+Testing binaryLast() with an array with 6 unique elements
+  0   1   2   3   4   5   6
+  0   1   2   3   4   5   6 insert -1 before 0
+  0   1   2   3   4   5   6 insert  0 before 1
+  0   1   2   3   4   5   6 insert  1 before 2
+  0   1   2   3   4   5   6 insert  2 before 3
+  0   1   2   3   4   5   6 insert  3 before 4
+  0   1   2   3   4   5   6 insert  4 before 5
+  0   1   2   3   4   5   6 insert  5 before 6
+  0   1   2   3   4   5   6 insert  6 before 7
+  0   1   2   3   4   5   6 insert  7 before 7
+
+Testing binaryLast() with an array with 7 unique elements
+  0   1   2   3   4   5   6   7
+  0   1   2   3   4   5   6   7 insert -1 before 0
+  0   1   2   3   4   5   6   7 insert  0 before 1
+  0   1   2   3   4   5   6   7 insert  1 before 2
+  0   1   2   3   4   5   6   7 insert  2 before 3
+  0   1   2   3   4   5   6   7 insert  3 before 4
+  0   1   2   3   4   5   6   7 insert  4 before 5
+  0   1   2   3   4   5   6   7 insert  5 before 6
+  0   1   2   3   4   5   6   7 insert  6 before 7
+  0   1   2   3   4   5   6   7 insert  7 before 8
+  0   1   2   3   4   5   6   7 insert  8 before 8
+
+Testing binaryLast() with an array with an odd elements each repeated 3
+  0   1   2   3   4   5   6   7   8   9  10
+  0   0   0   1   1   1   2   2   2   3   3 insert -1 before 0
+  0   0   0   1   1   1   2   2   2   3   3 insert  0 before 3
+  0   0   0   1   1   1   2   2   2   3   3 insert  1 before 6
+  0   0   0   1   1   1   2   2   2   3   3 insert  2 before 9
+  0   0   0   1   1   1   2   2   2   3   3 insert  3 before 11
+  0   0   0   1   1   1   2   2   2   3   3 insert  4 before 11
+
+Testing binaryLast() with an array with an even elements each repeated 3
+  0   1   2   3   4   5   6   7   8   9  10  11
+  0   0   0   1   1   1   2   2   2   3   3   3 insert -1 before 0
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  0 before 3
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  1 before 6
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  2 before 9
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  3 before 12
+  0   0   0   1   1   1   2   2   2   3   3   3 insert  4 before 12
+PASS:  function testBlockSortBinaryLast() returns TRUE
+testBlockSort() ran 2 successful tests

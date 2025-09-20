@@ -118,6 +118,17 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves assignKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors);
 
+	/*	Returns the index of the first element that is equal to or greater than 'value'
+	 * 	This is used to insert a value to the left of it's peers	*/
+	template <typename T>
+	index_t binaryFirst(T** array, index_t range_start, index_t range_end, T *value);
+	/*	Returns the index of the first element that is greater than 'value'
+	 * 	This is used to insert a value to the right of it's peers	*/
+
+	template <typename T>
+	index_t binaryLast(T** array, index_t range_start, index_t range_end, T *value);
+
+
 	template <typename T>
 	int createBlockDescriptors( T** array, index_t start, index_t mid, index_t end,
 			    				int block_size,
@@ -209,6 +220,88 @@ namespace BlockSort {
 		}
 
 		return ComparesAndMoves(0,0);
+	}
+
+
+	/*
+	 * binaryFirst(array, first, last, value);
+	 *
+	 * This function returns the index of the first element that is
+	 *  greater than or equal to value. If the passed value is greater than
+	 *	all of the elements on the span, an index (range_end+1) is returned.
+	 *
+	 *	  0  1  2  3  4  5
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &-1) returns 0
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &0) returns 0
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &1) returns 2
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &2) returns 4
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &3) returns 6
+	 */
+
+	template <typename T>
+	index_t binaryFirst(T** array, index_t range_start, index_t range_end, T *value) {
+
+		index_t start = range_start;
+		index_t end	 	= range_end;
+		index_t mid		= start + (end-start)/2;
+
+		while (start != end) {
+			//	determine the midpoint in an even size span
+			//	or the index on the left of mid in an odd size span
+			mid = start + (end-start)/2;
+			if (*array[mid] < *value) {
+				//	if the array value at [mid] is < value
+				//	  look to the right for a [] >= value
+				start = mid+1;
+			} else {
+				//	else the look to the right for a value < passed
+				end = mid;
+			}
+		}
+		if (start == range_end && *array[start] < *value)
+			start++;
+		return start;
+	}
+
+
+	/*
+	 * binaryLast(array, first, last, value);
+	 *
+	 * This function returns the index of first element that is greater than value
+	 *	If the passed value is equal to or greater than
+	 *	all of the elements on the span, an index (range_end+1) is returned.
+	 *
+	 *	  0  1  2  3  4  5
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &-1) returns 0
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &0) returns 2
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &1) returns 4
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &2) returns 6
+	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &3) returns 6
+	 */
+
+	template <typename T>
+	index_t binaryLast(T** array, index_t range_start, index_t range_end, T *value) {
+
+		index_t start = range_start;
+		index_t end	 	= range_end;
+		index_t mid		= start + (end-start)/2;
+
+		while (start != end) {
+			//	determine the midpoint in an even size span
+			//	or the index on the left of mid in an odd size span
+			mid = start + (end-start)/2;
+			if (*array[mid] <= *value) {
+				//	if the array value at [mid] is < value
+				//	  look to the right for a [] >= value
+				start = mid+1;
+			} else {
+				//	else the look to the right for a value < passed
+				end = mid;
+			}
+		}
+		if (start == range_end && *array[start] <= *value)
+			start++;
+		return start;
 	}
 
 	/*
