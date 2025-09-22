@@ -2,7 +2,6 @@
  * 	BlockSortTest.cpp
  *
  *  Created on: Aug 14, 2025
- *      Author: joe
  */
 
 #include <iostream>
@@ -12,6 +11,8 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+
+#include "IntegerArithmetic.h"
 
 #include "BlockSort.h"
 
@@ -45,8 +46,10 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 /*	**********************************************	*/
 
 //#define TEST_MODULO
-#define TEST_BLOCK_SORT_BINARY_FIRST
-#define TEST_BLOCK_SORT_BINARY_LAST
+#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
+bool testBlockSortCreateDescriptors();
+//#define TEST_BLOCK_SORT_BINARY_FIRST
+//#define TEST_BLOCK_SORT_BINARY_LAST
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
@@ -56,11 +59,12 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 //#define TEST_BLOCK_SORT_SWAP_TAGS
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
-//#define TEST_BLOCK_SORT_BINARY_TAG_SEARCH
+//#define TEST_BLOCK_SORT_BINARY_DESCRIPTOR_SEARCH
 
 bool testBlockSortBinaryFirst();
 bool testBlockSortBinaryLast();
 bool testBlockSortBinaryBlockSearch();
+bool testBlockSortCreateDescriptors();
 bool testBlockSortMergeBlocksRandomly();
 bool testBlockSortMergeBlocksExhaustively();
 bool testBlockSortModulo();
@@ -105,6 +109,14 @@ bool testBlockSort() {
 	int tests_passed = 0;
 	std::cout << "testBlockSort()" << std::endl;
 
+#ifdef TEST_BLOCK_SORT_CREATE_DESCRIPTORS
+	num_tests++;
+	runTest(passed, testBlockSortCreateDescriptors, "function blockSortCreateDescriptors()");
+	if (!passed)
+		return passed;
+	tests_passed++;
+#endif
+
 #ifdef TEST_MODULO
 	num_tests++;
 	runTest(passed, testBlockSortModulo, "function blockSortModulo()");
@@ -121,7 +133,7 @@ bool testBlockSort() {
 	tests_passed++;
 #endif
 
-#ifdef	TEST_BLOCK_SORT_BINARY_TAG_SEARCH
+#ifdef	TEST_BLOCK_SORT_BINARY_DESCRIPTOR_SEARCH
 	num_tests++;
 	runTest(passed, testBlockSortBinaryBlockSearch, "function testBlockSortBinaryTagSearch()");
 	if (!passed)
@@ -405,11 +417,239 @@ TEST_BINARY_LAST_RETURN_LABEL:
 	return test_passed;
 }
 
+
+	/*	*******************************************************	*/
+	/*	*******************************************************	*/
+	/*						createDescriptors					*/
+	/*	*******************************************************	*/
+	/*	*******************************************************	*/
+
+template <typename T>
+bool validateCreateBlocks_A0_Full(
+		std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
+		int num_descriptors,
+		index_t mid,
+		int block_size,
+		std::stringstream &msg)
+{
+	bool test_result = true;
+	msg.str("");
+
+	int block_number = 0;
+
+	//	it is possible that the descriptors are only A_BLOCKs
+	for (; block_number != num_descriptors; block_number++) {
+		if (descriptors[block_number].type == BlockType::B_BLOCK) {
+			break;
+		}
+		if (descriptors[block_number].getWidth() != block_size) {
+			test_result = false;
+			msg << "ERROR - A_BLOCK[" << block_number << "] is not full size = " << block_size;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+		}
+	}
+
+	// first B_Block must start at 'mid'
+	if (descriptors[block_number].start_index != mid) {
+		test_result = false;
+		msg << "ERROR - the first B_Block.start_index " << descriptors[block_number].start_index
+			<< " is not = " << mid;
+		goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+	}
+
+	//	all but the final B_Block has to be 'block_size'
+	for (; block_number < num_descriptors-1; block_number++) {
+		if (descriptors[block_number].getWidth() != block_size) {
+			test_result = false;
+			msg << "ERROR - B_BLOCK[" << block_number << "] is not full size = " << block_size;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+		}
+	}
+
+VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT:
+	return test_result;
+}
+
+template <typename T>
+bool validateCreateBlocksSymmetrically(
+		std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
+		int num_descriptors,
+		index_t mid,
+		int block_size,
+		std::stringstream &msg)
+{
+	bool test_result = true;
+	msg.str("");
+
+	//	the first A_Block may not be a full block
+	int block_number = 1;
+
+	//	it is possible that the descriptors are only A_BLOCKs
+	for (; block_number != num_descriptors; block_number++) {
+		if (descriptors[block_number].type == BlockType::B_BLOCK) {
+			break;
+		}
+	}
+
+	// first B_Block must start at 'mid'
+	if (descriptors[block_number].start_index != mid) {
+		test_result = false;
+		msg << "ERROR - the first B_Block.start_index " << descriptors[block_number].start_index
+			<< " is not = " << mid;
+		goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+	}
+
+	//	all but the final B_Block has to be 'block_size'
+	for (; block_number < num_descriptors-1; block_number++) {
+		if (descriptors[block_number].getWidth() != block_size) {
+			test_result = false;
+			msg << "ERROR - B_BLOCK[" << block_number << "] is not full size = " << block_size;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+		}
+	}
+
+VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT:
+	return test_result;
+}
+
+bool testBlockSortCreateDescriptors() {
+
+	constexpr bool verbose_output = false;
+
+	bool test_result = true;
+	bool test_a0_full = true;
+	std::stringstream test_result_msg;
+	std::stringstream validation_msg;
+
+	char *test_vector[] = {
+		new char('a'), new char('b'), new char('c'), new char('d'),
+		new char('e'), new char('f'), new char('g'), new char('h'),
+		new char('i'), new char('j'), new char('k'), new char('l'),
+		new char('m'), new char('n'), new char('o'), new char('p'),
+		new char('q'), new char('r'), new char('s'), new char('t'),
+		new char('u'), new char('v'), new char('w'), new char('x'),
+		new char('y'), new char('z'),
+		new char('A'), new char('B'), new char('C'), new char('D'),
+		new char('E'), new char('F'), new char('G'), new char('H'),
+		new char('H'), new char('J'), new char('K'), new char('L'),
+		new char('M'), new char('N'), new char('O'), new char('P'),
+		new char('Q'), new char('R'), new char('S'), new char('T'),
+		new char('U'), new char('V'), new char('W'), new char('X'),
+		new char('Y'), new char('Z')
+		};
+
+//	int test_vector_size = sizeof(test_vector) / sizeof(char*);
+
+	int minimum_block_size = 3;
+	int maximum_block_size = 5;
+	int nominal_array_size = 16;
+
+	//	perform the test both on createBlockDescriptors_A0_Full()
+	//	  					 and createBlocKDescriptorsSymmetrically()
+	do {
+		for (int block_size  = minimum_block_size;
+				 block_size <= maximum_block_size; block_size++) {
+
+			//	try all necessary array sizes to generate all fractional
+			//	  sizes of the final B_Block, from 0 to block_size-1
+			int num_blocks_possible = nominal_array_size / block_size;
+			int num_complete_blocks = num_blocks_possible-1;
+			int minimum_array_size = num_complete_blocks * block_size;
+			int maximum_array_size = minimum_array_size+block_size-1;
+			for (int array_size = minimum_array_size;
+				 array_size <= maximum_array_size; array_size++) {
+				// calculate how many full blocks there will be
+				int minimum_num_blocks = array_size / block_size;
+				// the mid, which is where the first B_Block starts
+				//	is the the left of all the A_Blocks
+				int start = 0;
+				int end = array_size-1;
+				std::unique_ptr<BlockDescriptor<char>[]> descriptors;
+				int mid = 0;
+				int num_blocks = 0;
+				if (test_a0_full) {
+					mid = (minimum_num_blocks / 2) * block_size;
+					num_blocks = createBlockDescriptors_A0_Full(test_vector,
+																start, mid, end,
+																block_size,
+																descriptors);
+				} else {
+					mid = array_size / 2;
+					num_blocks = testOnly_CreateBlockDescriptorsSymmetrically(test_vector,
+																	 start, mid, end,
+																	 block_size,
+																	 descriptors);
+				}
+
+	//			/* ways to force errors */
+	//			/* force a[0] to not be a full block */
+	//			descriptors[0].end_index--;
+	//			/* force b[0] to not start at 'mid' */
+	//			int b0_location = 0;
+	//			for (; b0_location < num_blocks; b0_location++) {
+	//				if (descriptors[b0_location].type == BlockType::B_BLOCK)
+	//					break;
+	//			}
+	//			if (b0_location != num_blocks) {
+	//				descriptors[b0_location].start_index++;
+	//			}
+	//			/* force the 2nd to last b_block to not be a full block	*;
+	//			descriptors[num_blocks-2].end_index--;
+
+				test_result_msg.str("");
+				if (test_a0_full) {
+					test_result_msg << "Created blocks with A0 full on ";
+				} else {
+					test_result_msg << "Created blocks symmetrically ";
+				}
+				test_result_msg	<< "array size " << std::setw(3) << array_size
+						  	  	<< " block size " << std::setw(3) << block_size
+								<< " yields " << std::setw(3) << num_blocks
+								<< std::endl
+								<< arrayIndicesToString(array_size, mid) << std::endl
+								<< SortingUtilities::arrayElementsToString(test_vector, array_size) << std::endl
+								<< blockDescriptorsToString(descriptors, num_blocks) << std::endl;
+				bool correct;
+				if (test_a0_full) {
+					correct = validateCreateBlocks_A0_Full(descriptors, num_blocks,
+														   mid, block_size,
+														   validation_msg);
+				} else {
+					correct = validateCreateBlocksSymmetrically(descriptors, num_blocks,
+																mid, block_size,
+																validation_msg);
+				}
+				if (verbose_output || !correct) {
+					std::cout << test_result_msg.str();
+				}
+				if (!correct) {
+					std::cout << " which is in ERROR for the following reason:" << std::endl;
+					std::cout << validation_msg.str() << std::endl;
+					test_result = false;
+					goto TEST_CREATE_BLOCKS_RETURN_POINT;
+				}
+				if (verbose_output) {
+					std::cout << std::endl;
+				}
+			}
+		}
+		if (test_a0_full) {
+			test_a0_full = false;
+		} else {
+			test_a0_full = true;
+		}
+	} while (test_a0_full == false);
+
+TEST_CREATE_BLOCKS_RETURN_POINT:
+	return test_result;
+}
+
+
 /*	*******************************************************	*/
-/*	*******************************************************	*/
-/*						floorLog2							*/
-/*	*******************************************************	*/
-/*	*******************************************************	*/
+	/*	*******************************************************	*/
+	/*						floorLog2							*/
+	/*	*******************************************************	*/
+	/*	*******************************************************	*/
 
 bool testFloorLog2() {
 
@@ -431,7 +671,7 @@ bool testFloorLog2() {
 
 	constexpr int num_width = 10;
 	bool passed = true;
-	array_size_t value = floorLog2(0);
+	array_size_t value = highestPowerOf2(0);
 	array_size_t expected = calc_expected(0);
 	std::cout << "floor(log2(" << std::setw(num_width) << 0 << ")) = "
 			<< std::setw(num_width) << value;
@@ -445,7 +685,7 @@ bool testFloorLog2() {
 
 	for (array_size_t i = 2; i < (1 << 30); i <<= 1) {
 		// one less than a power of 2
-		value = floorLog2(i - 1);
+		value = highestPowerOf2(i - 1);
 		expected = calc_expected(i - 1);
 		std::cout << "floor(log2(" << std::setw(num_width) << i - 1 << ")) = "
 				<< std::setw(num_width) << value;
@@ -458,7 +698,7 @@ bool testFloorLog2() {
 		std::cout << std::endl;
 
 		// a power of 2
-		value = floorLog2(i);
+		value = highestPowerOf2(i);
 		expected = calc_expected(i);
 		std::cout << "floor(log2(" << std::setw(num_width) << i << ")) = "
 				<< std::setw(num_width) << value;
@@ -505,7 +745,6 @@ bool testBlockSortBinaryBlockSearch() {
 	TestVector test_vector_2_18_even = {test_array_2_18_even, sizeof(test_array_2_18_even) / sizeof(array_size_t) };
 	array_size_t test_array_1[]			= {  1  };
 	TestVector test_vector_1 = {test_array_1, sizeof(test_array_1) / sizeof(array_size_t) };
-
 	TestVector *test_vectors [] {
 		&test_vector_0_7,
 		&test_vector_1_15_odd,
@@ -1224,8 +1463,9 @@ bool testBlockSortRotateBlocks() {
 			InsertionSort::sortPointersToObjects(&reference_array[v], array_size - v);
 
 			std::unique_ptr<BlockDescriptor<int> []> reference_tags;
-			num_tags = createBlockDescriptors(reference_array, 0, v, array_size - 1,
-									   block_size, reference_tags);
+			num_tags = createBlockDescriptors_A0_Full(
+					reference_array, 0, v, array_size - 1,
+					block_size, reference_tags);
 
 			//	anchor span [left:right] rotate_count
 			//	0		5		[0:4]	  { 0, 1, 2, 3, 4, 5 }
@@ -1254,8 +1494,8 @@ bool testBlockSortRotateBlocks() {
 			{
 				for (array_size_t block_span = num_tags-anchor_block; block_span > 0; --block_span)
 				{
-					array_size_t first_block	 = anchor_block;
-					array_size_t last_block = anchor_block + block_span - 1;
+					array_size_t first_block = anchor_block;
+					array_size_t last_block  = anchor_block + block_span - 1;
 					//	move right the group of blocks [left:right]that will be rotated
 					for ( ; last_block < num_tags; ++first_block, ++last_block)
 					{
@@ -1378,7 +1618,7 @@ bool testBlockSortSortBlocks() {
 					(int ** array, array_size_t array_size,
 					 std::string trailer) {
 		std::stringstream result;
-		result << arrayElementsToString(array, array_size, object_width, element_width)
+		result << SortingUtilities::arrayElementsToString(array, array_size, object_width, element_width)
 			   << trailer;
 		return result.str();
 	};
@@ -1492,8 +1732,8 @@ bool testBlockSortSortBlocks() {
 					InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
 
 					messages << out(array, array_size, " after randomizing\n");
-					num_blocks = BlockSort::createBlockDescriptors(array, start, mid, end, block_size, blocks);
-					messages << printLineArrayStartMiddleEnd(array_size, start, mid, end, element_width);
+					num_blocks = BlockSort::testOnly_CreateBlockDescriptorsSymmetrically(array, start, mid, end, block_size, blocks);
+					messages << arrayStartMiddleEndToString(array_size, start, mid, end, element_width);
 					messages << BlockSort::blockDescriptorsToString(std::string("\n"), blocks, num_blocks, element_width);
 					messages << out(array, array_size, "\n");
 
@@ -1591,19 +1831,24 @@ bool testBlockSortSort() {
 			test_array[i] = reference_array[i];
 		}
 		std::stringstream msg;
-		msg << "            " << arrayIndicesToString(array_size, v,
-										  	  	  	  element_width)
+		msg << "            " << arrayIndicesToString(array_size, v, element_width)
 		    << std::endl;
-		msg << "initially : " << arrayElementsToString(test_array, array_size,
-										   value_width, element_width)
+		msg << "initially : " << SortingUtilities::arrayElementsToString(test_array,
+																		 array_size,
+																		 value_width,
+																		 element_width)
 			<< std::endl;
 		SortingUtilities::randomizeArray(test_array, array_size);
-		msg << "randomized: " << arrayElementsToString(test_array, array_size,
-										   value_width, element_width)
+		msg << "randomized: " << SortingUtilities::arrayElementsToString(test_array,
+																		 array_size,
+																		 value_width,
+																		 element_width)
 			<< std::endl;
 		BlockSort::sortPointerstoObjects(test_array, array_size);
-		msg << "sorted    : " << arrayElementsToString(test_array, array_size,
-										   value_width, element_width)
+		msg << "sorted    : " << SortingUtilities::arrayElementsToString(test_array,
+																		 array_size,
+																		 value_width,
+																		 element_width)
 			<< std::endl;
 		index_t mismatched_i;
 		index_t mismatched_j;
@@ -1726,7 +1971,7 @@ bool testBlockSortSwapBlocks() {
 						expected[j] = tmp;
 					}
 					messages << " testing:  "
-							 << arrayElementsToString(array, array_size, value_width, element_width)
+							 << SortingUtilities::arrayElementsToString(array, array_size, value_width, element_width)
 							 << std::endl;
 					if (block_gap >= 0) {
 						//	if the block gap is not negative,
@@ -1740,11 +1985,11 @@ bool testBlockSortSwapBlocks() {
 													left_block_begin, left_block_end);
 					}
 					messages << " expected: "
-							 << arrayElementsToString(expected, array_size,
+							 << SortingUtilities::arrayElementsToString(expected, array_size,
 												      value_width, element_width)
 							 << std::endl;
 					messages << " received: "
-							 << arrayElementsToString(array, array_size,
+							 << SortingUtilities::arrayElementsToString(array, array_size,
 												      value_width, element_width)
 							 << std::endl;
 					for (int i = 0; i != array_size; i++) {
