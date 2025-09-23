@@ -1,304 +1,95 @@
-Sorting Performance In C++ built on Sep 23 2025 at 10:02:05
+Sorting Performance In C++ built on Sep 23 2025 at 12:09:46
 testBlockSort()
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: NO VALUES less than  0 found in array which took  4 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: NO VALUES less than  1 found in array which took  4 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [0] =  1 is less than  2 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [0] =  1 is less than  3 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [1] =  3 is less than  4 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [1] =  3 is less than  5 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [2] =  5 is less than  6 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [2] =  5 is less than  7 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [3] =  7 is less than  8 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [3] =  7 is less than  9 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [4] =  9 is less than 10 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [4] =  9 is less than 11 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [5] = 11 is less than 12 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [5] = 11 is less than 13 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [6] = 13 is less than 14 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [6] = 13 is less than 15 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   1    3    5    7    9   11   13   15 
-PASSED: Element [7] = 15 is less than 16 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: NO VALUES less than  1 found in array which took  4 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: NO VALUES less than  2 found in array which took  4 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [0] =  2 is less than  3 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [0] =  2 is less than  4 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [1] =  4 is less than  5 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [1] =  4 is less than  6 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [2] =  6 is less than  7 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [2] =  6 is less than  8 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [3] =  8 is less than  9 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [3] =  8 is less than 10 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [4] = 10 is less than 11 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [4] = 10 is less than 12 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [5] = 12 is less than 13 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [5] = 12 is less than 14 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [6] = 14 is less than 15 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [6] = 14 is less than 16 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7
-   2    4    6    8   10   12   14   16 
-PASSED: Element [7] = 16 is less than 17 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: NO VALUES less than  0 found in array which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: NO VALUES less than  1 found in array which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [0] =  1 is less than  2 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [0] =  1 is less than  3 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [1] =  3 is less than  4 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [1] =  3 is less than  5 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [2] =  5 is less than  6 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [2] =  5 is less than  7 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [3] =  7 is less than  8 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [3] =  7 is less than  9 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [4] =  9 is less than 10 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [4] =  9 is less than 11 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [5] = 11 is less than 12 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [5] = 11 is less than 13 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [6] = 13 is less than 14 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [6] = 13 is less than 15 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [7] = 15 is less than 16 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [7] = 15 is less than 17 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   1    3    5    7    9   11   13   15   17 
-PASSED: Element [8] = 17 is less than 18 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: NO VALUES less than  1 found in array which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: NO VALUES less than  2 found in array which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [0] =  2 is less than  3 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [0] =  2 is less than  4 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [1] =  4 is less than  5 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [1] =  4 is less than  6 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [2] =  6 is less than  7 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [2] =  6 is less than  8 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [3] =  8 is less than  9 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [3] =  8 is less than 10 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [4] = 10 is less than 11 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [4] = 10 is less than 12 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [5] = 12 is less than 13 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [5] = 12 is less than 14 which took  4 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [6] = 14 is less than 15 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [6] = 14 is less than 16 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [7] = 16 is less than 17 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [7] = 16 is less than 18 which took  3 compares
-
-   0    1    2    3   \V/   5    6    7    8
-   2    4    6    8   10   12   14   16   18 
-PASSED: Element [8] = 18 is less than 19 which took  3 compares
-
-   0
-   1 
-PASSED: NO VALUES less than  0 found in array which took  1 compares
-
-   0
-   1 
-PASSED: NO VALUES less than  1 found in array which took  1 compares
-
-   0
-   1 
-PASSED: Element [0] =  1 is less than  2 which took  1 compares
-
+start =  0 end =  7 evaluating [ 3] =  3 is     greater than -1 next guess =  3
+start =  0 end =  3 evaluating [ 1] =  1 is     greater than -1 next guess =  1
+start =  0 end =  1 evaluating [ 0] =  0 is     greater than -1 next guess =  0
+start =  0 end =  0 evaluating [ 0] =  0 is     greater than -1 therefore returning 'end'
+ returning 0
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  0 when passed -1 which took  4 compares
+
+start =  0 end =  7 evaluating [ 3] =  3 is     greater than 0 next guess =  3
+start =  0 end =  3 evaluating [ 1] =  1 is     greater than 0 next guess =  1
+start =  0 end =  1 evaluating [ 0] =  0 is NOT greater than 0 next guess =  0
+start =  1 end =  1 evaluating [ 1] =  1 is     greater than 0 therefore returning 'end'
+ returning 1
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  1 when passed  0 which took  4 compares
+
+start =  0 end =  7 evaluating [ 3] =  3 is     greater than 1 next guess =  3
+start =  0 end =  3 evaluating [ 1] =  1 is NOT greater than 1 next guess =  1
+start =  2 end =  3 evaluating [ 2] =  2 is     greater than 1 next guess =  2
+start =  2 end =  2 evaluating [ 2] =  2 is     greater than 1 therefore returning 'end'
+ returning 2
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  2 when passed  1 which took  4 compares
+
+start =  0 end =  7 evaluating [ 3] =  3 is     greater than 2 next guess =  3
+start =  0 end =  3 evaluating [ 1] =  1 is NOT greater than 2 next guess =  1
+start =  2 end =  3 evaluating [ 2] =  2 is NOT greater than 2 next guess =  2
+start =  3 end =  3 evaluating [ 3] =  3 is     greater than 2 therefore returning 'end'
+ returning 3
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  3 when passed  2 which took  4 compares
+
+start =  0 end =  7 evaluating [ 3] =  3 is NOT greater than 3 next guess =  3
+start =  4 end =  7 evaluating [ 5] =  5 is     greater than 3 next guess =  5
+start =  4 end =  5 evaluating [ 4] =  4 is     greater than 3 next guess =  4
+start =  4 end =  4 evaluating [ 4] =  4 is     greater than 3 therefore returning 'end'
+ returning 4
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  4 when passed  3 which took  4 compares
+
+start =  0 end =  7 evaluating [ 3] =  3 is NOT greater than 4 next guess =  3
+start =  4 end =  7 evaluating [ 5] =  5 is     greater than 4 next guess =  5
+start =  4 end =  5 evaluating [ 4] =  4 is NOT greater than 4 next guess =  4
+start =  5 end =  5 evaluating [ 5] =  5 is     greater than 4 therefore returning 'end'
+ returning 5
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  5 when passed  4 which took  4 compares
+
+start =  0 end =  7 evaluating [ 3] =  3 is NOT greater than 5 next guess =  3
+start =  4 end =  7 evaluating [ 5] =  5 is NOT greater than 5 next guess =  5
+start =  6 end =  7 evaluating [ 6] =  6 is     greater than 5 next guess =  6
+start =  6 end =  6 evaluating [ 6] =  6 is     greater than 5 therefore returning 'end'
+ returning 6
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  6 when passed  5 which took  4 compares
+
+start =  0 end =  7 evaluating [ 3] =  3 is NOT greater than 6 next guess =  3
+start =  4 end =  7 evaluating [ 5] =  5 is NOT greater than 6 next guess =  5
+start =  6 end =  7 evaluating [ 6] =  6 is NOT greater than 6 next guess =  6
+start =  7 end =  7 evaluating [ 7] =  7 is     greater than 6 therefore returning 'end'
+ returning 7
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  7 when passed  6 which took  4 compares
+
+start =  0 end =  7 evaluating [ 3] =  3 is NOT greater than 7 next guess =  3
+start =  4 end =  7 evaluating [ 5] =  5 is NOT greater than 7 next guess =  5
+start =  6 end =  7 evaluating [ 6] =  6 is NOT greater than 7 next guess =  6
+start =  7 end =  7 evaluating [ 7] =  7 is NOT greater than 7 therefore returning 'end+1'
+ returning 8
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  8 when passed  7 which took  4 compares
+
+start =  0 end =  7 evaluating [ 3] =  3 is NOT greater than 8 next guess =  3
+start =  4 end =  7 evaluating [ 5] =  5 is NOT greater than 8 next guess =  5
+start =  6 end =  7 evaluating [ 6] =  6 is NOT greater than 8 next guess =  6
+start =  7 end =  7 evaluating [ 7] =  7 is NOT greater than 8 therefore returning 'end+1'
+ returning 8
+Indices    0    1    2    3    4    5    6    7
+Values     0    1    2    3    4    5    6    7 
+returned  8 when passed  8 which took  4 compares
+
+testBlockSortBinarySearchLastBlock() returns passed
 PASS:  function testBlockSortBinaryTagSearch() returns TRUE
 testBlockSort() ran 1 successful tests

@@ -92,7 +92,7 @@ namespace BlockSort {
 	/*	In an array of blockDescriptors, find the leftmost block that is > key */
 	template <typename T>
 	ComparesAndMoves binarySearchLastBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
-											   index_t first, index_t last,
+											   index_t start, index_t end,
 								   	   	   	   T* key, index_t &key_location);
 
 	/*	Returns the index of the first element that is greater than 'value'
@@ -197,6 +197,97 @@ namespace BlockSort {
 		}
 
 		return ComparesAndMoves(0,0);
+	}
+
+
+	/*
+	 *	c_and_m binarySearchLastBlock(p_blocks, start, end, p_key, p_location);
+	 *
+	 *	  Perform a binary search for the index of the left-most block that is greater
+	 *	than the passed 'key' on the interval [start:end].
+	 *
+	 *	If *p_key is <= than *p_blocks[start].key, 	'start' is assigned to p_location
+	 *	If *p_key is >  than *p_blocks[end].key, 	'end+1' is assigned to p_location
+	 *
+	 *	The number of compares of p_key is returned for diagnostic purposes
+	 */
+
+
+	template <typename T>
+	ComparesAndMoves binarySearchLastBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+											   index_t range_left, index_t range_right,
+								   	   	   	   T* key, index_t &key_location)
+	{
+		//	debugging resources
+		constexpr bool debug_verbose = true;
+		OStreamState ostream_state;
+		std::stringstream msg;
+
+		// return number of compares & moves(=0) which is a
+		//	figure of merit in evaluating the algorithm
+		ComparesAndMoves result(0,0);
+
+		index_t start = range_left;
+		index_t end	  = range_right;
+		while (start != end) {
+			//	debug
+			index_t mid = start + (end-start)/2;
+			if (debug_verbose) {
+				msg << "start = " << std::setw(2) << start
+					<< " end = " << std::setw(2) << end
+					<< " evaluating [" << std::setw(2) << mid
+					<< "] = " << std::setw(2) << *blocks[mid].key
+					<< (*blocks[mid].key > *key ? " is    " : " is NOT")
+					<< " greater than " << *key;
+			}
+
+			result._compares++;
+			if (*blocks[mid].key <= *key) {
+				start = mid+1;
+			} else {
+				end = mid;
+			}
+
+			if (debug_verbose) {
+				//	debug stuff
+				msg << " next guess = " << std::setw(2) << mid << std::endl;
+			}
+		}
+
+		//	  If the search ended on the right side of the array
+		//	and the element at the right side IS NOT > key,
+		//	return the element after the right side.
+		//	  It is the caller's responsibility to ensure the range_right+1
+		//	is within the bounds of the caller's array of blocks
+		result._compares++;
+		if (start == range_right && *blocks[start].key <= *key) {
+			msg << "start = " << std::setw(2) << start
+				<< " end = " << std::setw(2) << end
+				<< " evaluating [" << std::setw(2) << start
+				<< "] = " << std::setw(2) << *blocks[start].key
+				<< (*blocks[start].key > *key ? " is    " : " is NOT")
+				<< " greater than " << *key
+				<< " therefore returning 'end+1'\n";
+			start = start+1;
+		} else {
+			msg << "start = " << std::setw(2) << start
+				<< " end = " << std::setw(2) << end
+				<< " evaluating [" << std::setw(2) << start
+				<< "] = " << std::setw(2) << *blocks[start].key
+				<< (*blocks[start].key > *key ? " is    " : " is NOT")
+				<< " greater than " << *key
+				<< " therefore returning 'end'\n";
+		}
+
+		key_location = start;
+
+		if (debug_verbose) {
+			msg << " returning " << start << std::endl;
+			std::cout << msg.str();
+		}
+
+		//	return diagnostices
+		return result;
 	}
 
 
@@ -388,162 +479,6 @@ namespace BlockSort {
 		return num_blocks;
 	}
 
-
-	/*	**********************************************************	*/
-	/*		Binary Search for the right-most block that is < key	*/
-	/*	**********************************************************	*/
-
-	constexpr index_t smaller_block_not_found = -1;
-
-	template <typename T>
-	ComparesAndMoves binarySearchLastBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
-											   index_t first, index_t last,
-								   	   	   	   T* key, index_t &key_location)
-	{
-		//	debugging resources
-		constexpr bool debug_verbose = false;
-		std::stringstream findRightMostSmallerValue_message;
-
-		// return number of compares & moves(=0) which is a
-		//	figure of merit in evaluating the algorithm
-		ComparesAndMoves result(0,0);
-
-		if (key == nullptr) {
-			//	TODO - throw exception
-			if (debug_verbose) {
-				std::cout << __FUNCTION__ << " passed nullptr key\n";
-			}
-			return result;
-		}
-
-		//	find the midpoint of between [first:last]
-		//	if the span is only 1, return first+1, which is last
-		auto nextIndex = [] (index_t l_first, index_t l_last) -> index_t {
-
-			//	the algorithm requires that first < last
-			if (l_first == l_last) {
-				//	first == last
-				return l_first;
-			}
-
-			if (l_first < l_last) {
-				//	first > last
-				index_t tmp = l_first;
-				l_first = l_last;
-				l_last = tmp;
-			}
-
-			//	The algorithm itself
-			if (l_last - l_first == 1) {
-				return l_last;
-			} else {
-				//	in an odd span, return value less than span/2 = n.5 = n
-				return l_first + (l_last-l_first)/2;
-			}
-		};
-
-		/*
-		 * 	The binary search
-		 */
-
-		//	first == last does not require any calculation
-		//		if the key > block, return first, else return key not found
-		if (first == last)
-		{
-			result._compares++;
-			if (*key > *blocks[first].key) {
-				key_location = first;
-			} else {
-				key_location = smaller_block_not_found;
-			}
-			if (debug_verbose) {
-			//	debugging messages
-				findRightMostSmallerValue_message
-					<< "start == end == " << std::setw(2) << first
-					<< ", trying guess [" << std::setw(2) << first
-					<< "] = " << std::setw(2) << *blocks[first].key
-					<< (*key > *blocks[first].key ? " is    " : " is NOT")
-					<< " smaller than " << *key;
-
-				findRightMostSmallerValue_message << " returning " << std::setw(2) << first;
-				std::cout << findRightMostSmallerValue_message.str() << std::endl;
-			}
-
-			return result;
-		}
-
-
-		key_location = smaller_block_not_found;
-
-		//	algorthm works when last > first
-		if (last < first) {
-			index_t tmp = first;
-			first = last;
-			last = tmp;
-		}
-
-		index_t guess = nextIndex(first, last);
-		//	The algorithm searches through block values < key (if they exist) until it
-		//	  finds a block value > key.  Once it finds a value that is > key,
-		//	  it returns the location of the previous (right-most) value which key > block
-		index_t smaller_value_index = smaller_block_not_found;
-
-		while (1) {
-			//	debug
-			if (debug_verbose) {
-				findRightMostSmallerValue_message
-					<< "previous guess " << std::setw(2) << smaller_value_index
-					<< ", trying guess [" << std::setw(2) << guess
-					<< "] = " << std::setw(2) << *blocks[guess].key
-					<< (*key > *blocks[guess].key ? " is    " : " is NOT")
-					<< " smaller than " << *key;
-			}
-
-			//	compare *key to *blocks[guess].key
-			result._compares++;
-			if (*key > *blocks[guess].key) {
-				// check to see if any elements further to the right
-				//	 of this to see if there are larger values
-				//	 in the array that are < the key
-				smaller_value_index = guess;	// [guess] < key
-				first = guess+1;
-				if (first > last) {
-					//	if there are no more blocks, done
-					key_location = smaller_value_index;
-					break;
-				}
-				guess = nextIndex(first, last);
-			} else {
-				// key <= array which means 'guess' is too far to the right
-				//   look to the left for an element which is smaller than the key
-				last = guess-1;
-				if (last < first) {
-					//	if no more blocks, done
-					break;
-				}
-				guess = nextIndex(first, last);
-			}
-			if (debug_verbose) {
-				//	debug stuff
-				findRightMostSmallerValue_message
-					<< " next guess = " << std::setw(2) << guess << std::endl;
-			}
-		}
-
-		//	the previous found block < key is passed to the caller
-		//	(if no value found, 'key_location' contains 'smaller_value_not_found')
-		key_location = smaller_value_index;
-
-		//	debug stuff
-		if (debug_verbose) {
-			findRightMostSmallerValue_message
-				<< " returning " << key_location << std::endl;
-			std::cout << findRightMostSmallerValue_message.str();
-		}
-
-		//	return diagnostices
-		return result;
-	}
 
 	/*
 	 * 	mergeTwoBlocksByAuxiliary(array, left_start, left_end, right_start, right_end)
@@ -1124,15 +1059,16 @@ namespace BlockSort {
 
 			// b_block_end is passed by value to the function
 			// b_block_end receives the value by reference
+			index_t binary_search_result;
 			result += binarySearchLastBlock(blocks, b_block_start, b_block_end,
-											blocks[a_block_index].key, b_block_end);
+											blocks[a_block_index].key, binary_search_result);
 
 			//	0	1	2	3	4	5	6   7
 			//			ai  st      end
 			//	A4, A7, A8, B5, B5, B6, B9, B9
 
 			//	If all B_Blocks are greater than this A_Block, the blocks are in order
-			if (b_block_end == smaller_block_not_found) {
+			if (binary_search_result > b_block_end) {
 				break;
 			}
 
@@ -1313,8 +1249,9 @@ namespace BlockSort {
 				//	A=4, A=6, A=7, B=5, B=5, B=6, B=7, B=8
 				//	b_block_index is passed by value as the start of the B_Block span
 				//	b_block_index is updated by reference as the result of the binary search
+				index_t binary_search_result;
 				result += binarySearchLastBlock(blocks, b_block_index, num_blocks-1,
-													blocks[a_block_index].key, b_block_index);
+													blocks[a_block_index].key, binary_search_result);
 				//	0	 1	  2	   3	4	 5	  6    7
 				//			  ai             bi
 				//	A=4, A=6, A=7, B=5, B=5, B=6, B=7, B=8
@@ -1323,7 +1260,7 @@ namespace BlockSort {
 				//	0	 1	  2	   3	4	 5	  6    7
 				//			  ai
 				//	A=4, A=6, A=7, B=8, B=9, B=10,B=11,B=12
-				if (b_block_index == smaller_block_not_found) {
+				if (binary_search_result > num_blocks-1) {
 					break;
 				}
 			}

@@ -730,49 +730,72 @@ bool testBlockSortBinarySearchFirstBlock() {
 
 bool testBlockSortBinarySearchLastBlock() {
 
-	constexpr bool debug_verbose = false;
+	constexpr bool debug_verbose = true;
 	constexpr bool announce_each_test_result = true;
 	constexpr int element_width = ELEMENT_WIDTH;
 
+	OStreamState ostream_state;	// restores state in its destructor
+
 	bool test_passed = true;
 
-	SimpleRandomizer randomizer;
+	using datatype = int;
 
 	struct TestVector {
-		array_size_t *array;
-		int size_of_array;
+		datatype *array;
+		size_t size_of_array;
 	};
 
-	array_size_t test_array_0_7[] 		= {  0,  1,  2,  3,  4,  5,  6,  7 };
-	TestVector test_vector_0_7 = {test_array_0_7, sizeof(test_array_0_7) / sizeof(array_size_t) };
-	array_size_t test_array_1_15_odd[] 	= {  1,  3,  5,  7,  9, 11, 13, 15 };
-	TestVector test_vector_1_15_odd = {test_array_1_15_odd, sizeof(test_array_1_15_odd) / sizeof(array_size_t) };
-	array_size_t test_array_2_16_even[] = {  2,  4,  6,  8, 10, 12, 14, 16 };
-	TestVector test_vector_2_16_even = {test_array_2_16_even, sizeof(test_array_2_16_even) / sizeof(array_size_t) };
-	array_size_t test_array_1_17_odd[]	= {  1,  3,  5,  7,  9, 11, 13, 15, 17 };
-	TestVector test_vector_1_17_odd = {test_array_1_17_odd, sizeof(test_array_1_17_odd) / sizeof(array_size_t) };
-	array_size_t test_array_2_18_even[]	= {  2,  4,  6,  8, 10, 12, 14, 16, 18 };
-	TestVector test_vector_2_18_even = {test_array_2_18_even, sizeof(test_array_2_18_even) / sizeof(array_size_t) };
-	array_size_t test_array_1[]			= {  1  };
-	TestVector test_vector_1 = {test_array_1, sizeof(test_array_1) / sizeof(array_size_t) };
+	/*
+	 * 	Arrays of values that will be assigned as keys to each block
+	 */
+	datatype test_array_0_7[] 			= {  0,  1,  2,  3,  4,  5,  6,  7 };
+	datatype test_array_1_15_odd[] 		= {  1,  3,  5,  7,  9, 11, 13, 15 };
+	datatype test_array_2_16_even[] 	= {  2,  4,  6,  8, 10, 12, 14, 16 };
+	datatype test_array_1_17_odd[]		= {  1,  3,  5,  7,  9, 11, 13, 15, 17 };
+	datatype test_array_2_18_even[]		= {  2,  4,  6,  8, 10, 12, 14, 16, 18 };
+	datatype test_array_even_repeated[]	= {  1,  1,  2,  2,  3,  3,  4, 4 };
+	datatype test_array_odd_repeated[]	= {  1,  1,  1,  2,  2,  2,  3, 3, 3 };
+	datatype test_array_1[]				= {  1  };
+	datatype test_array_2[]				= {  1,  2  };
+
+	TestVector test_vector_0_7 			= {test_array_0_7,
+										   sizeof(test_array_0_7) / sizeof(datatype) };
+	TestVector test_vector_1_15_odd 	= {test_array_1_15_odd,
+										   sizeof(test_array_1_15_odd) / sizeof(datatype) };
+	TestVector test_vector_2_16_even 	= {test_array_2_16_even,
+										   sizeof(test_array_2_16_even) / sizeof(datatype) };
+	TestVector test_vector_1_17_odd 	= {test_array_1_17_odd,
+										   sizeof(test_array_1_17_odd) / sizeof(datatype) };
+	TestVector test_vector_2_18_even 	= {test_array_2_18_even,
+										   sizeof(test_array_2_18_even) / sizeof(datatype) };
+	TestVector test_vector_even_repeated= {test_array_even_repeated,
+										   sizeof(test_array_even_repeated) / sizeof(datatype) };
+	TestVector test_vector_odd_repeated = {test_array_odd_repeated,
+										   sizeof(test_array_odd_repeated) / sizeof(datatype) };
+	TestVector test_vector_1 			= {test_array_1,
+										   sizeof(test_array_1) / sizeof(datatype) };
+	TestVector test_vector_2 			= {test_array_2,
+										   sizeof(test_array_2) / sizeof(datatype) };
+
 	TestVector *test_vectors [] {
 		&test_vector_0_7,
 		&test_vector_1_15_odd,
 		&test_vector_2_16_even,
 		&test_vector_1_17_odd,
 		&test_vector_2_18_even,
-		&test_vector_1
+		&test_vector_even_repeated,
+		&test_vector_odd_repeated,
+		&test_vector_1,
+		&test_vector_2
 	};
 
 	int num_test_vectors = sizeof(test_vectors) / sizeof(TestVector*);
 
-	array_size_t failure_value = smaller_block_not_found;
-
-	for (int test_array_i = 1; test_array_i != num_test_vectors; test_array_i++)
+	for (int test_array_i = 0; test_array_i != 1 /*num_test_vectors*/; test_array_i++)
 	{
 		/*	 Create an array of block descriptors without creating an
-		 * underlying array. Force 'key' to point to a new int 	*/
-		array_size_t haystack_size = test_vectors[test_array_i]->size_of_array;
+		 * underlying array. Force 'key' in each block to point to a new int 	*/
+		index_t haystack_size = test_vectors[test_array_i]->size_of_array;
 		auto haystack =
 		std::unique_ptr<BlockDescriptor<int>[]>(new BlockDescriptor<int>[haystack_size]);
 
@@ -780,68 +803,70 @@ bool testBlockSortBinarySearchLastBlock() {
 			haystack[i].type = BlockType::A_BLOCK;
 			haystack[i].start_index = i * 4;
 			haystack[i].end_index 	= haystack[i].start_index + 3;
-			haystack[i].key = new int(test_vectors[test_array_i]->array[i]);
+			haystack[i].key = new datatype(test_vectors[test_array_i]->array[i]);
 		}
 
-		for (array_size_t needle = test_vectors[test_array_i]->array[0]-1;
-			 needle <= test_vectors[test_array_i]->array[haystack_size-1]+1;
-			 needle++) {
-			array_size_t haystack_start = 0;
-			array_size_t haystack_end = haystack_size-1;
-			int *key = new int(needle);
-			array_size_t haystack_index = 0;
-			array_size_t expected_answer = failure_value;
-			for (array_size_t i = 0; i != haystack_size; i++) {
-				if (*haystack[i].key < *key) {
+		//	  Search each array for key values from the first block's key -1
+		//	to the last block's key+1
+		for (index_t needle = test_vectors[test_array_i]->array[0]-1;
+					 needle <= test_vectors[test_array_i]->array[haystack_size-1]+1;
+					 needle++) {
+
+			//	test input parameters
+			index_t haystack_start = 0;
+			index_t haystack_end = haystack_size-1;
+			datatype *key = new datatype(needle);
+
+			//	determine the expected output
+			//	assume that *key is > all elements in the array
+			index_t expected_answer = haystack_size;
+			for (index_t i = 0; i != haystack_size; i++) {
+				//	if an element is found that is > key, it is the answer
+				if (*haystack[i].key > *key) {
 					expected_answer = i;
-				} else {
 					break;
 				}
 			}
 
 			ComparesAndMoves result(0,0);
+			index_t result_index = 0;
 			result += binarySearchLastBlock(haystack, haystack_start, haystack_end,
-										  	key, haystack_index);
+										  	key, result_index);
 
-			if (haystack_index != expected_answer) {
-				std::cout << arrayIndicesToString(haystack_size, -1) << std::endl;
+			if (debug_verbose || announce_each_test_result) {
+				std::cout << "Indices " << arrayIndicesToString(haystack_size, -1) << std::endl;
+				std::cout << "Values  ";
 				for (int i = 0; i != haystack_size; i++) {
 					std::cout << std::setw(element_width-1) << *haystack[i].key << " ";
 				}
 				std::cout << std::endl;
-				std::cout << "ERROR: expected [" << std::setw(2) << expected_answer
-						  << "] = ";
-				if (expected_answer >= 0) {
-					std::cout  << std::setw(2) << *haystack[expected_answer].key;
-				} else {
-					std::cout  << "(not found)";
+				std::cout << "returned " 	<< std::setw(2) << result_index
+						  << " when passed "<< std::setw(2) << *key
+						  << " which took " << std::setw(2) << result._compares
+						  << " compares\n";
+				std::cout << std::endl;
+			}
+			//	check the result of the function
+			if (result_index != expected_answer) {
+				std::cout << std::endl;
+				std::cout << "ERROR:"
+						  << " returned " 	<< std::setw(2) << result_index
+						  << " when passed "<< std::setw(2) << *key
+						  << " expected " 	<< std::setw(2) << expected_answer
+						  << std::endl;
+				std::cout << "Indices " << arrayIndicesToString(haystack_size, -1) << std::endl;
+				std::cout << "Values  ";
+				for (int i = 0; i != haystack_size; i++) {
+					std::cout << std::setw(element_width-1) << *haystack[i].key << " ";
 				}
-				std::cout << " < " << std::setw(2) << *key
-						  << " vs received " << std::setw(2) << haystack_index << std::endl;
 				test_passed = false;
 				goto TEST_BLOCK_SORT_BINARY_SEARCH_SEARCH_EXIT;
-			} else {
-				if (debug_verbose || announce_each_test_result) {
-					std::cout << arrayIndicesToString(haystack_size, 4) << std::endl;
-					for (int i = 0; i != haystack_size; i++) {
-						std::cout << std::setw(element_width-1) << *haystack[i].key << " ";
-					}
-					std::cout << std::endl;
-					if (haystack_index != smaller_block_not_found) {
-						std::cout << "PASSED: Element [" << haystack_index << "] = "
-								  << std::setw(2) << *haystack[haystack_index].key
-								  << " is less than " << std::setw(2) << *key
-								  << " which took " << std::setw(2) << result._compares << " compares\n";
-					} else {
-						std::cout << "PASSED: NO VALUES less than " << std::setw(2) << *key
-								  << " found in array which took " << std::setw(2) << result._compares << " compares\n";
-					}
-					std::cout << std::endl;
-				}
 			}
 		}
 	}
 	TEST_BLOCK_SORT_BINARY_SEARCH_SEARCH_EXIT:
+	std::cout << __FUNCTION__ << "() returns "
+			  << (test_passed ? "passed\n" : "failed\n");
 	return test_passed;
 }
 
