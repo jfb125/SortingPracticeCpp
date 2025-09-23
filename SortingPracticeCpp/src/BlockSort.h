@@ -219,7 +219,7 @@ namespace BlockSort {
 								   	   	   	   T* key, index_t &key_location)
 	{
 		//	debugging resources
-		constexpr bool debug_verbose = true;
+		constexpr bool debug_verbose = false;
 		OStreamState ostream_state;
 		std::stringstream msg;
 
