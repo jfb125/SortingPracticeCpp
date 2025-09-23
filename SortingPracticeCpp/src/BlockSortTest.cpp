@@ -46,10 +46,11 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 /*	**********************************************	*/
 
 //#define TEST_MODULO
-#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
-bool testBlockSortCreateDescriptors();
-//#define TEST_BLOCK_SORT_BINARY_FIRST
-//#define TEST_BLOCK_SORT_BINARY_LAST
+//#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_ELEMENT
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
+#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
+#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
@@ -59,11 +60,12 @@ bool testBlockSortCreateDescriptors();
 //#define TEST_BLOCK_SORT_SWAP_TAGS
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
-//#define TEST_BLOCK_SORT_BINARY_DESCRIPTOR_SEARCH
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 
-bool testBlockSortBinaryFirst();
-bool testBlockSortBinaryLast();
-bool testBlockSortBinaryBlockSearch();
+bool testBlockSortBinarySearchFirstBlock();
+bool testBlockSortBinarySearchLastBlock();
+bool testBlockSortBinarySearchFirstElement();
+bool testBlockSortBinarySearchLastElement();
 bool testBlockSortCreateDescriptors();
 bool testBlockSortMergeBlocksRandomly();
 bool testBlockSortMergeBlocksExhaustively();
@@ -133,9 +135,9 @@ bool testBlockSort() {
 	tests_passed++;
 #endif
 
-#ifdef	TEST_BLOCK_SORT_BINARY_DESCRIPTOR_SEARCH
+#ifdef TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
 	num_tests++;
-	runTest(passed, testBlockSortBinaryBlockSearch, "function testBlockSortBinaryTagSearch()");
+	runTest(passed, testBlockSortBinarySearchLastBlock, "function testBlockSortBinaryTagSearch()");
 	if (!passed)
 		return passed;
 	tests_passed++;
@@ -212,17 +214,17 @@ bool testBlockSort() {
 	tests_passed++;
 #endif
 
-#ifdef	TEST_BLOCK_SORT_BINARY_FIRST
+#ifdef	TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_ELEMENT
 	num_tests++;
-	runTest(passed, testBlockSortBinaryFirst, "function testBlockSortBinaryFirst()");
+	runTest(passed, testBlockSortBinarySearchFirstElement, "function testBlockSortBinaryFirst()");
 	if (!passed)
 		return passed;
 	tests_passed++;
 #endif
 
-#ifdef	TEST_BLOCK_SORT_BINARY_LAST
+#ifdef	TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
 	num_tests++;
-	runTest(passed, testBlockSortBinaryLast, "function testBlockSortBinaryLast()");
+	runTest(passed, testBlockSortBinarySearchLastElement, "function testBlockSortBinaryLast()");
 	if (!passed)
 		return passed;
 	tests_passed++;
@@ -285,7 +287,7 @@ int minimum_repeated_value = 0;
 int maximum_repeated_value = 3;
 int num_times_repeated = 3;
 
-bool testBlockSortBinaryFirst() {
+bool testBlockSortBinarySearchFirstElement() {
 	bool test_passed = true;
 
 	for (int array_end = unique_values_size-2; array_end < unique_values_size; array_end++) {
@@ -296,13 +298,13 @@ bool testBlockSortBinaryFirst() {
 		for (int i = minimum_unique_value-1; i <= array_end+1; i++) {
 			std::cout << toStringValueArray(unique_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binaryFirst(unique_values, 0, array_end, value);
+			index_t result = binarySearchFirstElement(unique_values, 0, array_end, value);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if ((i <= minimum_unique_value && result != minimum_unique_value) ||
 				(i > minimum_unique_value && result != *value)) {
 				std::cout << " WHICH IS AN ERROR\n";
 				test_passed = false;
-				goto TEST_BINARY_FIRST_RETURN_LABEL;
+				goto TEST_BINARY_SEARCH_FIRST_RETURN_LABEL;
 			}
 			std::cout << std::endl;
 		}
@@ -319,37 +321,37 @@ bool testBlockSortBinaryFirst() {
 		for (int i = minimum_repeated_value-1; i <= maximum_repeated_value+1; i++) {
 			std::cout << toStringValueArray(triple_repeated_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binaryFirst(triple_repeated_values, 0, array_end, value);
+			index_t result = binarySearchFirstElement(triple_repeated_values, 0, array_end, value);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if (i <= minimum_repeated_value) {
 				if (result != 0) {
 					std::cout << " WHICH IS AN ERROR\n";
 					test_passed = false;
-					goto TEST_BINARY_FIRST_RETURN_LABEL;
+					goto TEST_BINARY_SEARCH_FIRST_RETURN_LABEL;
 				}
 			} else {
 				if (i <= maximum_repeated_value) {
 					if (result != num_times_repeated * i) {
 						std::cout << " WHICH IS AN ERROR\n";
 						test_passed = false;
-						goto TEST_BINARY_FIRST_RETURN_LABEL;
+						goto TEST_BINARY_SEARCH_FIRST_RETURN_LABEL;
 					}
 				} else {
 					if (result != array_end+1) {
 						std::cout << " WHICH IS AN ERROR\n";
 						test_passed = false;
-						goto TEST_BINARY_FIRST_RETURN_LABEL;
+						goto TEST_BINARY_SEARCH_FIRST_RETURN_LABEL;
 					}
 				}
 			}
 			std::cout << std::endl;
 		}
 	}
-TEST_BINARY_FIRST_RETURN_LABEL:
+TEST_BINARY_SEARCH_FIRST_RETURN_LABEL:
 	return test_passed;
 }
 
-bool testBlockSortBinaryLast() {
+bool testBlockSortBinarySearchLastElement() {
 
 	bool test_passed = true;
 
@@ -362,14 +364,14 @@ bool testBlockSortBinaryLast() {
 		for (int i = minimum_unique_value-1; i <= array_end+1; i++) {
 			std::cout << toStringValueArray(unique_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binaryLast(unique_values, 0, array_end, value);
+			index_t result = binarySearchLastElement(unique_values, 0, array_end, value);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if ((i <  minimum_unique_value && result != minimum_unique_value) ||
 				(i >= minimum_unique_value && i < maximum_unique_value && result != *value+1) ||
 				(i >=  maximum_unique_value && result != array_end+1)) {
 				std::cout << " WHICH IS AN ERROR\n";
 				test_passed = false;
-				goto TEST_BINARY_LAST_RETURN_LABEL;
+				goto TEST_BINARY_SEARCH_LAST_RETURN_LABEL;
 			}
 			std::cout << std::endl;
 		}
@@ -386,34 +388,35 @@ bool testBlockSortBinaryLast() {
 		for (int i = minimum_repeated_value-1; i <= maximum_repeated_value+1; i++) {
 			std::cout << toStringValueArray(triple_repeated_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binaryLast(triple_repeated_values, 0, array_end, value);
+			index_t result = binarySearchLastElement
+					(triple_repeated_values, 0, array_end, value);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if (i < minimum_repeated_value) {
 				if (result != 0) {
 					std::cout << " WHICH IS AN ERROR\n";
 					test_passed = false;
-					goto TEST_BINARY_LAST_RETURN_LABEL;
+					goto TEST_BINARY_SEARCH_LAST_RETURN_LABEL;
 				}
 			}
 			if (i >= minimum_repeated_value && i < maximum_repeated_value) {
 				if (result != 3*(i+1)) {
 					std::cout << " WHICH IS AN ERROR\n";
 					test_passed = false;
-					goto TEST_BINARY_LAST_RETURN_LABEL;
+					goto TEST_BINARY_SEARCH_LAST_RETURN_LABEL;
 				}
 			}
 			if (i >= maximum_repeated_value) {
 				if (result != array_end+1) {
 					std::cout << " WHICH IS AN ERROR\n";
 					test_passed = false;
-					goto TEST_BINARY_LAST_RETURN_LABEL;
+					goto TEST_BINARY_SEARCH_LAST_RETURN_LABEL;
 				}
 			}
 			std::cout << std::endl;
 		}
 	}
 
-TEST_BINARY_LAST_RETURN_LABEL:
+TEST_BINARY_SEARCH_LAST_RETURN_LABEL:
 	return test_passed;
 }
 
@@ -720,10 +723,17 @@ bool testFloorLog2() {
 /*	*******************************************************	*/
 /*	*******************************************************	*/
 
-bool testBlockSortBinaryBlockSearch() {
+bool testBlockSortBinarySearchFirstBlock() {
+	return false;
+}
 
-	bool debug_verbose = false;
-	bool announce_each_test_result = true;
+
+bool testBlockSortBinarySearchLastBlock() {
+
+	constexpr bool debug_verbose = false;
+	constexpr bool announce_each_test_result = true;
+	constexpr int element_width = ELEMENT_WIDTH;
+
 	bool test_passed = true;
 
 	SimpleRandomizer randomizer;
@@ -760,6 +770,8 @@ bool testBlockSortBinaryBlockSearch() {
 
 	for (int test_array_i = 1; test_array_i != num_test_vectors; test_array_i++)
 	{
+		/*	 Create an array of block descriptors without creating an
+		 * underlying array. Force 'key' to point to a new int 	*/
 		array_size_t haystack_size = test_vectors[test_array_i]->size_of_array;
 		auto haystack =
 		std::unique_ptr<BlockDescriptor<int>[]>(new BlockDescriptor<int>[haystack_size]);
@@ -788,13 +800,13 @@ bool testBlockSortBinaryBlockSearch() {
 			}
 
 			ComparesAndMoves result(0,0);
-			result += findRightmostSmallerBlock(haystack, haystack_start, haystack_end,
-										  	    key, haystack_index);
+			result += binarySearchLastBlock(haystack, haystack_start, haystack_end,
+										  	key, haystack_index);
 
 			if (haystack_index != expected_answer) {
-				std::cout << arrayIndicesToString(haystack_size, 3, 4 ) << std::endl;
+				std::cout << arrayIndicesToString(haystack_size, -1) << std::endl;
 				for (int i = 0; i != haystack_size; i++) {
-					std::cout << std::setw(3) << *haystack[i].key << " ";
+					std::cout << std::setw(element_width-1) << *haystack[i].key << " ";
 				}
 				std::cout << std::endl;
 				std::cout << "ERROR: expected [" << std::setw(2) << expected_answer
@@ -807,12 +819,12 @@ bool testBlockSortBinaryBlockSearch() {
 				std::cout << " < " << std::setw(2) << *key
 						  << " vs received " << std::setw(2) << haystack_index << std::endl;
 				test_passed = false;
-				goto TEST_BLOCK_SORT_BINARY_SEARCH_EXIT;
+				goto TEST_BLOCK_SORT_BINARY_SEARCH_SEARCH_EXIT;
 			} else {
 				if (debug_verbose || announce_each_test_result) {
-					std::cout << arrayIndicesToString(haystack_size, 3, 4 ) << std::endl;
+					std::cout << arrayIndicesToString(haystack_size, 4) << std::endl;
 					for (int i = 0; i != haystack_size; i++) {
-						std::cout << std::setw(3) << *haystack[i].key << " ";
+						std::cout << std::setw(element_width-1) << *haystack[i].key << " ";
 					}
 					std::cout << std::endl;
 					if (haystack_index != smaller_block_not_found) {
@@ -829,7 +841,7 @@ bool testBlockSortBinaryBlockSearch() {
 			}
 		}
 	}
-	TEST_BLOCK_SORT_BINARY_SEARCH_EXIT:
+	TEST_BLOCK_SORT_BINARY_SEARCH_SEARCH_EXIT:
 	return test_passed;
 }
 
@@ -1734,7 +1746,8 @@ bool testBlockSortSortBlocks() {
 					messages << out(array, array_size, " after randomizing\n");
 					num_blocks = BlockSort::testOnly_CreateBlockDescriptorsSymmetrically(array, start, mid, end, block_size, blocks);
 					messages << arrayStartMiddleEndToString(array_size, start, mid, end, element_width);
-					messages << BlockSort::blockDescriptorsToString(std::string("\n"), blocks, num_blocks, element_width);
+					messages << BlockSort::blockDescriptorsToString(blocks, num_blocks, element_width)
+							 << std::endl;
 					messages << out(array, array_size, "\n");
 
 					switch(sorting_strategies[strategy_i]) {
@@ -1752,7 +1765,8 @@ bool testBlockSortSortBlocks() {
 					}
 					total_results[strategy_i] += result;
 
-					messages << BlockSort::blockDescriptorsToString(std::string("\n"), blocks, num_blocks, element_width);
+					messages << BlockSort::blockDescriptorsToString(blocks, num_blocks, element_width)
+							 << std::endl;
 					messages << out(array, array_size, " after sorting blocks\n");
 
 					if (!areBlocksSorted(blocks, num_blocks)) {

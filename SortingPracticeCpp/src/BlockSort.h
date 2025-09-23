@@ -46,11 +46,6 @@ index_t blockSortModulo(index_t rotation_count, index_t span);
 
 namespace BlockSort {
 
-	/*	for the block swapping portions of the algorithm, all of the A_Blocks
-	 * 	have to be full sized blocks.  Any remaining elements have to be
-	 * 	in the last B_Block, which may not be a full B_Block.  This variable
-	 * 	is checked at runtime to ens
-	 */
 	/*	******************************************************************	*/
 	/*	******************************************************************	*/
 	/*							debugging resources							*/
@@ -68,16 +63,12 @@ namespace BlockSort {
 	std::string arrayElementsToString(std::string trailer, T** array, index_t size,
 									  int value_width = VALUE_WIDTH,
 									  int element_width = ELEMENT_WIDTH);
-	/*		outputting graphic representation of tags	*/
+	/* outputting line of tags to go under line of array elements*/
 	template <typename T>
 	std::string blockDescriptorsToString(std::unique_ptr<BlockDescriptor<T>[]> &tags,
 										 int num_tags,
 										 int element_width = ELEMENT_WIDTH);
-	template <typename T>
-	std::string blockDescriptorsToString(std::string trailer,
-								 	 	 std::unique_ptr<BlockDescriptor<T>[]> &tags,
-										 int num_tags,
-										 int element_width = ELEMENT_WIDTH);
+	/* outputting block type, start_index, end_index */
 	template <typename T>
 	std::string blockDescriptorsSummaryToString(std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
 												int num_tags);
@@ -87,19 +78,6 @@ namespace BlockSort {
 								  int num_tags,
 								  int value_width = VALUE_WIDTH,
 								  int element_width = ELEMENT_WIDTH);
-	template <typename T>
-	void printBlockSortArray(std::string trailer,
-							 T** array, index_t size, index_t v,
-							 std::unique_ptr<BlockDescriptor<T>[]> &tags,
-							 int num_tags);
-
-	template <typename T>
-	std::string toStringTagClosingElement(BlockDescriptor<T> &tag, int chars_remaining);
-	template <typename T>
-	std::string toStringTagOpeningElement(BlockDescriptor<T> &tag, int chars_remaining);
-	template <typename T>
-	std::string toStringTagSingleElement(BlockDescriptor<T> &tag, int chars_remaining);
-
 
 	/*	**************************************************************************	*/
 	/*	**************************************************************************	*/
@@ -111,15 +89,21 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves assignKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors);
 
+	/*	In an array of blockDescriptors, find the leftmost block that is > key */
+	template <typename T>
+	ComparesAndMoves binarySearchLastBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+											   index_t first, index_t last,
+								   	   	   	   T* key, index_t &key_location);
+
+	/*	Returns the index of the first element that is greater than 'value'
+	 * 	This is used to insert a value to the right of it's peers	*/
+	template <typename T>
+	index_t binarySearchLastElement(T** array, index_t range_start, index_t range_end, T *value);
+
 	/*	Returns the index of the first element that is equal to or greater than 'value'
 	 * 	This is used to insert a value to the left of it's peers	*/
 	template <typename T>
-	index_t binaryFirst(T** array, index_t range_start, index_t range_end, T *value);
-	/*	Returns the index of the first element that is greater than 'value'
-	 * 	This is used to insert a value to the right of it's peers	*/
-
-	template <typename T>
-	index_t binaryLast(T** array, index_t range_start, index_t range_end, T *value);
+	index_t binarySearchFirstElement(T** array, index_t range_start, index_t range_end, T *value);
 
 	/*	Creates an array of block descriptors of types A & B {A[0]A[1]..A[m]B[0]..B[n]}
 	 * 	  where A[0] is a full block but B[n] if present will not be full. */
@@ -127,12 +111,6 @@ namespace BlockSort {
 	int createBlockDescriptors_A0_Full( T** array, index_t start, index_t mid, index_t end,
 			    						int block_size,
 										std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
-
-	/*	In an array of blockDescriptors, find the rightmost block that is < key */
-	template <typename T>
-	ComparesAndMoves findRightmostSmallerBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
-											   index_t first, index_t last,
-								   	   	   	   T* key, index_t &key_location);
 
 	/*	Merges all blocks from left to right using an insertion sort.  This is expected
 	 * to possibly be better than just an insertion sort b/c sorting the blocks previously
@@ -150,6 +128,7 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves rotateArrayElementsRight(T** array, index_t start, index_t end, index_t amount);
 	template <typename T>
+
 	ComparesAndMoves rotateBlocksRight(T** array, std::unique_ptr<BlockDescriptor<T>[]> &tags,
 					index_t first_tag, index_t last_tag, int tag_rotate_count);
 
@@ -237,7 +216,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	index_t binaryFirst(T** array, index_t range_start, index_t range_end, T *value) {
+	index_t binarySearchFirstElement(T** array, index_t range_start, index_t range_end, T *value) {
 
 		index_t start = range_start;
 		index_t end	 	= range_end;
@@ -278,7 +257,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	index_t binaryLast(T** array, index_t range_start, index_t range_end, T *value) {
+	index_t binarySearchLastElement(T** array, index_t range_start, index_t range_end, T *value) {
 
 		index_t start = range_start;
 		index_t end	 	= range_end;
@@ -417,7 +396,7 @@ namespace BlockSort {
 	constexpr index_t smaller_block_not_found = -1;
 
 	template <typename T>
-	ComparesAndMoves findRightmostSmallerBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+	ComparesAndMoves binarySearchLastBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
 											   index_t first, index_t last,
 								   	   	   	   T* key, index_t &key_location)
 	{
@@ -430,6 +409,7 @@ namespace BlockSort {
 		ComparesAndMoves result(0,0);
 
 		if (key == nullptr) {
+			//	TODO - throw exception
 			if (debug_verbose) {
 				std::cout << __FUNCTION__ << " passed nullptr key\n";
 			}
@@ -1144,8 +1124,8 @@ namespace BlockSort {
 
 			// b_block_end is passed by value to the function
 			// b_block_end receives the value by reference
-			result += findRightmostSmallerBlock(blocks, b_block_start, b_block_end,
-											    blocks[a_block_index].key, b_block_end);
+			result += binarySearchLastBlock(blocks, b_block_start, b_block_end,
+											blocks[a_block_index].key, b_block_end);
 
 			//	0	1	2	3	4	5	6   7
 			//			ai  st      end
@@ -1333,7 +1313,7 @@ namespace BlockSort {
 				//	A=4, A=6, A=7, B=5, B=5, B=6, B=7, B=8
 				//	b_block_index is passed by value as the start of the B_Block span
 				//	b_block_index is updated by reference as the result of the binary search
-				result += findRightmostSmallerBlock(blocks, b_block_index, num_blocks-1,
+				result += binarySearchLastBlock(blocks, b_block_index, num_blocks-1,
 													blocks[a_block_index].key, b_block_index);
 				//	0	 1	  2	   3	4	 5	  6    7
 				//			  ai             bi
@@ -1951,32 +1931,19 @@ BLOCK_SORT_RETURN_POINT:
 				result << "!!!!ERROR: printTags() passed a block of size 0 elements: ";
 				return result.str();
 			case 1:
-				result  << toStringTagSingleElement(tags[i], element_width);
+				result  << SingleElement(tags[i], element_width);
 				break;
 			default:
-				result << toStringTagOpeningElement(tags[i], element_width);
+				result << OpeningElement(tags[i], element_width);
 				elements_remaining--;
 				while(elements_remaining-- > 1) {
 					std::cout.fill(TAG_SPACE_CHAR);
 					result << std::setw(element_width) << TAG_SPACE_CHAR;
 				}
-				result << toStringTagClosingElement(tags[i], element_width);
+				result << ClosingElement(tags[i], element_width);
 				break;
 			}
 		}
-		return result.str();
-	}
-
-	template <typename T>
-	std::string blockDescriptorsToString(std::string trailer,
-								 	 	 std::unique_ptr<BlockDescriptor<T>[]> &tags,
-										 int num_tags,
-										 int element_width)
-	{
-		OStreamState ostream_state;
-		std::stringstream result;
-		result << blockDescriptorsToString(tags, num_tags, element_width);
-		result << trailer;
 		return result.str();
 	}
 
@@ -2016,26 +1983,11 @@ BLOCK_SORT_RETURN_POINT:
 		return msg.str();
 	}
 
-	template <typename T>
-	void printBlockSortArray(std::string trailer, T** array, index_t size, index_t v,
-							 std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
-
-		constexpr const int 	element_width = 4;
-		constexpr const int 	value_width = element_width - 1;
-
-		//	preserve state of ostream; destructor will restore state
-		OStreamState ostream_state;
-		std::cout << arrayIndicesToString(size, v, element_width) << std::endl;
-		std::cout << arrayElementsToString(array, size, value_width, element_width) << std::endl;
-		std::cout << blockDescriptorsToString(std::string(), tags, num_tags, element_width);
-		std::cout << trailer;
-	}
-
 	//	creates either	"     |" for an A_BLOCK or "   B|" for a B_BLOCK
 	//		where width of the string is set by 'chars_remaining'
 
 	template <typename T>
-	std::string toStringTagClosingElement(BlockDescriptor<T> &tag, int chars_remaining) {
+	std::string ClosingElement(BlockDescriptor<T> &tag, int chars_remaining) {
 		std::stringstream result;
 		result.fill(TAG_SPACE_CHAR);
 		switch (chars_remaining) {
@@ -2064,7 +2016,7 @@ BLOCK_SORT_RETURN_POINT:
 	//		where width of the string is set by 'chars_remaining'
 
 	template <typename T>
-	std::string toStringTagOpeningElement(BlockDescriptor<T> &tag, int chars_remaining) {
+	std::string OpeningElement(BlockDescriptor<T> &tag, int chars_remaining) {
 		std::stringstream result;
 		result.fill(TAG_SPACE_CHAR);
 		switch (chars_remaining) {
@@ -2103,7 +2055,7 @@ BLOCK_SORT_RETURN_POINT:
 	//	is equal to the passed param 'element_width'
 
 	template <typename T>
-	std::string toStringTagSingleElement(BlockDescriptor<T> &tag, int chars_remaining) {
+	std::string SingleElement(BlockDescriptor<T> &tag, int chars_remaining) {
 		std::stringstream result;
 		result.fill(TAG_SPACE_CHAR);
 

@@ -15,11 +15,10 @@ std::string arrayIndicesToString(array_size_t size, array_size_t v, int element_
 	if (size != 0) {
 		for (int i = 0; i < size-1; i++) {
 			if (i != v) {
-				result << std::right << std::setw(element_width-1) << i;
+				result << std::right << std::setw(element_width-1) << i << ' ';
 			} else {
 				result << std::setw(element_width) << "\\V/";
 			}
-			result << ' ';
 		}
 		result << std::right << std::setw(element_width-1) << size-1;
 	}
