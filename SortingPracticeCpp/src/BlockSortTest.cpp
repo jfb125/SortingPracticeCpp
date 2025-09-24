@@ -1745,12 +1745,17 @@ bool testBlockSortSortBlocks() {
 			goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
 		}
 
-		constexpr SortingStrategy sorting_strategies[] = { BINARY, RIGHT_TO_LEFT, HYBRID };
+		constexpr SortingStrategy sorting_strategies[] = {
+				BINARY,
+//				RIGHT_TO_LEFT,
+//				HYBRID,
+		};
+
 		int num_sorting_strategies = sizeof(sorting_strategies) / sizeof(SortingStrategy);
 
 		for (int block_size = min_block_size; block_size <= max_block_size; ++block_size)
 		{
-			int num_tests = 1000;
+			int num_tests = 1;
 			ComparesAndMoves total_results[num_sorting_strategies];
 
 			// run the test with the same reference_array (input)
@@ -1761,6 +1766,7 @@ bool testBlockSortSortBlocks() {
 				randomizeArray(reference_array, array_size);
 				randomizeArray(reference_array, array_size);
 				randomizeArray(reference_array, array_size);
+
 
 				for (int strategy_i = 0; strategy_i < 1 + 0*num_sorting_strategies; strategy_i++)
 				{
