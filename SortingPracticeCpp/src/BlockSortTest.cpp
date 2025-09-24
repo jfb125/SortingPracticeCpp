@@ -731,7 +731,7 @@ bool testBlockSortBinarySearchFirstBlock() {
 bool testBlockSortBinarySearchLastBlock() {
 
 	constexpr bool debug_verbose = false;
-	constexpr bool announce_each_test_result = true;
+	constexpr bool announce_each_test_result = false;
 	constexpr int element_width = ELEMENT_WIDTH;
 
 	OStreamState ostream_state;	// restores state in its destructor
@@ -814,15 +814,12 @@ bool testBlockSortBinarySearchLastBlock() {
 		for (index_t needle = test_vectors[test_array_i]->array[0]-1;
 					 needle <= test_vectors[test_array_i]->array[haystack_size-1]+1;
 					 needle++) {
+			msg.str("");
 			test_number++;
 			//	test input parameters
 			index_t haystack_start = 0;
 			index_t haystack_end = haystack_size-1;
 			datatype *key = new datatype(needle);
-			std::cout << "Test number "
-					  << std::setw(2) << test_number
-					  << " " << std::setw(2) << needle
-					  << " of " << std::setw(2) << haystack_size << std::endl;
 
 			//	determine the expected output
 			//	assume that *key is > all elements in the array
@@ -844,8 +841,8 @@ bool testBlockSortBinarySearchLastBlock() {
 				<< " binarySearchLastBlock() on array: " << std::endl;
 			msg << "Indices " << arrayIndicesToString(haystack_size, -1) << std::endl;
 			msg << "Values  ";
-			for (int q = 0; q != haystack_size; q++) {
-				msg << std::setw(element_width-1) << *haystack[0].key << " ";
+			for (int i = 0; i != haystack_size; i++) {
+				msg << std::setw(element_width-1) << *haystack[i].key << " ";
 			}
 			msg << std::endl;
 			msg << "returned " 	  << std::setw(2) << result_index
@@ -855,17 +852,18 @@ bool testBlockSortBinarySearchLastBlock() {
 				<< std::endl;
 			//	check the result of the function
 			if (result_index != expected_answer) {
-				msg << std::endl;
-				msg << "ERROR:"
+				msg.str("");
+				msg << "\n!!! ERROR:"
 					<< " returned " 	<< std::setw(2) << result_index
 					<< " when passed "<< std::setw(2) << *key
 					<< " expected " 	<< std::setw(2) << expected_answer
-					<< std::endl;
+					<< " !!!\n";
 				msg << "Indices " << arrayIndicesToString(haystack_size, -1) << std::endl;
 				msg << "Values  ";
 				for (int i = 0; i != haystack_size; i++) {
 					msg << std::setw(element_width-1) << *haystack[i].key << " ";
 				}
+				msg << "\n\n";
 				test_passed = false;
 				std::cout << msg.str();
 				goto TEST_BLOCK_SORT_BINARY_SEARCH_SEARCH_EXIT;
@@ -876,8 +874,9 @@ bool testBlockSortBinarySearchLastBlock() {
 		}
 	}
 TEST_BLOCK_SORT_BINARY_SEARCH_SEARCH_EXIT:
-	if (debug_verbose) {
-		std::cout << __FUNCTION__ << "() returns "
+	if (true || debug_verbose) {
+		std::cout << "After " << test_number << " tests "
+				  << __FUNCTION__ << "() returns "
 				  << (test_passed ? "passed\n" : "failed\n");
 	}
 	return test_passed;
