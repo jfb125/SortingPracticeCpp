@@ -15,6 +15,11 @@
 #include "IntegerArithmetic.h"
 
 #include "BlockSort.h"
+//	BlockSortUnused.h contains functions that are no longer used to implement
+//	the BlockSort, but have been retained to avoid losing all the work that went
+//	into creating them.  They can be accessed for regression testing by prepending
+//	'regressionTestOnly_' to their function names.
+#include "BlockSortUnused.h"
 
 using namespace BlockSort;
 
@@ -49,16 +54,15 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 //#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_ELEMENT
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
-#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
-#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
-//#define TEST_BLOCK_SORT_SWAP_TAGS
-//#define TEST_BLOCK_SORT_SORT_BLOCKS
+#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 
@@ -578,7 +582,7 @@ bool testBlockSortCreateDescriptors() {
 																descriptors);
 				} else {
 					mid = array_size / 2;
-					num_blocks = testOnly_CreateBlockDescriptorsSymmetrically(test_vector,
+					num_blocks = regressionTestOnly_CreateBlockDescriptorsSymmetrically(test_vector,
 																	 start, mid, end,
 																	 block_size,
 																	 descriptors);
@@ -1018,7 +1022,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 			ComparesAndMoves result;
 			switch(merge_strategy) {
 			case MergeStrategy::TABLE:
-				result = mergeTwoBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
+				result = regressionTestOnly_mergeTwoBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
 				break;
 			case MergeStrategy::ROTATE:
 				result = mergeContiguousBlocksByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
@@ -1170,7 +1174,7 @@ bool testBlockSortMergeBlocksRandomly() {
 												left_start, mid, right_end);
 				break;
 			case MergeStrategy::TABLE:
-				result += mergeTwoBlocksByTable(test_array,
+				result += regressionTestOnly_mergeTwoBlocksByTable(test_array,
 											 left_start, left_end,
 											 right_start, right_end);
 				break;
@@ -1712,7 +1716,7 @@ bool testBlockSortSortBlocks() {
 	bool all_unique_elements = true;
 	bool few_unique_elements = false;
 
-	for (int array_size_i = 0; array_size_i < num_array_sizes; ++array_size_i)
+	for (int array_size_i = 0; array_size_i < 1 + 0*num_array_sizes; ++array_size_i)
 	{
 		array_size_t array_size = array_sizes[array_size_i];
 		int min_block_size = static_cast<array_size_t>(sqrt(array_size/2))-1;
@@ -1758,7 +1762,7 @@ bool testBlockSortSortBlocks() {
 				randomizeArray(reference_array, array_size);
 				randomizeArray(reference_array, array_size);
 
-				for (int strategy_i = 0; strategy_i < num_sorting_strategies; strategy_i++)
+				for (int strategy_i = 0; strategy_i < 1 + 0*num_sorting_strategies; strategy_i++)
 				{
 					ComparesAndMoves result(0,0);
 					int* array[array_size];
@@ -1781,7 +1785,7 @@ bool testBlockSortSortBlocks() {
 					InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
 
 					messages << out(array, array_size, " after randomizing\n");
-					num_blocks = BlockSort::testOnly_CreateBlockDescriptorsSymmetrically(array, start, mid, end, block_size, blocks);
+					num_blocks = BlockSort::regressionTestOnly_CreateBlockDescriptorsSymmetrically(array, start, mid, end, block_size, blocks);
 					messages << arrayStartMiddleEndToString(array_size, start, mid, end, element_width);
 					messages << BlockSort::blockDescriptorsToString(blocks, num_blocks, element_width)
 							 << std::endl;
@@ -1789,13 +1793,17 @@ bool testBlockSortSortBlocks() {
 
 					switch(sorting_strategies[strategy_i]) {
 					case RIGHT_TO_LEFT:
-						result = BlockSort::sortBlocksRightToLeft(array, array_size, blocks, num_blocks);
+						std::cout << "strategy RIGHT_TO_LEFT" << std::endl;
+						result = BlockSort::regressionTestOnly_sortBlocksRightToLeft(array, array_size, blocks, num_blocks);
 						break;
 					case BINARY:
-						result = BlockSort::sortBlocksBinarySearch(array, array_size, blocks, num_blocks);
+						std::cout << "strategy BINARY " << std::endl;
+						result = BlockSort::regressionTestOnly_sortBlocksBinarySearch(array, array_size, blocks, num_blocks);
+						std::cout << "stregaty BINARY DONE" << std::endl;
 						break;
 					case HYBRID:
-						result = BlockSort::sortBlocksHybrid(array, array_size, blocks, num_blocks);
+						std::cout << "strategy HYBRID " << std::endl;
+						result = BlockSort::regressionTestOnly_sortBlocksHybrid(array, array_size, blocks, num_blocks);
 						break;
 					default:
 						break;

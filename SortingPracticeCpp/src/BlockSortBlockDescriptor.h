@@ -33,6 +33,62 @@ std::ostream& operator<<(std::ostream& out, BlockType object);
 
 namespace BlockSort {
 
+	/*
+	 * class BlockDescriptor
+	 *
+	 *   Keeps track of relevant traits of a block of the array where 'block'
+	 * refers to the blocks used in the Block Sort algorithm.
+	 *
+	 *   There are some implementations that claim that this information can
+	 * be kept within the array itself.  This class is created so that debugging
+	 * the algorithm itself can be decoupled from sorting in place.  This is because
+	 * sorting in place requires using portions of the array to keep track of block
+	 * type (A vs B) and block order.  This information is implied by putting elements
+	 * of the array out-of-sequence to represent block movement.  The elements used
+	 * have to be unique an monotonically ascending.  It is possible that there are
+	 * fewer unique values in the array than there are blocks, which requires a
+	 * modification in how the algorithm proceeds.
+	 *
+	 * 	 The relevant traits kept are:
+	 * 	 - the type, A_Block or B_Block indicating whether the underlying elements
+	 * 	   were initially in the left half, or right half + 1 side of the array
+	 * 	 - the start index & end index, which is useful when the blocks are not
+	 * 	   all of the same size
+	 * 	 - the key, which in an A_Block is the value at [start] and
+	 * 	                  in a  B_Block is teh value at [end]
+	 *
+	 * 	 Block Sort algorithm guarantees stability, which means that in the final
+	 * sorted array, any element in the left half of the array (A_Block)
+	 * must come before an element with an equivalent key in the right half of the
+	 * array (B_Block).  When positioning / sorting the blocks by key, an A_Block
+	 * may only go to the right of a B_Block if the least (left) element
+	 * (and all other elements) in the A_Block are greater than the largest (right)
+	 * element in the B_Block.
+	 *
+	 *   Consider the two blocks if the first element in both blocks was the sort key
+	 *
+	 *               key                       key
+	 *           A [ da  ea  fa  ga ] and  B [ cb  db  eb  gb ]
+	 *
+	 * The "ga" in A may NOT move to the right of the "gb" in B, which would reverse
+	 * the order of the two 'f' elements and thus violate stability
+	 *
+	 *               key         |< relative order change >|
+	 *           B [ cb  db  eb  gb ]      A [ da  eb  fa  ga ]
+	 *
+	 *   Consider the two blocks where the left block's key (A_Block) is the first
+	 * element athe the right block's key (B_Block) is the last element
+	 *
+	 *               key                                   key
+	 *           A [ ga  ha  ia  ja  ] and B [ cb  db  eb  fb  ]
+	 *
+	 * Swapping the blocks does not violate stability because the smallest element in
+	 * A, "ga", which is A's key, is greater than the largest element in B, "fb"
+	 * which is B's key
+	 *                           key           key
+	 *           B [ cb  db  eb  fb ]      A [ ga  ha  ia  ja ]
+	 */
+
 	template <typename T>
 	class BlockDescriptor {
 	public:

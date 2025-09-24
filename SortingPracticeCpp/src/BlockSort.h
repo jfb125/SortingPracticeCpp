@@ -23,11 +23,6 @@
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
 
-#define	INCLUDE_SUPERCEDED_BLOCK_SORT_FUNCTIONS
-#ifdef INCLUDE_SUPERCEDED_BLOCK_SORT_FUNCTIONS
-#include "BlockSortUnused.h"
-#endif
-
 //#define DEBUG_VERBOSE_SORT_BLOCKS 1
 //#define DEBUG_SUMMARY_SORT_BLOCKS
 #define DEBUG_VERBOSE_BLOCK_SORT
@@ -131,26 +126,6 @@ namespace BlockSort {
 
 	ComparesAndMoves rotateBlocksRight(T** array, std::unique_ptr<BlockDescriptor<T>[]> &tags,
 					index_t first_tag, index_t last_tag, int tag_rotate_count);
-
-	/*	  Uses a binary search of the A_Block into the remaining B_Blocks
-	 * 	to identify which B_Blocks come before the A_Block.  Faster on the
-	 * 	first block, but noticeably slower on successive blocks */
-	template <typename T>
-	ComparesAndMoves sortBlocksBinarySearch(T **array, index_t size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_tags);
-
-	/*	  Uses a binary search to find the location on the first A_Block
-	 *  but then uses RightToLeft to find successive A_Block locations */
-	template <typename T>
-	ComparesAndMoves sortBlocksHybrid(T **array, index_t size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
-
-	/*	  Sorts the Blocks by starting at the left-most A_Block and the
-	 * 	right-most B_Blocks. The initial search is longer than a binary search,
-	 * 	but successive blocks search must quicker than restarting a binary search */
-	template <typename T>
-	ComparesAndMoves sortBlocksRightToLeft(T **array, index_t size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
 
 	/*	  Sorts all of the A_Blocks, and then sorts all of the B_Blocks, using
 	 *	an insertion sort on each range.  This is done after creating the blocks
@@ -487,10 +462,9 @@ namespace BlockSort {
 	 * 		auxiliary array
 	 */
 	template <typename T>
-	ComparesAndMoves mergeTwoBlocksByAuxiliary(
-			T ** array,
-		   index_t left_start, index_t left_end,
-		   index_t right_start, index_t right_end) {
+	ComparesAndMoves mergeTwoBlocksByAuxiliary( T ** array,
+												index_t left_start, index_t left_end,
+												index_t right_start, index_t right_end) {
 		ComparesAndMoves result(0,0);
 		return result;
 	}
@@ -965,550 +939,38 @@ namespace BlockSort {
 	 */
 
 	/*
-	 *  BinarySearch - this version searches the B_Blocks for the largest value smaller than A_Block
-	 *  	on every pass by performing a binary search on the span of unexamined B_Blocks.
+	 * compares_and_swaps += sortBlocksBySwapping(array, block_descriptors, num_blocks);
 	 *
-	 *	Finding the first B_Block that needs to be rotated left is log2(n) where n is the number
-	 *		of B_Blocks left unexamined
+	 *   Takes an array of blocks in order { A0, A1, ... Am, B0, B1 ... Bn }
+	 * and places them in numerical order.
 	 *
-	 *	Each successive search is worst case log2(m), where 'm' is at least 1 block less than
-	 *		the previous 'n'. However, it is likely that the next B_Block that needs to be rotated left
-	 *		is close to the B_Block that was just rotated, if the underlying array is well disordered
-	 *		Thus, the log2() penalty is paid every pass through	the algorithm.
+	 *   Note that the A blocks have to be in numerical order
+	 *    and that the B blocks have to be in numerical order
+	 *    and all of the blocks except for Bn have to be of the same size
 	 *
-	 *	Testing indicates that restarting the binary search each time makes this algorithm
-	 *		less efficient than starting at the rightmost B_Block and moving left one block at a time.
+	 *	Inputs:
+	 *		array				- the array of elements
+	 *		blocks_descriptors  - an array of BlockDescriptors
+	 *		num_blocks			- number of elements in the array 'block_descriptor'
+	 *
+	 *	Outputs:
+	 *		compares_and_moves	- the number of compares of block descriptor keys
+	 *							  and the number of moves of array elements
+	 *
+	 *	Modifies:
+	 *		the order of the elements in the 'array' may change
+	 *		the order of the descriptors in 'block_descriptors' may change
+	 *
+	 *	The block types will not change.
+	 *	The block descriptors' keys will not change even though the location
+	 *	  of the key within the array will change if the block's position changes
 	 */
-
 	template <typename T>
-	ComparesAndMoves sortBlocksBinarySearch(T **array, index_t size,
-											std::unique_ptr<BlockDescriptor<T>[]> &blocks,
-											int num_tags) {
-		constexpr bool debug_verbose = false;
-
-		#pragma push_macro("_debug")
-		#define _debug(_dbg_msg_) do {\
-			if (debug_verbose) {\
-				std::cout << _dbg_msg_ << std::endl;\
-			}\
-		} while(false)
-
-		_debug("sortBlocksBinarySearch()");
-
+	ComparesAndMoves sortBlocksBySwapping(T** array,
+										  std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+										  int num_blocks) {
 		ComparesAndMoves result(0,0);
-
-//		constexpr array_size_t binary_search_done = smaller_block_not_found;
-
-		//	if the array consists of all A_Blocks, we are done
-		if (blocks[num_tags-1].type == BlockType::A_BLOCK) {
-			_debug("All blocks are A Blocks");
-			return result;
-		}
-
-		// 	if the array consists of all B_Blocks, we are done
-		if (blocks[0].type == BlockType::B_BLOCK) {
-			 _debug("All blocks are B Blocks");
-			return result;
-		}
-
-		bool tagsAreSorted = true;
-		for (int i = 1; i != num_tags; i++) {
-			result._compares++;
-			if (blocks[i-1] > blocks[i]) {
-				tagsAreSorted = false;
-				break;
-			}
-		}
-
-		if (tagsAreSorted) {
-			_debug("...Tags are initially sorted\n");
-			return result;
-		} else {
-			_debug("...Tags are not sorted");
-		}
-
-		// 	process every A_Block starting with the blocks A[i = 7] & B[j = 14]
-		//	for this example, imagine that A[m] is > B[0], B[1] but <= B[2]
-		//									0  1    6    7  8  9  10     14
-		//	 								A0 A1 ...    Am B0 B1 B2 ....Bn
-		// 		yielding 					A0 A1 . Am-1 B0 B1 Am B2 ... Bn
-		//	 	A[m] ... B[n] are now in order and i = 7 while j = 9
-		//		update i = 6 (Am-1) and j = 8 (B1)
-		//	continue until j == i or i < 0
-
-		int num_a_blocks = 0;
-		for (int i = 0; i != num_tags; i++) {
-			if (blocks[i].type == BlockType::A_BLOCK)
-				num_a_blocks++;
-			else
-				break;
-		}
-
-		index_t a_block_index  = num_a_blocks-1;
-		index_t b_block_start  = num_a_blocks;
-		index_t b_block_end	= num_tags-1;
-
-		while (a_block_index >= 0) {
-
-			//	Binary search for the largest B_Block that is less than this A_Block
-			//	There may not be a B_Block that is less than this A_Block
-
-			//	0	1	2	3	4	5	6   7
-			//			ai  st              end
-			//	A4, A6, A7, B5, B5, B6, B7, B8
-
-			// b_block_end is passed by value to the function
-			// b_block_end receives the value by reference
-			index_t binary_search_result;
-			result += binarySearchLastBlock(blocks, b_block_start, b_block_end,
-											blocks[a_block_index].key, binary_search_result);
-
-			//	0	1	2	3	4	5	6   7
-			//			ai  st      end
-			//	A4, A7, A8, B5, B5, B6, B9, B9
-
-			//	If all B_Blocks are greater than this A_Block, the blocks are in order
-			if (binary_search_result > b_block_end) {
-				break;
-			}
-
-			//	blocks[a_index] > blocks[b_end]
-			//	determine how many smaller A_Blocks
-			//	  are still larger than this B_Block
-
-			while (a_block_index >= 0) {
-				result._compares++;
-				if (*blocks[a_block_index].key <= *blocks[b_block_end].key) {
-					break;
-				}
-				a_block_index--;
-			}
-
-			//	0	1	2	3	4	5	6   7
-			//	ai		    st      end
-			//	A4, A7, A8, B5, B5, B6, B9, B9
-
-			//	The above loop terminated because either
-			//		[a_block_index] goes to the left of the [b_block_index]
-			//	 or a_block_index < 0, which means all B_Blocks go to the
-			//		are less than [0] and go to the left of [0]
-			a_block_index++;
-
-			//	0	1	2	3	4	5	6   7
-			//	    ai	    st      end
-			//	A4, A7, A8, B5, B5, B6, B9, B9	rotate count = -2
-
-			// there will be at least one A_Block that is rotated **left** (-)
-			//	 to the right-hand side of the B_Block < [a_block_index]
-			int block_rotate_count = -(b_block_start - a_block_index);
-
-			if (debug_verbose) {
-				index_t array_size = blocks[num_tags-1].end_index+1;
-				index_t v = blocks[num_a_blocks].start_index;
-				std::cout << "BEFORE: "
-						  << " b_index (end) = " << std::setw(2) << b_block_end
-						  << " a_index (start) = " << std::setw(2) << a_block_index
-						  << " rotation count = " << std::setw(2) << block_rotate_count
-						  << "\n"
-						  << blockSortToString(array, array_size, v, blocks, num_tags)
-						  << std::endl;
-			}
-			result += rotateBlocksRight(array, blocks,
-										a_block_index, b_block_end,
-										block_rotate_count);
-
-			//	0	1	2	3	4	5	6   7
-			//	    ai	    st      end
-			//	A4, B5, B5, B6, A7  A8  B9, B9	rotate count = -2
-
-			// the B_Block has been shifted left by 'rotate_count'
-			b_block_start += block_rotate_count;
-			b_block_end += block_rotate_count;
-			a_block_index--;
-
-			//	0	1	2	3	4	5	6   7
-			//	ai	st      end
-			//	A4, B5, B5, B6, A7  A8  B9, B9
-
-			if (debug_verbose) {
-				index_t array_size = blocks[num_tags-1].end_index+1;
-				index_t v = blocks[num_a_blocks].start_index;
-				std::cout << "AFTER: \n"
-						  << blockSortToString(array, array_size, v, blocks, num_tags)
-						  << std::endl;
-			}
-		}
-
-		if (debug_verbose) {
-			index_t array_size = blocks[num_tags-1].end_index+1;
-			index_t v = blocks[num_a_blocks].start_index;
-			std::cout << "EXITING: \n"
-					  << blockSortToString(array, array_size, v, blocks, num_tags)
-					  << std::endl;
-			if (areBlocksSorted(blocks, num_tags)) {
-				_debug("Tags are sorted");
-			} else {
-				_debug("Tags are NOT sorted");
-			}
-		}
-
-		_debug("sortBlocksBinarySearch() took " << result << "\n");
 		return result;
-		#pragma pop_macro("_debug")
-	}
-
-	/*
-	 *  Hybrid - this version initially searches for the first B_Block smaller than the A_Block
-	 *  	using a Binary Search, but then uses a Right To Left strategy for successive blocks
-	 *  	b/c the likelihood is that the next B_Block to be found < the next A_Block is
-	 *  	probably close to where the previous B_Block was.
-	 */
-
-	template <typename T>
-	ComparesAndMoves sortBlocksHybrid(T **array, index_t size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks)
-	{
-		constexpr bool debug_verbose = false;
-
-		#pragma push_macro("_debug")
-		#define _debug(_dbg_msg_) do {\
-			if (debug_verbose) {\
-				std::cout << _dbg_msg_ << std::endl;\
-			}\
-		} while(false)
-
-		_debug("sortBlocksHybridSearch()");
-
-		ComparesAndMoves result(0,0);
-
-		//	if the array consists of all A_Blocks, we are done
-		if (blocks[num_blocks-1].type == BlockType::A_BLOCK) {
-			_debug("All blocks are A Blocks");
-			return result;
-		}
-
-		// 	if the array consists of all B_Blocks, we are done
-		if (blocks[0].type == BlockType::B_BLOCK) {
-			 _debug("All blocks are B Blocks");
-			return result;
-		}
-
-		bool blocks_are_sorted = true;
-		for (int i = 1; i != num_blocks; i++) {
-			result._compares++;
-			if (blocks[i-1] > blocks[i]) {
-				blocks_are_sorted = false;
-				break;
-			}
-		}
-
-		if (blocks_are_sorted) {
-			_debug("...Blocks are initially sorted\n");
-			return result;
-		} else {
-			_debug("...Blocks are not sorted");
-		}
-
-		index_t a_block_index = 0;
-		index_t b_block_index = 0;
-
-		//	find the first B_Block
-		while (b_block_index < num_blocks && blocks[b_block_index].type == BlockType::A_BLOCK) {
-			b_block_index++;
-		}
-		a_block_index = b_block_index-1;
-
-		index_t debug_middle_index = b_block_index;
-
-		bool use_binary_search = true;
-
-		while (a_block_index >= 0) {
-
-			if (!use_binary_search) {
-				//	Find first B_Block that is less than this A_Block
-				//	There may not be a B_Block that is greater than this A_Block
-				while (b_block_index > a_block_index) {
-					result._compares++;
-					if (*blocks[b_block_index].key < *blocks[a_block_index].key) {
-						break;
-					}
-					b_block_index--;
-				}
-				//	if no B_Blocks were found that are less than this A_Block
-				//	the tags are in order
-				if (a_block_index == b_block_index) {
-					break;
-				}
-			} else {
-				use_binary_search = false;
-				//	Binary search for the largest B_Block that is less than this A_Block
-				//	There may not be a B_Block that is less than this A_Block
-
-				//	0	 1	  2	   3	4	 5	  6    7
-				//			  ai   bi                  num-1
-				//	A=4, A=6, A=7, B=5, B=5, B=6, B=7, B=8
-				//	b_block_index is passed by value as the start of the B_Block span
-				//	b_block_index is updated by reference as the result of the binary search
-				index_t binary_search_result;
-				result += binarySearchLastBlock(blocks, b_block_index, num_blocks-1,
-													blocks[a_block_index].key, binary_search_result);
-				//	0	 1	  2	   3	4	 5	  6    7
-				//			  ai             bi
-				//	A=4, A=6, A=7, B=5, B=5, B=6, B=7, B=8
-
-				//	If all B_Blocks are greater than this A_Block, the blocks are in order
-				//	0	 1	  2	   3	4	 5	  6    7
-				//			  ai
-				//	A=4, A=6, A=7, B=8, B=9, B=10,B=11,B=12
-				if (binary_search_result > num_blocks-1) {
-					break;
-				}
-			}
-
-			// there will be at least one A_Block that is rotated left from
-			//	the left side over to the right-hand side of the B_Block < [a_block_index]
-			int tag_rotate_count = -1;
-
-			//	continue looking through the A_Blocks to the left for
-			//	  A_Blocks that are less than [b_block_index] which
-			//	  can also be included in the rotate count
-			a_block_index--;
-
-			while (a_block_index >= 0) {
-				result._compares++;
-				if (*blocks[a_block_index].key <= *blocks[b_block_index].key)
-					break;
-				a_block_index--;
-				tag_rotate_count--;
-			}
-
-			if (debug_verbose) {
-				index_t array_size = blocks[num_blocks-1].end_index+1;
-				index_t v = blocks[debug_middle_index].start_index;
-				std::cout << "BEFORE: "
-						  << " b_index (end) = " << std::setw(2) << b_block_index
-						  << " a_index+1 (start) = " << std::setw(2) << a_block_index+1
-						  << " rotation count = " << std::setw(2) << tag_rotate_count
-						  << "\n"
-						  << blockSortToString(array, array_size, v, blocks, num_blocks)
-						  << std::endl;
-			}
-			// At this point 'a_block_index' points to the largest A_Block
-			//	that is <= [b_block_index],  but [a_block_index+1] is greater
-			//	than [b_block_index] b/c the previous while loop exited
-			//	because a [b_block_index] that was smaller was found, and
-			//	the comparison b_block_index == a_block_index return false
-			result += rotateBlocksRight(array, blocks,
-										a_block_index+1, b_block_index,
-										tag_rotate_count);
-			// the B_Block has been shifted left by 'tag_rotate_count'
-			b_block_index += tag_rotate_count;
-			// a_block_index points to the block to the left of the span
-			//	that was rotated, and the span that was rotated is now in order
-
-			if (debug_verbose) {
-				index_t array_size = blocks[num_blocks-1].end_index+1;
-				index_t v = blocks[debug_middle_index].start_index;
-				std::cout << "AFTER: \n"
-						  << blockSortToString(array, array_size, v, blocks, num_blocks)
-						  << std::endl;
-			}
-		}
-
-
-		if (debug_verbose) {
-			index_t array_size = blocks[num_blocks-1].end_index+1;
-			index_t v = blocks[debug_middle_index].start_index;
-			std::cout << "AFTER: \n"
-					  << blockSortToString(array, array_size, v, blocks, num_blocks)
-					  << std::endl;
-		}
-
-		if (debug_verbose) {
-			index_t array_size = blocks[num_blocks-1].end_index+1;
-			index_t v = blocks[debug_middle_index].start_index;
-			std::cout << "EXITING: \n"
-					  << blockSortToString(array, array_size, v, blocks, num_blocks)
-					  << std::endl;
-			if (areBlocksSorted(blocks, num_blocks)) {
-				_debug("Tags are sorted");
-			} else {
-				_debug("Tags are NOT sorted");
-			}
-		}
-
-		_debug("sortBlocksBinarySearch() took " << result << "\n");
-		return result;
-		#pragma pop_macro("_debug")
-
-		return result;
-	}
-
-	/*
-	 * RightToLeft - this version searches the B_Blocks by starting at the last B_Block on the right
-	 * 				 and moving through the B_Blocks until either
-	 * 				 	the B_Block pointer == A_Block pointer which indicates that there are
-	 * 				 		no B_Blocks that are less than the largest remaining A_Block
-	 * 				 or the A_Block pointer == -1, which indicates there are no A_Blocks
-	 * 				 		that are larger than the smallest B_Block
-	 *
-	 * 	Once the first B_Block that needs to be rotated left is found, successive searches for
-	 * 		B_Blocks to rotate will probably be efficient as long as the next B_Block to be found
-	 * 		is closeby to the left of the B_Block that was just rotated
-	 *
-	 * 	Finding the first B_Block to rotate can be expensive since the algorithm starts from the
-	 * 		last B_Block on the right and moves one-at-a-time to the left
-	 */
-
-	template <typename T>
-	ComparesAndMoves sortBlocksRightToLeft(T **array, index_t size,
-										   std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks) {
-
-		constexpr bool debug_verbose = false;
-
-		#pragma push_macro("_debug")
-		#define _debug(_dbg_msg_) do {\
-			if (debug_verbose) {\
-				std::cout << _dbg_msg_ << std::endl;\
-			}\
-		} while(false)
-
-		_debug("sortBlocksRightToLeft()");
-
-		ComparesAndMoves result(0,0);
-
-		//	if the array consists of all A_Blocks, we are done
-		if (blocks[num_blocks-1].type == BlockType::A_BLOCK) {
-			_debug("All blocks are A Blocks");
-			return result;
-		}
-
-		// 	if the array consists of all B_Blocks, we are done
-		if (blocks[0].type == BlockType::B_BLOCK) {
-			 _debug("All blocks are B Blocks");
-			return result;
-		}
-
-		int num_a_blocks = 0;
-		for (int i = 0; i != num_blocks; i++) {
-			if (blocks[i].type == BlockType::A_BLOCK)
-				num_a_blocks++;
-			else
-				break;
-		}
-
-		bool tagsAreSorted = true;
-		for (int i = 1; i != num_blocks; i++) {
-			result._compares++;
-			if (blocks[i-1] > blocks[i]) {
-				tagsAreSorted = false;
-				break;
-			}
-		}
-
-		if (tagsAreSorted) {
-			_debug("...Blocks are initially sorted\n");
-			return result;
-		} else {
-			_debug("...Blocks are not sorted");
-		}
-
-		// 	process every A_Block starting with the blocks A[i = 7] & B[j = 14]
-		//	for this example, imagine that A[m] is > B[0], B[1] but <= B[2]
-		//									0  1    6    7  8  9  10     14
-		//	 								A0 A1 ...    Am B0 B1 B2 ....Bn
-		// 		yielding 					A0 A1 . Am-1 B0 B1 Am B2 ... Bn
-		//	 	A[m] ... B[n] are now in order and i = 7 while j = 9
-		//		update i = 6 (Am-1) and j = 8 (B1)
-		//	continue until j == i or i < 0
-		index_t a_block_index = num_a_blocks-1;
-		index_t b_block_index = num_blocks-1;
-		while (a_block_index >= 0) {
-
-			//	Find first B_Block that is less than this A_Block
-			//	There may not be a B_Block that is greater than this A_Block
-			while (b_block_index > a_block_index) {
-				result._compares++;
-				if (*blocks[b_block_index].key < *blocks[a_block_index].key) {
-					break;
-				}
-				b_block_index--;
-			}
-
-			//	if no B_Blocks were found that are less than this A_Block
-			//	the tags are in order
-			if (a_block_index == b_block_index) {
-				break;
-			}
-
-
-			// there will be at least one A_Block that is rotated left
-			//	 to the right-hand side of the B_Block < [a_block_index]
-			int tag_rotate_count = -1;
-
-			//	continue looking through the A_Blocks to the left for
-			//	  A_Blocks that are less than [b_block_index] which
-			//	  can also be included in the rotate count
-			a_block_index--;
-
-			//	con
-			while (a_block_index >= 0) {
-				result._compares++;
-				if (*blocks[a_block_index].key <= *blocks[b_block_index].key)
-					break;
-				a_block_index--;
-				tag_rotate_count--;
-			}
-
-			if (debug_verbose) {
-				index_t array_size = blocks[num_blocks-1].end_index+1;
-				index_t v = blocks[num_a_blocks].start_index;
-				std::cout << "BEFORE: "
-						  << " b_index (end) = " << std::setw(2) << b_block_index
-						  << " a_index+1 (start) = " << std::setw(2) << a_block_index+1
-						  << " rotation count = " << std::setw(2) << tag_rotate_count
-						  << "\n"
-						  << blockSortToString(array, array_size, v, blocks, num_blocks)
-						  << std::endl;
-			}
-			// At this point 'a_block_index' points to the largest A_Block
-			//	that is <= [b_block_index],  but [a_block_index+1] is greater
-			//	than [b_block_index] b/c the previous while loop exited
-			//	because a [b_block_index] that was smaller was found, and
-			//	the comparison b_block_index == a_block_index return false
-			result += rotateBlocksRight(array, blocks,
-										a_block_index+1, b_block_index,
-										tag_rotate_count);
-			// the B_Block has been shifted left by 'tag_rotate_count'
-			b_block_index += tag_rotate_count;
-			// a_block_index points to the block to the left of the span
-			//	that was rotated, and the span that was rotated is now in order
-
-			if (debug_verbose) {
-				index_t array_size = blocks[num_blocks-1].end_index+1;
-				index_t v = blocks[num_a_blocks].start_index;
-				std::cout << "AFTER: \n"
-						  << blockSortToString(array, array_size, v, blocks, num_blocks)
-						  << std::endl;
-			}
-		}
-
-		if (debug_verbose) {
-			index_t array_size = blocks[num_blocks-1].end_index+1;
-			index_t v = blocks[num_a_blocks].start_index;
-			std::cout << "EXITING: \n"
-					  << blockSortToString(array, array_size, v, blocks, num_blocks)
-					  << std::endl;
-			if (areBlocksSorted(blocks, num_blocks)) {
-				_debug("Tags are sorted");
-			} else {
-				_debug("Tags are NOT sorted");
-			}
-		}
-
-		_debug("sortBlocksRightToLeft() took " << result << "\n");
-		return result;
-		#pragma pop_macro("_debug")
 	}
 
 	/*
@@ -1743,7 +1205,8 @@ namespace BlockSort {
 
 		constexpr bool merge_at_once = true;
 		if (merge_at_once) {
-			result += mergeAllBlocks(array, block_descriptors, num_blocks);
+			std::cout << " !!!! ERROR - BLOCK SORT NOT IMPLMENTED !!!! " << std::endl;
+//			result += mergeAllBlocks(array, block_descriptors, num_blocks);
 			goto BLOCK_SORT_RETURN_POINT;
 		}
 
@@ -1759,8 +1222,11 @@ namespace BlockSort {
 				index_t left_end	= block_descriptors[left_block].end_index;
 				index_t right_start	= block_descriptors[right_block].start_index;
 				index_t right_end	= block_descriptors[right_block].end_index;
-				result += mergeTwoBlocksByTable(array, left_start, left_end,
-													   right_start, right_end);
+				std::cout << " !!!! ERROR - BLOCK SORT NOT IMPLEMENTED !!!! " << std::endl;
+				goto BLOCK_SORT_RETURN_POINT;
+
+//				result += mergeTwoBlocksByTable(array, left_start, left_end,
+//													   right_start, right_end);
 				for (int i = left_start; i < right_end-1; i++) {
 					if (*array[i] > *array[i+1]) {
 						msg << std::setw(2) << num_blocks
@@ -1812,9 +1278,11 @@ namespace BlockSort {
 
 			//	each pair of blocks now forms an in-order span
 			//	update the block descriptors to span all the in-order elements
-			num_blocks = mergeAdajacentPairsOfDescriptors(array,
-														  block_descriptors,
-														  num_blocks);
+			std::cout << " !!!! ERROR - BLOCK SORT NOT IMPLEMENTED !!!! " << std::endl;
+			break;
+//			num_blocks = mergeAdajacentPairsOfDescriptors(array,
+//														  block_descriptors,
+//														  num_blocks);
 		}
 
 BLOCK_SORT_RETURN_POINT:
