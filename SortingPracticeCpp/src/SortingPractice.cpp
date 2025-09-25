@@ -39,11 +39,14 @@ array_size_t next_power_of_10(array_size_t current_size) {
 
 bool testBlockSort();
 
+bool testnChoosek();
+
 int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-	testBlockSort();
+//	testBlockSort();
+	testnChoosek();
 	return EXIT_SUCCESS;
 
 	int num_repetitions = 100;
