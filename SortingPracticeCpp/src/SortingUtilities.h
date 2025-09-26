@@ -6,46 +6,11 @@
 #include "SortingPracticeDataTypes.h"
 #include "IntegerArithmetic.h"
 #include "SimpleRandomizer.h"
+#include "OStreamState.h"
 
 #pragma push_macro("_verbose")
 //#undef _verbose
 //#define _verbose true
-
-/*
- * 	Creating an object of this class stores stdio's format flags
- * 	The destructor restores flags to state they were when the constructors was called
- * 	This is useful to restoring the state of 'left' 'right' etc after function exits
- */
-
-class OStreamState {
-private:
-	std::ios::fmtflags flags;
-	char fill;
-public:
-	void init() {
-		flags = std::cout.flags();
-		fill = std::cout.fill();
-	}
-	void restore() {
-		std::cout.flags(flags);
-		std::cout.fill(fill);
-	}
-	OStreamState() {
-		init();
-	}
-	~OStreamState() {
-		restore();
-	}
-	OStreamState(const OStreamState &other) {
-		flags = other.flags;
-		fill = other.fill;
-	}
-	OStreamState& operator=(const OStreamState &other) {
-		flags = other.flags;
-		fill = other.fill;
-		return *this;
-	}
-};
 
 constexpr int 	ELEMENT_WIDTH 		= 5;
 constexpr int 	VALUE_WIDTH 		= 4;
