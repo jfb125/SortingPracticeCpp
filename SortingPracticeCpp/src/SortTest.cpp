@@ -11,6 +11,7 @@
 #include "SortTest.h"
 #include "SortingUtilities.h"
 
+#include "BlockSort.h"
 #include "BubbleSort.h"
 #include "DutchFlagSort.h"
 #include "InsertionSort.h"
@@ -95,6 +96,10 @@ OneTestResult* testOneAlgorithm(SortAlgorithms& algorithm,
 	case SortAlgorithms::SELECTION_SORT:
 		sort = SelectionSort::sortPointerstoObjects;
 		break;
+	case SortAlgorithms::BLOCK_SORT:
+		sort = BlockSort::sortPointerstoObjects;
+		break;
+
 	case SortAlgorithms::RADIX_SORT:
 	case SortAlgorithms::COUNTING_SORT:
 	default:
@@ -122,6 +127,9 @@ OneTestResult* testOneAlgorithm(SortAlgorithms& algorithm,
 
 		if (!result->_is_sorted) {
 			msg << "****************** FAILURE ON REPETITION #" << i << std::endl;
+			msg << "[" << result->_mismatched_index_i << "] = " << *sorted_data->_array[result->_mismatched_index_i]
+                << " is not less than [" << result->_mismatched_index_j << "] = " << *sorted_data->_array[result->_mismatched_index_j]
+                << std::endl;
 			std::cout << msg.str() << std::endl;
 			retval->_failure_log = new SortFailureLog();
 			retval->_failure_log->_diagnostics = *result;
@@ -327,7 +335,7 @@ void	printSideBySide(StudentDataArray &a, StudentDataArray &b) {
 
 std::ostream& operator<<(std::ostream& out, const ComparesAndMoves& object) {
 
-	out << "compares " << object._compares << ", swaps " << object._moves;
+	out << object._compares << " compares and " << object._moves << " swaps";
 	return out;
 }
 

@@ -3,10 +3,28 @@
 
 #include <iostream>
 #include <iomanip>
+#include "SortingPracticeDataTypes.h"
+#include "IntegerArithmetic.h"
+#include "SimpleRandomizer.h"
+#include "OStreamState.h"
 
 #pragma push_macro("_verbose")
 //#undef _verbose
 //#define _verbose true
+
+constexpr int 	ELEMENT_WIDTH 		= 5;
+constexpr int 	VALUE_WIDTH 		= 4;
+
+std::string arrayIndicesToString(array_size_t size, array_size_t v,
+								 int element_width = ELEMENT_WIDTH);
+std::string arrayIndicesToString(std::string trailer,
+								 array_size_t size, array_size_t v,
+								 int element_width = ELEMENT_WIDTH);
+std::string arrayIndicesToStringLine(array_size_t size,
+								 int element_width = ELEMENT_WIDTH);
+std::string arrayStartMiddleEndToString(array_size_t size,
+										array_size_t start, array_size_t mid, array_size_t end,
+										int element_width = ELEMENT_WIDTH);
 
 namespace SortingUtilities {
 
@@ -30,15 +48,48 @@ namespace SortingUtilities {
 	template <typename T>
 	void printArrayAndPivot(T**array, array_size_t start, array_size_t end, array_size_t pivot, std::string header);
 
+
+
 	template <typename T>
 	ComparesAndMoves randomizeArray(T** array, array_size_t size);
 
 	template <typename T>
 	int swap(T**array, array_size_t i, array_size_t j);
 
+
+	/*	**********************************************************************	*/
 	/*	**********************************************************************	*/
 	/*								implementation								*/
 	/*	**********************************************************************	*/
+	/*	**********************************************************************	*/
+
+	template <typename T>
+	std::string arrayElementsToString(T** array, array_size_t size,
+									  int value_width = VALUE_WIDTH,
+									  int element_width = ELEMENT_WIDTH) {
+		OStreamState current_state;
+		std::stringstream result;
+		int spacer_width = element_width - value_width;
+		for (int i = 0; i < size-1; i++) {
+			result << std::right << std::setw(value_width) << *array[i];
+			if (spacer_width) {
+				result << std::setw(spacer_width) << ' ';
+			}
+		}
+		result << std::right << std::setw(value_width) << *array[size-1];
+		return result.str();
+	}
+
+	template <typename T>
+	std::string arrayElementsToString(std::string trailer,
+									  T** array, array_size_t size,
+									  int value_width, int element_width) {
+		OStreamState current_state;
+		std::stringstream result;
+		result << arrayElementsToString(array, size, value_width, element_width);
+		result << trailer;
+		return result.str();
+	}
 
 	// returns bool
 	template <typename T>
@@ -198,7 +249,21 @@ namespace SortingUtilities {
 						  << array[i]->last_name << std::endl;
 			}
 	}
+#if 0
+	template <typename T>
+	void printElements(std::string trailer, T** array, index_t size, int value_width, int element_width) {
+		OStreamState current_state;
 
+		int spacer_width = element_width - value_width;
+		for (int i = 0; i != size; i++) {
+			if (spacer_width) {
+				std::cout << std::setw(spacer_width) << ' ';
+			std::cout << std::setw(value_width) << *array[i];
+			}
+		}
+		std::cout << trailer;
+	}
+#endif
 	template <typename T>
 	void printArrayAndPivot(T**array, array_size_t start, array_size_t end, array_size_t pivot, std::string header) {
 			std::cout << header <<  " [" << start << ":" << end << "]"

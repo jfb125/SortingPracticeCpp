@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <memory>
 
 #include "SortTest.h"
 #include "ResultOutput.h"
@@ -33,29 +34,41 @@ array_size_t next_power_of_10(array_size_t current_size) {
 /*									main()											*/
 /*	*****************************************************************************	*/
 /*	******************************************************************************	*/
-
 #include "StudentDataGenerator.h"
+#include "BlockSort.h"
+
+bool testBlockSort();
+
+bool testnChoosek();
 
 int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-	int num_repetitions = 10;
+//	testBlockSort();
+	testnChoosek();
+	return EXIT_SUCCESS;
 
-	constexpr array_size_t min_array_size =  10;
-	constexpr array_size_t max_array_size =  1000;
-	array_size_t (*next_size)(array_size_t current) = next_power_of_10;
+	int num_repetitions = 100;
+
+	constexpr array_size_t min_array_size =   2048;
+	constexpr array_size_t max_array_size =  65536;
+	//	comment out all but the one used in this test
+//	array_size_t (*next_size)(array_size_t current) = next_increment;
+	array_size_t (*next_size)(array_size_t current) = next_power_of_2;
+//	array_size_t (*next_size)(array_size_t current) = next_power_of_10;
 	int num_array_sizes = getNumSizes(min_array_size, max_array_size, next_size);
 
 	SortAlgorithms 	sort_algorithms[] = {
-			SortAlgorithms::BUBBLE_SORT,
-			SortAlgorithms::SELECTION_SORT,
-			SortAlgorithms::INSERTION_SORT,
+//			SortAlgorithms::BUBBLE_SORT,
+//			SortAlgorithms::SELECTION_SORT,
+//			SortAlgorithms::INSERTION_SORT,
 			SortAlgorithms::MERGE_SORT,
-			SortAlgorithms::HEAP_SORT,
-			SortAlgorithms::QUICK_SORT,
-			SortAlgorithms::OPTIMIZED_QUICK_SORT,
-			SortAlgorithms::DUTCH_FLAG_SORT,
+//			SortAlgorithms::HEAP_SORT,
+//			SortAlgorithms::QUICK_SORT,
+//			SortAlgorithms::OPTIMIZED_QUICK_SORT,
+//			SortAlgorithms::DUTCH_FLAG_SORT,
+			SortAlgorithms::BLOCK_SORT,
 	};
 	int num_sort_algorithms = sizeof(sort_algorithms)/sizeof(SortAlgorithms);
 
@@ -64,16 +77,16 @@ int main(int argc, char *argv[])
 	ArrayComposition array_compositions[] = {
 			{ArrayCompositions::ALL_DISCRETE, num_discrete, num_different},
 //			{ArrayCompositions::ALL_SAME, num_discrete, num_different},
-			{ArrayCompositions::FEW_DISCRETE, num_discrete, num_different},
-			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different}
+//			{ArrayCompositions::FEW_DISCRETE, num_discrete, num_different},
+//			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different}
 	};
 	int num_compositions = sizeof(array_compositions)/sizeof(ArrayComposition);
 
 	constexpr array_size_t num_elements_out_of_order = 3;
 	InitialOrdering	initial_orderings[] = {
 			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
-			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
-			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
+//			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
+//			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
 //			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
 	};
 	int num_initial_orderings = sizeof(initial_orderings)/sizeof(InitialOrdering);
@@ -125,7 +138,8 @@ int main(int argc, char *argv[])
 	printTestResults(results, cnt);
 
 	std::cout << "Completed Sorting Performance In C++" << std::endl;
-	return 0;
+
+	return EXIT_SUCCESS;
 }
 
 #pragma pop_macro("to_i")

@@ -30,6 +30,7 @@
 	_SORT_ALGORITHM(DUTCH_FLAG_SORT)\
 	_SORT_ALGORITHM(RADIX_SORT)\
 	_SORT_ALGORITHM(COUNTING_SORT)\
+	_SORT_ALGORITHM(BLOCK_SORT)\
 	_SORT_ALGORITHM(SORT_ALGORITHMS_COUNT)	// place holder
 
 #define _SORT_ALGORITHM(alg)	alg,
@@ -38,7 +39,7 @@ enum SortAlgorithms {
 };
 
 #define MIN_SORT_ALGORITHM 		SortAlgorithms::BUBBLE_SORT
-#define MAX_SORT_ALGORITHM 		SortAlgorithms::COUNTING_SORT
+#define MAX_SORT_ALGORITHM 		SortAlgorithms::BLOCK_SORT
 #define INVALID_SORT_ALGORITHM	SortAlgorithms::SORT_ALGORITHMS_COUNT
 
 bool isValid(SortAlgorithms);

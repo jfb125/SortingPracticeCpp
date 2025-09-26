@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <climits>
 
+//	these needs to be signed to handle cases where indices are reversed
 typedef long array_size_t;
 #define ARRAY_SIZE_T_MIN		0
 #define ARRAY_SIZE_T_MAX		LONG_MAX

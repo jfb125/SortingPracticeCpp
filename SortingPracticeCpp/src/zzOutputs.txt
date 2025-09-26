@@ -1,89 +1,44 @@
-Sorting Performance In C++ built on Jul 16 2025 at 15:54:13
-Algorithms: 8 Compositions: 3 Orderings: 3 of : 3 different sizes resulting in 216 outcomes over 10 repetitions
-====================================
-Sort Test Results
-====================================
-                                                                                     Array sizes:             10                        100                       1000             
-number of repetitions: 10                                                                             avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov      
-BUBBLE_SORT           ALL_DISCRETE                           IN_REVERSE_ORDER                   :        45.0 /       135.0       4950.0 /     14850.0     499500.0 /   1498500.0  
-SELECTION_SORT        ALL_DISCRETE                           IN_REVERSE_ORDER                   :        46.0 /        15.0       4951.0 /       150.0     499501.0 /      1500.0  
-INSERTION_SORT        ALL_DISCRETE                           IN_REVERSE_ORDER                   :        45.0 /        63.0       4950.0 /      5148.0     499500.0 /    501498.0  
-MERGE_SORT            ALL_DISCRETE                           IN_REVERSE_ORDER                   :        16.0 /        40.0        317.0 /       700.0       4933.0 /     10000.0  
-HEAP_SORT             ALL_DISCRETE                           IN_REVERSE_ORDER                   :        36.0 /        63.0        945.0 /      1548.0      15966.0 /     24948.0  
-QUICK_SORT            ALL_DISCRETE                           IN_REVERSE_ORDER                   :        39.0 /        54.0        655.0 /       771.0      12237.0 /      9813.0  
-OPTIMIZED_QUICK_SORT  ALL_DISCRETE                           IN_REVERSE_ORDER                   :        46.0 /        63.0        610.0 /       444.0       9495.0 /      4494.0  
-DUTCH_FLAG_SORT       ALL_DISCRETE                           IN_REVERSE_ORDER                   :        43.0 /        51.0        781.0 /      1128.0      11856.0 /     17760.0  
+Sorting Performance In C++ built on Sep 25 2025 at 18:45:34
+(n =   3, k =   1) generates 3 combinations of values { 1 2 3 }
+0: { 1 }
+1: { 2 }
+2: { 3 }
+There were no duplicate combinations generated
 
-BUBBLE_SORT           ALL_DISCRETE                           IN_RANDOM_ORDER                    :        38.8 /        59.4       4918.9 /      7499.4     498960.7 /    748040.1  
-SELECTION_SORT        ALL_DISCRETE                           IN_RANDOM_ORDER                    :        46.7 /        19.8       4951.9 /       283.2     499501.8 /      2977.5  
-INSERTION_SORT        ALL_DISCRETE                           IN_RANDOM_ORDER                    :        26.7 /        32.2       2594.4 /      2691.8     250338.5 /    251334.1  
-MERGE_SORT            ALL_DISCRETE                           IN_RANDOM_ORDER                    :        26.7 /        40.0        558.9 /       700.0       8727.5 /     10000.0  
-HEAP_SORT             ALL_DISCRETE                           IN_RANDOM_ORDER                    :        40.5 /        82.8       1026.8 /      1740.6      16836.5 /     27230.1  
-QUICK_SORT            ALL_DISCRETE                           IN_RANDOM_ORDER                    :        28.6 /        54.0        676.5 /       751.5      10747.9 /      9932.1  
-OPTIMIZED_QUICK_SORT  ALL_DISCRETE                           IN_RANDOM_ORDER                    :        28.4 /        32.2        800.9 /       574.2      13325.8 /      8098.1  
-DUTCH_FLAG_SORT       ALL_DISCRETE                           IN_RANDOM_ORDER                    :        43.6 /        52.8        910.2 /      1219.2      14517.8 /     20996.7  
+(n =   3, k =   2) generates 3 combinations of values { 1 2 3 }
+0: { 1, 2 }
+1: { 1, 3 }
+2: { 2, 3 }
+There were no duplicate combinations generated
 
-BUBBLE_SORT           ALL_DISCRETE                           FEW_CHANGES with 3 num out of place:        36.7 /        45.9       4773.5 /       943.2     458266.1 /      9616.2  
-SELECTION_SORT        ALL_DISCRETE                           FEW_CHANGES with 3 num out of place:        43.9 /         7.5       4963.8 /         9.0     499753.4 /         9.0  
-INSERTION_SORT        ALL_DISCRETE                           FEW_CHANGES with 3 num out of place:        23.1 /        26.5        409.9 /       484.8       4199.6 /      4698.0  
-MERGE_SORT            ALL_DISCRETE                           FEW_CHANGES with 3 num out of place:        25.6 /        36.0        465.4 /       700.0       6040.6 /     10000.0  
-HEAP_SORT             ALL_DISCRETE                           FEW_CHANGES with 3 num out of place:        39.0 /        72.9       1092.4 /      1908.6      17826.6 /     29089.2  
-QUICK_SORT            ALL_DISCRETE                           FEW_CHANGES with 3 num out of place:        28.6 /        47.4        658.1 /       746.4      11464.3 /      9922.5  
-OPTIMIZED_QUICK_SORT  ALL_DISCRETE                           FEW_CHANGES with 3 num out of place:        25.6 /        26.5        480.8 /        92.2       8133.9 /       769.2  
-DUTCH_FLAG_SORT       ALL_DISCRETE                           FEW_CHANGES with 3 num out of place:        39.7 /        44.1        744.8 /      1090.8      11400.1 /     16963.8  
+(n =   3, k =   3) generates 1 combinations of values { 1 2 3 }
+0: { 1, 2, 3 }
+There were no duplicate combinations generated
 
-BUBBLE_SORT           FEW_DISCRETE with 3 possible values    IN_REVERSE_ORDER                   :        45.0 /        96.0       4485.0 /      9996.0     444885.0 /    999996.0  
-SELECTION_SORT        FEW_DISCRETE with 3 possible values    IN_REVERSE_ORDER                   :        49.0 /        18.0       4984.0 /       108.0     499834.0 /      1008.0  
-INSERTION_SORT        FEW_DISCRETE with 3 possible values    IN_REVERSE_ORDER                   :        39.0 /        48.0       3429.0 /      3468.0     334329.0 /    334668.0  
-MERGE_SORT            FEW_DISCRETE with 3 possible values    IN_REVERSE_ORDER                   :        23.0 /        40.0        434.0 /       700.0       6092.0 /     10000.0  
-HEAP_SORT             FEW_DISCRETE with 3 possible values    IN_REVERSE_ORDER                   :        38.0 /        51.0        806.0 /      1107.0      12290.0 /     17130.0  
-QUICK_SORT            FEW_DISCRETE with 3 possible values    IN_REVERSE_ORDER                   :        32.0 /        54.0       1818.0 /       678.0     168167.0 /      7116.0  
-OPTIMIZED_QUICK_SORT  FEW_DISCRETE with 3 possible values    IN_REVERSE_ORDER                   :        43.0 /        48.0       1820.0 /       504.0     169970.0 /      6804.0  
-DUTCH_FLAG_SORT       FEW_DISCRETE with 3 possible values    IN_REVERSE_ORDER                   :        32.0 /        24.0        365.0 /       207.0       3665.0 /      2007.0  
+(n =   4, k =   1) generates 4 combinations of values { 1 2 3 4 }
+0: { 1 }
+1: { 2 }
+2: { 3 }
+3: { 4 }
+There were no duplicate combinations generated
 
-BUBBLE_SORT           FEW_DISCRETE with 3 possible values    IN_RANDOM_ORDER                    :        35.0 /        36.9       4449.3 /      5151.3     444120.0 /    498486.0  
-SELECTION_SORT        FEW_DISCRETE with 3 possible values    IN_RANDOM_ORDER                    :        46.7 /        15.6       4952.9 /       200.4     499502.4 /      1998.3  
-INSERTION_SORT        FEW_DISCRETE with 3 possible values    IN_RANDOM_ORDER                    :        20.6 /        22.3       1815.2 /      1851.3     167159.9 /    167494.4  
-MERGE_SORT            FEW_DISCRETE with 3 possible values    IN_RANDOM_ORDER                    :        26.3 /        40.0        528.4 /       700.0       7745.9 /     10000.0  
-HEAP_SORT             FEW_DISCRETE with 3 possible values    IN_RANDOM_ORDER                    :        39.0 /        62.1        828.4 /      1229.4      12722.4 /     18979.2  
-QUICK_SORT            FEW_DISCRETE with 3 possible values    IN_RANDOM_ORDER                    :        25.3 /        48.3       1780.2 /       688.2     167736.2 /      7136.4  
-OPTIMIZED_QUICK_SORT  FEW_DISCRETE with 3 possible values    IN_RANDOM_ORDER                    :        22.3 /        22.3       1825.7 /       516.6     170308.7 /      6960.9  
-DUTCH_FLAG_SORT       FEW_DISCRETE with 3 possible values    IN_RANDOM_ORDER                    :        31.4 /        21.0        323.4 /       169.5       3192.0 /      1843.5  
+(n =   4, k =   2) generates 6 combinations of values { 1 2 3 4 }
+0: { 1, 2 }
+1: { 1, 3 }
+2: { 1, 4 }
+3: { 2, 3 }
+4: { 2, 4 }
+5: { 3, 4 }
+There were no duplicate combinations generated
 
-BUBBLE_SORT           FEW_DISCRETE with 3 possible values    FEW_CHANGES with 3 num out of place:        34.0 /        33.3       4130.1 /       570.6     361736.2 /      5101.8  
-SELECTION_SORT        FEW_DISCRETE with 3 possible values    FEW_CHANGES with 3 num out of place:        39.6 /         9.0       4963.8 /       114.9     499753.4 /      1200.9  
-INSERTION_SORT        FEW_DISCRETE with 3 possible values    FEW_CHANGES with 3 num out of place:        19.7 /        20.3        288.5 /       311.2       2698.4 /      2702.4  
-MERGE_SORT            FEW_DISCRETE with 3 possible values    FEW_CHANGES with 3 num out of place:        23.6 /        32.0        441.5 /       700.0       5797.8 /     10000.0  
-HEAP_SORT             FEW_DISCRETE with 3 possible values    FEW_CHANGES with 3 num out of place:        34.0 /        51.3        897.7 /      1404.3      13196.0 /     20088.0  
-QUICK_SORT            FEW_DISCRETE with 3 possible values    FEW_CHANGES with 3 num out of place:        21.9 /        39.3       1731.8 /       678.0     168086.4 /      7160.1  
-OPTIMIZED_QUICK_SORT  FEW_DISCRETE with 3 possible values    FEW_CHANGES with 3 num out of place:        21.5 /        20.3       1734.8 /       408.0     169225.2 /      5809.2  
-DUTCH_FLAG_SORT       FEW_DISCRETE with 3 possible values    FEW_CHANGES with 3 num out of place:        25.3 /        15.9        284.2 /       114.6       2922.8 /      1013.1  
+(n =   4, k =   3) generates 4 combinations of values { 1 2 3 4 }
+0: { 1, 2, 3 }
+1: { 1, 2, 4 }
+2: { 1, 3, 4 }
+3: { 2, 3, 4 }
+There were no duplicate combinations generated
 
-BUBBLE_SORT           FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER                   :        24.0 /        51.0        294.0 /       591.0       2994.0 /      5991.0  
-SELECTION_SORT        FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER                   :        46.0 /         6.0       4951.0 /         6.0     499501.0 /         6.0  
-INSERTION_SORT        FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER                   :        24.0 /        21.0        294.0 /       201.0       2994.0 /      2001.0  
-MERGE_SORT            FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER                   :        16.0 /        40.0        377.0 /       700.0       5065.0 /     10000.0  
-HEAP_SORT             FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER                   :        33.0 /        60.0        375.0 /       474.0       3219.0 /      3426.0  
-QUICK_SORT            FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER                   :        48.0 /        51.0       4953.0 /       591.0     499503.0 /      5991.0  
-OPTIMIZED_QUICK_SORT  FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER                   :        25.0 /        21.0       5106.0 /       553.0     501466.0 /      5956.0  
-DUTCH_FLAG_SORT       FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER                   :        20.0 /        12.0        200.0 /        12.0       2000.0 /        12.0  
+(n =   4, k =   4) generates 1 combinations of values { 1 2 3 4 }
+0: { 1, 2, 3, 4 }
+There were no duplicate combinations generated
 
-BUBBLE_SORT           FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER                    :        21.1 /        26.1        294.0 /       325.2       2994.0 /      4000.2  
-SELECTION_SORT        FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER                    :        44.3 /         4.8       4974.4 /         6.0     499718.1 /         6.0  
-INSERTION_SORT        FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER                    :        16.5 /        11.9        205.9 /       112.4       2330.7 /      1337.4  
-MERGE_SORT            FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER                    :        24.6 /        36.0        402.7 /       700.0       5280.3 /     10000.0  
-HEAP_SORT             FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER                    :        31.5 /        51.6        393.7 /       466.8       3436.3 /      3426.9  
-QUICK_SORT            FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER                    :        43.1 /        46.2       4943.7 /       591.0     499493.4 /      5991.0  
-OPTIMIZED_QUICK_SORT  FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER                    :        19.4 /        11.9       5127.6 /       553.0     501681.9 /      5954.4  
-DUTCH_FLAG_SORT       FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER                    :        21.2 /         9.6        223.4 /        10.5       2217.1 /        11.1  
-
-BUBBLE_SORT           FEW_DIFFERENT with 2 changed elements  FEW_CHANGES with 3 num out of place:        20.4 /        23.1        284.3 /       324.6       2994.0 /      3472.5  
-SELECTION_SORT        FEW_DIFFERENT with 2 changed elements  FEW_CHANGES with 3 num out of place:        44.4 /         4.8       4972.9 /         6.0     499805.5 /         6.0  
-INSERTION_SORT        FEW_DIFFERENT with 2 changed elements  FEW_CHANGES with 3 num out of place:        15.8 /        10.7        205.6 /       112.0       2154.7 /      1161.5  
-MERGE_SORT            FEW_DIFFERENT with 2 changed elements  FEW_CHANGES with 3 num out of place:        23.5 /        36.0        399.6 /       700.0       5365.7 /     10000.0  
-HEAP_SORT             FEW_DIFFERENT with 2 changed elements  FEW_CHANGES with 3 num out of place:        31.5 /        53.1        395.5 /       471.0       3521.2 /      3422.7  
-QUICK_SORT            FEW_DIFFERENT with 2 changed elements  FEW_CHANGES with 3 num out of place:        42.3 /        45.3       4942.7 /       590.7     499589.6 /      5991.0  
-OPTIMIZED_QUICK_SORT  FEW_DIFFERENT with 2 changed elements  FEW_CHANGES with 3 num out of place:        18.8 /        10.7       5119.8 /       549.2     501770.3 /      5955.8  
-DUTCH_FLAG_SORT       FEW_DIFFERENT with 2 changed elements  FEW_CHANGES with 3 num out of place:        21.0 /         9.3        221.9 /        11.1       2304.5 /        11.4  
-
-Completed Sorting Performance In C++
