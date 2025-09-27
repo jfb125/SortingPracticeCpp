@@ -79,8 +79,8 @@ bool testBlockSortRotateArrayElements();
 bool testBlockSortRotateBlocks();
 bool testBlockSortSort();
 bool testBlockSortSortBlocks();
-bool testBlockSortSwapBlocks();
-bool testBlockSortSwapTags();
+bool testBlockSortSwapBlockElements();
+bool testBlockSortSwapDescriptors();
 bool testBlockSort();
 bool testFloorLog2();
 
@@ -212,7 +212,7 @@ bool testBlockSort() {
 
 #ifdef TEST_BLOCK_SORT_SWAP_BLOCKS
 	num_tests++;
-	runTest(all_tests_passed, testBlockSortSwapBlocks, "function testBlockSwap()");
+	runTest(all_tests_passed, testBlockSortSwapBlockElements, "function testBlockSwap()");
 	if (!all_tests_passed)
 		return all_tests_passed;
 	tests_passed++;
@@ -1961,7 +1961,7 @@ TEST_BLOCK_SORT_SORT_RETURN_LABEL:
 //		which is outside the array and thus blockSwap should return
 //		without any moves
 
-bool testBlockSortSwapBlocks() {
+bool testBlockSortSwapBlockElements() {
 
 	constexpr bool verbose = true;
 	constexpr int value_width = 3;
@@ -2044,9 +2044,10 @@ bool testBlockSortSwapBlocks() {
 					if (true || block_gap >= 0) {
 						//	if the block gap is not negative,
 						//	   the blocks can be swapped
-						BlockSort::swapBlocks(array,
-											  left_block_begin, right_block_begin,
-											  block_size);
+						BlockSort::swapBlockElements( array,
+											  	  	  left_block_begin,
+													  right_block_begin,
+													  block_size);
 					}
 					messages << " expected: "
 							 << SortingUtilities::arrayElementsToString(expected, array_size,
@@ -2078,7 +2079,7 @@ TEST_BLOCK_SORT_SWAP_BLOCKS_RETURN_LABEL:
 	return test_passed;
 }
 
-bool testBlockSortSwapTags() {
+bool testBlockSortSwapDescriptors() {
 	bool test_passed = true;
 	return test_passed;
 }

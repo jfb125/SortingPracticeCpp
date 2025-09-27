@@ -19,60 +19,16 @@
 #define BLOCKSORT_H_
 
 #include "BlockSortDataTypes.h"
+#include "BlockSortDebugging.h"
 #include "IntegerArithmetic.h"
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
 
-//#define DEBUG_VERBOSE_SORT_BLOCKS 1
-//#define DEBUG_SUMMARY_SORT_BLOCKS
 #define DEBUG_VERBOSE_BLOCK_SORT
-	constexpr char 	TAG_BOUNDARY_CHAR 	= '|';
-	constexpr char 	TAG_SPACE_CHAR 		= ' ';
 
 index_t blockSortModulo(index_t rotation_count, index_t span);
 
-/*	for the block swapping portions of the algorithm to work, all of the A_Blocks
- * 	have to be full sized blocks.  Any remaining elements have to be
- * 	in the last B_Block, which may not be a full B_Block.  This variable
- */
-#pragma push_macro("CREATE_BLOCKS_SYMMETRICALLY")
-#undef CREATE_BLOCKS_SYMMETRICALLY
-//#define CREATE_BLOCKS_SYMMETRICALLY
-
 namespace BlockSort {
-
-	/*	******************************************************************	*/
-	/*	******************************************************************	*/
-	/*							debugging resources							*/
-	/*	******************************************************************	*/
-	/*	******************************************************************	*/
-
-	template <typename T>
-	bool areBlocksSorted(std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags);
-	/*		outputing the contentes of the array		*/
-	template <typename T>
-	std::string arrayElementsToString(T** array, index_t size,
-									  int value_width = VALUE_WIDTH,
-									  int element_width = ELEMENT_WIDTH);
-	template <typename T>
-	std::string arrayElementsToString(std::string trailer, T** array, index_t size,
-									  int value_width = VALUE_WIDTH,
-									  int element_width = ELEMENT_WIDTH);
-	/* outputting line of tags to go under line of array elements*/
-	template <typename T>
-	std::string blockDescriptorsToString(std::unique_ptr<BlockDescriptor<T>[]> &tags,
-										 int num_tags,
-										 int element_width = ELEMENT_WIDTH);
-	/* outputting block type, start_index, end_index */
-	template <typename T>
-	std::string blockDescriptorsSummaryToString(std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
-												int num_tags);
-	template <typename T>
-	std::string blockSortToString(T** array, index_t size, index_t v,
-							 	  std::unique_ptr<BlockDescriptor<T>[]> &tags,
-								  int num_tags,
-								  int value_width = VALUE_WIDTH,
-								  int element_width = ELEMENT_WIDTH);
 
 	/*	**************************************************************************	*/
 	/*	**************************************************************************	*/
@@ -127,6 +83,10 @@ namespace BlockSort {
 	ComparesAndMoves rotateBlocksRight(T** array, std::unique_ptr<BlockDescriptor<T>[]> &tags,
 					index_t first_tag, index_t last_tag, int tag_rotate_count);
 
+	template <typename T>
+	ComparesAndMoves sortBlocksByTable(T** array,
+			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
+
 	/*	  Sorts all of the A_Blocks, and then sorts all of the B_Blocks, using
 	 *	an insertion sort on each range.  This is done after creating the blocks
 	 *	on an unordered array and after sorting the elements within the blocks	*/
@@ -135,7 +95,7 @@ namespace BlockSort {
 			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
 	template <typename T>
 
-	ComparesAndMoves swapBlocks(T** array,
+	ComparesAndMoves swapBlockElements(T** array,
 								index_t block1_start, index_t block_2_start,
 								index_t block_size);
 
@@ -617,6 +577,7 @@ namespace BlockSort {
 		}
 		return result;
 	}
+
 	/*
 	 * 	ComparesAndSwaps rotateArray(array, amount, start, end);
 	 *
@@ -684,8 +645,9 @@ namespace BlockSort {
 	/*
 	 * 	ComparesAndMoves rotateBlocksRight(array, tags, first, last, count);
 	 *
-	 * 	Takes an array of tags which contain the information about the array's blocks
-	 * 		and rotates the blocks on [first::last] by tag_rotate_count
+	 * 	Takes an array of descriptors which contain the information about
+	 * 	    the array's blocks	and rotates the blocks on [first::last] by
+	 * 	    block_rotate_count.
 	 *		This requires rotating the underlying array to which the blocks refer
 	 *
 	 * 	Consider a tag array with the associated start:end values
@@ -702,13 +664,13 @@ namespace BlockSort {
 	 *	Note that blocks are not necessarily all of the same size
 	 *
 	 *		rotate the underlying array by
-	 *			tags[first].start - tags[first+tag_rotate_count].start
-	 *		over the span
-	 *			[tags[first].start, tags[last].end]
+	 *			descriptor[first].start - descriptor[first+tag_rotate_count].start
+	 *		over the array span
+	 *			[descriptor[first].start, descriptor[last].end]
 	 *
 	 *		rotate the tags [first:last] by tag_rotate_count
 	 *
-	 *		update the .tart & .end indices of the tags on [first:last]
+	 *		update the .start & .end indices of the tags on [first:last]
 	 */
 
 	template <typename T>
@@ -966,11 +928,42 @@ namespace BlockSort {
 	 *	The block descriptors' keys will not change even though the location
 	 *	  of the key within the array will change if the block's position changes
 	 */
+
+	/*
+	 * 	ComparesAndMoves sortBlocksByTable(array, block_descriptors, num_blocks)
+	 *
+	 *	This only works on an array where all of the blocks are the same size
+	 *	except for (possibly) the final (rightmost) block.
+	 *
+	 * 	  Sorts the array using the block descriptors.  The descriptors themselves
+	 * 	are sorted using an in-place MergeSort that has a table to keep track of
+	 * 	where elements that are swapped out of place are moved to.
+	 *
+	 * 	  At any given time, the table contains a pointer / index to the location
+	 * 	of the next element to be merged from the A_Blocks.  The table's index,
+	 * 	'i' is used.
+	 *
+	 * 	  If an A_Block is moved to make was for a dst block, the A_Block's
+	 * 	entry in the table must be updated, which is not O(n)
+	 *
+	 *	indices 0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
+	 *  values  D   E   F   G   H   I   J   K   L   A   B   C   M   N   O   P
+	 * 	blocks  |A0      ||A1        ||A2        ||        B0||        B1||B2|
+	 *
+	 *	Summarizing:
+	 *	                Block Descriptors            Table
+	 *             0    1    2    3    4    5      A0 A1 A2  i   a   b   dst
+	 *	Block:Key  A0:D A1:G A2:J B0:A B1:M B2:P   0  1  2   0   0   2    0
+	 *
+	 */
 	template <typename T>
-	ComparesAndMoves sortBlocksBySwapping(T** array,
-										  std::unique_ptr<BlockDescriptor<T>[]> &blocks,
-										  int num_blocks) {
+	ComparesAndMoves sortBlocksByTable(
+				T** array,
+				std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
+				int num_blocks) {
 		ComparesAndMoves result(0,0);
+
+
 		return result;
 	}
 
@@ -1046,7 +1039,7 @@ namespace BlockSort {
 	}
 
 	/*
-	 *	ComparesAndMoves blockSwap(array, b1_start, b2_start, block_size)
+	 *	ComparesAndMoves swapBlockElements(array, b1_start, b2_start, block_size)
 	 *
 	 *	usage	num_ops = blockSwap(array, 40, 20, 10);
 	 *	usage	num_ops = blockSwap(array, 20, 40, 10);
@@ -1054,9 +1047,9 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves swapBlocks(T** array,
-								index_t block1_start, index_t block2_start,
-								index_t block_size)
+	ComparesAndMoves swapBlockElements( T** array,
+										index_t block1_start, index_t block2_start,
+										index_t block_size)
 	{
 		ComparesAndMoves result(0,0);
 
@@ -1082,14 +1075,18 @@ namespace BlockSort {
 		return result;
 	}
 
+	/*
+	 * swapBlockDescriptors(blocks, i, j);
+	 *
+	 */
 	template<typename T>
-	ComparesAndMoves swapBlockDescriptors(std::unique_ptr<BlockDescriptor<T[]>> &tags, int i, int j) {
+	ComparesAndMoves swapBlockDescriptors(std::unique_ptr<BlockDescriptor<T[]>> &descriptors, index_t i, index_t j) {
 
 		//	swapping the Tag.key, which is an array element, takes three moves
 		ComparesAndMoves result(0,3);
-		BlockDescriptor<T>tmp = tags[i];
-		tags[i] = tags[j];
-		tags[j] = tmp;
+		BlockDescriptor<T>tmp = descriptors[i];
+		descriptors[i] = descriptors[j];
+		descriptors[j] = tmp;
 		return result;
 	}
 
@@ -1248,224 +1245,6 @@ BLOCK_SORT_RETURN_POINT:
 		}
 		return result;
 	}
-
-
-	/*	**************************************************************************	*/
-	/*	**************************************************************************	*/
-	/*								Debugging resources								*/
-	/*	**************************************************************************	*/
-	/*	**************************************************************************	*/
-
-	//	compares an array of block descriptors using the operator< overload
-
-	template <typename T>
-	bool areBlocksSorted(std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags) {
-
-		for (int i = 0; i != num_tags-1; i++) {
-			if (tags[i+1] < tags[i])
-				return false;
-		}
-		return true;
-	}
-
-	// 	prints a line where the blocks a represented graphically
-	template <typename T>
-	std::string blockDescriptorsToString(std::unique_ptr<BlockDescriptor<T>[]> &tags,
-										 int num_tags,
-										 int element_width) {
-
-		//	restores ostream state with its destructor
-		OStreamState ostream_state;
-
-		std::stringstream result;
-		if (element_width == 0) {
-			result << "ERROR: printTags() called with element_width == 0";
-			return result.str();
-		}
-
-
-		for (int i = 0; i != num_tags; i++) {
-
-			int elements_remaining = tags[i].getWidth();
-
-			switch (elements_remaining) {
-			case 0:
-				result << "!!!!ERROR: printTags() passed a block of size 0 elements: ";
-				return result.str();
-			case 1:
-				result  << SingleElement(tags[i], element_width);
-				break;
-			default:
-				result << OpeningElement(tags[i], element_width);
-				elements_remaining--;
-				while(elements_remaining-- > 1) {
-					std::cout.fill(TAG_SPACE_CHAR);
-					result << std::setw(element_width) << TAG_SPACE_CHAR;
-				}
-				result << ClosingElement(tags[i], element_width);
-				break;
-			}
-		}
-		return result.str();
-	}
-
-	/*
-	 * 	create a string that prints the whole array, including the blockDescriptors
-	 */
-	template <typename T>
-	std::string blockSortToString(T** array, index_t size, index_t v,
-							 	  std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
-								  int value_width, int element_width) {
-		OStreamState ostream_state;
-		std::stringstream result;
-		result << arrayIndicesToString(size, v, element_width) << std::endl;
-		result << SortingUtilities::arrayElementsToString(array, size, value_width, element_width) << std::endl;
-		result << blockDescriptorsToString(tags, num_tags, element_width);
-		return result.str();
-	}
-
-	template <typename T>
-	std::string blockDescriptorsSummaryToString(std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors,
-												int num_blocks) {
-		std::stringstream msg;
-		for (int i = 0; i != num_blocks; i++) {
-			msg << (block_descriptors[i].type == BlockType::A_BLOCK ? "A" : "B");
-			msg << "[" << std::setw(5) << block_descriptors[i].start_index << ":"
-				<< std::setw(5) << block_descriptors[i].end_index << "] [";
-			if (block_descriptors[i].type == BlockType::A_BLOCK) {
-				msg << std::setw(5) << block_descriptors[i].start_index;
-			} else {
-				msg << std::setw(5) << block_descriptors[i].end_index;
-			}
-			msg << "] = " << *block_descriptors[i].key;
-			if (i != num_blocks-1) {
-				msg << " | ";
-			}
-		}
-		return msg.str();
-	}
-
-	//	creates either	"     |" for an A_BLOCK or "   B|" for a B_BLOCK
-	//		where width of the string is set by 'chars_remaining'
-
-	template <typename T>
-	std::string ClosingElement(BlockDescriptor<T> &tag, int chars_remaining) {
-		std::stringstream result;
-		result.fill(TAG_SPACE_CHAR);
-		switch (chars_remaining) {
-		case 0:
-			result << __FUNCTION__ << " called with element_width == 0";
-			break;
-		case 1:
-			result << to_char(tag.type);
-			break;
-		default:
-			if (chars_remaining > 2) {
-				result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
-			}
-			if (tag.type == BlockType::B_BLOCK) {
-				result << to_char(tag.type);
-			} else {
-				result << TAG_SPACE_CHAR;
-			}
-			result << TAG_BOUNDARY_CHAR;
-			break;
-		}
-		return result.str();
-	}
-
-	//	creates either	"|A   " for an A_BLOCK or "|    " for a B_BLOCK
-	//		where width of the string is set by 'chars_remaining'
-
-	template <typename T>
-	std::string OpeningElement(BlockDescriptor<T> &tag, int chars_remaining) {
-		std::stringstream result;
-		result.fill(TAG_SPACE_CHAR);
-		switch (chars_remaining) {
-		case 0:
-			result << __FUNCTION__ << " called with element_width == 0";
-			break;
-		case 1:
-			result << to_char(tag.type);
-			break;
-		default:
-			result << TAG_BOUNDARY_CHAR;
-			chars_remaining--;
-			switch (tag.type) {
-			case BlockType::A_BLOCK:
-				result << to_char(tag.type);
-				chars_remaining--;
-				if (chars_remaining >0) {
-					result << std::setw(chars_remaining) << TAG_SPACE_CHAR;
-				}
-				break;
-			case BlockType::B_BLOCK:
-				result << std::setw(chars_remaining) << TAG_SPACE_CHAR;
-				break;
-			case BlockType::UNSPECIFIED:
-				result.fill('?');
-				result << std::setw(chars_remaining) << '?';
-			}
-			break;
-		}
-		return result.str();
-	}
-
-	//	creates a string representation of a block
-	//	  |A    |   or |    B|  or |?????|
-	//	where the width of the representation
-	//	is equal to the passed param 'element_width'
-
-	template <typename T>
-	std::string SingleElement(BlockDescriptor<T> &tag, int chars_remaining) {
-		std::stringstream result;
-		result.fill(TAG_SPACE_CHAR);
-
-		switch(chars_remaining) {
-		case 0:
-			result << __FUNCTION__ << " called with element_width == 0";
-			break;
-		case 1:
-			result << to_char(tag.type);
-			break;
-		case 2:
-			result << TAG_BOUNDARY_CHAR
-				   << to_char(tag.type);
-			break;
-		case 3:
-			result << TAG_BOUNDARY_CHAR << to_char(tag.type)
-				   << TAG_BOUNDARY_CHAR;
-			break;
-		default:
-			result << TAG_BOUNDARY_CHAR;
-			chars_remaining--;
-			switch (tag.type) {
-			case BlockType::A_BLOCK:
-				result << to_char(tag.type);
-				chars_remaining--;
-				if (chars_remaining > 1) {
-					result << std::setw(chars_remaining-1) << TAG_SPACE_CHAR;
-				}
-				break;
-			case BlockType::B_BLOCK:
-				if (chars_remaining > 2) {
-					result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
-				}
-				result << to_char(tag.type);
-				break;
-			default:
-				result.fill('?');
-				result << std::setw(chars_remaining-1) << '?';
-				break;
-			}
-			result << TAG_BOUNDARY_CHAR;
-			break;
-		}
-		return result.str();
-	}
-
-}	// namespace BlockSort
-
-#pragma pop_macro("CREATE_BLOCKS_SYMMETRICALLY")
+}
 
 #endif /* BLOCKSORT_H_ */
