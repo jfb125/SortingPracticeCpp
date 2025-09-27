@@ -136,8 +136,9 @@ namespace BlockSort {
 	template <typename T>
 
 	ComparesAndMoves swapBlocks(T** array,
-								index_t block1_start, index_t block1_end,
-								index_t block2_start, index_t block2_end);
+								index_t block1_start, index_t block_2_start,
+								index_t block_size);
+
 	template<typename T>
 	ComparesAndMoves swapBlockDescriptors(std::unique_ptr<BlockDescriptor<T[]>> &tags,
 										  int i, int j);
@@ -1045,83 +1046,39 @@ namespace BlockSort {
 	}
 
 	/*
-	 *	ComparesAndMoves blockSwap(array, b1_start, b1_end, b2_start, bl2_end)
+	 *	ComparesAndMoves blockSwap(array, b1_start, b2_start, block_size)
 	 *
-	 *	if the block sizes are not the same, it returns
-	 *		(it is the caller's responsibility to determine if a rotate should
-	 *		 occur instead of a swap)
-	 *	if either of the indices are less than zero, it returns
-	 *	if the blocks overlap (exchange is not defined), it returns
+	 *	usage	num_ops = blockSwap(array, 40, 20, 10);
+	 *	usage	num_ops = blockSwap(array, 20, 40, 10);
+	 *	usage	num_ops = blockSwap(array, 20, 30, 15);
 	 */
 
 	template <typename T>
 	ComparesAndMoves swapBlocks(T** array,
-								index_t block1_start, index_t block1_end,
-								index_t block2_start, index_t block2_end)
+								index_t block1_start, index_t block2_start,
+								index_t block_size)
 	{
 		ComparesAndMoves result(0,0);
 
+		if (block_size <= 0)
+			return result;
+
 		//	if the indices are not credible, leave
-		if (block1_start < 0 || block1_end < 0 || block2_start < 0 || block2_end < 0) {
+		if (block1_start < 0 || block2_start < 0) {
 			//	TODO - throw an exception
 			return result;
 		}
-		//	if necessary, swap indices so that the block is defined left to right
-		if (block1_start > block1_end) {
-			index_t tmp  = block1_start;
-			block1_start = block1_end;
-			block1_end   = tmp;
-		}
-		if (block2_start > block2_end) {
-			index_t tmp  = block2_start;
-			block2_start = block2_end;
-			block2_end   = tmp;
-		}
-		//	ensure the blocks are well formatted:
-		//	1. same size
-		//	2. if necessary, swap indices
-		//	3. ensure the blocks don't overlap
-		index_t block1_span = block1_end-block1_start+1;
-		index_t block2_span = block2_end-block2_start+1;
-
-		//	this is not an exception
-		if (block1_span == 0) {
-			return result;
-		}
-		//	if the blocks are different sizes, exit
-		if (block1_span != block2_span) {
-			// TODO - throw and exception
-			return result;
-		}
-		//	if it is the same block, we are done
-		if (block1_start == block2_start) {
-			return result;
-		}
-		// do the blocks overlap?
-		if (block1_start < block2_start) {
-			//	block1 is the leftmost block
-			//	  does block1 overlap with block2?`
-			if (block1_end >= block2_start) {
-				// TODO - throw exception
-				return result;
-			}
-		} else {
-			// 	block2 is the leftmost block
-			//	  does block2 overlap with block1?
-			if (block2_end >= block1_start) {
-				// TODO - throw exception
-				return result;
-			}
-		}
 
 		T* temp;
-		for (index_t i = block1_start, j = block2_start;
-			 i <= block1_end; ++i, ++j) {
-			temp = array[i];
-			array[i] = array[j];
-			array[j] = temp;
+		for (index_t i = 0; i != block_size; i++) {
 			result._moves += 3;
+			temp = array[block1_start];
+			array[block1_start] = array[block2_start];
+			array[block2_start] = temp;
+			block1_start++;
+			block2_start++;
 		}
+
 		return result;
 	}
 

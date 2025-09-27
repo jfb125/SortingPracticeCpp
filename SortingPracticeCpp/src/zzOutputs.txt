@@ -1,50 +1,505 @@
-Sorting Performance In C++ built on Sep 26 2025 at 15:55:30
+Sorting Performance In C++ built on Sep 27 2025 at 14:40:20
 testBlockSort()
-Sorting all  35 unique arrays of size 7 where mid = 3 using strategy ROTATE   
- took average of       6.5 compares and 15.6 moves
- worst case moves        7 compares and   27 moves
- worst case cmprs        8 compares and    9 moves
-  best case moves        4 compares and    0 moves
-  best case cmprs        3 compares and    0 moves
-Sorting all  70 unique arrays of size 8 where mid = 4 using strategy ROTATE   
- took average of       7.9 compares and 19.5 moves
- worst case moves        8 compares and   33 moves
- worst case cmprs       10 compares and   18 moves
-  best case moves        4 compares and    0 moves
-  best case cmprs        4 compares and    0 moves
-Sorting all 12870 unique arrays of size 16 where mid = 8 using strategy ROTATE   
- took average of      17.7 compares and 65.3 moves
- worst case moves       20 compares and  111 moves
- worst case cmprs       22 compares and   84 moves
-  best case moves        8 compares and    0 moves
-  best case cmprs        8 compares and    0 moves
-PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
+  1 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  0 when passed -1 which took  4 compares
 
-Sorting all  35 unique arrays of size 7 where mid = 3 using strategy TABLE    
- took average of       5.4 compares and 12.0 moves
- worst case moves        6 compares and   18 moves
- worst case cmprs        6 compares and    9 moves
-  best case moves        3 compares and    0 moves
-  best case cmprs        3 compares and    0 moves
-Sorting all  70 unique arrays of size 8 where mid = 4 using strategy TABLE    
- took average of       6.4 compares and 14.6 moves
- worst case moves        7 compares and   21 moves
- worst case cmprs        7 compares and    9 moves
-  best case moves        4 compares and    0 moves
-  best case cmprs        4 compares and    0 moves
-Sorting all 12870 unique arrays of size 16 where mid = 8 using strategy TABLE    
- took average of      14.2 compares and 36.3 moves
- worst case moves       15 compares and   45 moves
- worst case cmprs       15 compares and   21 moves
-  best case moves        8 compares and    0 moves
-  best case cmprs        8 compares and    0 moves
-PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
-Merging blocks 1000 times on an test_array of size  512 using stategy ROTATE    took on average    637.9 compares and      49934.3 moves
-Merging blocks 1000 times on an test_array of size 1024 using stategy ROTATE    took on average   1277.8 compares and     198214.0 moves
-Merging blocks 1000 times on an test_array of size 2048 using stategy ROTATE    took on average   2557.9 compares and     789281.3 moves
-PASS:  function testBlockSortMergeBlocksRandomly() returns TRUE
-Merging blocks 1000 times on an test_array of size  512 using stategy TABLE     took on average    510.0 compares and       1513.3 moves
-Merging blocks 1000 times on an test_array of size 1024 using stategy TABLE     took on average   1022.0 compares and       3047.2 moves
-Merging blocks 1000 times on an test_array of size 2048 using stategy TABLE     took on average   2046.1 compares and       6117.5 moves
-PASS:  function testBlockSortMergeBlocksRandomly() returns TRUE
-testBlockSort() ran 4 successful tests
+  2 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  1 when passed  0 which took  4 compares
+
+  3 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  2 when passed  1 which took  4 compares
+
+  4 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  3 when passed  2 which took  4 compares
+
+  5 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  4 when passed  3 which took  4 compares
+
+  6 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  5 when passed  4 which took  4 compares
+
+  7 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  6 when passed  5 which took  4 compares
+
+  8 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  7 when passed  6 which took  4 compares
+
+  9 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  8 when passed  7 which took  4 compares
+
+ 10 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      0    1    2    3    4    5    6    7 
+returned  8 when passed  8 which took  4 compares
+
+ 11 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  0 when passed  0 which took  4 compares
+
+ 12 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  1 when passed  1 which took  4 compares
+
+ 13 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  1 when passed  2 which took  4 compares
+
+ 14 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  2 when passed  3 which took  4 compares
+
+ 15 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  2 when passed  4 which took  4 compares
+
+ 16 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  3 when passed  5 which took  4 compares
+
+ 17 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  3 when passed  6 which took  4 compares
+
+ 18 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  4 when passed  7 which took  4 compares
+
+ 19 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  4 when passed  8 which took  4 compares
+
+ 20 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  5 when passed  9 which took  4 compares
+
+ 21 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  5 when passed 10 which took  4 compares
+
+ 22 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  6 when passed 11 which took  4 compares
+
+ 23 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  6 when passed 12 which took  4 compares
+
+ 24 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  7 when passed 13 which took  4 compares
+
+ 25 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  7 when passed 14 which took  4 compares
+
+ 26 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  8 when passed 15 which took  4 compares
+
+ 27 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    3    5    7    9   11   13   15 
+returned  8 when passed 16 which took  4 compares
+
+ 28 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  0 when passed  1 which took  4 compares
+
+ 29 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  1 when passed  2 which took  4 compares
+
+ 30 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  1 when passed  3 which took  4 compares
+
+ 31 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  2 when passed  4 which took  4 compares
+
+ 32 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  2 when passed  5 which took  4 compares
+
+ 33 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  3 when passed  6 which took  4 compares
+
+ 34 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  3 when passed  7 which took  4 compares
+
+ 35 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  4 when passed  8 which took  4 compares
+
+ 36 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  4 when passed  9 which took  4 compares
+
+ 37 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  5 when passed 10 which took  4 compares
+
+ 38 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  5 when passed 11 which took  4 compares
+
+ 39 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  6 when passed 12 which took  4 compares
+
+ 40 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  6 when passed 13 which took  4 compares
+
+ 41 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  7 when passed 14 which took  4 compares
+
+ 42 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  7 when passed 15 which took  4 compares
+
+ 43 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  8 when passed 16 which took  4 compares
+
+ 44 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      2    4    6    8   10   12   14   16 
+returned  8 when passed 17 which took  4 compares
+
+ 45 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  0 when passed  0 which took  5 compares
+
+ 46 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  1 when passed  1 which took  5 compares
+
+ 47 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  1 when passed  2 which took  5 compares
+
+ 48 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  2 when passed  3 which took  4 compares
+
+ 49 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  2 when passed  4 which took  4 compares
+
+ 50 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  3 when passed  5 which took  4 compares
+
+ 51 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  3 when passed  6 which took  4 compares
+
+ 52 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  4 when passed  7 which took  4 compares
+
+ 53 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  4 when passed  8 which took  4 compares
+
+ 54 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  5 when passed  9 which took  4 compares
+
+ 55 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  5 when passed 10 which took  4 compares
+
+ 56 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  6 when passed 11 which took  4 compares
+
+ 57 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  6 when passed 12 which took  4 compares
+
+ 58 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  7 when passed 13 which took  4 compares
+
+ 59 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  7 when passed 14 which took  4 compares
+
+ 60 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  8 when passed 15 which took  4 compares
+
+ 61 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  8 when passed 16 which took  4 compares
+
+ 62 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  9 when passed 17 which took  4 compares
+
+ 63 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    3    5    7    9   11   13   15   17 
+returned  9 when passed 18 which took  4 compares
+
+ 64 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  0 when passed  1 which took  5 compares
+
+ 65 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  1 when passed  2 which took  5 compares
+
+ 66 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  1 when passed  3 which took  5 compares
+
+ 67 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  2 when passed  4 which took  4 compares
+
+ 68 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  2 when passed  5 which took  4 compares
+
+ 69 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  3 when passed  6 which took  4 compares
+
+ 70 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  3 when passed  7 which took  4 compares
+
+ 71 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  4 when passed  8 which took  4 compares
+
+ 72 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  4 when passed  9 which took  4 compares
+
+ 73 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  5 when passed 10 which took  4 compares
+
+ 74 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  5 when passed 11 which took  4 compares
+
+ 75 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  6 when passed 12 which took  4 compares
+
+ 76 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  6 when passed 13 which took  4 compares
+
+ 77 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  7 when passed 14 which took  4 compares
+
+ 78 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  7 when passed 15 which took  4 compares
+
+ 79 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  8 when passed 16 which took  4 compares
+
+ 80 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  8 when passed 17 which took  4 compares
+
+ 81 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  9 when passed 18 which took  4 compares
+
+ 82 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      2    4    6    8   10   12   14   16   18 
+returned  9 when passed 19 which took  4 compares
+
+ 83 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    1    2    2    3    3    4    4 
+returned  0 when passed  0 which took  4 compares
+
+ 84 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    1    2    2    3    3    4    4 
+returned  2 when passed  1 which took  4 compares
+
+ 85 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    1    2    2    3    3    4    4 
+returned  4 when passed  2 which took  4 compares
+
+ 86 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    1    2    2    3    3    4    4 
+returned  6 when passed  3 which took  4 compares
+
+ 87 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    1    2    2    3    3    4    4 
+returned  8 when passed  4 which took  4 compares
+
+ 88 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7
+Keys      1    1    2    2    3    3    4    4 
+returned  8 when passed  5 which took  4 compares
+
+ 89 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    1    1    2    2    2    3    3    3 
+returned  0 when passed  0 which took  5 compares
+
+ 90 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    1    1    2    2    2    3    3    3 
+returned  3 when passed  1 which took  4 compares
+
+ 91 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    1    1    2    2    2    3    3    3 
+returned  6 when passed  2 which took  4 compares
+
+ 92 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    1    1    2    2    2    3    3    3 
+returned  9 when passed  3 which took  4 compares
+
+ 93 binarySearchLastBlock() on array: 
+Blocks    0    1    2    3    4    5    6    7    8
+Keys      1    1    1    2    2    2    3    3    3 
+returned  9 when passed  4 which took  4 compares
+
+ 94 binarySearchLastBlock() on array: 
+Blocks    0
+Keys      1 
+returned  0 when passed  0 which took  1 compares
+
+ 95 binarySearchLastBlock() on array: 
+Blocks    0
+Keys      1 
+returned  1 when passed  1 which took  1 compares
+
+ 96 binarySearchLastBlock() on array: 
+Blocks    0
+Keys      1 
+returned  1 when passed  2 which took  1 compares
+
+ 97 binarySearchLastBlock() on array: 
+Blocks    0    1
+Keys      1    2 
+returned  0 when passed  0 which took  2 compares
+
+ 98 binarySearchLastBlock() on array: 
+Blocks    0    1
+Keys      1    2 
+returned  1 when passed  1 which took  2 compares
+
+ 99 binarySearchLastBlock() on array: 
+Blocks    0    1
+Keys      1    2 
+returned  2 when passed  2 which took  2 compares
+
+100 binarySearchLastBlock() on array: 
+Blocks    0    1
+Keys      1    2 
+returned  2 when passed  3 which took  2 compares
+
+After 100 tests testBlockSortBinarySearchLastBlock() returns passed
+PASS:  function testBlockSortBinarySearchLastBlock() returns TRUE
+testBlockSort() ran 1 successful tests

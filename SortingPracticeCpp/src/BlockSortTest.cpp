@@ -56,12 +56,12 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_ELEMENT
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
-//#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
+#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
-#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+//#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
+//#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
@@ -214,7 +214,7 @@ bool testBlockSort() {
 	num_tests++;
 	runTest(all_tests_passed, testBlockSortSwapBlocks, "function testBlockSwap()");
 	if (!all_tests_passed)
-		return passed;
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
@@ -743,7 +743,7 @@ bool testBlockSortBinarySearchFirstBlock() {
 bool testBlockSortBinarySearchLastBlock() {
 
 	constexpr bool debug_verbose = false;
-	constexpr bool announce_each_test_result = false;
+	constexpr bool announce_each_test_result = true;
 	constexpr int element_width = ELEMENT_WIDTH;
 
 	OStreamState ostream_state;	// restores state in its destructor
@@ -851,8 +851,8 @@ bool testBlockSortBinarySearchLastBlock() {
 
 			msg << std::setw(3) << test_number
 				<< " binarySearchLastBlock() on array: " << std::endl;
-			msg << "Indices " << arrayIndicesToString(haystack_size, -1) << std::endl;
-			msg << "Values  ";
+			msg << "Blocks " << arrayIndicesToString(haystack_size, -1) << std::endl;
+			msg << "Keys   ";
 			for (int i = 0; i != haystack_size; i++) {
 				msg << std::setw(element_width-1) << *haystack[i].key << " ";
 			}
@@ -870,8 +870,8 @@ bool testBlockSortBinarySearchLastBlock() {
 					<< " when passed "<< std::setw(2) << *key
 					<< " expected " 	<< std::setw(2) << expected_answer
 					<< " !!!\n";
-				msg << "Indices " << arrayIndicesToString(haystack_size, -1) << std::endl;
-				msg << "Values  ";
+				msg << "Blocks " << arrayIndicesToString(haystack_size, -1) << std::endl;
+				msg << "Keys   ";
 				for (int i = 0; i != haystack_size; i++) {
 					msg << std::setw(element_width-1) << *haystack[i].key << " ";
 				}
@@ -2000,23 +2000,23 @@ bool testBlockSortSwapBlocks() {
 					std::stringstream messages;
 					//	delineate two blocks, left & right
 					int left_block_begin = beginnings[i];
-					int left_block_end = left_block_begin + block_size-1;
+//					int left_block_end = left_block_begin + block_size-1;
 					int right_block_begin =
 							left_block_begin + std::abs(block_gap) * block_size;
-					int right_block_end =
-							right_block_begin + block_size-1;
+//					int right_block_end =
+//							right_block_begin + block_size-1;
 					messages << "test case " << test_case
 							 << " array_size " 	<< std::setw(2) << array_size
 							 << ", block_size " << std::setw(2) << block_size
 							 << ", block_gap " << std::setw(2) << block_gap
 							 << ", block_beginning " << std::setw(2) << beginnings[i]
 							 << " left_block [" << std::setw(2) << left_block_begin
-							 << ":" << std::setw(2) << left_block_end
+							 << ":" << std::setw(2) << left_block_begin + block_size - 1
 							 << "], right block [" << std::setw(2) << right_block_begin
-							 << ":" << std::setw(2) << right_block_end << "]";
+							 << ":" << std::setw(2) << right_block_begin + block_size - 1 << "]";
 					test_case++;
 					//	if the bounds of the right block are outside the array
-					if (right_block_end > array_size-1) {
+					if (right_block_begin + block_size >= array_size) {
 						std::cout << messages.str() << " !!! right block end index > array_size-1" << std::endl;
 						continue;
 					}
@@ -2033,7 +2033,7 @@ bool testBlockSortSwapBlocks() {
 						expected[i] = new char('a' + (i %26));
 					}
 					for (int i = left_block_begin, j = right_block_begin;
-							 i <= left_block_end; ++i, ++j) {
+							 i < left_block_begin + block_size; ++i, ++j) {
 						char *tmp = expected[i];
 						expected[i] = expected[j];
 						expected[j] = tmp;
@@ -2041,16 +2041,12 @@ bool testBlockSortSwapBlocks() {
 					messages << " testing:  "
 							 << SortingUtilities::arrayElementsToString(array, array_size, value_width, element_width)
 							 << std::endl;
-					if (block_gap >= 0) {
+					if (true || block_gap >= 0) {
 						//	if the block gap is not negative,
 						//	   the blocks can be swapped
-						BlockSort::swapBlocks(array, left_block_begin, left_block_end,
-												    right_block_begin, right_block_end);
-					} else {
-						// if the block gap is negative, the right most block needs
-						//     to be the first block passed to the function
-						BlockSort::swapBlocks(array, right_block_begin, right_block_end,
-													left_block_begin, left_block_end);
+						BlockSort::swapBlocks(array,
+											  left_block_begin, right_block_begin,
+											  block_size);
 					}
 					messages << " expected: "
 							 << SortingUtilities::arrayElementsToString(expected, array_size,
