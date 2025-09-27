@@ -23,7 +23,6 @@ namespace MergeSort {
 
 		ComparesAndMoves ret_val(0,0);
 
-
 		if (size <= 1) {
 			return ret_val;
 		}
@@ -72,24 +71,11 @@ namespace MergeSort {
 				right = left_stop;
 
 //				std::cout << "(" << start << "," << left_stop << "," << right_stop << ") ";
-				while (dst != right_stop) {
-					// if the right source has been exhausted, copy left
-					if (right == right_stop) {
-						while (left < left_stop) {
-							ret_val._moves++;
-							dst_array[dst++] = src_array[left++];
-						}
-						break;
-					}
-					// if the left source has been exhausted, copy right
-					if (left == left_stop) {
-						while (right < right_stop) {
-							ret_val._moves++;
-							dst_array[dst++] = src_array[right++];
-						}
-						break;
-					}
-					// compare values on left & right and move the lesser value
+//				while (dst != right_stop) {
+				while (left != left_stop && right != right_stop) {
+					// compare values on left & right and move the lesser value,
+					//	given precedence to the left value if they are equal
+					//	which guarantees stability
 					ret_val._compares++;
 					if (*src_array[left] <= *src_array[right]) {
 						ret_val._moves++;
@@ -99,8 +85,18 @@ namespace MergeSort {
 						dst_array[dst++] = src_array[right++];
 					}
 				}
+				// 	The above loop terminated because either
+				// right == right_stop or left == left_stop, but not both.
+				// Finish copying the source half that was not completed.
+				while (left < left_stop) {
+					ret_val._moves++;
+					dst_array[dst++] = src_array[left++];
+				}
+				while (right < right_stop) {
+					ret_val._moves++;
+					dst_array[dst++] = src_array[right++];
+				}
 			}
-//			std::cout << std::endl;
 		}
 
 //		std::cout << "array: " << array << " aux: " << aux << " | dst: " << dst_array << ", src " << src_array << std::endl;
