@@ -24,8 +24,8 @@ bool testnChoosek() {
 	using datatype = int;
 	constexpr datatype min_least_value = 1;
 
-	constexpr int min_n = 3;
-	constexpr int max_n = 4;
+	constexpr int min_n = 5;
+	constexpr int max_n = 7;
 //	constexpr int min_k = 1;
 //	constexpr int max_k = 4;
 
