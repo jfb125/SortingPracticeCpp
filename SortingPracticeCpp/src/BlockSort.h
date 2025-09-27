@@ -947,22 +947,102 @@ namespace BlockSort {
 	 * 	entry in the table must be updated, which is not O(n)
 	 *
 	 *	indices 0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
-	 *  values  D   E   F   G   H   I   J   K   L   A   B   C   M   N   O   P
-	 * 	blocks  |A0      ||A1        ||A2        ||        B0||        B1||B2|
+	 *  values  D   E   F   G   H   I   S   T   X   A   B   C   M   N   R   P
+	 * 	blocks  |A0        ||A1        ||A2        ||      B0||        B1||B2|
 	 *
-	 *	Summarizing:
-	 *	                Block Descriptors            Table
-	 *             0    1    2    3    4    5      A0 A1 A2  i   a   b   dst
-	 *	Block:Key  A0:D A1:G A2:J B0:A B1:M B2:P   0  1  2   0   0   2    0
-	 *
+	 *	Summarizing Block:Key pairs, i is the index into the A positions table
+	 *	       Block Descriptors            Table      a =
+	 *    0    1    2    3    4    5      A0 A1 A2  i  [i]  b   dst   AKey BKey
+	 *	  A0:D A1:G A2:S B0:C B1:R B2:P   0  1  2   0   0   3    0    :D > :A
+	 *	  B0:A A1:6 A2:S A0:D B1:R B2:P   3  1  2   0   3   4    1    :D <=:O
+	 *	  B0:A AO:D A2:S A1:G B1:R B2:P   x  3  2   1   3   4    2    :G <=:O
+	 *	  B0:A AO:D A1:G A2:S B1:R B2:P   x  x  3   2   3   4    3    :S > :O
+	 *	  B0:A AO:D A1:G B1:R A2:S B2:P   x  x  4   2   4   5    4    :S <=:P
+	 *	  B0:A AO:D A1:G B1:R B2:P A2:S   x  x  x   3   x   5    5    complete
 	 */
+
 	template <typename T>
 	ComparesAndMoves sortBlocksByTable(
 				T** array,
 				std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
 				int num_blocks) {
+
 		ComparesAndMoves result(0,0);
 
+		//	Count the number of A Blocks
+		index_t num_A_blocks = 0;
+		index_t a_source = 0;
+
+		while (a_source < num_blocks) {
+			if (descriptors[a_source].type != BlockType::A_BLOCK)
+				break;
+			a_source++;
+		}
+
+		//	if the array is all A_Blocks
+		if (a_source == num_blocks) {
+			return result;
+		}
+
+		// if the array is all B_Blocks
+		if (a_source == 0) {
+			return result;
+		}
+
+		//	Build a table of A Block indices
+		index_t a_positions[num_A_blocks];
+		for (index_t i = 0; i != num_A_blocks; i++) {
+			a_positions[i] = i;
+		}
+
+		//	Create source & destination indices
+
+		index_t table_i 	= 0;
+		index_t b_source 	= num_A_blocks;
+		index_t dst			= 0;
+		index_t src			= 0;
+
+		while (table_i != num_A_blocks && b_source != num_blocks) {
+
+			result._compares++;
+			if (*array[a_positions[table_i]].key <= *array[b_source].key) {
+				src = a_positions[table_i];
+				table_i++;
+			} else {
+				src = b_source;
+				b_source++;
+			}
+
+			if (src == dst) {
+				continue;
+			}
+
+			result += swapBlocks(array, descriptors, dst, src);
+
+			for (index_t i = table_i; i != num_A_blocks; i++) {
+				//	If there was an A_Block in the table that was at dst
+				// it has now been swapped to src
+				if (a_positions[i] == dst) {
+					a_positions[i] = src;
+					break;
+				}
+			}
+			dst++;
+		}
+
+		//	  If there are any remaining A_Blocks,
+		//	move them within the array back to in order
+		while (table_i != num_A_blocks) {
+			src = a_positions[table_i];
+			result += swapBlocks(array, descriptors, dst, src);
+			table_i++;
+			for (index_t i = table_i; i != num_A_blocks; i++) {
+				if (a_positions[i] == dst) {
+					a_positions[i] = src;
+					break;
+				}
+			}
+		}
 
 		return result;
 	}
