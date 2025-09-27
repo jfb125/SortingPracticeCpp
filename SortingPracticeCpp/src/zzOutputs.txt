@@ -1,44 +1,50 @@
-Sorting Performance In C++ built on Sep 25 2025 at 18:45:34
-(n =   3, k =   1) generates 3 combinations of values { 1 2 3 }
-0: { 1 }
-1: { 2 }
-2: { 3 }
-There were no duplicate combinations generated
+Sorting Performance In C++ built on Sep 26 2025 at 15:55:30
+testBlockSort()
+Sorting all  35 unique arrays of size 7 where mid = 3 using strategy ROTATE   
+ took average of       6.5 compares and 15.6 moves
+ worst case moves        7 compares and   27 moves
+ worst case cmprs        8 compares and    9 moves
+  best case moves        4 compares and    0 moves
+  best case cmprs        3 compares and    0 moves
+Sorting all  70 unique arrays of size 8 where mid = 4 using strategy ROTATE   
+ took average of       7.9 compares and 19.5 moves
+ worst case moves        8 compares and   33 moves
+ worst case cmprs       10 compares and   18 moves
+  best case moves        4 compares and    0 moves
+  best case cmprs        4 compares and    0 moves
+Sorting all 12870 unique arrays of size 16 where mid = 8 using strategy ROTATE   
+ took average of      17.7 compares and 65.3 moves
+ worst case moves       20 compares and  111 moves
+ worst case cmprs       22 compares and   84 moves
+  best case moves        8 compares and    0 moves
+  best case cmprs        8 compares and    0 moves
+PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
 
-(n =   3, k =   2) generates 3 combinations of values { 1 2 3 }
-0: { 1, 2 }
-1: { 1, 3 }
-2: { 2, 3 }
-There were no duplicate combinations generated
-
-(n =   3, k =   3) generates 1 combinations of values { 1 2 3 }
-0: { 1, 2, 3 }
-There were no duplicate combinations generated
-
-(n =   4, k =   1) generates 4 combinations of values { 1 2 3 4 }
-0: { 1 }
-1: { 2 }
-2: { 3 }
-3: { 4 }
-There were no duplicate combinations generated
-
-(n =   4, k =   2) generates 6 combinations of values { 1 2 3 4 }
-0: { 1, 2 }
-1: { 1, 3 }
-2: { 1, 4 }
-3: { 2, 3 }
-4: { 2, 4 }
-5: { 3, 4 }
-There were no duplicate combinations generated
-
-(n =   4, k =   3) generates 4 combinations of values { 1 2 3 4 }
-0: { 1, 2, 3 }
-1: { 1, 2, 4 }
-2: { 1, 3, 4 }
-3: { 2, 3, 4 }
-There were no duplicate combinations generated
-
-(n =   4, k =   4) generates 1 combinations of values { 1 2 3 4 }
-0: { 1, 2, 3, 4 }
-There were no duplicate combinations generated
-
+Sorting all  35 unique arrays of size 7 where mid = 3 using strategy TABLE    
+ took average of       5.4 compares and 12.0 moves
+ worst case moves        6 compares and   18 moves
+ worst case cmprs        6 compares and    9 moves
+  best case moves        3 compares and    0 moves
+  best case cmprs        3 compares and    0 moves
+Sorting all  70 unique arrays of size 8 where mid = 4 using strategy TABLE    
+ took average of       6.4 compares and 14.6 moves
+ worst case moves        7 compares and   21 moves
+ worst case cmprs        7 compares and    9 moves
+  best case moves        4 compares and    0 moves
+  best case cmprs        4 compares and    0 moves
+Sorting all 12870 unique arrays of size 16 where mid = 8 using strategy TABLE    
+ took average of      14.2 compares and 36.3 moves
+ worst case moves       15 compares and   45 moves
+ worst case cmprs       15 compares and   21 moves
+  best case moves        8 compares and    0 moves
+  best case cmprs        8 compares and    0 moves
+PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
+Merging blocks 1000 times on an test_array of size  512 using stategy ROTATE    took on average    637.9 compares and      49934.3 moves
+Merging blocks 1000 times on an test_array of size 1024 using stategy ROTATE    took on average   1277.8 compares and     198214.0 moves
+Merging blocks 1000 times on an test_array of size 2048 using stategy ROTATE    took on average   2557.9 compares and     789281.3 moves
+PASS:  function testBlockSortMergeBlocksRandomly() returns TRUE
+Merging blocks 1000 times on an test_array of size  512 using stategy TABLE     took on average    510.0 compares and       1513.3 moves
+Merging blocks 1000 times on an test_array of size 1024 using stategy TABLE     took on average   1022.0 compares and       3047.2 moves
+Merging blocks 1000 times on an test_array of size 2048 using stategy TABLE     took on average   2046.1 compares and       6117.5 moves
+PASS:  function testBlockSortMergeBlocksRandomly() returns TRUE
+testBlockSort() ran 4 successful tests

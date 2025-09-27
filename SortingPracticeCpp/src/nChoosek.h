@@ -30,13 +30,14 @@ enum nChoosekStatus {
 	WARNING_n_TRUNCATED_TO_NUM_VALUES	= 0x04
 };
 
+using nCk_index_t 					= uint32_t;
+using nCk_status_t					= unsigned;
+using nCk_num_combos_t				= uint32_t;
+
 template <typename T>
 class nChoosek {
 private:
 
-	using nCk_index_t 					= uint32_t;
-	using nCk_status_t					= unsigned;
-	using nCk_num_combos_t				= uint32_t;
 	uint64_t 	m_max_num_combinations 	= INT32_MAX;
 	//	m_num_combinations has to be at least 1 for seq = (++seq) % num_combos;
 	nCk_index_t m_min_num_combinations	= 1;

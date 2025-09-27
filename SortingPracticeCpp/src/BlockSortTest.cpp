@@ -13,6 +13,7 @@
 #include <algorithm>
 
 #include "IntegerArithmetic.h"
+#include "nChoosek.h"
 
 #include "BlockSort.h"
 //	BlockSortUnused.h contains functions that are no longer used to implement
@@ -59,10 +60,10 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-//#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
-//#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
+#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
-#define TEST_BLOCK_SORT_SORT_BLOCKS
+//#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 
@@ -92,6 +93,12 @@ bool testFloorLog2();
 	}\
 } while(false)
 
+template <typename T>
+bool generateAllCombinationsOfValues(T*** test_vectors,
+									 T**  test_values,
+									 int num_test_vectors,
+									 int test_vector_size,
+									 int mid);
 
 template <typename T>
 bool generateAllPermutationsOfValues(T** test_vectors[],
@@ -110,132 +117,133 @@ void randomizeArray(T **array, array_size_t size);
 /*	**********************************************	*/
 
 bool testBlockSort() {
-	bool passed = true;
+	bool all_tests_passed = true;
 	int num_tests = 0;
 	int tests_passed = 0;
 	std::cout << "testBlockSort()" << std::endl;
 
 #ifdef TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 	num_tests++;
-	runTest(passed, testBlockSortCreateDescriptors, "function blockSortCreateDescriptors()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testBlockSortCreateDescriptors, "function blockSortCreateDescriptors()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
 #ifdef TEST_MODULO
 	num_tests++;
-	runTest(passed, testBlockSortModulo, "function blockSortModulo()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testBlockSortModulo, "function blockSortModulo()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_FLOOR_LOG_2
 	num_tests++;
-	runTest(passed, testFloorLog2, "function floorLog2()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testFloorLog2, "function floorLog2()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
 	num_tests++;
-	runTest(passed, testBlockSortBinarySearchLastBlock, "function testBlockSortBinarySearchLastBlock()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testBlockSortBinarySearchLastBlock, "function testBlockSortBinarySearchLastBlock()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
 #ifdef	TEST_BLOCK_SORT_ROTATE_ELEMENTS
 	num_tests++;
-	runTest(passed, testBlockSortRotateArrayElements, "function testBlockSortRotateArrayElements()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testBlockSortRotateArrayElements, "function testBlockSortRotateArrayElements()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
 #ifdef	TEST_BLOCK_SORT_ROTATE_BLOCKS
 	num_tests++;
-	runTest(passed, testBlockSortRotateBlocks,
+	runTest(all_tests_passed, testBlockSortRotateBlocks,
 			"function testBlockSortRotateBlocks()");
-	if (!passed)
-		return passed;
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_SORT_BLOCKS
 	num_tests++;
-	runTest(passed, testBlockSortSortBlocks, "function testBlockSortSortBlocks()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testBlockSortSortBlocks, "function testBlockSortSortBlocks()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 	num_tests++;
 	merge_strategy = MergeStrategy::ROTATE;
-	runTest(passed, testBlockSortMergeBlocksExhaustively, "function testBlockSortMergeBlocksExhaustively()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testBlockSortMergeBlocksExhaustively, "function testBlockSortMergeBlocksExhaustively()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
+	std::cout << std::endl;
 	num_tests++;
 	merge_strategy = MergeStrategy::TABLE;
-	runTest(passed, testBlockSortMergeBlocksExhaustively, "function testBlockSortMergeBlocksExhaustively()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testBlockSortMergeBlocksExhaustively, "function testBlockSortMergeBlocksExhaustively()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 	num_tests++;
 	merge_strategy = MergeStrategy::ROTATE;
-	runTest(passed, testBlockSortMergeBlocksRandomly, "function testBlockSortMergeBlocksRandomly()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testBlockSortMergeBlocksRandomly, "function testBlockSortMergeBlocksRandomly()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 	num_tests++;
 	merge_strategy = MergeStrategy::TABLE;
-	runTest(passed, testBlockSortMergeBlocksRandomly, "function testBlockSortMergeBlocksRandomly()");
-	if (!passed)
-		return passed;
+	runTest(all_tests_passed, testBlockSortMergeBlocksRandomly, "function testBlockSortMergeBlocksRandomly()");
+	if (!all_tests_passed)
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_SWAP_BLOCKS
 	num_tests++;
-	runTest(passed, testBlockSortSwapBlocks, "function testBlockSwap()");
-	if (!passed)
+	runTest(all_tests_passed, testBlockSortSwapBlocks, "function testBlockSwap()");
+	if (!all_tests_passed)
 		return passed;
 	tests_passed++;
 #endif
 
 #ifdef	TEST_BLOCK_SORT_SORT
 	num_tests++;
-	runTest(passed, testBlockSortSort, "function testBlockSortSort()");
-	if (!passed)
+	runTest(all_tests_passed, testBlockSortSort, "function testBlockSortSort()");
+	if (!all_tests_passed)
 		return passed;
 	tests_passed++;
 #endif
 
 #ifdef	TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_ELEMENT
 	num_tests++;
-	runTest(passed, testBlockSortBinarySearchFirstElement, "function testBlockSortBinaryFirst()");
-	if (!passed)
+	runTest(all_tests_passed, testBlockSortBinarySearchFirstElement, "function testBlockSortBinaryFirst()");
+	if (!all_tests_passed)
 		return passed;
 	tests_passed++;
 #endif
 
 #ifdef	TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
 	num_tests++;
-	runTest(passed, testBlockSortBinarySearchLastElement, "function testBlockSortBinaryLast()");
-	if (!passed)
+	runTest(all_tests_passed, testBlockSortBinarySearchLastElement, "function testBlockSortBinaryLast()");
+	if (!all_tests_passed)
 		return passed;
 	tests_passed++;
 #endif
 
 	std::cout << "testBlockSort() ran " << tests_passed << " successful tests\n";
-	return passed;
+	return all_tests_passed;
 }
 
 /*	**********************************************	*/
@@ -901,7 +909,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 	std::stringstream test_message;
 	bool test_passed = true;
 
-	int test_vector_sizes[] = { 7, 8 };
+	int test_vector_sizes[] = { 7, 8, 16 };
 	int num_test_vectors_sizes = sizeof(test_vector_sizes) / sizeof(int);
 
 	#pragma push_macro("DATA_TYPE")
@@ -932,93 +940,65 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	/*		test code	*/
 
-	for (int test_vector_i = 0; test_vector_i != num_test_vectors_sizes; test_vector_i++) {
+	for (int test_vector_i = 0; test_vector_i < num_test_vectors_sizes; test_vector_i++) {
 		int test_vector_size = test_vector_sizes[test_vector_i];
-		int num_test_vectors = 1;
-		for (int i = 1; i <= test_vector_size; i++) {
-			num_test_vectors *= i;
-		}
 
-		data_type *test_values[test_vector_size];
+		//	build the array of test values
+		char *test_values[test_vector_size];
 		for (int i = 0; i != test_vector_size; i++) {
 			#if (DATA_TYPE == c)
-				test_values[i] = new char('A' + ((test_vector_size-1)-i) % 26);
+				test_values[i] = new char('A'+(i % 26));
 			#elif (DATA_TYPE == i)
 				test_values[i] = new int(i);
 			#endif
 		}
 
-		char **test_vectors[num_test_vectors];
-		if (!generateAllPermutationsOfValues(test_vectors, test_values, num_test_vectors, test_vector_size)) {
-			std::cout << __FUNCTION__ << " failed b/c generateTestVectors() failed\n";
-			return false;
+		int mid = test_vector_size/2;
+
+		//	calculate the binomial coefficient which is (n choose k)
+		int num_test_vectors = 1;
+	    for (int i = 1; i <= mid; ++i) {
+	    	int num_test_vectors_was = num_test_vectors;
+	        num_test_vectors = num_test_vectors * (test_vector_size - i + 1) / i;
+	        if (num_test_vectors_was > num_test_vectors) {
+	        	std::cout << "Unable to generate " << num_test_vectors << " test vectors" << std::endl;
+	        	test_passed = false;
+	        	goto TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN;
+	        }
+	    }
+
+	    char **test_vectors[num_test_vectors];
+
+		if (!generateAllCombinationsOfValues(test_vectors, test_values, num_test_vectors, test_vector_size, mid)) {
+			std::cout << "Unable to generate " << num_test_vectors << " test vectors" << std::endl;
+			test_passed = false;
+			goto TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN;
 		}
 
-		array_size_t mid = test_vector_size / 2 ;
 		array_size_t left_start = 0;
 		array_size_t left_end = mid - 1;
 		array_size_t right_start = mid;
 		array_size_t right_end = test_vector_size-1;
-		ComparesAndMoves total_results(0,0);
 
-		std::vector<char**> used_vectors;
+		ComparesAndMoves total_results(0,0);
+		ComparesAndMoves least_moves	(100000000,100000000);
+		ComparesAndMoves least_compares	(100000000,100000000);
+		ComparesAndMoves most_moves		(        0,        0);
+		ComparesAndMoves most_compares	(        0,        0);
 
 		int num_tests_run = 0;
+
 		for (int i = 0; i != num_test_vectors; i++) {
 			test_message.clear();
 			test_message.str("");
-			test_message << std::setw(5) << num_tests_run << " "
-						 << testVectorToString(test_vectors[i], test_vector_size);
+			test_message << std::setw(5) << num_tests_run << " ";
 			InsertionSort::sortPointersToObjects(&test_vectors[i][left_start], mid);
 			InsertionSort::sortPointersToObjects(&test_vectors[i][mid], right_end-right_start+1);
 
-			//	Although all permutations of the sequence have been generated,
-			//	  after sorting each half of the vector, many seemingly different
-			//	  permutations will be in the same sorted order.
-			//	  Make a copy of this pass for a list of already seen vectors
-			char **this_pass = new char*[test_vector_size];
-			for (int c = 0; c != test_vector_size; c++) {
-				this_pass[c] = test_vectors[i][c];
-			}
-
-			bool same_vector = false;;
-			int used_vector_i = 0;
-			for (char **used_vector : used_vectors) {
-				same_vector = true;
-	//			std::cout << " ... ["
-	//					  << std::setw(2) << i
-	//					  << "] test vector "
-	//					  << testVectorToString(this_pass, test_vector_size)
-	//					  << " vs ["
-	//					  << std::setw(2) << used_vector_i
-	//					  << "] "
-	//					  << testVectorToString(used_vector, test_vector_size);
-	//
-				for (int j = 0; j!= test_vector_size; j++) {
-					if (*used_vector[j] != *this_pass[j]) {
-						same_vector = false;
-					}
-				}
-				if (same_vector)
-					break;
-	//			std::cout << " not equal, trying next used_vector" << std::endl;
-				used_vector_i++;
-			}
-			if (same_vector) {
-	//			std::cout << " test vector already used: "
-	//					  << testVectorToString(this_pass, test_vector_size)
-	//					  << " trying next test_vector"
-	//					  << std::endl;
-				continue;
-			}
-			used_vectors.emplace_back(this_pass);
-	//		std::cout << "Vector not used so far: "
-	//				  << testVectorToString(this_pass, test_vector_size)
-	//				  << std::endl;
 			num_tests_run++;
-
 			test_message << " when divided into two subarrays, each sorted: "
 						 << testVectorToString(test_vectors[i], test_vector_size);
+
 			ComparesAndMoves result;
 			switch(merge_strategy) {
 			case MergeStrategy::TABLE:
@@ -1032,6 +1012,19 @@ bool testBlockSortMergeBlocksExhaustively() {
 				break;
 			}
 			total_results += result;
+			if (result._compares < least_compares._compares) {
+				least_compares = result;
+			}
+			if (result._moves < least_moves._moves) {
+				least_moves = result;
+			}
+			if (result._compares > most_compares._compares) {
+				most_compares = result;
+			}
+			if (result._moves > most_moves._moves) {
+				most_moves = result;
+			}
+
 			test_message << " merged using strategy " << toString(merge_strategy) << " to "
 						 << testVectorToString(test_vectors[i], test_vector_size)
 						 << " which took "
@@ -1050,11 +1043,12 @@ bool testBlockSortMergeBlocksExhaustively() {
 			}
 		}
 		if (echo_result) {
-			std::cout << "Sorting " << std::setw(3) << num_tests_run
+			std::cout << "Sorting all " << std::setw(3) << num_tests_run
 					  << " unique arrays of size "
-					  << test_vector_size << " using strategy "
+					  << test_vector_size << " where mid = " << mid << " using strategy "
 					  << toString(merge_strategy)
-					  << " took average of "
+					  << std::endl
+					  << " took average of  "
 					  << std::fixed
 					  << std::setprecision(1)
 					  << std::setw(8)
@@ -1062,9 +1056,18 @@ bool testBlockSortMergeBlocksExhaustively() {
 					  << " compares and "
 					  << std::setw(4)
 					  << static_cast<double>(total_results._moves) / num_tests_run
-					  << " moves\n";
+					  << " moves\n"
+					  << " worst case moves " << std::setw(8) << most_moves._compares << " compares and "
+					  << std::setw(4) << most_moves._moves << " moves\n"
+					  << " worst case cmprs " << std::setw(8) << most_compares._compares << " compares and "
+					  << std::setw(4) << most_compares._moves << " moves\n"
+					  << "  best case moves " << std::setw(8) << least_moves._compares << " compares and "
+					  << std::setw(4) << least_moves._moves << " moves\n"
+					  << "  best case cmprs " << std::setw(8) << least_compares._compares << " compares and "
+					  << std::setw(4) << least_moves._moves << " moves\n";
 		}
 	}
+
 	TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN:
 	return test_passed;
 
@@ -1112,7 +1115,7 @@ bool testBlockSortMergeBlocksRandomly() {
 
 	int num_test_passes = 1000;
 //	array_size_t array_sizes[] = { 8, 16, 31, 32, 33, 127, 128, 129, 16, 32, 64, 128};
-	array_size_t array_sizes[] = { 1024 };
+	array_size_t array_sizes[] = { 512, 1024, 2048 };
 	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
 	for (int array_size_i = 0; array_size_i != num_array_sizes; ++array_size_i) {
@@ -1226,10 +1229,10 @@ bool testBlockSortMergeBlocksRandomly() {
 					 << std::setw(4) << array_size
 					 << " using stategy " << toString(merge_strategy)
 					 << " took on average "
-					 << std::fixed << std::setprecision(1) << std::setw(6)
+					 << std::fixed << std::setprecision(1) << std::setw(8)
 					 << static_cast<double>(total_result._compares) / num_tests
 					 << " compares and "
-					 << std::fixed << std::setprecision(1) << std::setw(6)
+					 << std::fixed << std::setprecision(1) << std::setw(12)
 					 << static_cast<double>(total_result._moves) / num_tests
 					 << " moves" << std::endl;
 		}
@@ -2084,6 +2087,112 @@ bool testBlockSortSwapTags() {
 	return test_passed;
 }
 
+/*
+ * 	 Generates a series of test vectors that are split from [0:mid-1] [mid:size-1]
+ * 	such that any given distince combination of 'mid' values appears only once
+ * 	in the [0:mid-1].  This is useful for testing functions that sort each half
+ * 	of the test vector before operating on the array
+ * 		Consider the values { A, B, C, D, E, F } with mid = 3
+ * 		The test patterns	{ A, C, E, B, D, F } and { E, C, A, F, D, B }
+ * 		will be equivalent vectors after sorting [0:2] and [3:5]
+ */
+
+template <typename T>
+bool generateAllCombinationsOfValues(T*** test_vectors,
+									 T**  test_values,
+									 int num_test_vectors,
+									 int test_vector_size,
+									 int mid) {
+
+	constexpr bool debug_verbose = false;
+
+	/*	******************************************	*/
+	/*					lambdas						*/
+	/*	******************************************	*/
+
+	auto displayVector = [] (std::vector<T*>vector) {
+		std::cout << "{ ";
+		for (size_t i = 0; i != vector.size(); i++) {
+			std::cout << *vector.at(i) << " ";
+		}
+		std::cout << "}";
+	};
+
+	auto displayArray = [] (T**array, int num_elements) {
+		std::cout << "{ ";
+		for (int i = 0; i != num_elements; i++) {
+			std::cout << *array[i] << " ";
+		}
+		std::cout << "}";
+	};
+
+	//	append any allowed_values that are not already in test_vector
+	auto finishBuildingTestVector = [] (T**test_vector,
+										int test_vector_size, int dst_i,
+										std::vector<T*> &values) {
+		//	for all of the values in 'allowed'
+		for (auto it : values) {
+			int i = 0;
+			bool found = false;
+			//	see if the allowed value is already in test_vector
+			for (; i != dst_i; i++) {
+				if (*test_vector[i] == *it) {
+					found = true;
+					break;
+				}
+			}
+			//	if the value is not in the test_vector, add it
+			if (!found) {
+				test_vector[dst_i] = it;
+				dst_i++;
+			}
+			//	if we have completely filled the test vector, done
+			if (dst_i == test_vector_size)
+				break;
+		}
+	};
+
+	/*	******************************************	*/
+	/*			main code starts here				*/
+	/*	******************************************	*/
+
+	//	create a vector of test_values for generator
+	std::vector<T*> allowed_values;
+	for (int i = 0; i != test_vector_size; i++) {
+		allowed_values.emplace_back(test_values[i]);
+	}
+
+	nChoosek generator(test_vector_size, mid, allowed_values);
+
+	//	create the storage for the test vectors
+	for (int i = 0; i != num_test_vectors; i++) {
+		test_vectors[i] = new T*[test_vector_size];
+	}
+
+	//	create each test vector
+
+	for (int vector_num = 0; vector_num != num_test_vectors; ++vector_num) {
+		std::vector<T*>combo;
+		generator.next(combo);
+		if (debug_verbose) {
+			std::cout << std::setw(4) << vector_num << ": ";
+			displayVector(combo);
+			std::cout << " generates ";
+		}
+		//	copy elements for left side of test vector
+		nCk_index_t elem_num = 0;
+		for ( ; elem_num != combo.size(); ++elem_num) {
+			test_vectors[vector_num][elem_num] = combo.at(elem_num);
+		}
+		//	Append values not aready in the test vector to the test vector
+		finishBuildingTestVector(test_vectors[vector_num], test_vector_size, elem_num, allowed_values);
+		if (debug_verbose) {
+			displayArray(test_vectors[vector_num], test_vector_size);
+			std::cout << std::endl;
+		}
+	}
+	return true;
+}
 
 template <typename T>
 bool generateAllPermutationsOfValues(T** test_vectors[],
@@ -2158,9 +2267,6 @@ bool generateAllPermutationsOfValues(T** test_vectors[],
 	/*	**********************************************	*/
 	/*				code starts here					*/
 	/*	**********************************************	*/
-
-	// note that most array logic in programming is done from [0:n]
-	//	in factorials, the start of the sequence is 1 * 2 * ... * n
 
 	//	consider an test space of 6 possible values for a digit
 	//	there will be 6! = 720 vectors
