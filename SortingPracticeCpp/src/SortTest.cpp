@@ -10,6 +10,7 @@
 
 #include "SortTest.h"
 #include "SortingUtilities.h"
+#include "SortingPracticeDataTypes.h"
 
 #include "BlockSort.h"
 #include "BubbleSort.h"
@@ -334,8 +335,9 @@ void	printSideBySide(StudentDataArray &a, StudentDataArray &b) {
 }
 
 std::ostream& operator<<(std::ostream& out, const ComparesAndMoves& object) {
-
-	out << object._compares << " compares and " << object._moves << " swaps";
+	OStreamState ostream_state;
+	out << std::setw(compares_width) << object._compares << " compares and "
+		<< std::setw(moves_width) << object._moves << " moves";
 	return out;
 }
 

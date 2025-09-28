@@ -34,6 +34,8 @@ struct ComparesAndMoves {
 #define _DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_I	0
 #define _DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_J	0
 
+constexpr int compares_width = 8;
+constexpr int moves_width = 8;
 std::ostream& operator<<(std::ostream &out, const ComparesAndMoves& object);
 ComparesAndMoves& operator+=(ComparesAndMoves& lhs, const ComparesAndMoves &rhs);
 

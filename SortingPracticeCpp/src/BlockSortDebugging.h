@@ -226,5 +226,4 @@ namespace BlockSort {
 }	// namespace BlockSort
 
 
-
 #endif /* BLOCKSORTDEBUGGING_H_ */

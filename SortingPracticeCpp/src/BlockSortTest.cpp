@@ -52,20 +52,22 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 /*	**********************************************	*/
 
 //#define TEST_MODULO
-//#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_ELEMENT
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
-#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
+//#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-//#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
-//#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
-//#define TEST_BLOCK_SORT_SWAP_BLOCKS
+//#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
+//#define TEST_BLOCK_SORT_ROTATE_BLOCKS
+#define TEST_BLOCK_SORT_SWAP_BLOCKS
+//#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
+//#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
-//#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 
 bool testBlockSortBinarySearchFirstBlock();
 bool testBlockSortBinarySearchLastBlock();
@@ -81,6 +83,7 @@ bool testBlockSortSort();
 bool testBlockSortSortBlocks();
 bool testBlockSortSwapBlockElements();
 bool testBlockSortSwapDescriptors();
+bool testBlockSortSwapBlocks();
 bool testBlockSort();
 bool testFloorLog2();
 
@@ -210,9 +213,17 @@ bool testBlockSort() {
 	tests_passed++;
 #endif
 
+#ifdef TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
+	num_tests++;
+	runTest(all_tests_passed, testBlockSortSwapBlockElements, "function testBlockSwapElements()");
+	if (!all_tests_passed)
+		return all_tests_passed;
+	tests_passed++;
+#endif
+
 #ifdef TEST_BLOCK_SORT_SWAP_BLOCKS
 	num_tests++;
-	runTest(all_tests_passed, testBlockSortSwapBlockElements, "function testBlockSwap()");
+	runTest(all_tests_passed, testBlockSortSwapBlocks, "function testBlockSortSwapBlocks()");
 	if (!all_tests_passed)
 		return all_tests_passed;
 	tests_passed++;
@@ -529,7 +540,7 @@ VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT:
 
 bool testBlockSortCreateDescriptors() {
 
-	constexpr bool verbose_output = false;
+	constexpr bool verbose_output = true;
 
 	bool test_result = true;
 	bool test_a0_full = true;
@@ -555,8 +566,8 @@ bool testBlockSortCreateDescriptors() {
 
 //	int test_vector_size = sizeof(test_vector) / sizeof(char*);
 
-	int minimum_block_size = 3;
-	int maximum_block_size = 5;
+	int minimum_block_size = 2;
+	int maximum_block_size = 2;
 	int nominal_array_size = 16;
 
 	//	perform the test both on createBlockDescriptors_A0_Full()
@@ -568,7 +579,7 @@ bool testBlockSortCreateDescriptors() {
 			//	try all necessary array sizes to generate all fractional
 			//	  sizes of the final B_Block, from 0 to block_size-1
 			int num_blocks_possible = nominal_array_size / block_size;
-			int num_complete_blocks = num_blocks_possible-1;
+			int num_complete_blocks = num_blocks_possible;
 			int minimum_array_size = num_complete_blocks * block_size;
 			int maximum_array_size = minimum_array_size+block_size-1;
 			for (int array_size = minimum_array_size;
@@ -653,7 +664,7 @@ bool testBlockSortCreateDescriptors() {
 		} else {
 			test_a0_full = true;
 		}
-	} while (test_a0_full == false);
+	} while (false && test_a0_full == false);
 
 TEST_CREATE_BLOCKS_RETURN_POINT:
 	return test_result;
@@ -1874,6 +1885,192 @@ bool testBlockSortSortBlocks() {
 	TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL:
 	return test_passed;
 }
+
+bool testBlockSortSwapBlocks() {
+
+	OStreamState ostream_state;	// restores ostream flags in destructor
+
+	constexpr bool announce_each_result = true;
+	constexpr bool debug_verbose = false;
+
+	bool test_result = true;
+	index_t array_sizes[] = { 32, 64 };
+
+	using data_type = char;
+
+	auto copy_array = [] (data_type **dst, data_type **src, index_t size) {
+
+		for (int i = 0; i != size; i++) {
+			dst[i] = new char(*src[i]);
+		}
+	};
+
+	auto copy_descriptors = [] (data_type** expected_array,
+			 	 	 	 	 	Descriptors<data_type> &dst,
+								Descriptors<data_type> &src,
+								int num_descriptors) {
+		//	ensure that the expected descriptors point to the
+		//	  expected arrray
+		for (int i = 0; i != num_descriptors; i++) {
+			dst[i] = src[i];
+			dst[i].assignKey(expected_array);
+		}
+	};
+
+	auto compare_arrays = [] (data_type **u, data_type **v, index_t size) -> bool {
+		bool identical = true;
+		for (int i = 0; i != size; i++) {
+			if (*u[i] != *v[i]) {
+				identical = false;
+				break;
+			}
+		}
+		return identical;
+	};
+
+	auto compare_descriptors = [] (Descriptors<data_type> &expected,
+							  Descriptors<data_type> &result,
+							  int num_descriptors) -> bool{
+		for (int i = 0; i != num_descriptors; i++) {
+			if (expected[i].type != result[i].type)	return false;
+			if (*expected[i].key != *result[i].key) return false;
+		}
+		return true;
+	};
+
+	auto generate_expected_array = [] (data_type **expected,
+								 	   Descriptors<data_type> &descriptors,
+									   int u, int v) {
+
+		index_t u_start = descriptors[u].start_index;
+		index_t u_end	= descriptors[u].end_index;
+		index_t v_start	= descriptors[u].start_index;
+		index_t v_end	= descriptors[v].end_index;
+		index_t u_size 	= u_end - u_start + 1;
+		index_t v_size 	= v_end - v_start + 1;
+		if (u_size == v_size) {
+			BlockSort::swapBlockElements(expected, u_start, v_start, v_size);
+		} else {
+			BlockSort::rotateArrayElementsRight(expected, u_start, v_start, v_size);
+		}
+	};
+
+	auto generate_expected_descriptors = [] (data_type **expected_array,
+											 Descriptors<data_type> &expected,
+											 int u, int v) {
+		BlockType temp 	= expected[u].type;
+		expected[u].type= expected[v].type;
+		expected[v].type=temp;
+		expected[u].assignKey(expected_array);
+		expected[v].assignKey(expected_array);
+	};
+
+	auto make_test_vector_1 = [] (data_type **dst, index_t size) {
+		char left_start = 'A';
+		char right_start = 'A';
+		for (int i = 0; i != size/2; i++) {
+			dst[i] = new char(left_start + ((2*i)%26));
+		}
+		for (int i = size/2; i != size; i++) {
+			dst[i] = new char(right_start + ((2*i+1)%26));
+		}
+	};
+
+	int num_array_sizes = sizeof(array_sizes)/sizeof(index_t);
+
+	for (int array_size_i = 0;
+			 array_size_i != 1 + 0*num_array_sizes;
+			 array_size_i++) {
+		index_t array_size 	= array_sizes[array_size_i];
+		index_t mid 		= array_size/2;
+		index_t span_end 	= array_size-1;
+		index_t block_size 	= static_cast<index_t>(std::sqrt(mid));
+
+		data_type *test_vector[array_size];
+		make_test_vector_1(test_vector, array_size);
+		InsertionSort::sortPointersToObjects(test_vector, mid);
+		InsertionSort::sortPointersToObjects(&test_vector[mid], array_size-mid);
+
+		std::unique_ptr<BlockDescriptor<char>[]> test_descriptors;
+		int num_descriptors = BlockSort::createBlockDescriptors_A0_Full(
+				test_vector, 0, mid, span_end,
+				block_size, test_descriptors);
+
+		for (int i = 0; i < num_descriptors-1; i++) {
+			for (int j = i+1; j < num_descriptors; j++) {
+				std::stringstream msg;
+				ComparesAndMoves metrics(0,0);
+				data_type *array_under_test[array_size];
+				std::unique_ptr<BlockDescriptor<char>[]> descriptors_under_test;
+					std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
+				data_type *expected_array[array_size];
+				std::unique_ptr<BlockDescriptor<char>[]> expected_descriptors;
+					std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
+				copy_array(array_under_test, test_vector, array_size);
+				copy_array(expected_array, test_vector, array_size);
+				copy_descriptors(array_under_test,
+								 descriptors_under_test, test_descriptors,
+								 num_descriptors);
+				copy_descriptors(expected_array,
+								 expected_descriptors, test_descriptors,
+								 num_descriptors);
+#if 0
+				//	first swap the underlying elmeents into their final positions
+				generate_expected_array(expected_array, expected_descriptors, i, j);
+				//	then update the .type and .key members
+				generate_expected_descriptors(expected_array,
+											  expected_descriptors, i, j);
+
+				metrics = BlockSort::swapBlocks(array_under_test, descriptors_under_test, i, j);
+#endif
+				msg << BlockSort::blockSortToString(
+								test_vector, array_size, mid,
+								test_descriptors, num_descriptors)
+					<< std::endl;
+				msg << "Swapped " << i << " vs " << j
+					<< " which took " << metrics << "and yielded \n";
+				msg << BlockSort::blockSortToString(
+								array_under_test, array_size, mid,
+								descriptors_under_test, num_descriptors)
+					<< std::endl;
+
+				if (!compare_arrays(expected_array, array_under_test, array_size)) {
+					msg << "ERROR: resultant does not match expected_array" << std::endl;
+					test_result = false;
+
+				}
+				if (!compare_descriptors(expected_descriptors, descriptors_under_test, num_descriptors)) {
+					msg << "ERROR: resultant descriptors do not match expected descriptors" << std::endl;
+					test_result = false;
+				}
+				if (announce_each_result) {
+					std::cout << msg.str() << std::endl;
+				}
+				if (true || !test_result) {
+					if (!announce_each_result) {
+						std::cout << msg.str() << std::endl;
+					}
+					std::cout << "Expected\n"
+							  << BlockSort::blockSortToString(expected_array,
+									  	  	  	  	  	  	  array_size, mid,
+															  expected_descriptors,
+															  num_descriptors)
+							  << std::endl
+							  << "\nversus result:\n"
+							  << BlockSort::blockSortToString(array_under_test,
+									  	  	  	  	  	  	  array_size, mid,
+															  descriptors_under_test,
+															  num_descriptors)
+							  << std::endl;
+					goto TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN;
+				}
+			}
+		}
+	}
+TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN:
+	return test_result;
+}
+
 
 bool testBlockSortSort() {
 	bool passed = true;

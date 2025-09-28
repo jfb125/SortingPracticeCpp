@@ -19,16 +19,19 @@
 #define BLOCKSORT_H_
 
 #include "BlockSortDataTypes.h"
-#include "BlockSortDebugging.h"
 #include "IntegerArithmetic.h"
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
+#include "BlockSortDebugging.h"
 
 #define DEBUG_VERBOSE_BLOCK_SORT
 
 index_t blockSortModulo(index_t rotation_count, index_t span);
 
 namespace BlockSort {
+
+	template <typename T>
+	using Descriptors = std::unique_ptr<BlockDescriptor<T>[]>;
 
 	/*	**************************************************************************	*/
 	/*	**************************************************************************	*/
@@ -93,8 +96,11 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves sortEachBlockTypeSeparately(T** array, index_t size,
 			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
-	template <typename T>
 
+	template <typename T>
+	ComparesAndMoves swapBlocks(T** array, Descriptors<T> &descriptors, int i, int j);
+
+	template <typename T>
 	ComparesAndMoves swapBlockElements(T** array,
 								index_t block1_start, index_t block_2_start,
 								index_t block_size);
@@ -378,6 +384,7 @@ namespace BlockSort {
 			return 0;
 		}
 
+		std::cout << "Calculated " << num_blocks << " blocks to create" << std::endl;
 		//	assign values to the blocks
 		int block_number = 0;
 		index_t start_of_block = start;
@@ -1005,7 +1012,7 @@ namespace BlockSort {
 		while (table_i != num_A_blocks && b_source != num_blocks) {
 
 			result._compares++;
-			if (*array[a_positions[table_i]].key <= *array[b_source].key) {
+			if (*descriptors[a_positions[table_i]].key <= *descriptors[b_source].key) {
 				src = a_positions[table_i];
 				table_i++;
 			} else {
@@ -1119,6 +1126,45 @@ namespace BlockSort {
 	}
 
 	/*
+	 * 	metrics = swapBlocks(array, descriptors, 1, 2);
+	 *
+	 *    This swaps the descriptors and the underlying array elements of
+	 *  two blocks at positions i vs j in the array of descriptors
+	 *
+	 *    The function manages the overhead of determining which swapElement()
+	 *  function should be called. Currently, swapping the elements of blocks
+	 *  that are the same size is accomplished through an element-wise swap.
+	 *  Blocks that are of different sizes must be swapped with a rotate, which
+	 *  adds considerable more time complexity.
+	 */
+
+	template <typename T>
+	ComparesAndMoves swapBlocks(T** array, Descriptors<T> &descriptors, int i, int j) {
+
+		ComparesAndMoves metrics(0,0);
+
+		if (i != j) {
+			if (descriptors[i].getWidth() == descriptors[j].getWidth()) {
+				std::cout << "Swapping equal length blocks" << std::endl;
+				metrics += swapBlockElements(array,
+											 descriptors[i].start_index,
+											 descriptors[j].start_index,
+											 descriptors[i].getWidth());
+				BlockType temp = descriptors[i].type;
+				descriptors[i].type = descriptors[j].type;
+				descriptors[j].type = temp;
+				descriptors[i].assignKey(array);
+				descriptors[j].assignKey(array);
+				metrics._moves += 2;
+			} else {
+				metrics += rotateBlocksRight(array, descriptors, i, j, 1);
+			}
+		}
+
+		return metrics;
+	}
+
+	/*
 	 *	ComparesAndMoves swapBlockElements(array, b1_start, b2_start, block_size)
 	 *
 	 *	usage	num_ops = blockSwap(array, 40, 20, 10);
@@ -1157,10 +1203,11 @@ namespace BlockSort {
 
 	/*
 	 * swapBlockDescriptors(blocks, i, j);
+	 * !!! DOES NOT SWAP UNDERLYING ELEMENTS !!!
 	 *
 	 */
 	template<typename T>
-	ComparesAndMoves swapBlockDescriptors(std::unique_ptr<BlockDescriptor<T[]>> &descriptors, index_t i, index_t j) {
+	ComparesAndMoves swapBlockDescriptors(Descriptors<T> &descriptors, index_t i, index_t j) {
 
 		//	swapping the Tag.key, which is an array element, takes three moves
 		ComparesAndMoves result(0,3);
