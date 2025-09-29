@@ -384,7 +384,6 @@ namespace BlockSort {
 			return 0;
 		}
 
-		std::cout << "Calculated " << num_blocks << " blocks to create" << std::endl;
 		//	assign values to the blocks
 		int block_number = 0;
 		index_t start_of_block = start;
@@ -1137,27 +1136,193 @@ namespace BlockSort {
 	 *  Blocks that are of different sizes must be swapped with a rotate, which
 	 *  adds considerable more time complexity.
 	 */
+	template <typename T>
+	ComparesAndMoves swapBlocksOfEqualSize(T** array, Descriptors<T> &descriptors, int u, int v) {
+
+		ComparesAndMoves metrics(0,0);
+		metrics += swapBlockElements(array,
+									 descriptors[u].start_index,
+									 descriptors[v].start_index,
+									 descriptors[u].getWidth());
+		BlockType temp = descriptors[u].type;
+		descriptors[u].type = descriptors[v].type;
+		descriptors[v].type = temp;
+		descriptors[u].assignKey(array);
+		descriptors[v].assignKey(array);
+		metrics._moves += 2;
+		return metrics;
+	}
 
 	template <typename T>
-	ComparesAndMoves swapBlocks(T** array, Descriptors<T> &descriptors, int i, int j) {
+	ComparesAndMoves swapBlocksLeftSmallerThanRight(T** array, Descriptors<T> &descriptors, int u, int v) {
+		ComparesAndMoves metrics(0,0);
+		/*
+		 * 	left_size = lz = 1					right_size = rz = 4
+		 * 	left_start 	= 0						right_start = 22
+		 * 	left_end 	= 0						right_end 	= 25
+		 * 	swap_count 	= sc = left_size = 1
+		 *  rotate_right_count = right_size - swap_count = 3
+		 *
+		 * |A||A         |    ..   |        B||         B|
+		 *	0  1  2  3  4  .....   18 19 20 21 22 23 24 25  lp rp sc rc
+		 *	a  b  c  d  e           s  t  u  v  w  x  y  x	 0 22  1
+		 *	w  b  c  d  e           s  t  u  v  a  x  y  z   1 23  0
+		 *		rotate_right(lp = 1, r_end = 25, 3)
+		 *	w  x  y  z  b  c  d  e           s  t  u  v  a
+		 *	swap descriptors, which will result in all descriptors being misaligned
+		 *	w  x  y  z  b  c  d  e           s  t  u  v  a
+		 * |B||A         | ....... |        B||A         |
+		 *  4  4                            4  1			descriptor's sizes (correct)
+		 * 22  1                    18         0            wrong descriptor starts
+		 * 25           4                  21  0            wrong descriptor ends
+		 * 25  1                           21  0            wrong descriptor key indices
+		 *  update descriptor start, stop & key's
+		 *	w  x  y  z  b  c  d  e   ...     s  t  u  v  a
+		 * [         B||A         |  ...    |         B||A|
+		 *  0        3  4        7           21      24  25
+		 */
+
+		index_t swap_count	= descriptors[u].getWidth();
+		index_t rotate_count= descriptors[v].getWidth() - swap_count;
+		index_t span_start	= descriptors[u].start_index;
+		index_t left_index	= span_start;
+		index_t right_index	= descriptors[v].start_index;
+
+		//	swap as many elements as possible to reduce number of moves
+		while (swap_count) {
+			metrics._moves += 3;
+			//	swap left & right
+			T* temp 			= array[left_index];
+			array[left_index] 	= array[right_index];
+			array[right_index]	= temp;
+			//	next left & right
+			left_index++;
+			right_index++;
+			swap_count--;
+		}
+
+		//	Rotate the remaining portion of the array to get the remaining elements
+		//	  of descriptor[v] on the right hand side into the left hand side
+//		std::cout << "u < v Before rotate " << SortingUtilities::arrayElementsToString(array, 33) << std::endl;
+		metrics += rotateArrayElementsRight(array, left_index, descriptors[v].end_index, rotate_count);
+//		std::cout << "u < v After  rotate " << SortingUtilities::arrayElementsToString(array, 33) << std::endl;
+		//	  Swap the two block_descriptors
+		BlockDescriptor<T> temp = descriptors[u];
+		descriptors[u] = descriptors[v];
+		descriptors[v] = temp;
+
+		//	update the descriptor's start index, end index & key
+		for (int i = u; i <= v ; i++) {
+			index_t size = descriptors[i].getWidth();
+			descriptors[i].start_index 	= span_start;
+			descriptors[i].end_index 	= span_start + size - 1;
+			//	changing the key value requires moving / copying an array element
+			metrics._moves++;
+			descriptors[i].assignKey(array);
+			span_start += size;
+		}
+		return metrics;
+	}
+
+	template <typename T>
+	ComparesAndMoves swapBlocksRightSmallerThanLeft(T** array, Descriptors<T> &descriptors, int u, int v) {
+		ComparesAndMoves metrics(0,0);
+
+		/*
+		 * 	left_size = lz = 4					right_size = rz = 1
+		 * 	left_start = 0						right_start = 25
+		 * 	left_end   = 3						right_end   = 25
+		 * 	swap_count = sc = right_size = 1
+		 * 	rotate_left_count 	= left_size - swap_count = 3
+		 * 	rotate_right_count 	= -rotate_left_count = -3
+		 *
+		 * |A         ||A    ..  |            |          B||B|
+		 *	0  1  2  3  4  5  6  7       ..   18 19 20 21 22 23 24 25  lp rp sc
+		 *	a  b  c  d  e  f  g  h             s  t  u  v  w  x  y  z	0 25  1
+		 *	z  b  c  d  e  f  g  h             s  t  u  v  w  x  y  a   1 26  0
+		 *
+		 *	rotate_right(lp = 1, right_start-1 = 24, rc = -3)	which is a rotate left
+		 *	w  e  f  g  h                      v  w  x  y  a  b  c  d
+		 *	swap descriptors, which will result in all descriptors being misaligned
+		 *	0  1  2  3  4  5  6  7            18 19 20 21 22 23 24 25
+		 *	w  e  f  g  h                      v  w  x  y  a  b  c  d
+		 * |B|         |A        | ..                  |         B||A         |
+		 *  1           4                                        4  4	descriptor's sizes correct
+		 * 25  4                                        21          0   wrong descriptor's starts
+		 * 25                   7                               24  3   wrong descriptor's ends
+		 * 25  4                                                24  0   wrong descriptor's key indices
+		 *  update descriptor start, stop & key's
+		 *	0  1  2  3  4  5  6  7            18 19 20 21 22 23 24 25
+		 *	w  e  f  g  h                      v  w  x  y  a  b  c  d
+		 * [B||A         |  ...               |         B||A         |
+		 *  0  1        4                      18      21 22       25
+		 */
+
+		index_t span_start 	= descriptors[u].start_index;
+		index_t left_index 	= span_start;
+		index_t right_index = descriptors[v].start_index;
+		index_t swap_count 	= descriptors[v].getWidth();
+		index_t rotate_right_count = -(descriptors[u].getWidth() - swap_count);
+
+		while (swap_count) {
+			metrics._moves += 3;
+			T* temp = array[left_index];
+			array[left_index] = array[right_index];
+			array[right_index] = temp;
+			left_index++;
+			right_index++;
+			swap_count--;
+		}
+
+//		std::cout << "u > v Before rotate " << SortingUtilities::arrayElementsToString(array, 33) << std::endl;
+		metrics += rotateArrayElementsRight(array,
+											left_index,
+											descriptors[v].end_index,
+											rotate_right_count);
+//		std::cout << "u > v After  rotate " << SortingUtilities::arrayElementsToString(array, 33) << std::endl;
+
+		BlockDescriptor<T> temp = descriptors[u];
+		descriptors[u] = descriptors[v];
+		descriptors[v] = temp;
+
+		for (int i = u; i <= v; i++) {
+			index_t size = descriptors[i].getWidth();
+			descriptors[i].start_index = span_start;
+			descriptors[i].end_index = span_start+size-1;
+			//	moving a key value into a descriptor is one move of an element
+			metrics._moves++;
+			descriptors[i].assignKey(array);
+			span_start += size;
+		}
+
+		return metrics;
+	}
+
+	template <typename T>
+	ComparesAndMoves swapBlocks(T** array, Descriptors<T> &descriptors, int u, int v) {
 
 		ComparesAndMoves metrics(0,0);
 
-		if (i != j) {
-			if (descriptors[i].getWidth() == descriptors[j].getWidth()) {
-				std::cout << "Swapping equal length blocks" << std::endl;
-				metrics += swapBlockElements(array,
-											 descriptors[i].start_index,
-											 descriptors[j].start_index,
-											 descriptors[i].getWidth());
-				BlockType temp = descriptors[i].type;
-				descriptors[i].type = descriptors[j].type;
-				descriptors[j].type = temp;
-				descriptors[i].assignKey(array);
-				descriptors[j].assignKey(array);
-				metrics._moves += 2;
+		if (u == v) {
+			return metrics;
+		}
+
+		//	ensure u is to the left of v
+		if (v < u) {
+			int temp = u;
+			u = v;
+			v = temp;
+		}
+
+		index_t u_width = descriptors[u].getWidth();
+		index_t v_width = descriptors[v].getWidth();
+		if (u_width == v_width) {
+			metrics += swapBlocksOfEqualSize(array, descriptors, u, v);
+		} else {
+			if (u_width < v_width) {
+				metrics += swapBlocksLeftSmallerThanRight(array, descriptors, u, v);
 			} else {
-				metrics += rotateBlocksRight(array, descriptors, i, j, 1);
+				metrics += swapBlocksRightSmallerThanLeft(array, descriptors, u, v);
 			}
 		}
 

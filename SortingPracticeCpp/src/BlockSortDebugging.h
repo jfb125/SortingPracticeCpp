@@ -85,19 +85,24 @@ namespace BlockSort {
 	}
 
 	template <typename T>
-	std::string blockDescriptorsSummaryToString(std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors,
+	std::string blockDescriptorsSummaryToString(std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
 												int num_blocks) {
 		std::stringstream msg;
 		for (int i = 0; i != num_blocks; i++) {
-			msg << (block_descriptors[i].type == BlockType::A_BLOCK ? "A" : "B");
-			msg << "[" << std::setw(5) << block_descriptors[i].start_index << ":"
-				<< std::setw(5) << block_descriptors[i].end_index << "] [";
-			if (block_descriptors[i].type == BlockType::A_BLOCK) {
-				msg << std::setw(5) << block_descriptors[i].start_index;
+			msg << (descriptors[i].type == BlockType::A_BLOCK ? "A" : "B");
+			msg << "[" << std::setw(5) << descriptors[i].start_index << ":"
+				<< std::setw(5) << descriptors[i].end_index << "] [";
+			if (descriptors[i].type == BlockType::A_BLOCK) {
+				msg << std::setw(5) << descriptors[i].start_index;
 			} else {
-				msg << std::setw(5) << block_descriptors[i].end_index;
+				msg << std::setw(5) << descriptors[i].end_index;
 			}
-			msg << "] = " << *block_descriptors[i].key;
+			msg << "] ";
+			if (descriptors[i].key != nullptr) {
+				msg << *descriptors[i].key;
+			} else {
+				msg << "nullptr";
+			}
 			if (i != num_blocks-1) {
 				msg << " | ";
 			}

@@ -1890,11 +1890,12 @@ bool testBlockSortSwapBlocks() {
 
 	OStreamState ostream_state;	// restores ostream flags in destructor
 
-	constexpr bool announce_each_result = true;
-	constexpr bool debug_verbose = false;
+	constexpr bool announce_each_result = false;
+	constexpr bool debug_verbose = true;
 
 	bool test_result = true;
-	index_t array_sizes[] = { 32, 64 };
+//	index_t array_sizes[] = { 32, 33, 34, 35, 64, 64, 66, 67, 128, 129, 130, 131 };
+	index_t array_sizes[] = { 32, 64, 128, 256 };
 
 	using data_type = char;
 
@@ -1931,11 +1932,23 @@ bool testBlockSortSwapBlocks() {
 	auto compare_descriptors = [] (Descriptors<data_type> &expected,
 							  Descriptors<data_type> &result,
 							  int num_descriptors) -> bool{
-		for (int i = 0; i != num_descriptors; i++) {
-			if (expected[i].type != result[i].type)	return false;
-			if (*expected[i].key != *result[i].key) return false;
+
+		bool identical = true;
+		int i = 0;
+		while (i != num_descriptors) {
+			if (expected[i].type != result[i].type)	{
+				std::cout << "Block Types do not match: expected " << expected[i] << " vs result " << result[i] << std::endl;
+				identical = false;
+				break;
+			}
+			if (*expected[i].key != *result[i].key) {
+				std::cout << "Block keys do not match: expected " << expected[i] << " vs result " << result[i] << std::endl;
+				identical = false;
+				break;
+			}
+			i++;
 		}
-		return true;
+		return identical;
 	};
 
 	auto generate_expected_array = [] (data_type **expected,
@@ -1944,25 +1957,73 @@ bool testBlockSortSwapBlocks() {
 
 		index_t u_start = descriptors[u].start_index;
 		index_t u_end	= descriptors[u].end_index;
-		index_t v_start	= descriptors[u].start_index;
+		index_t v_start	= descriptors[v].start_index;
 		index_t v_end	= descriptors[v].end_index;
 		index_t u_size 	= u_end - u_start + 1;
 		index_t v_size 	= v_end - v_start + 1;
 		if (u_size == v_size) {
-			BlockSort::swapBlockElements(expected, u_start, v_start, v_size);
+			index_t u_p = u_start;
+			index_t v_p = v_start;
+			for (int i = 0; i != u_size; i++, u_p++, v_p++) {
+				data_type *temp = expected[u_p];
+				expected[u_p] = expected[v_p];
+				expected[v_p] = temp;
+			}
 		} else {
-			BlockSort::rotateArrayElementsRight(expected, u_start, v_start, v_size);
+			//	set aside the values for the blocks that are going to be swapped
+			data_type* u_values[u_size];
+			data_type* v_values[v_size];
+			for (int i = 0; i != u_size; i++) {
+				u_values[i] = expected[u_start+i];
+			}
+			for (int i = 0; i != v_size; i++) {
+				v_values[i] = expected[v_start+i];
+			}
+
+			if (u_size < v_size) {
+				//	make room in the left hand size for all of v
+				for (index_t shift_right_count = v_size - u_size;
+						     shift_right_count != 0;
+						     shift_right_count--) {
+					for (index_t p = v_end; p > u_start; p--) {
+						expected[p] = expected[p-1];
+					}
+				}
+			} else {
+				//  make room in the right hand size for all of u
+				for (index_t shift_left_count = u_size - v_size;
+							 shift_left_count != 0;
+							 shift_left_count--) {
+					for (index_t p = u_start; p < v_end; p++) {
+						expected[p] = expected[p+1];
+					}
+				}
+			}
+			index_t right_dst = v_end;
+			for (int i = u_size-1; i >= 0; i--, right_dst--) {
+				expected[right_dst] = u_values[i];
+			}
+			index_t left_dst = u_start;
+			for (int i = 0; i < v_size; i++, left_dst++) {
+				expected[left_dst] = v_values[i];
+			}
 		}
 	};
 
 	auto generate_expected_descriptors = [] (data_type **expected_array,
 											 Descriptors<data_type> &expected,
 											 int u, int v) {
-		BlockType temp 	= expected[u].type;
-		expected[u].type= expected[v].type;
-		expected[v].type=temp;
-		expected[u].assignKey(expected_array);
-		expected[v].assignKey(expected_array);
+		index_t start_span = expected[u].start_index;
+		BlockDescriptor<data_type> temp = expected[u];
+		expected[u]						= expected[v];
+		expected[v]						= temp;
+		for (int i = u; i <= v; i++) {
+			index_t size = expected[i].getWidth();
+			expected[i].start_index = start_span;
+			expected[i].end_index	= start_span + size - 1;
+			expected[i].assignKey(expected_array);
+			start_span += size;
+		}
 	};
 
 	auto make_test_vector_1 = [] (data_type **dst, index_t size) {
@@ -1977,14 +2038,15 @@ bool testBlockSortSwapBlocks() {
 	};
 
 	int num_array_sizes = sizeof(array_sizes)/sizeof(index_t);
-
+	int test_number = 0;
 	for (int array_size_i = 0;
-			 array_size_i != 1 + 0*num_array_sizes;
+			 array_size_i < num_array_sizes;
 			 array_size_i++) {
 		index_t array_size 	= array_sizes[array_size_i];
-		index_t mid 		= array_size/2;
+		index_t block_size 	= static_cast<index_t>(std::sqrt(array_size/2));
+		index_t num_complete_blocks = array_size / block_size;
+		index_t mid 		= (num_complete_blocks /2)*block_size;
 		index_t span_end 	= array_size-1;
-		index_t block_size 	= static_cast<index_t>(std::sqrt(mid));
 
 		data_type *test_vector[array_size];
 		make_test_vector_1(test_vector, array_size);
@@ -1996,15 +2058,24 @@ bool testBlockSortSwapBlocks() {
 				test_vector, 0, mid, span_end,
 				block_size, test_descriptors);
 
+		total_moves_t max_moves = 0;
+
 		for (int i = 0; i < num_descriptors-1; i++) {
 			for (int j = i+1; j < num_descriptors; j++) {
+				test_number++;
+				if (debug_verbose) {
+					std::cout << " *** TEST START : " << std::setw(5) << test_number
+							  << ": array size " << array_size
+							  << " with blocks size " << block_size
+							  << " swapping " << i << " vs " << j;
+				}
 				std::stringstream msg;
 				ComparesAndMoves metrics(0,0);
 				data_type *array_under_test[array_size];
-				std::unique_ptr<BlockDescriptor<char>[]> descriptors_under_test;
+				std::unique_ptr<BlockDescriptor<char>[]> descriptors_under_test =
 					std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
 				data_type *expected_array[array_size];
-				std::unique_ptr<BlockDescriptor<char>[]> expected_descriptors;
+				std::unique_ptr<BlockDescriptor<char>[]> expected_descriptors =
 					std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
 				copy_array(array_under_test, test_vector, array_size);
 				copy_array(expected_array, test_vector, array_size);
@@ -2014,25 +2085,29 @@ bool testBlockSortSwapBlocks() {
 				copy_descriptors(expected_array,
 								 expected_descriptors, test_descriptors,
 								 num_descriptors);
-#if 0
-				//	first swap the underlying elmeents into their final positions
+
+				//	first swap the underlying elements into their final positions
 				generate_expected_array(expected_array, expected_descriptors, i, j);
 				//	then update the .type and .key members
 				generate_expected_descriptors(expected_array,
 											  expected_descriptors, i, j);
 
 				metrics = BlockSort::swapBlocks(array_under_test, descriptors_under_test, i, j);
-#endif
+
+				if (metrics._moves > max_moves) {
+					max_moves = metrics._moves;
+				}
+
 				msg << BlockSort::blockSortToString(
 								test_vector, array_size, mid,
 								test_descriptors, num_descriptors)
-					<< std::endl;
-				msg << "Swapped " << i << " vs " << j
-					<< " which took " << metrics << "and yielded \n";
+					<< "\n\n";
+				msg << std::setw(5) << test_number << ": swapped " << i << " vs " << j
+					<< " which took " << metrics << " yielded:\n\n";
 				msg << BlockSort::blockSortToString(
 								array_under_test, array_size, mid,
 								descriptors_under_test, num_descriptors)
-					<< std::endl;
+					<< "\n\n";
 
 				if (!compare_arrays(expected_array, array_under_test, array_size)) {
 					msg << "ERROR: resultant does not match expected_array" << std::endl;
@@ -2046,7 +2121,7 @@ bool testBlockSortSwapBlocks() {
 				if (announce_each_result) {
 					std::cout << msg.str() << std::endl;
 				}
-				if (true || !test_result) {
+				if (!test_result) {
 					if (!announce_each_result) {
 						std::cout << msg.str() << std::endl;
 					}
@@ -2063,6 +2138,9 @@ bool testBlockSortSwapBlocks() {
 															  num_descriptors)
 							  << std::endl;
 					goto TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN;
+				}
+				if (debug_verbose) {
+					std::cout << " maximum number of moves was " << std::setw(5) << max_moves << std::endl;
 				}
 			}
 		}
