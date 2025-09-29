@@ -11,7 +11,9 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <cstdint>
 
+#include "SortingUtilities.h"
 #include "IntegerArithmetic.h"
 #include "nChoosek.h"
 
@@ -1890,22 +1892,22 @@ bool testBlockSortSwapBlocks() {
 
 	OStreamState ostream_state;	// restores ostream flags in destructor
 
-	using data_type = char;
+	using ssb_data_t = char;
 
 	/*	******************************************************************	*/
 	/*								lambdas									*/
 	/*	******************************************************************	*/
 
-	auto copy_array = [] (data_type **dst, data_type **src, index_t size) {
+	auto copy_array = [] (ssb_data_t **dst, ssb_data_t **src, index_t size) {
 
 		for (int i = 0; i != size; i++) {
 			dst[i] = new char(*src[i]);
 		}
 	};
 
-	auto copy_descriptors = [] (data_type** expected_array,
-			 	 	 	 	 	Descriptors<data_type> &dst,
-								Descriptors<data_type> &src,
+	auto copy_descriptors = [] (ssb_data_t** expected_array,
+			 	 	 	 	 	Descriptors<ssb_data_t> &dst,
+								Descriptors<ssb_data_t> &src,
 								int num_descriptors) {
 		//	ensure that the expected descriptors point to the
 		//	  expected arrray
@@ -1915,7 +1917,7 @@ bool testBlockSortSwapBlocks() {
 		}
 	};
 
-	auto compare_arrays = [] (data_type **u, data_type **v, index_t size) -> bool {
+	auto compare_arrays = [] (ssb_data_t **u, ssb_data_t **v, index_t size) -> bool {
 		bool identical = true;
 		for (int i = 0; i != size; i++) {
 			if (*u[i] != *v[i]) {
@@ -1926,8 +1928,8 @@ bool testBlockSortSwapBlocks() {
 		return identical;
 	};
 
-	auto compare_descriptors = [] (Descriptors<data_type> &expected,
-							  Descriptors<data_type> &result,
+	auto compare_descriptors = [] (Descriptors<ssb_data_t> &expected,
+							  Descriptors<ssb_data_t> &result,
 							  int num_descriptors) -> bool{
 
 		bool identical = true;
@@ -1948,8 +1950,8 @@ bool testBlockSortSwapBlocks() {
 		return identical;
 	};
 
-	auto generate_expected_array = [] (data_type **expected,
-								 	   Descriptors<data_type> &descriptors,
+	auto generate_expected_array = [] (ssb_data_t **expected,
+								 	   Descriptors<ssb_data_t> &descriptors,
 									   int u, int v) {
 
 		if (u == v)	return;
@@ -1969,14 +1971,14 @@ bool testBlockSortSwapBlocks() {
 			index_t u_p = u_start;
 			index_t v_p = v_start;
 			for (int i = 0; i != u_size; i++, u_p++, v_p++) {
-				data_type *temp = expected[u_p];
+				ssb_data_t *temp = expected[u_p];
 				expected[u_p] = expected[v_p];
 				expected[v_p] = temp;
 			}
 		} else {
 			//	set aside the values for the blocks that are going to be swapped
-			data_type* u_values[u_size];
-			data_type* v_values[v_size];
+			ssb_data_t* u_values[u_size];
+			ssb_data_t* v_values[v_size];
 			for (int i = 0; i != u_size; i++) {
 				u_values[i] = expected[u_start+i];
 			}
@@ -2015,7 +2017,7 @@ bool testBlockSortSwapBlocks() {
 	};
 
 	auto generate_expected_descriptors = [] (
-			data_type **expected_array, Descriptors<data_type> &expected, int u, int v)
+			ssb_data_t **expected_array, Descriptors<ssb_data_t> &expected, int u, int v)
 	{
 		if (u == v)	return;
 		if (u > v) {
@@ -2024,7 +2026,7 @@ bool testBlockSortSwapBlocks() {
 			v = temp;
 		}
 		index_t start_span 				= expected[u].start_index;
-		BlockDescriptor<data_type> temp = expected[u];
+		BlockDescriptor<ssb_data_t> temp = expected[u];
 		expected[u]						= expected[v];
 		expected[v]						= temp;
 		for (int i = u; i <= v; i++) {
@@ -2036,13 +2038,14 @@ bool testBlockSortSwapBlocks() {
 		}
 	};
 
-	auto make_test_vector_1 = [] (data_type **dst, index_t size) {
+	auto make_test_vector_1 = [] (ssb_data_t **dst, index_t size, index_t mid) {
 		char left_start = 'A';
 		char right_start = 'a';
-		for (int i = 0; i != size/2; i++) {
+		int i = 0;
+		for (; i != mid; i++) {
 			dst[i] = new char(left_start + ((i)%26));
 		}
-		for (int i = size/2; i != size; i++) {
+		for (; i != size; i++) {
 			dst[i] = new char(right_start + ((i)%26));
 		}
 	};
@@ -2056,11 +2059,22 @@ bool testBlockSortSwapBlocks() {
 		case BlockOrganizations::FULL_A0_BLOCK:
 			return std::string("FULL_A0_BLOCK");
 		case BlockOrganizations::SYMMETRIC:
-			return std::string("SYMMETRIC");
+			return std::string("SYMMETRIC    ");
 		default:
 			return std::string("UNKNOWN BLOCK ORGANIZAITON");
 		}
 		return std::string("UNKNOWN BLOCK ORGANIZAITON");
+	};
+
+	SimpleRandomizer randomizer(getChronoSeed());
+
+	auto randomize = [&randomizer] (ssb_data_t **array, index_t length) {
+		for (int i = 0; i != length; i++) {
+			index_t r = randomizer.rand(i, length);
+			ssb_data_t* temp = array[i];
+			array[i] = array[r];
+			array[r] = temp;
+		}
 	};
 
 	/*	**********************************************************************	*/
@@ -2075,7 +2089,8 @@ bool testBlockSortSwapBlocks() {
 
 	bool test_passed = true;
 
-	index_t array_sizes[] = { 32, 33, 34, 35, 36, 37, 38, 39, 40, 50 };
+	index_t array_sizes[] = { 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
+						      42, 43, 44, 45, 46, 47, 48, 49, 50 };
 //	index_t array_sizes[] = { 32, 64, 128, 256 };
 	int num_array_sizes = sizeof(array_sizes)/sizeof(index_t);
 
@@ -2088,14 +2103,13 @@ bool testBlockSortSwapBlocks() {
 	int num_repeats_per_test = 1000;
 	int test_number 		 = 0;
 
-	for (int block_organization_i = 0;
-			 block_organization_i != num_organizations;
-			 block_organization_i++) {
-		BlockOrganizations organization = organizations[block_organization_i];
-		for (int array_size_i = 0;
-
-				 array_size_i < num_array_sizes;
-				 array_size_i++) {
+	for (int array_size_i = 0;
+			 array_size_i < num_array_sizes;
+			 array_size_i++) {
+		for (int block_organization_i = 0;
+				 block_organization_i != num_organizations;
+				 block_organization_i++) {
+			BlockOrganizations organization = organizations[block_organization_i];
 			index_t array_size 	= array_sizes[array_size_i];
 			index_t span_end 	= array_size-1;
 			index_t	block_size 	= static_cast<index_t>(std::sqrt(array_size/2));
@@ -2128,24 +2142,33 @@ bool testBlockSortSwapBlocks() {
 
 			if (debug_verbose || output_metrics) {
 				std::cout << "array size " << array_size
-						  << " block size " << block_size;
+						  << " block size " << block_size
+						  << " organization " << to_string(organization);
 				if (!output_metrics)
 					std::cout << std::endl;
 				else
 					std::cout << " ";
+				std::cout << std::flush;
 			}
 			bool first_test_pass = true;
 			total_moves_t max_moves = 0;
 
+			uint16_t test_vector_log[num_repeats_per_test];
 
 			for (int test_counter = 0; test_counter != num_repeats_per_test; test_counter++) {
-				data_type *test_vector[array_size];
-				make_test_vector_1(test_vector, array_size);
-				SortingUtilities::randomizeArray(test_vector, array_size);
-				SortingUtilities::randomizeArray(test_vector, array_size);
-				SortingUtilities::randomizeArray(test_vector, array_size);
+				ssb_data_t *test_vector[array_size];
+				make_test_vector_1(test_vector, array_size, mid);
+//				randomizer.seed(test_number);
+//				randomizer.restart();
+				randomize(test_vector, array_size);
 				InsertionSort::sortPointersToObjects(test_vector, mid);
 				InsertionSort::sortPointersToObjects(&test_vector[mid], array_size-mid);
+
+				uint16_t cs =
+						SortingUtilities::crc16_ccitt(test_vector, array_size);
+				std::cout << cs << std::endl;
+				test_vector_log[test_counter] = cs;
+				std::cout << std::endl;
 
 				std::unique_ptr<BlockDescriptor<char>[]> test_descriptors;
 				int num_descriptors;
@@ -2188,10 +2211,10 @@ bool testBlockSortSwapBlocks() {
 						}
 
 						ComparesAndMoves metrics(0,0);
-						data_type *array_under_test[array_size];
+						ssb_data_t *array_under_test[array_size];
 						std::unique_ptr<BlockDescriptor<char>[]> descriptors_under_test =
 							std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
-						data_type *expected_array[array_size];
+						ssb_data_t *expected_array[array_size];
 						std::unique_ptr<BlockDescriptor<char>[]> expected_descriptors =
 							std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
 						copy_array(array_under_test, test_vector, array_size);

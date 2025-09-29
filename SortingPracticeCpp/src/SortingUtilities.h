@@ -26,6 +26,8 @@ std::string arrayStartMiddleEndToString(array_size_t size,
 										array_size_t start, array_size_t mid, array_size_t end,
 										int element_width = ELEMENT_WIDTH);
 
+extern const uint16_t ccitt_hash[];
+
 namespace SortingUtilities {
 
 	/*	**********************************************************************	*/
@@ -33,18 +35,25 @@ namespace SortingUtilities {
 	/*	**********************************************************************	*/
 
 	template <typename T>
+	uint16_t crc16_ccitt(T ** buffer, size_t size);
+
+	template <typename T>
 	bool isSorted(T **array, array_size_t size);
+
 	template <typename T>
 	bool isSorted(T **array, array_size_t size, ComparesAndMoves &metrics);
+
 	template <typename T>
 	bool isSorted(T **array, array_size_t size,
 				  array_size_t &lower_index_unordered, array_size_t &upper_index_unordered);
+
 	template <typename T>
 	bool isSorted(T **array, array_size_t size, ComparesAndMoves &metrics,
 				  array_size_t &lower_index_unordered, array_size_t &upper_index_unordered);
 
 	template <typename T>
 	void printArray(T**array, array_size_t start, array_size_t end, std::string header);
+
 	template <typename T>
 	void printArrayAndPivot(T**array, array_size_t start, array_size_t end, array_size_t pivot, std::string header);
 
@@ -89,6 +98,17 @@ namespace SortingUtilities {
 		result << arrayElementsToString(array, size, value_width, element_width);
 		result << trailer;
 		return result.str();
+	}
+
+	template <typename T>
+	uint16_t SortingUtilities::crc16_ccitt(T ** buffer, size_t size)
+	{
+	    uint16_t crc = 0;
+	    for (size_t i = 0; i != size; i++) {
+	    	uint16_t _data = static_cast<uint16_t>(*buffer[i]);
+	    	crc = (crc << 8) ^ ccitt_hash[((crc >> 8) ^ _data) & 0x00FF];
+	    }
+	    return crc;
 	}
 
 	// returns bool
