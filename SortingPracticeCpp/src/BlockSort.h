@@ -1139,6 +1139,7 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves swapBlocksOfEqualSize(T** array, Descriptors<T> &descriptors, int u, int v) {
 
+//		std::cout << __FUNCTION__ << std::endl;
 		ComparesAndMoves metrics(0,0);
 		metrics += swapBlockElements(array,
 									 descriptors[u].start_index,
@@ -1155,6 +1156,8 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves swapBlocksLeftSmallerThanRight(T** array, Descriptors<T> &descriptors, int u, int v) {
+
+//		std::cout << __FUNCTION__ << std::endl;
 		ComparesAndMoves metrics(0,0);
 		/*
 		 * 	left_size = lz = 1					right_size = rz = 4
@@ -1226,6 +1229,8 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves swapBlocksRightSmallerThanLeft(T** array, Descriptors<T> &descriptors, int u, int v) {
+
+//		std::cout << __FUNCTION__ << std::endl;
 		ComparesAndMoves metrics(0,0);
 
 		/*

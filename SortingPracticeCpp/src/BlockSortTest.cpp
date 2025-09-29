@@ -1890,14 +1890,11 @@ bool testBlockSortSwapBlocks() {
 
 	OStreamState ostream_state;	// restores ostream flags in destructor
 
-	constexpr bool announce_each_result = false;
-	constexpr bool debug_verbose = true;
-
-	bool test_result = true;
-//	index_t array_sizes[] = { 32, 33, 34, 35, 64, 64, 66, 67, 128, 129, 130, 131 };
-	index_t array_sizes[] = { 32, 64, 128, 256 };
-
 	using data_type = char;
+
+	/*	******************************************************************	*/
+	/*								lambdas									*/
+	/*	******************************************************************	*/
 
 	auto copy_array = [] (data_type **dst, data_type **src, index_t size) {
 
@@ -1955,6 +1952,13 @@ bool testBlockSortSwapBlocks() {
 								 	   Descriptors<data_type> &descriptors,
 									   int u, int v) {
 
+		if (u == v)	return;
+		if (u > v) {
+			int temp = u;
+			u = v;
+			v = temp;
+		}
+
 		index_t u_start = descriptors[u].start_index;
 		index_t u_end	= descriptors[u].end_index;
 		index_t v_start	= descriptors[v].start_index;
@@ -2010,10 +2014,16 @@ bool testBlockSortSwapBlocks() {
 		}
 	};
 
-	auto generate_expected_descriptors = [] (data_type **expected_array,
-											 Descriptors<data_type> &expected,
-											 int u, int v) {
-		index_t start_span = expected[u].start_index;
+	auto generate_expected_descriptors = [] (
+			data_type **expected_array, Descriptors<data_type> &expected, int u, int v)
+	{
+		if (u == v)	return;
+		if (u > v) {
+			int temp = u;
+			u = v;
+			v = temp;
+		}
+		index_t start_span 				= expected[u].start_index;
 		BlockDescriptor<data_type> temp = expected[u];
 		expected[u]						= expected[v];
 		expected[v]						= temp;
@@ -2028,125 +2038,247 @@ bool testBlockSortSwapBlocks() {
 
 	auto make_test_vector_1 = [] (data_type **dst, index_t size) {
 		char left_start = 'A';
-		char right_start = 'A';
+		char right_start = 'a';
 		for (int i = 0; i != size/2; i++) {
-			dst[i] = new char(left_start + ((2*i)%26));
+			dst[i] = new char(left_start + ((i)%26));
 		}
 		for (int i = size/2; i != size; i++) {
-			dst[i] = new char(right_start + ((2*i+1)%26));
+			dst[i] = new char(right_start + ((i)%26));
 		}
 	};
 
+	enum class BlockOrganizations {
+		FULL_A0_BLOCK,
+		SYMMETRIC
+	};
+	auto to_string = [] (BlockOrganizations _organization) ->std::string {
+		switch(_organization) {
+		case BlockOrganizations::FULL_A0_BLOCK:
+			return std::string("FULL_A0_BLOCK");
+		case BlockOrganizations::SYMMETRIC:
+			return std::string("SYMMETRIC");
+		default:
+			return std::string("UNKNOWN BLOCK ORGANIZAITON");
+		}
+		return std::string("UNKNOWN BLOCK ORGANIZAITON");
+	};
+
+	/*	**********************************************************************	*/
+	/*	**********************************************************************	*/
+	/*							function logic starts here						*/
+	/*	**********************************************************************	*/
+	/*	**********************************************************************	*/
+
+	constexpr bool announce_each_result = false;
+	constexpr bool debug_verbose = false;
+	constexpr bool output_metrics = true;
+
+	bool test_passed = true;
+
+	index_t array_sizes[] = { 32, 33, 34, 35, 36, 37, 38, 39, 40, 50 };
+//	index_t array_sizes[] = { 32, 64, 128, 256 };
 	int num_array_sizes = sizeof(array_sizes)/sizeof(index_t);
-	int test_number = 0;
-	for (int array_size_i = 0;
-			 array_size_i < num_array_sizes;
-			 array_size_i++) {
-		index_t array_size 	= array_sizes[array_size_i];
-		index_t block_size 	= static_cast<index_t>(std::sqrt(array_size/2));
-		index_t num_complete_blocks = array_size / block_size;
-		index_t mid 		= (num_complete_blocks /2)*block_size;
-		index_t span_end 	= array_size-1;
 
-		data_type *test_vector[array_size];
-		make_test_vector_1(test_vector, array_size);
-		InsertionSort::sortPointersToObjects(test_vector, mid);
-		InsertionSort::sortPointersToObjects(&test_vector[mid], array_size-mid);
+	BlockOrganizations organizations[] = {
+			BlockOrganizations::FULL_A0_BLOCK,
+			BlockOrganizations::SYMMETRIC
+	};
+	int num_organizations = sizeof(organizations)/sizeof(BlockOrganizations);
 
-		std::unique_ptr<BlockDescriptor<char>[]> test_descriptors;
-		int num_descriptors = BlockSort::createBlockDescriptors_A0_Full(
-				test_vector, 0, mid, span_end,
-				block_size, test_descriptors);
+	int num_repeats_per_test = 1000;
+	int test_number 		 = 0;
 
-		total_moves_t max_moves = 0;
+	for (int block_organization_i = 0;
+			 block_organization_i != num_organizations;
+			 block_organization_i++) {
+		BlockOrganizations organization = organizations[block_organization_i];
+		for (int array_size_i = 0;
 
-		for (int i = 0; i < num_descriptors-1; i++) {
-			for (int j = i+1; j < num_descriptors; j++) {
-				test_number++;
-				if (debug_verbose) {
-					std::cout << " *** TEST START : " << std::setw(5) << test_number
-							  << ": array size " << array_size
-							  << " with blocks size " << block_size
-							  << " swapping " << i << " vs " << j;
+				 array_size_i < num_array_sizes;
+				 array_size_i++) {
+			index_t array_size 	= array_sizes[array_size_i];
+			index_t span_end 	= array_size-1;
+			index_t	block_size 	= static_cast<index_t>(std::sqrt(array_size/2));
+			index_t mid;
+			switch(organization) {
+			case BlockOrganizations::FULL_A0_BLOCK:
+				// 	the left half of the array has an integer number of blocks
+				//	the right half of the array may have single partial block
+				//	array_size = 35, block_size = 4, mid = 4*4 = 16
+				//	a0 has 4 elements, b8 has 3 elements
+				//	block_sizes = {4:4:4:4 _ 4:4:4;4:3}
+				{
+				index_t num_complete_blocks = array_size / block_size;
+				mid = (num_complete_blocks /2)*block_size;
 				}
-				std::stringstream msg;
-				ComparesAndMoves metrics(0,0);
-				data_type *array_under_test[array_size];
-				std::unique_ptr<BlockDescriptor<char>[]> descriptors_under_test =
-					std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
-				data_type *expected_array[array_size];
-				std::unique_ptr<BlockDescriptor<char>[]> expected_descriptors =
-					std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
-				copy_array(array_under_test, test_vector, array_size);
-				copy_array(expected_array, test_vector, array_size);
-				copy_descriptors(array_under_test,
-								 descriptors_under_test, test_descriptors,
-								 num_descriptors);
-				copy_descriptors(expected_array,
-								 expected_descriptors, test_descriptors,
-								 num_descriptors);
+				break;
+			case BlockOrganizations::SYMMETRIC:
+				//	both the left half and the right half may have partial blocks
+				//	array_size = 35, block_size = 4, mid = 35/2 = 17,
+				//	a0 has 1 element, b9 has 2 elements
+				// 	blocks sizes = {1:4:4:4:4 _ 4:4:4:4:2}
+				mid	= array_size/2;
+				break;
+			default:
+				std::cout << "UNSPECIFIED BLOCK ORGANIZATION" << std::endl;
+				test_passed = false;
+				goto TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN;
 
-				//	first swap the underlying elements into their final positions
-				generate_expected_array(expected_array, expected_descriptors, i, j);
-				//	then update the .type and .key members
-				generate_expected_descriptors(expected_array,
-											  expected_descriptors, i, j);
+			}
 
-				metrics = BlockSort::swapBlocks(array_under_test, descriptors_under_test, i, j);
+			if (debug_verbose || output_metrics) {
+				std::cout << "array size " << array_size
+						  << " block size " << block_size;
+				if (!output_metrics)
+					std::cout << std::endl;
+				else
+					std::cout << " ";
+			}
+			bool first_test_pass = true;
+			total_moves_t max_moves = 0;
 
-				if (metrics._moves > max_moves) {
-					max_moves = metrics._moves;
+
+			for (int test_counter = 0; test_counter != num_repeats_per_test; test_counter++) {
+				data_type *test_vector[array_size];
+				make_test_vector_1(test_vector, array_size);
+				SortingUtilities::randomizeArray(test_vector, array_size);
+				SortingUtilities::randomizeArray(test_vector, array_size);
+				SortingUtilities::randomizeArray(test_vector, array_size);
+				InsertionSort::sortPointersToObjects(test_vector, mid);
+				InsertionSort::sortPointersToObjects(&test_vector[mid], array_size-mid);
+
+				std::unique_ptr<BlockDescriptor<char>[]> test_descriptors;
+				int num_descriptors;
+
+				switch(organization) {
+				case BlockOrganizations::FULL_A0_BLOCK:
+					num_descriptors =
+						BlockSort::createBlockDescriptors_A0_Full(
+							test_vector, 0, mid, span_end,
+							block_size, test_descriptors);
+					break;
+				case BlockOrganizations::SYMMETRIC:
+					num_descriptors =
+						BlockSort::regressionTestOnly_CreateBlockDescriptorsSymmetrically(
+							test_vector, 0, mid, span_end,
+							block_size, test_descriptors);
+					break;
 				}
 
-				msg << BlockSort::blockSortToString(
-								test_vector, array_size, mid,
-								test_descriptors, num_descriptors)
-					<< "\n\n";
-				msg << std::setw(5) << test_number << ": swapped " << i << " vs " << j
-					<< " which took " << metrics << " yielded:\n\n";
-				msg << BlockSort::blockSortToString(
-								array_under_test, array_size, mid,
-								descriptors_under_test, num_descriptors)
-					<< "\n\n";
-
-				if (!compare_arrays(expected_array, array_under_test, array_size)) {
-					msg << "ERROR: resultant does not match expected_array" << std::endl;
-					test_result = false;
-
-				}
-				if (!compare_descriptors(expected_descriptors, descriptors_under_test, num_descriptors)) {
-					msg << "ERROR: resultant descriptors do not match expected descriptors" << std::endl;
-					test_result = false;
-				}
-				if (announce_each_result) {
-					std::cout << msg.str() << std::endl;
-				}
-				if (!test_result) {
-					if (!announce_each_result) {
-						std::cout << msg.str() << std::endl;
+				// Go through all possible combinations, including passing
+				//	a second (right) index that is less than the first (left) index
+				for (int i = 0; i < num_descriptors-1; i++) {
+					if (debug_verbose && first_test_pass) {
+						std::cout << "   array size " << array_size
+								  << " block size " << block_size
+								  << " i = " << i << std::endl;
+//						first_test_pass = false;
 					}
-					std::cout << "Expected\n"
-							  << BlockSort::blockSortToString(expected_array,
-									  	  	  	  	  	  	  array_size, mid,
-															  expected_descriptors,
-															  num_descriptors)
-							  << std::endl
-							  << "\nversus result:\n"
-							  << BlockSort::blockSortToString(array_under_test,
-									  	  	  	  	  	  	  array_size, mid,
-															  descriptors_under_test,
-															  num_descriptors)
-							  << std::endl;
-					goto TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN;
+					for (int j = 0; j < num_descriptors; j++) {
+						test_number++;
+						if (debug_verbose && first_test_pass) {
+							std::cout << "     *** TEST START : " << std::setw(5) << test_number
+									  << ": array size " << array_size
+									  << " with blocks size " << block_size
+									  << " " << to_string(organization) << " "
+									  << " swapping " << i
+									  << " vs " << j
+									  << std::endl;;
+//							first_test_pass = false;
+						}
+
+						ComparesAndMoves metrics(0,0);
+						data_type *array_under_test[array_size];
+						std::unique_ptr<BlockDescriptor<char>[]> descriptors_under_test =
+							std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
+						data_type *expected_array[array_size];
+						std::unique_ptr<BlockDescriptor<char>[]> expected_descriptors =
+							std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
+						copy_array(array_under_test, test_vector, array_size);
+						copy_array(expected_array, test_vector, array_size);
+						copy_descriptors(array_under_test,
+										 descriptors_under_test, test_descriptors,
+										 num_descriptors);
+						copy_descriptors(expected_array,
+										 expected_descriptors, test_descriptors,
+										 num_descriptors);
+
+						//	first swap the underlying elements into their final positions
+						generate_expected_array(expected_array, expected_descriptors, i, j);
+						//	then update the .type and .key members
+						generate_expected_descriptors(expected_array,
+													  expected_descriptors, i, j);
+
+						metrics = BlockSort::swapBlocks(array_under_test, descriptors_under_test, i, j);
+
+						if (metrics._moves > max_moves) {
+							max_moves = metrics._moves;
+						}
+
+						bool arrays_passed = compare_arrays(expected_array, array_under_test, array_size);
+						bool descriptors_passed = compare_descriptors(expected_descriptors, descriptors_under_test, num_descriptors);
+						if (announce_each_result) {
+							std::stringstream msg;
+							msg << BlockSort::blockSortToString(
+											test_vector, array_size, mid,
+											test_descriptors, num_descriptors)
+								<< "\n\n";
+							msg << std::setw(5) << test_number << ": swapped " << i << " vs " << j
+								<< " which took " << metrics << " yielded:\n\n";
+							msg << BlockSort::blockSortToString(
+											array_under_test, array_size, mid,
+											descriptors_under_test, num_descriptors)
+								<< "\n\n";
+
+							std::cout << msg.str() << std::endl;
+						}
+						if (!arrays_passed || !descriptors_passed) {
+							test_passed = false;
+							std::stringstream msg;
+							if (!announce_each_result) {
+								msg << BlockSort::blockSortToString(
+												test_vector, array_size, mid,
+												test_descriptors, num_descriptors)
+									<< "\n\n";
+								msg << std::setw(5) << test_number << ": swapped " << i << " vs " << j
+									<< " which took " << metrics << " yielded:\n\n";
+								msg << BlockSort::blockSortToString(
+												array_under_test, array_size, mid,
+												descriptors_under_test, num_descriptors)
+									<< "\n\n";
+
+								std::cout << msg.str() << std::endl;
+							}
+							if (!arrays_passed) {
+								msg << "ERROR: resultant does not match expected_array" << std::endl;
+							}
+							if (!descriptors_passed) {
+								msg << "ERROR: resultant descriptors do not match expected descriptors" << std::endl;
+							}
+							std::cout << "Expected\n"
+									  << BlockSort::blockSortToString(expected_array,
+																	  array_size, mid,
+																	  expected_descriptors,
+																	  num_descriptors)
+									  << std::endl
+									  << "\nversus result:\n"
+									  << BlockSort::blockSortToString(array_under_test,
+																	  array_size, mid,
+																	  descriptors_under_test,
+																	  num_descriptors)
+									  << std::endl;
+							goto TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN;
+						}
+					}
 				}
-				if (debug_verbose) {
-					std::cout << " maximum number of moves was " << std::setw(5) << max_moves << std::endl;
-				}
+			}
+			if (debug_verbose || output_metrics) {
+				std::cout << " maximum number of moves was " << std::setw(5) << max_moves << std::endl;
 			}
 		}
 	}
 TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN:
-	return test_result;
+	return test_passed;
 }
 
 
