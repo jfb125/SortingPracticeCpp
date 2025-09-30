@@ -65,10 +65,10 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-#define TEST_BLOCK_SORT_SWAP_BLOCKS
+//#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
 //#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
-//#define TEST_BLOCK_SORT_SORT_BLOCKS
+#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortBinarySearchFirstBlock();
@@ -1657,45 +1657,49 @@ bool testBlockSortRotateBlocks() {
 
 bool testBlockSortSortBlocks() {
 
+	//	The desstructor restores the state of ostream
+	OStreamState ostream_state;
+
 	std::cout << __FUNCTION__ << "()" << std::endl;
 
-	enum SortingStrategy { BINARY, HYBRID, RIGHT_TO_LEFT };
-	std::string (*strategy_string)(SortingStrategy) =
+	enum SortingStrategy { BINARY, HYBRID, RIGHT_TO_LEFT, TABLE };
+	std::string (*strategyToString)(SortingStrategy) =
 			[] (SortingStrategy strategy) -> std::string {
 		switch(strategy) {
 		case BINARY:		return std::string("Binary       ");
 		case HYBRID:		return std::string("Hybrid       ");
 		case RIGHT_TO_LEFT: return std::string("Right to Left");
+		case TABLE:			return std::string("Table        ");
 		default:			return std::string("?????????????");
 		}
 	};
 
-	using BlockArrayPointer = std::unique_ptr<BlockSort::BlockDescriptor<int>[]>;
+	using BlockArray_t = std::unique_ptr<BlockSort::BlockDescriptor<int>[]>;
 
 	constexpr bool echo_every_test_step = false;
 	constexpr bool echo_every_test_result = false;
 	constexpr bool echo_test_configuration_summary = true;
 
-	constexpr const int object_width = 3;
-	constexpr const int element_width = 4;
-	constexpr const char separator = ' ';
+//	constexpr const int object_width = 3;
+//	constexpr const int element_width = 4;
+//	constexpr const char separator = ' ';
 	constexpr const int compares_precision = 1;
 	constexpr const int moves_precision = 1;
 	constexpr const int num_unique_values = 5;
 
-	auto out = [object_width, element_width, separator]
-					(int ** array, array_size_t array_size,
-					 std::string trailer) {
-		std::stringstream result;
-		result << SortingUtilities::arrayElementsToString(array, array_size, object_width, element_width)
-			   << trailer;
-		return result.str();
-	};
+//	auto out = [object_width, element_width, separator]
+//					(int ** array, array_size_t array_size,
+//					 std::string trailer) {
+//		std::stringstream result;
+//		result << SortingUtilities::arrayElementsToString(array, array_size, object_width, element_width)
+//			   << trailer;
+//		return result.str();
+//	};
 
 	bool test_passed = true;
 
-	bool (*areBlocksSorted)(BlockArrayPointer &blocks, int num_blocks) =
-		[] (BlockArrayPointer &_blocks, int _num_blocks) {
+	bool (*areBlocksSorted)(BlockArray_t &blocks, int num_blocks) =
+		[] (BlockArray_t &_blocks, int _num_blocks) {
 		for (int i = 1; i < _num_blocks; i++) {
 			//	if the earlier block is > this block
 			if (*_blocks[i-1].key > *_blocks[i].key)
@@ -1719,24 +1723,32 @@ bool testBlockSortSortBlocks() {
 	};
 
 	constexpr array_size_t array_sizes[] = {
-			/* 31,  31,*/  32,  32,//  33,  33,
-			/* 63,  63,*/  64,  64,//  65,  65,
-			/*127, 127,*/ 128, 128,// 129, 128,
-			/*255, 255,*/ 256, 256,// 257, 257,
-			/*511, 511,*/ 512, 512,// 513, 513
+			30, 31, 32, 33, 34, 35,
+			48, 49, 50, 51, 52, 53, 54,
+			62, 63, 64, 65, 66, 67, 68, 69
 			};
+//	constexpr array_size_t array_sizes[] = {
+//			32, 50, 72, 98, 128
+//			};
+//	constexpr array_size_t array_sizes[] = {
+//			32, 128, 512, 2048, 8192, 32768
+//	};
+//	constexpr array_size_t array_sizes[] = {
+//			32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768
+//	};
+
 	constexpr int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
-	//	OStreamState destructor will restore state of ostream
-	OStreamState ostream_state;
 	bool all_unique_elements = true;
 	bool few_unique_elements = false;
 
-	for (int array_size_i = 0; array_size_i < 1 + 0*num_array_sizes; ++array_size_i)
+	for (int array_size_i = 0; array_size_i < num_array_sizes; ++array_size_i)
 	{
 		array_size_t array_size = array_sizes[array_size_i];
-		int min_block_size = static_cast<array_size_t>(sqrt(array_size/2))-1;
-		int max_block_size = min_block_size+2;
+//		int min_block_size = static_cast<array_size_t>(sqrt(array_size/2))-1;
+//		int max_block_size = min_block_size+2;
+		int min_block_size = static_cast<array_size_t>(sqrt(array_size/2));
+		int max_block_size = min_block_size;
 		int num_unique = num_unique_values;
 		int* reference_array[array_size];
 		int this_passes_unique_value_count;
@@ -1763,30 +1775,32 @@ bool testBlockSortSortBlocks() {
 
 		constexpr SortingStrategy sorting_strategies[] = {
 				BINARY,
-//				RIGHT_TO_LEFT,
-//				HYBRID,
+				RIGHT_TO_LEFT,
+				HYBRID,
+				TABLE
 		};
 
 		int num_sorting_strategies = sizeof(sorting_strategies) / sizeof(SortingStrategy);
 
 		for (int block_size = min_block_size; block_size <= max_block_size; ++block_size)
 		{
-			int num_tests = 1;
+			int num_tests = 10;
 			ComparesAndMoves total_results[num_sorting_strategies];
 
 			// run the test with the same reference_array (input)
 			//	using however many strategies desired
 			for (int test_num = 0; test_num != num_tests; test_num++)
 			{
-				std::stringstream messages;
 				randomizeArray(reference_array, array_size);
 				randomizeArray(reference_array, array_size);
 				randomizeArray(reference_array, array_size);
 
-
-				for (int strategy_i = 0; strategy_i < 1 + 0*num_sorting_strategies; strategy_i++)
+				for (int strategy_i = 0; strategy_i < num_sorting_strategies; strategy_i++)
 				{
 					ComparesAndMoves result(0,0);
+					std::stringstream messages;
+					SortingStrategy sorting_strategy = sorting_strategies[strategy_i];
+					std::string sorting_string = strategyToString(sorting_strategy);
 					int* array[array_size];
 					for (int i = 0; i != array_size; i++) {
 						array[i] = reference_array[i];
@@ -1795,10 +1809,7 @@ bool testBlockSortSortBlocks() {
 					int mid = array_size / 2;
 					int end = array_size - 1;
 					int num_blocks = 0;
-					BlockArrayPointer blocks;
-
-					messages << arrayIndicesToString(array_size, object_width, element_width) << std::endl;
-					messages << out(array, array_size, " generated\n");
+					BlockArray_t blocks;
 
 					//	the randomizing algorithm leaves most of the larger elements in the
 					//	  right had side of the array.  Swap the two halves so that the
@@ -1806,52 +1817,50 @@ bool testBlockSortSortBlocks() {
 					InsertionSort::sortPointersToObjects(array, mid);
 					InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
 
-					messages << out(array, array_size, " after randomizing\n");
 					num_blocks = BlockSort::regressionTestOnly_CreateBlockDescriptorsSymmetrically(array, start, mid, end, block_size, blocks);
-					messages << arrayStartMiddleEndToString(array_size, start, mid, end, element_width);
-					messages << BlockSort::blockDescriptorsToString(blocks, num_blocks, element_width)
+					messages << "Test run of strategy " << sorting_string << "\n";
+					messages << blockSortToString(array, array_size, mid,
+												  blocks, num_blocks)
 							 << std::endl;
-					messages << out(array, array_size, "\n");
-
 					switch(sorting_strategies[strategy_i]) {
 					case RIGHT_TO_LEFT:
-						std::cout << "strategy RIGHT_TO_LEFT" << std::endl;
 						result = BlockSort::regressionTestOnly_sortBlocksRightToLeft(array, array_size, blocks, num_blocks);
 						break;
 					case BINARY:
-						std::cout << "strategy BINARY " << std::endl;
 						result = BlockSort::regressionTestOnly_sortBlocksBinarySearch(array, array_size, blocks, num_blocks);
-						std::cout << "stregaty BINARY DONE" << std::endl;
 						break;
 					case HYBRID:
-						std::cout << "strategy HYBRID " << std::endl;
 						result = BlockSort::regressionTestOnly_sortBlocksHybrid(array, array_size, blocks, num_blocks);
+						break;
+					case TABLE:
+						result = BlockSort::sortBlocksByTable(array, blocks, num_blocks);
 						break;
 					default:
 						break;
 					}
 					total_results[strategy_i] += result;
 
-					messages << BlockSort::blockDescriptorsToString(blocks, num_blocks, element_width)
+					messages << "Result:\n";
+					messages << blockSortToString(array, array_size, mid,
+												  blocks, num_blocks)
 							 << std::endl;
-					messages << out(array, array_size, " after sorting blocks\n");
 
 					if (!areBlocksSorted(blocks, num_blocks)) {
 						test_passed = false;
+						std::cout << messages.str();
 						std::cout << " !!!! FAILED !!!! test run " << test_num << std::endl;
-						std::cout << messages.str() << std::endl;
 						goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
 					}
 					if (echo_every_test_step) {
 						std::cout << messages.str();
 					}
 					if (echo_every_test_result) { // && (test_num % 1000 == 0)) {
-						std::cout << strategy_string(sorting_strategies[strategy_i])
+						std::cout << strategyToString(sorting_strategies[strategy_i])
 								  << " sorting an array of " << array_size << " elements "
 								  << " with block size " << block_size
 								  << " took "
-								  << std::setw(8) << result._moves    << " moves"
-								  << std::setw(5) << result._compares << " compares and\n";
+								  << std::setw(5) << result._compares << " compares and"
+								  << std::setw(8) << result._moves    << " moves\n";
 					}
 				}
 			}
@@ -1859,34 +1868,35 @@ bool testBlockSortSortBlocks() {
 			{
 				for (int strategy_i = 0; strategy_i < num_sorting_strategies; strategy_i++)
 				{
-					std::cout  << std::setw(6) << num_tests << " tests of "
-							   << strategy_string(sorting_strategies[strategy_i])
-							   << " sorting blocks of " << std::setw(4) << array_size
-							   << " array with " << std::setw(3) << this_passes_unique_value_count
+					std::cout  << std::setw(6) << num_tests << " tests of sorting blocks using strategy "
+							   << strategyToString(sorting_strategies[strategy_i])
+							   << " on an array with " << std::setw(6) << this_passes_unique_value_count
 							   << " unique values and a block size of "
 							   << std::setw(3) << block_size << " took on average "
-							   << std::fixed << std::setprecision(moves_precision) << std::setw(10)
-							   << static_cast<double>(total_results[strategy_i]._moves) / (num_tests)
-							   << " moves and "
 							   << std::fixed << std::setprecision(compares_precision) << std::setw(8)
 							   << static_cast<double>(total_results[strategy_i]._compares) / (num_tests)
-							   << " compares\n";
+							   << " compares and "
+							   << std::fixed << std::setprecision(moves_precision) << std::setw(10)
+							   << static_cast<double>(total_results[strategy_i]._moves) / (num_tests)
+							   << " moves\n";
 				}
 			}
-			if (all_unique_elements) {
-				few_unique_elements = true;
-				all_unique_elements = false;
-			} else {
-				few_unique_elements = false;
-				all_unique_elements = true;
-			}
+//			if (all_unique_elements) {
+//				few_unique_elements = true;
+//				all_unique_elements = false;
+//			} else {
+//				few_unique_elements = false;
+//				all_unique_elements = true;
+//			}
+		}
+		if (num_sorting_strategies != 1) {
 			std::cout << "\n";
 		}
-		std::cout << "\n";
 	}
 	TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL:
 	return test_passed;
 }
+
 
 bool testBlockSortSwapBlocks() {
 
@@ -2077,6 +2087,13 @@ bool testBlockSortSwapBlocks() {
 		}
 	};
 
+//	auto crc_to_string = [] (uint16_t _crc) -> std::string {
+//		OStreamState ostream_state;
+//		std::stringstream msg;
+//		msg << "0x" << std::hex << std::setw(4) << std::setfill('0') << _crc;
+//		return msg.str();
+//	};
+
 	/*	**********************************************************************	*/
 	/*	**********************************************************************	*/
 	/*							function logic starts here						*/
@@ -2141,7 +2158,8 @@ bool testBlockSortSwapBlocks() {
 			}
 
 			if (debug_verbose || output_metrics) {
-				std::cout << "array size " << array_size
+				std::cout << "Test number " << std::setw(12) << test_number
+						  << " with array size " << array_size
 						  << " block size " << block_size
 						  << " organization " << to_string(organization);
 				if (!output_metrics)
@@ -2153,22 +2171,13 @@ bool testBlockSortSwapBlocks() {
 			bool first_test_pass = true;
 			total_moves_t max_moves = 0;
 
-			uint16_t test_vector_log[num_repeats_per_test];
-
 			for (int test_counter = 0; test_counter != num_repeats_per_test; test_counter++) {
+				std::vector<std::vector<ssb_data_t*>> 	test_vectors_log;
 				ssb_data_t *test_vector[array_size];
 				make_test_vector_1(test_vector, array_size, mid);
-//				randomizer.seed(test_number);
-//				randomizer.restart();
 				randomize(test_vector, array_size);
 				InsertionSort::sortPointersToObjects(test_vector, mid);
 				InsertionSort::sortPointersToObjects(&test_vector[mid], array_size-mid);
-
-				uint16_t cs =
-						SortingUtilities::crc16_ccitt(test_vector, array_size);
-				std::cout << cs << std::endl;
-				test_vector_log[test_counter] = cs;
-				std::cout << std::endl;
 
 				std::unique_ptr<BlockDescriptor<char>[]> test_descriptors;
 				int num_descriptors;
@@ -2200,7 +2209,7 @@ bool testBlockSortSwapBlocks() {
 					for (int j = 0; j < num_descriptors; j++) {
 						test_number++;
 						if (debug_verbose && first_test_pass) {
-							std::cout << "     *** TEST START : " << std::setw(5) << test_number
+							std::cout << "     *** TEST START : " << std::setw(12) << test_number
 									  << ": array size " << array_size
 									  << " with blocks size " << block_size
 									  << " " << to_string(organization) << " "

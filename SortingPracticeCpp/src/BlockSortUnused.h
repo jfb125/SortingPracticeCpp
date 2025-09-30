@@ -618,7 +618,7 @@ namespace BlockSort {
 											int num_tags) {
 #endif
 
-		constexpr bool debug_verbose = true;
+		constexpr bool debug_verbose = false;
 
 		#pragma push_macro("_debug")
 		#define _debug(_dbg_msg_) do {\
@@ -871,9 +871,12 @@ namespace BlockSort {
 
 		while (a_block_index >= 0) {
 
+			if (debug_verbose) {
+				std::cout << "BEGINNING LOOP TO USE "
+						<< (use_binary_search ? "BINARY_SEARCH\n" : "RIGHT_TO_LEFT\n");
+			}
 			if (!use_binary_search) {
-				//	Find first B_Block that is less than this A_Block
-				//	There may not be a B_Block that is greater than this A_Block
+				//	Find the rightmost B_Block that is less than this A_Block
 				while (b_block_index > a_block_index) {
 					result._compares++;
 					if (*blocks[b_block_index].key < *blocks[a_block_index].key) {
@@ -898,17 +901,35 @@ namespace BlockSort {
 				//	b_block_index is updated by reference as the result of the binary search
 				index_t binary_search_result;
 				result += binarySearchLastBlock(blocks, b_block_index, num_blocks-1,
-													blocks[a_block_index].key, binary_search_result);
+												blocks[a_block_index].key, binary_search_result);
+
+				//	Descriptor[binary_search_result] is the left most block
+				//	that is greater than descriptor[a_index], which is '6'
 				//	0	 1	  2	   3	4	 5	  6    7
-				//			  ai             bi
+				//			  ai                  \/
 				//	A=4, A=6, A=7, B=5, B=5, B=6, B=7, B=8
 
-				//	If all B_Blocks are greater than this A_Block, the blocks are in order
+				//	There may be no B_Block that is greater than this A_Block
 				//	0	 1	  2	   3	4	 5	  6    7
 				//			  ai
-				//	A=4, A=6, A=7, B=8, B=9, B=10,B=11,B=12
-				if (binary_search_result > num_blocks-1) {
-					break;
+				//	A=4, A=6, A=9, B=1, B=2, B=3, B=6, B=8
+				//	In this case, restart the sort in the Right_To_Left mode
+				if (binary_search_result > (num_blocks-1)) {
+					b_block_index = num_blocks-1;
+					continue;
+				}
+
+				//	  Update b_block_index to point to the largest B_Block
+				//	that is < a_source
+				b_block_index = binary_search_result-1;
+				if (debug_verbose) {
+					std::cout << "After binary search "
+							  << " a_i = " << a_block_index
+							  << " b_i = " << b_block_index
+							  << "\n"
+							  << blockSortToString(array, size, -1,
+												   blocks, num_blocks)
+							  << std::endl << std::endl;
 				}
 			}
 
@@ -959,16 +980,8 @@ namespace BlockSort {
 				std::cout << "AFTER: \n"
 						  << blockSortToString(array, array_size, v, blocks, num_blocks)
 						  << std::endl;
+				std::cout << "LOOP COMPLETE" << std::endl << std::endl;
 			}
-		}
-
-
-		if (debug_verbose) {
-			index_t array_size = blocks[num_blocks-1].end_index+1;
-			index_t v = blocks[debug_middle_index].start_index;
-			std::cout << "AFTER: \n"
-					  << blockSortToString(array, array_size, v, blocks, num_blocks)
-					  << std::endl;
 		}
 
 		if (debug_verbose) {

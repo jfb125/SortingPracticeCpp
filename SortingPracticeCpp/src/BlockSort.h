@@ -975,27 +975,26 @@ namespace BlockSort {
 
 		ComparesAndMoves result(0,0);
 
+		//	if all the descriptors are A_Blocks, they do not need to be sorted
+		if (descriptors[num_blocks-1].type == BlockType::A_BLOCK) {
+			return result;
+		}
+
+		//	if all the descriptors are B_Blocks, they do not need to be sorted
+		if (descriptors[0].type == BlockType::B_BLOCK) {
+			return result;
+		}
 		//	Count the number of A Blocks
 		index_t num_A_blocks = 0;
-		index_t a_source = 0;
 
-		while (a_source < num_blocks) {
-			if (descriptors[a_source].type != BlockType::A_BLOCK)
+		for (index_t i = 0; i != num_blocks; i++) {
+			if (descriptors[i].type != BlockType::A_BLOCK) {
 				break;
-			a_source++;
+			}
+			num_A_blocks++;
 		}
 
-		//	if the array is all A_Blocks
-		if (a_source == num_blocks) {
-			return result;
-		}
-
-		// if the array is all B_Blocks
-		if (a_source == 0) {
-			return result;
-		}
-
-		//	Build a table of A Block indices
+		//	Build a table of A_Block indices
 		index_t a_positions[num_A_blocks];
 		for (index_t i = 0; i != num_A_blocks; i++) {
 			a_positions[i] = i;
@@ -1011,6 +1010,9 @@ namespace BlockSort {
 		while (table_i != num_A_blocks && b_source != num_blocks) {
 
 			result._compares++;
+			//	determine the smaller block, with deference given to the
+			//	  block on the left (A_Block) if the two blocks have equal
+			//	  keys in order to preserve stability
 			if (*descriptors[a_positions[table_i]].key <= *descriptors[b_source].key) {
 				src = a_positions[table_i];
 				table_i++;
@@ -1019,15 +1021,18 @@ namespace BlockSort {
 				b_source++;
 			}
 
+			//	if the block that goes here is already in-place, move on
 			if (src == dst) {
+				dst++;
 				continue;
 			}
 
 			result += swapBlocks(array, descriptors, dst, src);
 
-			for (index_t i = table_i; i != num_A_blocks; i++) {
-				//	If there was an A_Block in the table that was at dst
-				// it has now been swapped to src
+			for (index_t i = table_i; i < num_A_blocks; i++) {
+				//	If there was an A_Block in the table that was at
+				//	  position 'dst', it has been swapped to 'src'.
+				//    If that block at dst was in the table, it is now at src
 				if (a_positions[i] == dst) {
 					a_positions[i] = src;
 					break;
@@ -1040,14 +1045,19 @@ namespace BlockSort {
 		//	move them within the array back to in order
 		while (table_i != num_A_blocks) {
 			src = a_positions[table_i];
-			result += swapBlocks(array, descriptors, dst, src);
 			table_i++;
-			for (index_t i = table_i; i != num_A_blocks; i++) {
-				if (a_positions[i] == dst) {
-					a_positions[i] = src;
-					break;
+			if (dst != src) {
+				result += swapBlocks(array, descriptors, dst, src);
+				//	The A_Block that was at 'dst' has now been swapped to 'src'
+				//  Update that block's entry in the table
+				for (index_t i = table_i; i < num_A_blocks; i++) {
+					if (a_positions[i] == dst) {
+						a_positions[i] = src;
+						break;
+					}
 				}
 			}
+			dst++;
 		}
 
 		return result;
