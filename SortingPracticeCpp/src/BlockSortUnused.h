@@ -434,12 +434,17 @@ namespace BlockSort {
 										index_t block_1_start, index_t block_1_end,
 										index_t block_2_start, index_t block_2_end) {
 #endif
-		ComparesAndMoves result(0,0);
 
-		bool debug_verbose = true;
+		/*	**************************************************************	*/
+		/*							debug									*/
+		/*	**************************************************************	*/
+
+		constexpr bool debug_verbose = false;
 		std::stringstream message;
-		std::cout << std::endl;
 
+		/*	**************************************************************	*/
+		/*							lambdas									*/
+		/*	**************************************************************	*/
 
 		auto next_destination = [=] (index_t _dest) -> index_t {
 			if (_dest != block_1_end)
@@ -454,13 +459,19 @@ namespace BlockSort {
 										  index_t dst, index_t src) {
 			for (index_t i = start; i <= end; i++) {
 				//	the element in the table which was
-				//	previously at 'dst' is now at 'src'
+				//	previously at 'dst', it is now at 'src'
 				if (table[i] == dst) {
 					table[i] = src;
 					break;
 				}
 			}
 		};
+
+		/*	**************************************************************	*/
+		/*							algorithm								*/
+		/*	**************************************************************	*/
+
+		ComparesAndMoves result(0,0);
 
 		index_t block_1_span = block_1_end - block_1_start + 1;
 		index_t block_2_span = block_2_end - block_2_start + 1;
@@ -469,9 +480,9 @@ namespace BlockSort {
 			return result;
 		}
 
-		//
 		index_t block_1_locations_table_size = block_1_span;
 		index_t block_1_locations_table[block_1_locations_table_size];
+
 		for (index_t i = 0, src = block_1_start; i < block_1_locations_table_size; ) {
 			block_1_locations_table[i++] = src++;
 		}
@@ -479,7 +490,6 @@ namespace BlockSort {
 		index_t block_1_locations_table_index = 0;
 		index_t block_2_index				  = block_2_start;
 		index_t destination_index  			  = block_1_start;
-
 
 		auto debug_string = [&]() -> std::string {
 			std::stringstream result;
@@ -516,20 +526,11 @@ namespace BlockSort {
 			//	which may not be stored in its original position b/c
 			//	the block_1 element may have been displaced in a previous
 			//	pass through this loop.
-
 			index_t block_1_index = block_1_locations_table[block_1_locations_table_index];
-			if (debug_verbose) {
-				message.clear();
-				message.str("");
-
-				message << debug_string();
-				std::cout << debug_string()
-						  << std::endl;
-			}
 
 			result._compares++;
 			if (*array[block_1_index] <= *array[block_2_index]) {
-
+				// the value from the left block goes into destination
 				if (destination_index != block_1_index) {
 					T* tmp 					 = array[destination_index];
 					array[destination_index] = array[block_1_index];
@@ -543,13 +544,15 @@ namespace BlockSort {
 										   destination_index, block_1_index);
 				}
 
-				if (debug_verbose) {
-					message << " ----      left      ---- "
-							<< debug_string() << std::endl;
-				}
+				if (debug_verbose) message   << "left:  " << debug_string() << std::endl;
+
+				destination_index = next_destination(destination_index);
+
 				//	if we have moved / merged all of the block_1 elements, we are done
-				if (++block_1_locations_table_index == block_1_locations_table_size)
+				if (++block_1_locations_table_index == block_1_locations_table_size) {
+					if (debug_verbose) message << "Terminated due to table_index == table_size " << std::endl;
 					break;
+				}
 			}
 			else
 			{
@@ -562,22 +565,18 @@ namespace BlockSort {
 				//	Update the table entry of the location of the element
 				//	that was just displaced, which may be in any position in the table
 				update_locations_table(block_1_locations_table,
-								   	   	   block_1_locations_table_index, block_1_locations_table_size-1,
-										   destination_index, block_1_index);
-				if (debug_verbose) {
-					message << " ----      right     ---- "
-							<< debug_string();
-				}
+								   	   block_1_locations_table_index, block_1_locations_table_size-1,
+									   destination_index, block_2_index);
+
+				if (debug_verbose) message << "right: " << debug_string() << std::endl;
+
+				destination_index = next_destination(destination_index);
+
 				//	if all the elements from block_2 are in place, break loop
-				if (block_2_index > block_2_end) {
+				if (++block_2_index > block_2_end) {
+					if (debug_verbose) message << "Terminated due to block_2_index > block_2_end" << std::endl;
 					break;
 				}
-			}
-
-			destination_index = next_destination(destination_index);
-			if (!SortingUtilities::isSorted(array, destination_index)) {
-				std::cout << debug_string();
-				return result;
 			}
 		}
 
@@ -587,6 +586,8 @@ namespace BlockSort {
 		while(destination_index <= block_2_end &&
 			  block_1_locations_table_index < block_1_locations_table_size)
 		{
+			if (debug_verbose) message << "flush: " << debug_string() << std::endl;
+
 			index_t block_1_index	= block_1_locations_table[block_1_locations_table_index];
 			T* temp 				= array[destination_index];
 			array[destination_index]= array[block_1_index];
@@ -600,9 +601,7 @@ namespace BlockSort {
 			destination_index = next_destination(destination_index);
 		}
 
-		if (debug_verbose) {
-			std::cout << message.str();
-		}
+		if (debug_verbose)	std::cout << message.str() << std::endl;
 		return result;
 	}
 

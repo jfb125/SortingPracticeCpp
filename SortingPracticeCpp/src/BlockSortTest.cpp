@@ -59,23 +59,23 @@ std::string toString(MergeStrategy strategy) {
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 //#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+//#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
 //#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
-//#define TEST_BLOCK_SORT_SORT
+#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortBinarySearchFirstBlock();
 bool testBlockSortBinarySearchLastBlock();
 bool testBlockSortBinarySearchFirstElement();
 bool testBlockSortBinarySearchLastElement();
 bool testBlockSortCreateDescriptors();
-bool testBlockSortMergeBlocksRandomly();
 bool testBlockSortMergeBlocksExhaustively();
+bool testBlockSortMergeBlocksRandomly();
 bool testBlockSortModulo();
 bool testBlockSortRotateArrayElements();
 bool testBlockSortRotateBlocks();
@@ -219,7 +219,7 @@ bool testBlockSort() {
 	num_tests++;
 	runTest(all_tests_passed, testBlockSortSort, "function testBlockSortSort()");
 	if (!all_tests_passed)
-		return passed;
+		return all_tests_passed;
 	tests_passed++;
 #endif
 
@@ -907,7 +907,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 	bool echo_result = true;
 	bool test_passed = true;
 
-	int test_vector_sizes[] = { 7, 8, 16 };
+	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
 	int num_test_vectors_sizes = sizeof(test_vector_sizes) / sizeof(int);
 
 	#pragma push_macro("DATA_TYPE")
@@ -941,6 +941,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 	for (int test_vector_i = 0; test_vector_i < num_test_vectors_sizes; test_vector_i++) {
 		int test_vector_size = test_vector_sizes[test_vector_i];
 
+		std::cout << "Test Vector Size = " << test_vector_size << std::endl;
 		//	build the array of test values
 		char *test_values[test_vector_size];
 		for (int i = 0; i != test_vector_size; i++) {
@@ -966,12 +967,13 @@ bool testBlockSortMergeBlocksExhaustively() {
 	    }
 
 	    char **test_vectors[num_test_vectors];
-
+	    std::cout << "Generating " << num_test_vectors << " vectors ... " << std::endl;
 		if (!generateAllCombinationsOfValues(test_vectors, test_values, num_test_vectors, test_vector_size, mid)) {
 			std::cout << "Unable to generate " << num_test_vectors << " test vectors" << std::endl;
 			test_passed = false;
 			goto TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN;
 		}
+		std::cout << " generated " << num_test_vectors << " vectors" << std::endl;
 
 		array_size_t left_start = 0;
 		array_size_t left_end = mid - 1;
@@ -995,7 +997,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 		int num_merge_strategies = sizeof(merge_strategies)/sizeof(MergeStrategy);
 
-		for (int merge_strategy_i = 00;
+		for (int merge_strategy_i = 0;
 			     merge_strategy_i != num_merge_strategies; merge_strategy_i++) {
 
 			MergeStrategy merge_strategy = merge_strategies[merge_strategy_i];
@@ -1055,8 +1057,8 @@ bool testBlockSortMergeBlocksExhaustively() {
 				}
 			}
 			if (echo_result) {
-				std::cout << "Sorting all " << std::setw(3) << num_tests_run
-						  << " unique arrays of size "
+				std::cout << "Merging all " << std::setw(3) << num_test_vectors
+						  << " pairs of unique arrays of size "
 						  << test_vector_size << " where mid = " << mid << " using strategy "
 						  << toString(merge_strategy)
 						  << std::endl
@@ -1132,8 +1134,7 @@ bool testBlockSortMergeBlocksRandomly() {
 
 	int num_test_passes = 1000;
 //	array_size_t array_sizes[] = { 8, 16, 31, 32, 33, 127, 128, 129, 16, 32, 64, 128};
-//	array_size_t array_sizes[] = { 512, 1024, 2048 };
-	array_size_t array_sizes[] = { 32 };
+	array_size_t array_sizes[] = { 512, 1024, 2048 };
 
 	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
@@ -1160,7 +1161,7 @@ bool testBlockSortMergeBlocksRandomly() {
 
 		MergeStrategy merge_strategies[] = {
 //				MergeStrategy::AUXILLIARY,
-//				MergeStrategy::ROTATE,
+				MergeStrategy::ROTATE,
 				MergeStrategy::TABLE
 		};
 
@@ -2360,44 +2361,77 @@ TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN:
 
 
 bool testBlockSortSort() {
-	bool passed = true;
-	ComparesAndMoves sort_result;
-	constexpr int num_tests = 1000;
-	constexpr array_size_t array_size = 1024;
+
+	bool test_passed = true;
+	constexpr bool debug_verbose = true;
+
+	using data_type = int;
+
+	SimpleRandomizer randomizer;
+
+	constexpr int num_tests = 2;
+	constexpr array_size_t array_size = 32;
+
 	array_size_t v = array_size/2;
-	int *reference_array[array_size];
+	data_type *reference_array[array_size];
 
 	for (int i = 0, val = 0; i < v; val += 2, i++) {
-		reference_array[i] = new int(val);
+		reference_array[i] = new data_type(val);
 	}
 	for (int i = v, val = 1; i < array_size; val += 2, i++)  {
-		reference_array[i] = new int(val);
+		reference_array[i] = new data_type(val);
 	}
 
-	int element_width = 5;
-	int value_width = 4;
+	int element_width = 4;
+	int value_width = element_width-1;
+	ComparesAndMoves total_metrics(0,0);
 
-	for (int test_number = 0; test_number != num_tests; test_number++) {
-		int *test_array[array_size];
+	for (int test_number = 0; test_number != num_tests; test_number++)
+	{
+		ComparesAndMoves result(0,0);
+		data_type *test_array[array_size];
 		for (int i = 0; i != array_size; i++) {
 			test_array[i] = reference_array[i];
 		}
+
 		std::stringstream msg;
-		msg << "            " << arrayIndicesToString(array_size, v, element_width)
+		msg << "           " << arrayIndicesToString(array_size, v, element_width)
 		    << std::endl;
-		msg << "initially : " << SortingUtilities::arrayElementsToString(test_array,
+		msg << "initially :" << SortingUtilities::arrayElementsToString(test_array,
 																		 array_size,
 																		 value_width,
 																		 element_width)
 			<< std::endl;
+		for (int i = 0; i != array_size; i++) {
+			index_t r = randomizer.rand(i, array_size);
+			data_type* temp = test_array[i];
+			test_array[i] = test_array[r];
+			test_array[r] = temp;
+		}
 		SortingUtilities::randomizeArray(test_array, array_size);
-		msg << "randomized: " << SortingUtilities::arrayElementsToString(test_array,
+		index_t array_start = 0;
+		index_t array_end = array_size-1;
+		index_t array_mid = array_size /2 ;
+		InsertionSort::sortPointersToObjects(test_array, array_mid);
+		InsertionSort::sortPointersToObjects(&test_array[array_mid], array_end-array_mid+1);
+		msg << "randomized:" << SortingUtilities::arrayElementsToString(test_array,
 																		 array_size,
 																		 value_width,
 																		 element_width)
 			<< std::endl;
-		BlockSort::sortPointerstoObjects(test_array, array_size);
-		msg << "sorted    : " << SortingUtilities::arrayElementsToString(test_array,
+		int block_size = static_cast<int>(std::sqrt(array_size/2));
+		std::unique_ptr<BlockDescriptor<data_type>[]> descriptors;
+		int num_blocks = createBlockDescriptors_A0_Full(test_array,
+												array_start, array_mid, array_end,
+												block_size, descriptors);
+
+		msg << blockSortToString<data_type>(test_array, array_size, array_mid,
+									   	    descriptors, num_blocks, "           ",
+											value_width, element_width)
+			<< std::endl;
+		result += sortAndMergeBlocks(test_array, descriptors, num_blocks);
+
+		msg << "sorted    :" << SortingUtilities::arrayElementsToString(test_array,
 																		 array_size,
 																		 value_width,
 																		 element_width)
@@ -2406,7 +2440,10 @@ bool testBlockSortSort() {
 		index_t mismatched_j;
 		if (!SortingUtilities::isSorted(test_array, array_size,
 									   mismatched_i, mismatched_j)) {
-			passed = false;
+			if (!debug_verbose) {
+				std::cout << msg.str() << std::endl;
+			}
+			test_passed = false;
 			std::cout << msg.str() << std::endl;
 			std::cout << "BlockSort failed ["
 					  << mismatched_i << "] = "
@@ -2415,9 +2452,13 @@ bool testBlockSortSort() {
 					  << *reference_array[mismatched_j] << std::endl;
 			goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
 		}
+		if (debug_verbose) {
+			std::cout << msg.str()
+					  << " took " << result << std::endl;
+		}
 	}
 TEST_BLOCK_SORT_SORT_RETURN_LABEL:
-	return passed;
+	return test_passed;
 }
 
 /*	**********************************************************	*/

@@ -5,6 +5,10 @@
  *      Author: joe
  */
 
+#include <iostream>
+#include <iomanip>
+#include <string>
+
 #ifndef BLOCKSORTDEBUGGING_H_
 #define BLOCKSORTDEBUGGING_H_
 //	for VALUE_WIDTH and ELEMENT_WIDTH
@@ -74,13 +78,18 @@ namespace BlockSort {
 	template <typename T>
 	std::string blockSortToString(T** array, index_t size, index_t v,
 								  std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
+								  const char * line_prefix = nullptr,
 								  int value_width = VALUE_WIDTH,
 								  int element_width = ELEMENT_WIDTH) {
 		OStreamState ostream_state;
 		std::stringstream result;
-		result << arrayIndicesToString(size, v, element_width) << std::endl;
-		result << SortingUtilities::arrayElementsToString(array, size, value_width, element_width) << std::endl;
-		result << blockDescriptorsToString(tags, num_tags, element_width);
+		std::string prefix;
+		if (line_prefix != nullptr) {
+			prefix = line_prefix;
+		}
+		result << prefix << arrayIndicesToString(size, v, element_width) << std::endl;
+		result << prefix << SortingUtilities::arrayElementsToString(array, size, value_width, element_width) << std::endl;
+		result << prefix << blockDescriptorsToString(tags, num_tags, element_width);
 		return result.str();
 	}
 

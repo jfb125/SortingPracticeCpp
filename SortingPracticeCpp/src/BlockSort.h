@@ -67,9 +67,9 @@ namespace BlockSort {
 										std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
 
 	/*	Merges a sorted list of descriptors which results in the underlying array
-	 * being in order. */
+	 * being in order.  Starts at right block an moves left wards */
 	template <typename T>
-	ComparesAndMoves mergeAllBlocks(T** array,
+	ComparesAndMoves mergeAllBlocksRightToLeft(T** array,
 									std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
 									int num_desc);
 
@@ -79,6 +79,14 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves mergeContiguousBlocksByRotating(T** array, index_t start,
 																index_t mid, index_t end);
+
+	/*
+	 * 	Blocks do not have to be continuous nor do they have to be the same size
+	 */
+	template <typename T>
+	ComparesAndMoves mergeTwoBlocksByTable(T ** array,
+										index_t block_1_start, index_t block_1_end,
+										index_t block_2_start, index_t block_2_end);
 
 	template <typename T>
 	ComparesAndMoves rotateArrayElementsRight(T** array, index_t start, index_t end, index_t amount);
@@ -90,6 +98,10 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves sortBlocksByTable(T** array,
 			std::unique_ptr<BlockDescriptor<T>[]> &blocks, int num_blocks);
+
+	template <typename T>
+	ComparesAndMoves sortAndMergeBlocks(T** array,
+			std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_desc);
 
 	/*	  Sorts all of the A_Blocks, and then sorts all of the B_Blocks, using
 	 *	an insertion sort on each range.  This is done after creating the blocks
@@ -547,7 +559,7 @@ namespace BlockSort {
 	//	starting at the right-most block, merge the previous (left) block into
 	//	  the elements to the right
 	template <typename T>
-	ComparesAndMoves mergeAllBlocks(T** array,
+	ComparesAndMoves mergeAllBlocksRightToLeft(T** array,
 									std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors,
 									int num_blocks) {
 
@@ -816,6 +828,135 @@ namespace BlockSort {
 		#pragma pop_macro("_debug")
 	}
 
+
+	/*
+	 * 	  This sorts the blocks, and merges each block (if necessary) with the
+	 * 	preceding block (if necessary)
+	 */
+
+	template <typename T>
+	ComparesAndMoves sortAndMergeBlocks(
+				T** array,
+				std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
+				int num_blocks)
+	{
+		ComparesAndMoves result(0,0);
+
+		//	if all the descriptors are A_Blocks, they do not need to be sorted
+		if (descriptors[num_blocks-1].type == BlockType::A_BLOCK) {
+			return result;
+		}
+
+		//	if all the descriptors are B_Blocks, they do not need to be sorted
+		if (descriptors[0].type == BlockType::B_BLOCK) {
+			return result;
+		}
+		//	Count the number of A Blocks
+		index_t num_A_blocks = 0;
+
+		for (index_t i = 0; i != num_blocks; i++) {
+			if (descriptors[i].type != BlockType::A_BLOCK) {
+				break;
+			}
+			num_A_blocks++;
+		}
+
+		//	Build a table of A_Block indices
+		index_t a_positions[num_A_blocks];
+		for (index_t i = 0; i != num_A_blocks; i++) {
+			a_positions[i] = i;
+		}
+
+		//	Create source & destination indices
+
+		index_t table_i 	= 0;
+		index_t b_source 	= num_A_blocks;
+		index_t dst			= 0;
+		index_t src			= 0;
+
+		while (table_i != num_A_blocks && b_source != num_blocks) {
+
+			result._compares++;
+			//	determine the smaller block, with deference given to the
+			//	  block on the left (A_Block) if the two blocks have equal
+			//	  keys in order to preserve stability
+			if (*descriptors[a_positions[table_i]].key <= *descriptors[b_source].key) {
+				src = a_positions[table_i];
+				table_i++;
+			} else {
+				src = b_source;
+				b_source++;
+			}
+
+			//	if the block that goes here is already in-place, move on
+			if (src == dst) {
+				dst++;
+				continue;
+			}
+
+			result += swapBlocks(array, descriptors, dst, src);
+
+			//	  If the block got placed to the right of another block,
+			//	it may be necessary to merge the block leftwards
+			//	This is only necessary when a B_Block is placed to the
+			//	left of an A_Block.
+			//	{ A[m], A[m+1] }	are in order b/c A block sequence was in order
+			//	{ B[n], B[n+1] }	are in order b/c B block sequence was in order
+			//	{ B[n], A[m]   }	is in order b/c *A.start_index > *B.end_index
+			//	{ A[m], B[n]   }	may not be in order
+			//	Consider the A_Block 	{ 1, 3, 5, 6 } vs B_Block { 2, 4, 7, 8 }
+			//	They form the sequence 	{ 1, 3, 5, 6, 2, 4, 7, 8 }
+			if (dst > 0) {
+				if (descriptors[dst-1].type == BlockType::A_BLOCK &&
+					descriptors[dst].type == BlockType::B_BLOCK) {
+					index_t sze = descriptors[dst].end_index + 1;
+					result += InsertionSort::sortPointersToObjects(array, sze);
+				}
+			}
+			for (index_t i = table_i; i < num_A_blocks; i++) {
+				//	If there was an A_Block in the table that was at
+				//	  position 'dst', it has been swapped to 'src'.
+				//    If that block at dst was in the table, it is now at src
+				if (a_positions[i] == dst) {
+					a_positions[i] = src;
+					break;
+				}
+			}
+			dst++;
+		}
+
+		//	  If there are any remaining A_Blocks,
+		//	move them within the array back to in order
+		while (table_i != num_A_blocks) {
+			src = a_positions[table_i];
+			table_i++;
+			if (dst != src) {
+				result += swapBlocks(array, descriptors, dst, src);
+				//	The A_Block that was at 'dst' has now been swapped to 'src'
+				//  Update that block's entry in the table
+				for (index_t i = table_i; i < num_A_blocks; i++) {
+					if (a_positions[i] == dst) {
+						a_positions[i] = src;
+						break;
+					}
+				}
+			}
+			dst++;
+		}
+
+		//	This happens when the A_Block table is exhausted while
+		//	  there are still (B_Blocks) blocks to the right
+		if (dst > 0 && dst != num_blocks) {
+			if (descriptors[dst-1].type == BlockType::A_BLOCK &&
+				descriptors[dst].type == BlockType::B_BLOCK) {
+				index_t sze = descriptors[dst].end_index + 1;
+				result += InsertionSort::sortPointersToObjects(array, sze);
+			}
+			dst++;
+		}
+
+		return result;
+	}
 
 	/*
 	 * 	ComparesAndMoves sortBlocks*Strategy*(array, size, block_descriptors, blocks);
