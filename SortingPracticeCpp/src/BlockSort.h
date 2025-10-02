@@ -66,12 +66,13 @@ namespace BlockSort {
 			    						int block_size,
 										std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
 
-	/*	Merges all blocks from left to right using an insertion sort.  This is expected
-	 * to possibly be better than just an insertion sort b/c sorting the blocks previously
-	 * has possibly placed the array in partial order. */
+	/*	Merges a sorted list of descriptors which results in the underlying array
+	 * being in order. */
 	template <typename T>
-	ComparesAndMoves mergeAllBlocks(T** array, index_t size,
-					std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors, int num_blocks);
+	ComparesAndMoves mergeAllBlocks(T** array,
+									std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
+									int num_desc);
+
 	/*
 	 * 	Blocks must be contiguous
 	 */
@@ -419,21 +420,6 @@ namespace BlockSort {
 		}
 
 		return num_blocks;
-	}
-
-
-	/*
-	 * 	mergeTwoBlocksByAuxiliary(array, left_start, left_end, right_start, right_end)
-	 *
-	 * 	Merges the two blocks by copying the smaller of the two blocks into an
-	 * 		auxiliary array
-	 */
-	template <typename T>
-	ComparesAndMoves mergeTwoBlocksByAuxiliary( T ** array,
-												index_t left_start, index_t left_end,
-												index_t right_start, index_t right_end) {
-		ComparesAndMoves result(0,0);
-		return result;
 	}
 
 

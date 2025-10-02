@@ -44,8 +44,6 @@ std::string toString(MergeStrategy strategy) {
 	};
 }
 
-MergeStrategy merge_strategy = MergeStrategy::ROTATE;
-
 
 /*	**********************************************	*/
 /*	**********************************************	*/
@@ -61,14 +59,14 @@ MergeStrategy merge_strategy = MergeStrategy::ROTATE;
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 //#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-//#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
+#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
 //#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
-#define TEST_BLOCK_SORT_SORT_BLOCKS
+//#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortBinarySearchFirstBlock();
@@ -186,29 +184,15 @@ bool testBlockSort() {
 
 #ifdef TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 	num_tests++;
-	merge_strategy = MergeStrategy::ROTATE;
 	runTest(all_tests_passed, testBlockSortMergeBlocksExhaustively, "function testBlockSortMergeBlocksExhaustively()");
 	if (!all_tests_passed)
 		return all_tests_passed;
 	tests_passed++;
 	std::cout << std::endl;
-	num_tests++;
-	merge_strategy = MergeStrategy::TABLE;
-	runTest(all_tests_passed, testBlockSortMergeBlocksExhaustively, "function testBlockSortMergeBlocksExhaustively()");
-	if (!all_tests_passed)
-		return all_tests_passed;
-	tests_passed++;
 #endif
 
 #ifdef TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 	num_tests++;
-	merge_strategy = MergeStrategy::ROTATE;
-	runTest(all_tests_passed, testBlockSortMergeBlocksRandomly, "function testBlockSortMergeBlocksRandomly()");
-	if (!all_tests_passed)
-		return all_tests_passed;
-	tests_passed++;
-	num_tests++;
-	merge_strategy = MergeStrategy::TABLE;
 	runTest(all_tests_passed, testBlockSortMergeBlocksRandomly, "function testBlockSortMergeBlocksRandomly()");
 	if (!all_tests_passed)
 		return all_tests_passed;
@@ -673,7 +657,7 @@ TEST_CREATE_BLOCKS_RETURN_POINT:
 }
 
 
-/*	*******************************************************	*/
+	/*	*******************************************************	*/
 	/*	*******************************************************	*/
 	/*						floorLog2							*/
 	/*	*******************************************************	*/
@@ -917,9 +901,10 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	OStreamState ostream_state;
 
+	std::cout << __FUNCTION__ << std::endl;
+
 	bool debug_verbose = false;
 	bool echo_result = true;
-	std::stringstream test_message;
 	bool test_passed = true;
 
 	int test_vector_sizes[] = { 7, 8, 16 };
@@ -1001,83 +986,98 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 		int num_tests_run = 0;
 
-		for (int i = 0; i != num_test_vectors; i++) {
-			test_message.clear();
-			test_message.str("");
-			test_message << std::setw(5) << num_tests_run << " ";
-			InsertionSort::sortPointersToObjects(&test_vectors[i][left_start], mid);
-			InsertionSort::sortPointersToObjects(&test_vectors[i][mid], right_end-right_start+1);
+		MergeStrategy merge_strategies[] =
+		{
+//				MergeStrategy::AUXILLIARY,
+				MergeStrategy::ROTATE,
+				MergeStrategy::TABLE
+		};
 
-			num_tests_run++;
-			test_message << " when divided into two subarrays, each sorted: "
-						 << testVectorToString(test_vectors[i], test_vector_size);
+		int num_merge_strategies = sizeof(merge_strategies)/sizeof(MergeStrategy);
 
-			ComparesAndMoves result;
-			switch(merge_strategy) {
-			case MergeStrategy::TABLE:
-				result = regressionTestOnly_mergeTwoBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
-				break;
-			case MergeStrategy::ROTATE:
-				result = mergeContiguousBlocksByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
-				break;
-			case MergeStrategy::AUXILLIARY:
-			default:
-				break;
-			}
-			total_results += result;
-			if (result._compares < least_compares._compares) {
-				least_compares = result;
-			}
-			if (result._moves < least_moves._moves) {
-				least_moves = result;
-			}
-			if (result._compares > most_compares._compares) {
-				most_compares = result;
-			}
-			if (result._moves > most_moves._moves) {
-				most_moves = result;
-			}
+		for (int merge_strategy_i = 00;
+			     merge_strategy_i != num_merge_strategies; merge_strategy_i++) {
 
-			test_message << " merged using strategy " << toString(merge_strategy) << " to "
-						 << testVectorToString(test_vectors[i], test_vector_size)
-						 << " which took "
-						 << result;
-			if (isSorted(test_vectors[i], test_vector_size)) {
-				test_message << " which is correct" << std::endl;
-			} else {
-				test_message << " which is in ERROR" << std::endl;
-				std::cout << test_message.str();
-				test_passed = false;
-				goto TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN;
-				break;
+			MergeStrategy merge_strategy = merge_strategies[merge_strategy_i];
+			for (int i = 0; i != num_test_vectors; i++) {
+				std::stringstream test_message;
+				test_message.clear();
+				test_message.str("");
+				test_message << std::setw(5) << num_tests_run << " ";
+				InsertionSort::sortPointersToObjects(&test_vectors[i][left_start], mid);
+				InsertionSort::sortPointersToObjects(&test_vectors[i][mid], right_end-right_start+1);
+
+				num_tests_run++;
+				test_message << " when divided into two subarrays, each sorted: "
+							 << testVectorToString(test_vectors[i], test_vector_size);
+
+				ComparesAndMoves result;
+				switch(merge_strategy) {
+				case MergeStrategy::TABLE:
+					result = mergeTwoBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
+					break;
+				case MergeStrategy::ROTATE:
+					result = mergeContiguousBlocksByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
+					break;
+				case MergeStrategy::AUXILLIARY:
+				default:
+					break;
+				}
+				total_results += result;
+				if (result._compares < least_compares._compares) {
+					least_compares = result;
+				}
+				if (result._moves < least_moves._moves) {
+					least_moves = result;
+				}
+				if (result._compares > most_compares._compares) {
+					most_compares = result;
+				}
+				if (result._moves > most_moves._moves) {
+					most_moves = result;
+				}
+
+				test_message << " merged using strategy " << toString(merge_strategy) << " to "
+							 << testVectorToString(test_vectors[i], test_vector_size)
+							 << " which took "
+							 << result;
+				if (isSorted(test_vectors[i], test_vector_size)) {
+					test_message << " which is correct" << std::endl;
+				} else {
+					test_message << " which is in ERROR" << std::endl;
+					std::cout << test_message.str();
+					test_passed = false;
+					goto TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN;
+					break;
+				}
+				if (debug_verbose) {
+					std::cout << test_message.str();
+				}
 			}
-			if (debug_verbose) {
-				std::cout << test_message.str();
+			if (echo_result) {
+				std::cout << "Sorting all " << std::setw(3) << num_tests_run
+						  << " unique arrays of size "
+						  << test_vector_size << " where mid = " << mid << " using strategy "
+						  << toString(merge_strategy)
+						  << std::endl
+						  << " took average of  "
+						  << std::fixed
+						  << std::setprecision(1)
+						  << std::setw(8)
+						  << static_cast<double>(total_results._compares) / num_tests_run
+						  << " compares and "
+						  << std::setw(4)
+						  << static_cast<double>(total_results._moves) / num_tests_run
+						  << " moves\n"
+						  << " worst case moves " << std::setw(8) << most_moves._compares << " compares and "
+						  << std::setw(4) << most_moves._moves << " moves\n"
+						  << " worst case cmprs " << std::setw(8) << most_compares._compares << " compares and "
+						  << std::setw(4) << most_compares._moves << " moves\n"
+						  << "  best case moves " << std::setw(8) << least_moves._compares << " compares and "
+						  << std::setw(4) << least_moves._moves << " moves\n"
+						  << "  best case cmprs " << std::setw(8) << least_compares._compares << " compares and "
+						  << std::setw(4) << least_moves._moves << " moves\n";
 			}
-		}
-		if (echo_result) {
-			std::cout << "Sorting all " << std::setw(3) << num_tests_run
-					  << " unique arrays of size "
-					  << test_vector_size << " where mid = " << mid << " using strategy "
-					  << toString(merge_strategy)
-					  << std::endl
-					  << " took average of  "
-					  << std::fixed
-					  << std::setprecision(1)
-					  << std::setw(8)
-					  << static_cast<double>(total_results._compares) / num_tests_run
-					  << " compares and "
-					  << std::setw(4)
-					  << static_cast<double>(total_results._moves) / num_tests_run
-					  << " moves\n"
-					  << " worst case moves " << std::setw(8) << most_moves._compares << " compares and "
-					  << std::setw(4) << most_moves._moves << " moves\n"
-					  << " worst case cmprs " << std::setw(8) << most_compares._compares << " compares and "
-					  << std::setw(4) << most_compares._moves << " moves\n"
-					  << "  best case moves " << std::setw(8) << least_moves._compares << " compares and "
-					  << std::setw(4) << least_moves._moves << " moves\n"
-					  << "  best case cmprs " << std::setw(8) << least_compares._compares << " compares and "
-					  << std::setw(4) << least_moves._moves << " moves\n";
 		}
 	}
 
@@ -1089,15 +1089,19 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 bool testBlockSortMergeBlocksRandomly() {
 
+	std::cout << __FUNCTION__ << std::endl;
+
 	bool test_passed = true;
 //	SimpleRandomizer randomizer;
 	bool debug_verbose = false;
 	bool echo_test_result = true;
 	std::stringstream message;
 
+	using data_type = int;
+
 	int element_width;
 
-	auto _arrayToString = [&] (int **l_array, int l_size) -> std::string {
+	auto _arrayToString = [&] (data_type **l_array, int l_size) -> std::string {
 		std::stringstream result;
 		result << "[";
 		for (int i = 0; i != l_size; i++) {
@@ -1107,13 +1111,13 @@ bool testBlockSortMergeBlocksRandomly() {
 		return result.str();
 	};
 
-	ComparesAndMoves (*sortArray)(int**, int, int) = [] (int **l_array, int l_start, int l_end) {
+	ComparesAndMoves (*sortArray)(data_type**, int, int) = [] (data_type **l_array, int l_start, int l_end) {
 		ComparesAndMoves result(0,0);
 		for (int i = l_start+1; i <= l_end; i++) {
 			for (int j = i; j != l_start; j--) {
 				result._compares++;
 				if (*l_array[j-1] > *l_array[j]) {
-					int *tmp = l_array[j-1];
+					data_type *tmp = l_array[j-1];
 					l_array[j-1] = l_array[j];
 					l_array[j] = tmp;
 					result._moves += 3;
@@ -1128,13 +1132,14 @@ bool testBlockSortMergeBlocksRandomly() {
 
 	int num_test_passes = 1000;
 //	array_size_t array_sizes[] = { 8, 16, 31, 32, 33, 127, 128, 129, 16, 32, 64, 128};
-	array_size_t array_sizes[] = { 512, 1024, 2048 };
+//	array_size_t array_sizes[] = { 512, 1024, 2048 };
+	array_size_t array_sizes[] = { 32 };
+
 	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
 	for (int array_size_i = 0; array_size_i != num_array_sizes; ++array_size_i) {
 		array_size_t array_size = array_sizes[array_size_i];
-		ComparesAndMoves total_result(0, 0);
-		int num_tests = num_test_passes;
+
 		array_size_t width = array_size;
 
 		element_width = 1;
@@ -1143,9 +1148,9 @@ bool testBlockSortMergeBlocksRandomly() {
 			element_width++;
 		}
 
-		int *test_array[array_size];
-		int *reference_array[array_size];
-		int *initial_array[array_size];
+		data_type *test_array[array_size];
+		data_type *reference_array[array_size];
+		data_type *initial_array[array_size];
 
 		for (int i = 0; i != array_size; i++) {
 			reference_array[i] = new int(i);
@@ -1153,101 +1158,141 @@ bool testBlockSortMergeBlocksRandomly() {
 
 		sortArray(reference_array, 0, array_size-1);
 
-		for (int test_number = 0; test_number != num_tests; test_number++) {
+		MergeStrategy merge_strategies[] = {
+//				MergeStrategy::AUXILLIARY,
+//				MergeStrategy::ROTATE,
+				MergeStrategy::TABLE
+		};
 
-			ComparesAndMoves result(0, 0);
-			//	create a linear array
-			for (int i = 0; i != array_size; i++) {
-				test_array[i] 		= reference_array[i];
-			}
+		int num_merge_strategies = sizeof(merge_strategies) / sizeof(MergeStrategy);
 
-			randomizeArray(test_array, array_size);
+		for (int merge_strategy_num = 0;
+				 merge_strategy_num != num_merge_strategies;
+				 merge_strategy_num++)
+		{
+			//  create a randomizer which will always be intialized to the
+			//	same default key
+			SimpleRandomizer randomizer;
 
-			for (int i = 0; i != array_size; i++) {
-				initial_array[i] = test_array[i];
-			}
-			//	sort each array, u & v, using an insertion sort
-			index_t mid = array_size/2;
-			index_t left_start = 0;
-			index_t left_end = mid-1;
-			index_t left_span = mid;
-			index_t right_start = mid;
-			index_t right_end = array_size-1;
-			index_t right_span = array_size-mid;
+			MergeStrategy merge_strategy = merge_strategies[merge_strategy_num];
 
-			InsertionSort::sortPointersToObjects(test_array, left_span);
-			InsertionSort::sortPointersToObjects(&test_array[mid], right_span);
-			message.clear();
-			message.str("");
-			if (debug_verbose) {
-				message << "  initial_array: "
-						<< _arrayToString(initial_array, array_size);
-			}
+			ComparesAndMoves total_results(0,0);
 
-			switch(merge_strategy) {
-			case MergeStrategy::ROTATE:
-				result += mergeContiguousBlocksByRotating(test_array,
-												left_start, mid, right_end);
-				break;
-			case MergeStrategy::TABLE:
-				result += regressionTestOnly_mergeTwoBlocksByTable(test_array,
-											 left_start, left_end,
-											 right_start, right_end);
-				break;
-			case MergeStrategy::AUXILLIARY:
-				std::cout << __FUNCTION__ << " using strategy "
-						  << toString(merge_strategy)
-						  << " which is not implemented\n";
-				test_passed = false;
-				goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
-			}
-			total_result += result;
+			for (int test_number = 0; test_number != num_test_passes; test_number++) {
 
-			if (debug_verbose) {
-				message << " after: "
-						<< _arrayToString(test_array, array_size)
-						<< " used: " << result
-						<< "\n";
-				std::cout << message.str();
-			}
+				ComparesAndMoves result(0, 0);
+				//	create a linear array
+				for (int i = 0; i != array_size; i++) {
+					test_array[i] 		= reference_array[i];
+				}
 
-			for (int i = 0; i != array_size; i++) {
-				if (*test_array[i] != *reference_array[i]) {
-					test_passed = false;
-					message.clear();
-					message.str();
-					message << "array size " << array_size << " test pass "
-							<< test_number << std::endl
-							<< " initial_array  "
+				//	randomize the array using the default randomizer
+				for (int i = 0; i != array_size; i++) {
+					int r = randomizer.rand(i, array_size);
+					data_type *temp = test_array[i];
+					test_array[i] = test_array[r];
+					test_array[r] = temp;
+				}
+
+				//	sort each array, u & v, using an insertion sort
+				index_t mid = array_size/2;
+				index_t left_start = 0;
+				index_t left_end = mid-1;
+				index_t left_span = mid;
+				index_t right_start = mid;
+				index_t right_end = array_size-1;
+				index_t right_span = array_size-mid;
+
+				InsertionSort::sortPointersToObjects(test_array, left_span);
+				InsertionSort::sortPointersToObjects(&test_array[mid], right_span);
+
+				for (int i = 0; i != array_size; i++) {
+					initial_array[i] = test_array[i];
+				}
+
+				message.clear();
+				message.str("");
+				if (debug_verbose) {
+					message << "  indices      : ";
+					for (int i = 0; i != array_size; i++) {
+						message << std::setw(element_width) << i;
+					}
+					message << std::endl;
+					message << "  initial_array: "
 							<< _arrayToString(initial_array, array_size)
-							<< std::endl
-							<< " result array   "
-							<< _arrayToString(test_array, array_size)
-							<< std::endl
-							<< " expected array "
-							<< _arrayToString(reference_array, array_size)
 							<< std::endl;
+				}
 
-					message << " FAILED: [" << std::setw(3) << i << "]"
-							<< " expected_array " << initial_array[i] << " vs actual "
-							<< *test_array[i] << std::endl;
-					std::cout << message.str();
+				switch(merge_strategy) {
+				case MergeStrategy::ROTATE:
+					result += mergeContiguousBlocksByRotating(test_array,
+															  left_start, mid, right_end);
+					break;
+				case MergeStrategy::TABLE:
+					result += mergeTwoBlocksByTable( test_array,
+												 	 left_start, left_end,
+													 right_start, right_end);
+					break;
+				case MergeStrategy::AUXILLIARY:
+					std::cout << __FUNCTION__ << " using strategy "
+							  << toString(merge_strategy)
+							  << " which is not implemented\n";
+					test_passed = false;
 					goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
 				}
+				total_results += result;
+
+				if (debug_verbose) {
+					message << "          after: "
+							<< _arrayToString(test_array, array_size)
+							<< " used: " << result
+							<< "\n";
+					std::cout << message.str();
+				}
+
+				for (int i = 0; i != array_size; i++) {
+					if (*test_array[i] != *reference_array[i]) {
+						test_passed = false;
+						message.clear();
+						message.str();
+						message << "array size " << array_size << " test pass "
+								<< test_number << std::endl;
+						message << " indices        ";
+						for (int i = 0; i != array_size; i++) {
+							message << std::setw(element_width+1) << i;
+						}
+						message << std::endl;
+						message	<< " initial_array  "
+								<< _arrayToString(initial_array, array_size)
+								<< std::endl
+								<< " result array   "
+								<< _arrayToString(test_array, array_size)
+								<< std::endl
+								<< " expected array "
+								<< _arrayToString(reference_array, array_size)
+								<< std::endl;
+
+						message << " FAILED: [" << std::setw(3) << i << "]"
+								<< " expected_array " << initial_array[i] << " vs actual "
+								<< *test_array[i] << std::endl;
+						std::cout << message.str();
+						goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
+					}
+				}
 			}
-		}
-		if (echo_test_result) {
-			std::cout << "Merging blocks " << num_test_passes
-					 << " times on an test_array of size "
-					 << std::setw(4) << array_size
-					 << " using stategy " << toString(merge_strategy)
-					 << " took on average "
-					 << std::fixed << std::setprecision(1) << std::setw(8)
-					 << static_cast<double>(total_result._compares) / num_tests
-					 << " compares and "
-					 << std::fixed << std::setprecision(1) << std::setw(12)
-					 << static_cast<double>(total_result._moves) / num_tests
-					 << " moves" << std::endl;
+			if (echo_test_result) {
+				std::cout << "Merging blocks " << num_test_passes
+						 << " times on an test_array of size "
+						 << std::setw(4) << array_size
+						 << " using stategy " << toString(merge_strategy)
+						 << " took on average "
+						 << std::fixed << std::setprecision(1) << std::setw(8)
+						 << static_cast<double>(total_results._compares) / num_test_passes
+						 << " compares and "
+						 << std::fixed << std::setprecision(1) << std::setw(12)
+						 << static_cast<double>(total_results._moves) / num_test_passes
+						 << " moves" << std::endl;
+			}
 		}
 	}
 
