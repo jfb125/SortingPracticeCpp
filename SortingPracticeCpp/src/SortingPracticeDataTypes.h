@@ -38,6 +38,7 @@ constexpr int compares_width = 8;
 constexpr int moves_width = 8;
 std::ostream& operator<<(std::ostream &out, const ComparesAndMoves& object);
 ComparesAndMoves& operator+=(ComparesAndMoves& lhs, const ComparesAndMoves &rhs);
+std::string averageMetricsToString(const ComparesAndMoves &metrics, int num_tests, int precision = 1, int width = 8);
 
 class IsSortedResult {
 public:

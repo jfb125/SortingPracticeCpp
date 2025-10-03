@@ -2362,100 +2362,157 @@ TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN:
 
 bool testBlockSortSort() {
 
-	bool test_passed = true;
-	constexpr bool debug_verbose = true;
+	constexpr bool debug_verbose = false;
+	constexpr bool announce_each_test_result = false;
+	int element_width = 4;
+	int value_width = element_width-1;
 
 	using data_type = int;
 
+	bool test_passed = true;
+
 	SimpleRandomizer randomizer;
 
-	constexpr int num_tests = 2;
-	constexpr array_size_t array_size = 32;
+	constexpr int num_tests = 10000;
 
-	array_size_t v = array_size/2;
-	data_type *reference_array[array_size];
+	index_t array_sizes[] = { 16, 32, 64, 128, 256, 512 };
+	int num_array_sizes = sizeof(array_sizes) / sizeof(index_t);
+	ComparesAndMoves total_metrics[num_array_sizes];
+	double nlogn[num_array_sizes];
+	double ave_compares[num_array_sizes];
+	double ave_moves[num_array_sizes];
 
-	for (int i = 0, val = 0; i < v; val += 2, i++) {
-		reference_array[i] = new data_type(val);
-	}
-	for (int i = v, val = 1; i < array_size; val += 2, i++)  {
-		reference_array[i] = new data_type(val);
-	}
+	for (int array_size_i = 0; array_size_i != num_array_sizes; array_size_i++) {
 
-	int element_width = 4;
-	int value_width = element_width-1;
-	ComparesAndMoves total_metrics(0,0);
+		index_t array_size = array_sizes[array_size_i];
+		nlogn[array_size_i] = array_size * std::log2(array_size);
 
-	for (int test_number = 0; test_number != num_tests; test_number++)
-	{
-		ComparesAndMoves result(0,0);
-		data_type *test_array[array_size];
-		for (int i = 0; i != array_size; i++) {
-			test_array[i] = reference_array[i];
-		}
-
-		std::stringstream msg;
-		msg << "           " << arrayIndicesToString(array_size, v, element_width)
-		    << std::endl;
-		msg << "initially :" << SortingUtilities::arrayElementsToString(test_array,
-																		 array_size,
-																		 value_width,
-																		 element_width)
-			<< std::endl;
-		for (int i = 0; i != array_size; i++) {
-			index_t r = randomizer.rand(i, array_size);
-			data_type* temp = test_array[i];
-			test_array[i] = test_array[r];
-			test_array[r] = temp;
-		}
-		SortingUtilities::randomizeArray(test_array, array_size);
 		index_t array_start = 0;
-		index_t array_end = array_size-1;
-		index_t array_mid = array_size /2 ;
-		InsertionSort::sortPointersToObjects(test_array, array_mid);
-		InsertionSort::sortPointersToObjects(&test_array[array_mid], array_end-array_mid+1);
-		msg << "randomized:" << SortingUtilities::arrayElementsToString(test_array,
-																		 array_size,
-																		 value_width,
-																		 element_width)
-			<< std::endl;
-		int block_size = static_cast<int>(std::sqrt(array_size/2));
-		std::unique_ptr<BlockDescriptor<data_type>[]> descriptors;
-		int num_blocks = createBlockDescriptors_A0_Full(test_array,
-												array_start, array_mid, array_end,
-												block_size, descriptors);
+		index_t array_end 	= array_size-1;
 
-		msg << blockSortToString<data_type>(test_array, array_size, array_mid,
-									   	    descriptors, num_blocks, "           ",
-											value_width, element_width)
-			<< std::endl;
-		result += sortAndMergeBlocks(test_array, descriptors, num_blocks);
+		index_t block_size 	= static_cast<index_t>(std::sqrt(array_size/2));
+		index_t num_blocks 	= array_size / block_size;
+		index_t num_A_blocks= num_blocks / 2;
+		index_t array_mid 	= num_A_blocks * block_size;
 
-		msg << "sorted    :" << SortingUtilities::arrayElementsToString(test_array,
-																		 array_size,
-																		 value_width,
-																		 element_width)
-			<< std::endl;
-		index_t mismatched_i;
-		index_t mismatched_j;
-		if (!SortingUtilities::isSorted(test_array, array_size,
-									   mismatched_i, mismatched_j)) {
-			if (!debug_verbose) {
-				std::cout << msg.str() << std::endl;
+		data_type* reference_array[array_size];
+
+		data_type first_a_value = 0;
+		data_type first_b_value = 1;
+		for (int i = 0, val = first_a_value; i < array_mid; val += 2, i++) {
+			reference_array[i] = new data_type(val);
+		}
+		for (int i = array_mid, val = first_b_value; i < array_size; val += 2, i++)  {
+			reference_array[i] = new data_type(val);
+		}
+
+		total_metrics[array_size_i] = ComparesAndMoves(0,0);
+
+		for (int test_number = 1; test_number <= num_tests; test_number++)
+		{
+
+			data_type* test_array[array_size];
+			for (int i = 0; i != array_size; i++) {
+				test_array[i] = reference_array[i];
 			}
-			test_passed = false;
-			std::cout << msg.str() << std::endl;
-			std::cout << "BlockSort failed ["
-					  << mismatched_i << "] = "
-					  << *reference_array[mismatched_i]
-					  << " vs [" << mismatched_j << "] = "
-					  << *reference_array[mismatched_j] << std::endl;
-			goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
+
+			ComparesAndMoves test_metrics(0,0);
+
+			std::stringstream msg;
+			msg << "indices   :" << arrayIndicesToString(array_size, array_mid, element_width)
+				<< std::endl;
+			msg << "initially :" << SortingUtilities::arrayElementsToString(test_array,
+																			 array_size,
+																			 value_width,
+																			 element_width)
+				<< std::endl << std::endl;
+			for (int i = 0; i != array_size; i++) {
+				index_t r = randomizer.rand(i, array_size);
+				data_type* temp = test_array[i];
+				test_array[i] = test_array[r];
+				test_array[r] = temp;
+			}
+
+			InsertionSort::sortPointersToObjects(test_array, array_mid);
+			InsertionSort::sortPointersToObjects(&test_array[array_mid], array_end-array_mid+1);
+
+			int block_size = static_cast<int>(std::sqrt(array_size/2));
+			std::unique_ptr<BlockDescriptor<data_type>[]> descriptors;
+			int num_blocks = createBlockDescriptors_A0_Full(test_array,
+													array_start, array_mid, array_end,
+													block_size, descriptors);
+//			std::cout << "block descriptors:\n";
+//			std::cout << blockDescriptorsToString(descriptors, block_size) << std::endl;
+			msg << blockSortToString<data_type>(test_array, array_size, array_mid,
+												descriptors, num_blocks, "randomized:",
+												value_width, element_width) << std::endl;
+
+			test_metrics = sortAndMergeBlocks(test_array, descriptors, num_blocks);
+			total_metrics[array_size_i] += test_metrics;
+			msg << blockSortToString<data_type>(test_array, array_size, array_mid,
+												descriptors, num_blocks, "sorted    :",
+												value_width, element_width) << std::endl;
+
+			index_t mismatched_i;
+			index_t mismatched_j;
+			if (!SortingUtilities::isSorted(test_array, array_size,
+										   mismatched_i, mismatched_j)) {
+				if (!debug_verbose) {
+					std::cout << msg.str() << std::endl;
+				}
+				test_passed = false;
+				std::cout << "BlockSort failed ["
+						  << mismatched_i << "] = "
+						  << *reference_array[mismatched_i]
+						  << " vs [" << mismatched_j << "] = "
+						  << *reference_array[mismatched_j] << std::endl;
+				goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
+			}
+			if (announce_each_test_result) {
+				if (debug_verbose) {
+					std::cout << msg.str();
+				}
+				std::cout << "test number " << std::setw(5) << test_number
+						  << " took " << test_metrics << std::endl;
+				if (debug_verbose) {
+					//	there is a lot of info in the console if debugging,
+					//	so add extra white space after the test
+					std::cout << std::endl;
+				}
+			}
 		}
-		if (debug_verbose) {
-			std::cout << msg.str()
-					  << " took " << result << std::endl;
+		ave_moves[array_size_i] 	= static_cast<double>(total_metrics[array_size_i]._moves)/num_tests;
+		ave_compares[array_size_i]	= static_cast<double>(total_metrics[array_size_i]._compares)/num_tests;
+		std::cout << "Array size " << std::setw(6) << array_size
+				  << " repeated " << std::setw(6) << num_tests
+				  << " ave time complexity "
+				  << averageMetricsToString(total_metrics[array_size_i],num_tests);
+		if (array_size_i) {
+			int 	this_i	  	= array_size_i;
+			int		prev_i		= array_size_i-1;
+			index_t this_size 	= array_sizes[this_i];
+			index_t prev_size 	= array_sizes[prev_i];
+			double 	this_nlogn	= nlogn[this_i];
+			double	prev_nlogn	= nlogn[prev_i];
+			double	nlogn_ratio	= this_nlogn/prev_nlogn;
+			double	compares_ratio	= ave_compares[this_i] / ave_compares[prev_i];
+			double  moves_ratio		= ave_moves[this_i] / ave_moves[prev_i];
+			int num_width = 6;
+			int ratio_width = 4;
+			std::cout << "  ("  << std::setw(num_width) << this_size
+					  << "log(" << std::setw(num_width) << this_size
+					  << ")="   << std::setw(num_width) << std::setprecision(1) << std::fixed << this_nlogn
+					  << ") / "
+					  << "("    << std::setw(num_width) << prev_size
+					  << "log(" << std::setw(num_width) << prev_size << ")="
+					  << ")="   << std::setw(num_width) << std::setprecision(1) << std::fixed << prev_nlogn
+					  << ") = " << std::setw(num_width) << std::setprecision(1) << std::fixed << nlogn_ratio;
+			std::cout << " compares ratio: "
+					  << " = "  << std::setw(ratio_width) << std::setprecision(1) << std::fixed << compares_ratio
+					  << " moves ratio: "
+					  << " = "  << std::setw(ratio_width) << std::setprecision(1) << std::fixed << moves_ratio;
 		}
+		std::cout << std::endl;
 	}
 TEST_BLOCK_SORT_SORT_RETURN_LABEL:
 	return test_passed;

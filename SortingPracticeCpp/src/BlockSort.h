@@ -101,7 +101,7 @@ namespace BlockSort {
 
 	template <typename T>
 	ComparesAndMoves sortAndMergeBlocks(T** array,
-			std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_desc);
+			std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors, int num_desc);
 
 	/*	  Sorts all of the A_Blocks, and then sorts all of the B_Blocks, using
 	 *	an insertion sort on each range.  This is done after creating the blocks
@@ -828,73 +828,195 @@ namespace BlockSort {
 		#pragma pop_macro("_debug")
 	}
 
+	/*
+	 * 	This performs an insertion sort on the array starting from element 'suspect',
+	 * 	moving leftwards if necessary until 'start', and continuing with successive
+	 * 	elements until 'size-1'.
+	 *
+	 * 		A_Blocks are defined as coming from the left sub-array and use their
+	 * 		  first value as their key
+	 * 		B_Blocks are defines as coming form the right sub-array and use their
+	 * 		  last value as their key
+	 *
+	 *   The keys are chosen such that if an A_Block goes to the right of a B_Block
+	 *  it is guaranteed that keys with equal values that are in each of the blocks
+	 *  get do not have their absolute order re-arranged.  Consider:
+	 *
+	 *    A_Block = [C,a  C,a  D,a  D,a] and B_Block = [B,b B,b C,b C,b]
+	 *
+	 *  If B's key was 'B,b' and A's key is C,a placing A_Block after B_Block
+	 *    would cause the elements with identical keys 'C,?' to be out of order
+	 *
+	 *    			[Bb Bb Cb Cb][Ca Ca Da Da]
+	 *
+	 * 	  The only time that it is necessary to	merge two blocks
+	 * 	is when a B_Block is placed after an A_Block:
+	 *
+	 *			  0  1  2  3  4  5  6  7  8  9 10 11              keys
+	 * 	A0:A1:A2 [C  D  E  F][G  H  I  J][P  Q  R  S]  A0 = C; A1 = G; A2 = P
+	 * 	B0:B1:B2 [A  B  C  K][L  M  N  O][T  U  V  W]  B0 = K; B1 = O; B2 = W
+	 * 	B0:B1:A2 [A  B  C  K][L  M  N  O][P  Q  R  S]  B0 = K; B1 = O; A2 = P
+	 * 	A0:A1:B0 [C  D  E  F][G  H  I  J][A  B  C  K]  A0 = C; A1 = G; B0 = K
+	 *
+	 * 	  In the last example, B0 on the right side has elements [A, B] that
+	 * 	need to go to the *left* of all of the A_Blocks, not just A1. The element
+	 * 	in B0 with key 'C' goes to the *right* of the elements in A0 with key 'C'.
+	 *
+	 * 	   Source block:  B0     A0  B0  A0      A1        B0
+	 * 	   Sequence    : [A  B] [C] [C] [D E F] [G H I J] [K]
+	 *
+	 *	Usage:
+	 *
+	 * 	callers_metrics = insertionSortFromN(array, a[0].start, b[0].end, b[0].start)
+	 */
+
+	template <typename T>
+	ComparesAndMoves insertionSortFromN(T** array, index_t begin, index_t end,
+										index_t suspect)
+	{
+		ComparesAndMoves metrics(0,0);
+
+		if (begin > end || suspect > end) {
+			return metrics;
+		}
+
+		for (int i = suspect; i <= end ; i++) {
+			T* temp = array[i];
+			int j = i;
+			for ( ; j > begin; j--) {
+				metrics._compares++;
+				if (*array[j-1] <= *temp) {
+					array[j] = temp;
+					metrics._moves++;
+					break;
+				}
+				metrics._moves++;
+				array[j] = array[j-1];
+			}
+			if (j <= begin) {
+				metrics._moves++;
+				array[begin] = temp;
+			}
+		}
+		return metrics;
+	}
+
 
 	/*
 	 * 	  This sorts the blocks, and merges each block (if necessary) with the
-	 * 	preceding block (if necessary)
+	 * 	preceding block (if necessary).  The only time that a block has to be
+	 * 	merged with the portion of the final array to the block's left, is
+	 * 	when a B_Block follows an A_Block, i.e.
+	 *
+	 *   A_Block =	[ C  D  E  F]  followed by 	B_Block = [ A  B  C  G ]
+	 *
+	 *    See the discussion of sortInsertionFromN() documentation for a
+	 *  more detailed discussion.
+	 *
+	 *  Usage:
+	 *
+	 *  callers_metrics = sortAndMergeBlocks(array, descriptors, num_blocks)
+	 *
+	 *  where:
+	 *  	array is an array of pointers to elements
+	 *  	descriptors is an array block_descriptors
+	 *  	num_blocks is the number of descriptors in the array of block descriptors
+	 *
+	 *  A descriptor must contain
+	 *  	the start index of the block,
+	 *  	the end index of the block,
+	 *  	the key of the block, which is an array element, and thus a pointer
+	 *  	the block type, either A_Block or B_Block
 	 */
 
 	template <typename T>
 	ComparesAndMoves sortAndMergeBlocks(
 				T** array,
-				std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
+				std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors,
 				int num_blocks)
 	{
-		ComparesAndMoves result(0,0);
+		constexpr bool debug_verbose = false;
+		ComparesAndMoves metrics(0,0);
 
-		//	if all the descriptors are A_Blocks, they do not need to be sorted
-		if (descriptors[num_blocks-1].type == BlockType::A_BLOCK) {
-			return result;
+		//	if all the block_descriptors are A_Blocks, they do not need to be sorted
+		if (block_descriptors[num_blocks-1].type == BlockType::A_BLOCK) {
+			return metrics;
 		}
 
-		//	if all the descriptors are B_Blocks, they do not need to be sorted
-		if (descriptors[0].type == BlockType::B_BLOCK) {
-			return result;
+		//	if all the block_descriptors are B_Blocks, they do not need to be sorted
+		if (block_descriptors[0].type == BlockType::B_BLOCK) {
+			return metrics;
 		}
 		//	Count the number of A Blocks
 		index_t num_A_blocks = 0;
 
 		for (index_t i = 0; i != num_blocks; i++) {
-			if (descriptors[i].type != BlockType::A_BLOCK) {
+			if (block_descriptors[i].type != BlockType::A_BLOCK) {
 				break;
 			}
 			num_A_blocks++;
 		}
 
-		//	Build a table of A_Block indices
+		//	Build a table of indices of the A_Blocks
+		//	in the array of block_descriptors
 		index_t a_positions[num_A_blocks];
 		for (index_t i = 0; i != num_A_blocks; i++) {
 			a_positions[i] = i;
 		}
 
 		//	Create source & destination indices
-
 		index_t table_i 	= 0;
 		index_t b_source 	= num_A_blocks;
-		index_t dst			= 0;
-		index_t src			= 0;
+		index_t dst_block	= 0;
+		index_t src_block	= 0;
 
 		while (table_i != num_A_blocks && b_source != num_blocks) {
 
-			result._compares++;
+			bool debug_chose_a = true;
+
 			//	determine the smaller block, with deference given to the
 			//	  block on the left (A_Block) if the two blocks have equal
 			//	  keys in order to preserve stability
-			if (*descriptors[a_positions[table_i]].key <= *descriptors[b_source].key) {
-				src = a_positions[table_i];
+			metrics._compares++;
+			if (*block_descriptors[a_positions[table_i]].key <= *block_descriptors[b_source].key) {
+				src_block = a_positions[table_i];
 				table_i++;
 			} else {
-				src = b_source;
+				debug_chose_a = false;
+				src_block = b_source;
 				b_source++;
 			}
 
 			//	if the block that goes here is already in-place, move on
-			if (src == dst) {
-				dst++;
+			if (src_block == dst_block) {
+				dst_block++;
+				if (debug_verbose) {
+					std::cout << "dst = " << dst_block-1
+							  << " src = " << src_block
+							  << (debug_chose_a ? " chose A" : " chose B")
+							  << " b_source was " << (debug_chose_a ? b_source : b_source-1)
+							  << " table_i was " << (debug_chose_a ? table_i-1 : table_i)
+							  << " table = [";
+					for (int i = 0; i != num_A_blocks; i++) {
+						std::cout << a_positions[i] << " ";
+					}
+					std::string selection_text;
+					if (debug_chose_a)
+						selection_text += "chose A   :";
+					else
+						selection_text += "chose B   :";
+					std::cout << "]" << std::endl;
+					index_t array_size = block_descriptors[num_blocks-1].end_index+1;
+					index_t mid = -1;
+					std::cout << blockSortToString(array, array_size, mid,
+												   block_descriptors, num_blocks,
+												   selection_text.c_str(), 3, 4)
+							  << std::endl << std::endl;
+				}
 				continue;
 			}
 
-			result += swapBlocks(array, descriptors, dst, src);
+			metrics += swapBlocks(array, block_descriptors, dst_block, src_block);
 
 			//	  If the block got placed to the right of another block,
 			//	it may be necessary to merge the block leftwards
@@ -904,58 +1026,95 @@ namespace BlockSort {
 			//	{ B[n], B[n+1] }	are in order b/c B block sequence was in order
 			//	{ B[n], A[m]   }	is in order b/c *A.start_index > *B.end_index
 			//	{ A[m], B[n]   }	may not be in order
-			//	Consider the A_Block 	{ 1, 3, 5, 6 } vs B_Block { 2, 4, 7, 8 }
+			//	Consider the A_Block 	{ 1, 3, 5, 6 } vs. B_Block { 2, 4, 7, 8 }
 			//	They form the sequence 	{ 1, 3, 5, 6, 2, 4, 7, 8 }
-			if (dst > 0) {
-				if (descriptors[dst-1].type == BlockType::A_BLOCK &&
-					descriptors[dst].type == BlockType::B_BLOCK) {
-					index_t sze = descriptors[dst].end_index + 1;
-					result += InsertionSort::sortPointersToObjects(array, sze);
+			//	  which is not in final ordering.  The values of the B_Block must
+			//	  be moved to their correct place in the combined sequence.
+			if (dst_block > 0) {
+				if (block_descriptors[dst_block].type == BlockType::B_BLOCK) {
+					metrics = insertionSortFromN(array,
+												block_descriptors[0].start_index,
+												block_descriptors[dst_block].end_index,
+												block_descriptors[dst_block].start_index);
 				}
 			}
+
 			for (index_t i = table_i; i < num_A_blocks; i++) {
 				//	If there was an A_Block in the table that was at
-				//	  position 'dst', it has been swapped to 'src'.
-				//    If that block at dst was in the table, it is now at src
-				if (a_positions[i] == dst) {
-					a_positions[i] = src;
+				//	  position 'dst_block', it has been displaced to 'src_block'.
+				//    Update that A_Block's entry in the table
+				if (a_positions[i] == dst_block) {
+					a_positions[i] = src_block;
 					break;
 				}
 			}
-			dst++;
+			dst_block++;
+			if (debug_verbose) {
+				std::cout << "dst = " << dst_block-1
+						  << " src = " << src_block
+							  << (debug_chose_a ? " chose A" : " chose B")
+							  << " b_source was " << (debug_chose_a ? b_source : b_source)
+							  << " table_i was " << (debug_chose_a ? table_i-1 : table_i)
+						  << " table = [";
+				for (int i = 0; i != num_A_blocks; i++) {
+					std::cout << a_positions[i] << " ";
+				}
+				std::string selection_text;
+				if (debug_chose_a)
+					selection_text += "chose A   :";
+				else
+					selection_text += "chose B   :";
+				std::cout << "]" << std::endl;
+				index_t array_size = block_descriptors[num_blocks-1].end_index+1;
+				index_t mid = -1;
+				std::cout << blockSortToString(array, array_size, mid,
+											   block_descriptors, num_blocks,
+											   selection_text.c_str(), 3, 4)
+						  << std::endl << std::endl;
+			}
 		}
 
-		//	  If there are any remaining A_Blocks,
-		//	move them within the array back to in order
+		//	Either the A_Blocks or all of the B_Blocks has been placed (or both)
+		//	  into their final position.  If the loop terminated because all
+		//	  of the B_Blocks were placed, there may be some remaining displaced
+		//	  A_Blocks that need to be restored to their original ordering
+
 		while (table_i != num_A_blocks) {
-			src = a_positions[table_i];
+			src_block = a_positions[table_i];
 			table_i++;
-			if (dst != src) {
-				result += swapBlocks(array, descriptors, dst, src);
+			if (dst_block != src_block) {
+				metrics += swapBlocks(array, block_descriptors, dst_block, src_block);
 				//	The A_Block that was at 'dst' has now been swapped to 'src'
 				//  Update that block's entry in the table
 				for (index_t i = table_i; i < num_A_blocks; i++) {
-					if (a_positions[i] == dst) {
-						a_positions[i] = src;
+					if (a_positions[i] == dst_block) {
+						a_positions[i] = src_block;
 						break;
 					}
 				}
 			}
-			dst++;
+			dst_block++;
 		}
 
-		//	This happens when the A_Block table is exhausted while
-		//	  there are still (B_Blocks) blocks to the right
-		if (dst > 0 && dst != num_blocks) {
-			if (descriptors[dst-1].type == BlockType::A_BLOCK &&
-				descriptors[dst].type == BlockType::B_BLOCK) {
-				index_t sze = descriptors[dst].end_index + 1;
-				result += InsertionSort::sortPointersToObjects(array, sze);
+		//	It is possible that the final A_Block was placed to the left
+		//	  of remaining B_Block(s). In that case, the B_Block will need
+		//	  to be merged into the A_Block to it's left.  (See earlier discussion
+		//	  of this in the comments in the while() loop above or the
+		//	  documentation for insertionSortFromN().)
+		if (dst_block > 0 && dst_block != num_blocks) {
+			if (block_descriptors[dst_block-1].type == BlockType::A_BLOCK &&
+				block_descriptors[dst_block].type == BlockType::B_BLOCK) {
+				if (debug_verbose) {
+					std::cout << "IT IS NECESSARY TO MERGE BLOCK " << dst_block
+							  << " TO THE RIGHT " << std::endl;
+				}
+				metrics = insertionSortFromN(array,
+											block_descriptors[0].start_index,
+											block_descriptors[num_blocks-1].end_index,
+											block_descriptors[dst_block].start_index);
 			}
-			dst++;
 		}
-
-		return result;
+		return metrics;
 	}
 
 	/*
@@ -1330,11 +1489,11 @@ namespace BlockSort {
 
 		//	swap as many elements as possible to reduce number of moves
 		while (swap_count) {
-			metrics._moves += 3;
 			//	swap left & right
 			T* temp 			= array[left_index];
 			array[left_index] 	= array[right_index];
 			array[right_index]	= temp;
+			metrics._moves += 3;
 			//	next left & right
 			left_index++;
 			right_index++;
@@ -1407,10 +1566,10 @@ namespace BlockSort {
 		index_t rotate_right_count = -(descriptors[u].getWidth() - swap_count);
 
 		while (swap_count) {
-			metrics._moves += 3;
 			T* temp = array[left_index];
 			array[left_index] = array[right_index];
 			array[right_index] = temp;
+			metrics._moves += 3;
 			left_index++;
 			right_index++;
 			swap_count--;

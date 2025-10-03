@@ -341,6 +341,18 @@ std::ostream& operator<<(std::ostream& out, const ComparesAndMoves& object) {
 	return out;
 }
 
+std::string averageMetricsToString(const ComparesAndMoves &metrics, int num_tests, int precision, int width) {
+	std::stringstream result;
+	OStreamState ostream_state;	// restores ostream flags
+	result << std::fixed << std::setprecision(precision) << std::setw(width)
+		   << static_cast<double>(metrics._compares) / num_tests
+		   << " compares and "
+		   << std::fixed << std::setprecision(precision) << std::setw(width)
+		   << static_cast<double>(metrics._moves) / num_tests
+		   << " moves";
+	return result.str();
+}
+
 ComparesAndMoves& operator+=(ComparesAndMoves& lhs, const ComparesAndMoves &rhs) {
 
 	lhs._compares += rhs._compares;
