@@ -484,7 +484,7 @@ namespace BlockSort {
 	template <typename T>
 	ComparesAndMoves mergeContiguousBlocksByRotating(T** array, index_t start, index_t mid, index_t end) {
 
-		bool debug_verbosely = false;
+		bool debug_verbose = false;
 
 		ComparesAndMoves result(0,0);
 
@@ -522,7 +522,7 @@ namespace BlockSort {
 				--rotate_count;
 			}
 
-			if (debug_verbosely) {
+			if (debug_verbose) {
 				std::cout << "BEFORE\n";
 				std::cout << "start " << start << " end " << end
 						  << " u+1 " << u+1 << " v " << v
@@ -540,7 +540,7 @@ namespace BlockSort {
 			//	  past the last value in v that was equal to u_value
 			result += rotateArrayElementsRight(array, u+1, v, rotate_count);
 
-			if (debug_verbosely) {
+			if (debug_verbose) {
 				std::cout << "AFTER\n";
 				std::cout << SortingUtilities::arrayElementsToString(&array[start], end-start+1, 3, 4)
 						  << std::endl;
@@ -550,7 +550,7 @@ namespace BlockSort {
 			v = v + rotate_count;
 		}
 
-		if (debug_verbosely)
+		if (debug_verbose)
 			std::cout << "Exiting mergeBlocksByRotation()\n\n";
 
 		return result;
@@ -867,35 +867,46 @@ namespace BlockSort {
 	 *
 	 *	Usage:
 	 *
-	 * 	callers_metrics = insertionSortFromN(array, a[0].start, b[0].end, b[0].start)
+	 * 	callers_metrics = insertionSortFromN(array, a[0].start, b[0].start, b[0].end)
 	 */
 
 	template <typename T>
-	ComparesAndMoves insertionSortFromN(T** array, index_t begin, index_t end,
-										index_t suspect)
+	ComparesAndMoves insertionSortFromN(T** array, index_t begin, index_t mid, index_t end)
 	{
 		ComparesAndMoves metrics(0,0);
 
-		if (begin > end || suspect > end) {
+		if (begin > end || mid > end) {
 			return metrics;
 		}
 
-		for (int i = suspect; i <= end ; i++) {
+		//	from here to the end of the array
+		for (int i = mid; i <= end ; i++) {
+			// if the element is correct, move on
+			metrics._compares++;
+			if (*array[i-1] <= *array[i])
+				continue;
 			T* temp = array[i];
+			metrics._moves++;
 			int j = i;
 			for ( ; j > begin; j--) {
 				metrics._compares++;
+				//	if the elemet to the left
+				//	  is <= temp, temp goes here
 				if (*array[j-1] <= *temp) {
 					array[j] = temp;
 					metrics._moves++;
 					break;
 				}
-				metrics._moves++;
+				//	shift the element to the right
 				array[j] = array[j-1];
-			}
-			if (j <= begin) {
 				metrics._moves++;
+			}
+			// if the loop terminated b/c j == begin
+			//	there were no elements found <= temp
+			//	temp goes at begin
+			if (j <= begin) {
 				array[begin] = temp;
+				metrics._moves++;
 			}
 		}
 		return metrics;
@@ -957,8 +968,8 @@ namespace BlockSort {
 			num_A_blocks++;
 		}
 
-		//	Build a table of indices of the A_Blocks
-		//	in the array of block_descriptors
+		//	Build a table of indices of the A_Blocks that
+		//	are present in the array of block_descriptors
 		index_t a_positions[num_A_blocks];
 		for (index_t i = 0; i != num_A_blocks; i++) {
 			a_positions[i] = i;
@@ -1032,10 +1043,11 @@ namespace BlockSort {
 			//	  be moved to their correct place in the combined sequence.
 			if (dst_block > 0) {
 				if (block_descriptors[dst_block].type == BlockType::B_BLOCK) {
-					metrics = insertionSortFromN(array,
-												block_descriptors[0].start_index,
-												block_descriptors[dst_block].end_index,
-												block_descriptors[dst_block].start_index);
+					index_t start = block_descriptors[0].start_index;
+					index_t mid		= block_descriptors[dst_block].start_index;
+					index_t end		= block_descriptors[dst_block].end_index;
+					metrics = mergeContiguousBlocksByRotating(array, start, mid, end);
+//					metrics = insertionSortFromN(array, start, mid, end);
 				}
 			}
 
@@ -1097,10 +1109,10 @@ namespace BlockSort {
 		}
 
 		//	It is possible that the final A_Block was placed to the left
-		//	  of remaining B_Block(s). In that case, the B_Block will need
-		//	  to be merged into the A_Block to it's left.  (See earlier discussion
-		//	  of this in the comments in the while() loop above or the
-		//	  documentation for insertionSortFromN().)
+		//	  of remaining B_Block(s). In that case, the B_Block's will need
+		//	  to be merged into the A_Block to the left.  Consider:
+		//		Am-1:Am:Bn-2:Bn-1	[L M O P][Q X Y Z]:[A B C R][S T U V]
+		//	In this case, all of the B blocks remaining need to be merged
 		if (dst_block > 0 && dst_block != num_blocks) {
 			if (block_descriptors[dst_block-1].type == BlockType::A_BLOCK &&
 				block_descriptors[dst_block].type == BlockType::B_BLOCK) {
@@ -1108,10 +1120,11 @@ namespace BlockSort {
 					std::cout << "IT IS NECESSARY TO MERGE BLOCK " << dst_block
 							  << " TO THE RIGHT " << std::endl;
 				}
-				metrics = insertionSortFromN(array,
-											block_descriptors[0].start_index,
-											block_descriptors[num_blocks-1].end_index,
-											block_descriptors[dst_block].start_index);
+				index_t start = block_descriptors[0].start_index;
+				index_t mid		= block_descriptors[dst_block].start_index;
+				index_t end		= block_descriptors[num_blocks-1].end_index;
+				metrics = mergeContiguousBlocksByRotating(array, start, mid, end);
+//				metrics = insertionSortFromN(array, start, mid, end);
 			}
 		}
 		return metrics;

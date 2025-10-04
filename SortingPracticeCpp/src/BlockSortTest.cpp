@@ -27,6 +27,23 @@
 using namespace BlockSort;
 
 
+enum class BlockOrganizations {
+	FULL_A0_BLOCK,
+	SYMMETRIC
+};
+
+std::string toString(BlockOrganizations organization) {
+	switch(organization) {
+	case BlockOrganizations::FULL_A0_BLOCK:
+		return std::string("FULL_A0_BLOCK");
+	case BlockOrganizations::SYMMETRIC:
+		return std::string("SYMMETRIC    ");
+	default:
+		return std::string("UNKNOWN BLOCK ORGANIZAITON");
+	}
+	return std::string("UNKNOWN BLOCK ORGANIZAITON");
+};
+
 enum class MergeStrategy {
 	 TABLE, AUXILLIARY, ROTATE
 };
@@ -2106,22 +2123,6 @@ bool testBlockSortSwapBlocks() {
 		}
 	};
 
-	enum class BlockOrganizations {
-		FULL_A0_BLOCK,
-		SYMMETRIC
-	};
-	auto to_string = [] (BlockOrganizations _organization) ->std::string {
-		switch(_organization) {
-		case BlockOrganizations::FULL_A0_BLOCK:
-			return std::string("FULL_A0_BLOCK");
-		case BlockOrganizations::SYMMETRIC:
-			return std::string("SYMMETRIC    ");
-		default:
-			return std::string("UNKNOWN BLOCK ORGANIZAITON");
-		}
-		return std::string("UNKNOWN BLOCK ORGANIZAITON");
-	};
-
 	SimpleRandomizer randomizer(getChronoSeed());
 
 	auto randomize = [&randomizer] (ssb_data_t **array, index_t length) {
@@ -2207,7 +2208,7 @@ bool testBlockSortSwapBlocks() {
 				std::cout << "Test number " << std::setw(12) << test_number
 						  << " with array size " << array_size
 						  << " block size " << block_size
-						  << " organization " << to_string(organization);
+						  << " organization " << toString(organization);
 				if (!output_metrics)
 					std::cout << std::endl;
 				else
@@ -2258,7 +2259,7 @@ bool testBlockSortSwapBlocks() {
 							std::cout << "     *** TEST START : " << std::setw(12) << test_number
 									  << ": array size " << array_size
 									  << " with blocks size " << block_size
-									  << " " << to_string(organization) << " "
+									  << " " << toString(organization) << " "
 									  << " swapping " << i
 									  << " vs " << j
 									  << std::endl;;
@@ -2362,157 +2363,268 @@ TEST_BLOCK_SORT_SWAP_BLOCKS_TEST_RETURN:
 
 bool testBlockSortSort() {
 
-	constexpr bool debug_verbose = false;
-	constexpr bool announce_each_test_result = false;
+	constexpr bool debug_verbose 			= false;
+	constexpr bool announce_each_test_result= false;
+	constexpr bool present_summary 			= true;
+
 	int element_width = 4;
 	int value_width = element_width-1;
 
-	using data_type = int;
+	using data_type = long;
 
 	bool test_passed = true;
 
 	SimpleRandomizer randomizer;
 
-	constexpr int num_tests = 10000;
+	constexpr int num_test_runs = 1000;
 
-	index_t array_sizes[] = { 16, 32, 64, 128, 256, 512 };
+	index_t array_sizes[] = { 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
+//	index_t array_sizes[] = { 32, 33, 34, 35,
+//							  36, 37, 38, 39, 40, 41,
+//	  	  	  	  	  	  	  42, 43, 44, 45, 46, 47, 48, 49,  50
+//	};
 	int num_array_sizes = sizeof(array_sizes) / sizeof(index_t);
+
 	ComparesAndMoves total_metrics[num_array_sizes];
+
 	double nlogn[num_array_sizes];
 	double ave_compares[num_array_sizes];
 	double ave_moves[num_array_sizes];
 
-	for (int array_size_i = 0; array_size_i != num_array_sizes; array_size_i++) {
+	BlockOrganizations block_organizations[] = {
+			BlockOrganizations::FULL_A0_BLOCK,
+			BlockOrganizations::SYMMETRIC
+	};
 
-		index_t array_size = array_sizes[array_size_i];
-		nlogn[array_size_i] = array_size * std::log2(array_size);
+	int num_block_organizations = sizeof(block_organizations) / sizeof(BlockOrganizations);
 
-		index_t array_start = 0;
-		index_t array_end 	= array_size-1;
+	int 		a_increment	= 1;
+	int copies_per_a_value	= 1;
+	int 		b_increment = 1;
+	int copies_per_b_value	= 1;
 
-		index_t block_size 	= static_cast<index_t>(std::sqrt(array_size/2));
-		index_t num_blocks 	= array_size / block_size;
-		index_t num_A_blocks= num_blocks / 2;
-		index_t array_mid 	= num_A_blocks * block_size;
+	for (int block_organization_i = 0;
+			 block_organization_i != num_block_organizations;
+			 block_organization_i++)
+	{
+		std::stringstream array_config_msg;
 
-		data_type* reference_array[array_size];
-
-		data_type first_a_value = 0;
-		data_type first_b_value = 1;
-		for (int i = 0, val = first_a_value; i < array_mid; val += 2, i++) {
-			reference_array[i] = new data_type(val);
+		BlockOrganizations block_organization = block_organizations[block_organization_i];
+		if (debug_verbose || announce_each_test_result || present_summary) {
+			array_config_msg.clear();
+			array_config_msg.str("");
+			std::string repeated_copies_string;
+			if (copies_per_a_value > 0) {
+				repeated_copies_string += std::to_string(copies_per_a_value);
+			} else {
+				repeated_copies_string += " ((array_size/2) / ";
+				repeated_copies_string += std::to_string(-1*copies_per_a_value);
+				repeated_copies_string += ") ";
+			}
+			array_config_msg << "Arrays configured with "
+							 << repeated_copies_string
+							 << " copies of each value"
+							 << " using block_configuration "
+							 << toString(block_organization)
+							 << std::endl;
+			std::cout << array_config_msg.str();
 		}
-		for (int i = array_mid, val = first_b_value; i < array_size; val += 2, i++)  {
-			reference_array[i] = new data_type(val);
-		}
 
-		total_metrics[array_size_i] = ComparesAndMoves(0,0);
-
-		for (int test_number = 1; test_number <= num_tests; test_number++)
+		for (int array_size_i = 0;
+				 array_size_i != num_array_sizes;
+				 array_size_i++)
 		{
+			index_t array_size = array_sizes[array_size_i];
 
-			data_type* test_array[array_size];
-			for (int i = 0; i != array_size; i++) {
-				test_array[i] = reference_array[i];
+			nlogn[array_size_i] = array_size * std::log2(array_size);
+
+			index_t array_start = 0;
+			index_t array_end 	= array_size-1;
+
+			index_t block_size 	= static_cast<index_t>(std::sqrt(array_size/2));
+			index_t num_blocks 	= array_size / block_size;
+			index_t num_A_blocks= num_blocks / 2;
+			index_t array_mid 	= num_A_blocks * block_size;
+
+			data_type* reference_array[array_size];
+
+			data_type 	a_value 	= 0;
+			data_type 	b_value		= array_mid;
+
+			//	negative values are used to indicate that the
+			//	halves of the array should each have
+			//	array_mid / (-copies_per_a_value)
+			//	unique values
+
+			int a_copy_count = copies_per_a_value;
+			if (copies_per_a_value < 0) {
+				a_copy_count = array_mid / (-copies_per_a_value);
+			}
+			int b_copy_count = copies_per_b_value;
+			if (copies_per_b_value < 0) {
+				b_copy_count = (array_end-array_mid+1)/(-copies_per_b_value);
 			}
 
-			ComparesAndMoves test_metrics(0,0);
-
-			std::stringstream msg;
-			msg << "indices   :" << arrayIndicesToString(array_size, array_mid, element_width)
-				<< std::endl;
-			msg << "initially :" << SortingUtilities::arrayElementsToString(test_array,
-																			 array_size,
-																			 value_width,
-																			 element_width)
-				<< std::endl << std::endl;
-			for (int i = 0; i != array_size; i++) {
-				index_t r = randomizer.rand(i, array_size);
-				data_type* temp = test_array[i];
-				test_array[i] = test_array[r];
-				test_array[r] = temp;
+			int copy_count = a_copy_count;
+			for (int i = 0; i < array_mid; i++) {
+				reference_array[i] = new data_type(a_value);
+				if (--copy_count == 0) {
+					a_value 	+= a_increment;
+					copy_count 	 = copies_per_a_value;
+				}
+			}
+			copy_count = b_copy_count;
+			for (int i = array_mid; i < array_size; i++)  {
+				reference_array[i] = new data_type(b_value);
+				if (--copy_count == 0) {
+					b_value		+= b_increment;
+					copy_count	 = copies_per_b_value;
+				}
 			}
 
-			InsertionSort::sortPointersToObjects(test_array, array_mid);
-			InsertionSort::sortPointersToObjects(&test_array[array_mid], array_end-array_mid+1);
+			total_metrics[array_size_i] = ComparesAndMoves(0,0);
 
-			int block_size = static_cast<int>(std::sqrt(array_size/2));
-			std::unique_ptr<BlockDescriptor<data_type>[]> descriptors;
-			int num_blocks = createBlockDescriptors_A0_Full(test_array,
-													array_start, array_mid, array_end,
-													block_size, descriptors);
-//			std::cout << "block descriptors:\n";
-//			std::cout << blockDescriptorsToString(descriptors, block_size) << std::endl;
-			msg << blockSortToString<data_type>(test_array, array_size, array_mid,
-												descriptors, num_blocks, "randomized:",
-												value_width, element_width) << std::endl;
+			for (int test_number = 1; test_number <= num_test_runs; test_number++)
+			{
+				ComparesAndMoves test_metrics(0,0);
 
-			test_metrics = sortAndMergeBlocks(test_array, descriptors, num_blocks);
-			total_metrics[array_size_i] += test_metrics;
-			msg << blockSortToString<data_type>(test_array, array_size, array_mid,
-												descriptors, num_blocks, "sorted    :",
-												value_width, element_width) << std::endl;
-
-			index_t mismatched_i;
-			index_t mismatched_j;
-			if (!SortingUtilities::isSorted(test_array, array_size,
-										   mismatched_i, mismatched_j)) {
-				if (!debug_verbose) {
-					std::cout << msg.str() << std::endl;
+				data_type* test_array[array_size];
+				for (int i = 0; i != array_size; i++) {
+					test_array[i] = reference_array[i];
 				}
-				test_passed = false;
-				std::cout << "BlockSort failed ["
-						  << mismatched_i << "] = "
-						  << *reference_array[mismatched_i]
-						  << " vs [" << mismatched_j << "] = "
-						  << *reference_array[mismatched_j] << std::endl;
-				goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
+
+
+				std::stringstream msg;
+				msg << "indices   :" << arrayIndicesToString(	array_size, array_mid,
+																element_width)
+					<< std::endl;
+
+				msg << "randomized:"
+					<< SortingUtilities::arrayElementsToString( test_array, array_size,
+																value_width, element_width)
+					<< std::endl;
+
+				for (int i = 0; i != array_size; i++) {
+					index_t r = randomizer.rand(i, array_size);
+					data_type* temp = test_array[i];
+					test_array[i] = test_array[r];
+					test_array[r] = temp;
+				}
+
+				InsertionSort::sortPointersToObjects(test_array, array_mid);
+				InsertionSort::sortPointersToObjects(&test_array[array_mid], array_end-array_mid+1);
+
+				msg << "half sort :"
+					<< SortingUtilities::arrayElementsToString( test_array, array_size,
+																value_width, element_width)
+					<< std::endl;
+
+	//			std::cout << msg.str() << std::endl << std::endl;
+	//			continue;
+
+				std::unique_ptr<BlockDescriptor<data_type>[]> descriptors;
+				int num_blocks = 0;
+				switch(block_organization) {
+				case BlockOrganizations::FULL_A0_BLOCK:
+					num_blocks = createBlockDescriptors_A0_Full(
+									test_array,
+									array_start, array_mid, array_end,
+									block_size, descriptors);
+				break;
+				case BlockOrganizations::SYMMETRIC:
+					num_blocks = regressionTestOnly_CreateBlockDescriptorsSymmetrically(
+									test_array,
+									array_start, array_mid, array_end,
+									block_size, descriptors);
+					break;
+				default:
+					std::cout << "Unknown block organization requested" << std::endl;
+					test_passed = false;
+					goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
+				}
+	//			std::cout << "block descriptors:\n";
+	//			std::cout << blockDescriptorsToString(descriptors, block_size) << std::endl;
+				msg << blockSortToString<data_type>(test_array, array_size, array_mid,
+													descriptors, num_blocks, "randomized:",
+													value_width, element_width) << std::endl;
+
+				test_metrics = sortAndMergeBlocks(test_array, descriptors, num_blocks);
+				total_metrics[array_size_i] += test_metrics;
+				msg << blockSortToString<data_type>(test_array, array_size, array_mid,
+													descriptors, num_blocks, "sorted    :",
+													value_width, element_width) << std::endl;
+
+				index_t mismatched_i;
+				index_t mismatched_j;
+				if (!SortingUtilities::isSorted(test_array, array_size,
+											   mismatched_i, mismatched_j)) {
+					if (!debug_verbose) {
+						std::cout << msg.str() << std::endl;
+					}
+					test_passed = false;
+					std::cout << "BlockSort failed ["
+							  << mismatched_i << "] = "
+							  << *reference_array[mismatched_i]
+							  << " vs [" << mismatched_j << "] = "
+							  << *reference_array[mismatched_j] << std::endl;
+					goto TEST_BLOCK_SORT_SORT_RETURN_LABEL;
+				}
+				if (announce_each_test_result) {
+					if (debug_verbose) {
+						std::cout << msg.str();
+					}
+					std::cout << "test number " << std::setw(5) << test_number
+							  << " took " 		<< test_metrics._compares
+							  << " compares and " << test_metrics._moves
+							  << " moves" 		<< std::endl;
+					if (debug_verbose) {
+						//	there is a lot of info in the console if debugging,
+						//	so add extra white space after the test
+						std::cout << std::endl;
+					}
+				}
 			}
-			if (announce_each_test_result) {
-				if (debug_verbose) {
-					std::cout << msg.str();
+			ave_moves[array_size_i] 	= static_cast<double>(total_metrics[array_size_i]._moves)/num_test_runs;
+			ave_compares[array_size_i]	= static_cast<double>(total_metrics[array_size_i]._compares)/num_test_runs;
+			if (present_summary || announce_each_test_result || debug_verbose) {
+				std::cout << "Array size " << std::setw(6) << array_size
+						  << " repeated " << std::setw(6) << num_test_runs
+						  << " ave time complexity "
+						  << averageMetricsToString(total_metrics[array_size_i],num_test_runs);
+				if (array_size_i) {
+					int 	this_i	  	= array_size_i;
+					int		prev_i		= array_size_i-1;
+//					index_t this_size 	= array_sizes[this_i];
+//					index_t prev_size 	= array_sizes[prev_i];
+					double 	this_nlogn	= nlogn[this_i];
+					double	prev_nlogn	= nlogn[prev_i];
+					double	nlogn_ratio	= this_nlogn/prev_nlogn;
+					double 	compares_ratio = 0;
+					double	moves_ratio	= 0;
+					if (ave_compares[prev_i] > 0.1)
+						compares_ratio	= ave_compares[this_i] / ave_compares[prev_i];
+					if (ave_moves[prev_i] > 0.1)
+						moves_ratio		= ave_moves[this_i] / ave_moves[prev_i];
+					int ratio_width = 5;
+					int ratio_prec = 2;
+		//			std::cout << "  ("  << std::setw(num_width) << this_size
+		//					  << "log(" << std::setw(num_width) << this_size
+		//					  << ")="   << std::setw(num_width) << std::setprecision(1) << std::fixed << this_nlogn
+		//					  << ") / "
+		//					  << "("    << std::setw(num_width) << prev_size
+		//					  << "log(" << std::setw(num_width) << prev_size << ")="
+		//					  << ")="   << std::setw(num_width) << std::setprecision(1) << std::fixed << prev_nlogn
+		//					  << ") = " << std::setw(ratio_width) << std::setprecision(1) << std::fixed << nlogn_ratio;
+					std::cout << "; nlog ratio "
+							  << std::setw(ratio_width) << std::setprecision(ratio_prec) << std::fixed << nlogn_ratio;
+					std::cout << " compares ratio "
+							  << std::setw(ratio_width) << std::setprecision(ratio_prec) << std::fixed << compares_ratio
+							  << " moves ratio "
+							  << std::setw(ratio_width) << std::setprecision(ratio_prec) << std::fixed << moves_ratio;
 				}
-				std::cout << "test number " << std::setw(5) << test_number
-						  << " took " << test_metrics << std::endl;
-				if (debug_verbose) {
-					//	there is a lot of info in the console if debugging,
-					//	so add extra white space after the test
-					std::cout << std::endl;
-				}
+				std::cout << std::endl;
 			}
 		}
-		ave_moves[array_size_i] 	= static_cast<double>(total_metrics[array_size_i]._moves)/num_tests;
-		ave_compares[array_size_i]	= static_cast<double>(total_metrics[array_size_i]._compares)/num_tests;
-		std::cout << "Array size " << std::setw(6) << array_size
-				  << " repeated " << std::setw(6) << num_tests
-				  << " ave time complexity "
-				  << averageMetricsToString(total_metrics[array_size_i],num_tests);
-		if (array_size_i) {
-			int 	this_i	  	= array_size_i;
-			int		prev_i		= array_size_i-1;
-			index_t this_size 	= array_sizes[this_i];
-			index_t prev_size 	= array_sizes[prev_i];
-			double 	this_nlogn	= nlogn[this_i];
-			double	prev_nlogn	= nlogn[prev_i];
-			double	nlogn_ratio	= this_nlogn/prev_nlogn;
-			double	compares_ratio	= ave_compares[this_i] / ave_compares[prev_i];
-			double  moves_ratio		= ave_moves[this_i] / ave_moves[prev_i];
-			int num_width = 6;
-			int ratio_width = 4;
-			std::cout << "  ("  << std::setw(num_width) << this_size
-					  << "log(" << std::setw(num_width) << this_size
-					  << ")="   << std::setw(num_width) << std::setprecision(1) << std::fixed << this_nlogn
-					  << ") / "
-					  << "("    << std::setw(num_width) << prev_size
-					  << "log(" << std::setw(num_width) << prev_size << ")="
-					  << ")="   << std::setw(num_width) << std::setprecision(1) << std::fixed << prev_nlogn
-					  << ") = " << std::setw(num_width) << std::setprecision(1) << std::fixed << nlogn_ratio;
-			std::cout << " compares ratio: "
-					  << " = "  << std::setw(ratio_width) << std::setprecision(1) << std::fixed << compares_ratio
-					  << " moves ratio: "
-					  << " = "  << std::setw(ratio_width) << std::setprecision(1) << std::fixed << moves_ratio;
-		}
-		std::cout << std::endl;
 	}
 TEST_BLOCK_SORT_SORT_RETURN_LABEL:
 	return test_passed;
