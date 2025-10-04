@@ -380,6 +380,7 @@ TEST_BINARY_SEARCH_FIRST_RETURN_LABEL:
 bool testBlockSortBinarySearchLastElement() {
 
 	bool test_passed = true;
+	ComparesAndMoves metrics;
 
 	for (int array_end = unique_values_size-2;
 			  array_end < unique_values_size; array_end++) {
@@ -390,7 +391,9 @@ bool testBlockSortBinarySearchLastElement() {
 		for (int i = minimum_unique_value-1; i <= array_end+1; i++) {
 			std::cout << toStringValueArray(unique_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binarySearchLastElement(unique_values, 0, array_end, value);
+			index_t result = binarySearchLastElement(unique_values, 0, array_end,
+													 value,
+													 metrics);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if ((i <  minimum_unique_value && result != minimum_unique_value) ||
 				(i >= minimum_unique_value && i < maximum_unique_value && result != *value+1) ||
@@ -414,8 +417,9 @@ bool testBlockSortBinarySearchLastElement() {
 		for (int i = minimum_repeated_value-1; i <= maximum_repeated_value+1; i++) {
 			std::cout << toStringValueArray(triple_repeated_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binarySearchLastElement
-					(triple_repeated_values, 0, array_end, value);
+			index_t result = binarySearchLastElement (triple_repeated_values, 0, array_end,
+													  value,
+													  metrics);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if (i < minimum_repeated_value) {
 				if (result != 0) {
@@ -2378,6 +2382,7 @@ bool testBlockSortSort() {
 
 	constexpr int num_test_runs = 1000;
 
+//	index_t array_sizes[] = { 16 };
 	index_t array_sizes[] = { 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
 //	index_t array_sizes[] = { 32, 33, 34, 35,
 //							  36, 37, 38, 39, 40, 41,
@@ -2392,7 +2397,7 @@ bool testBlockSortSort() {
 	double ave_moves[num_array_sizes];
 
 	BlockOrganizations block_organizations[] = {
-			BlockOrganizations::FULL_A0_BLOCK,
+//			BlockOrganizations::FULL_A0_BLOCK,
 			BlockOrganizations::SYMMETRIC
 	};
 

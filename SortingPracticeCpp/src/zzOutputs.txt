@@ -1,24 +1,14 @@
-Sorting Performance In C++ built on Oct  4 2025 at 10:46:49
+Sorting Performance In C++ built on Oct  4 2025 at 13:41:20
 testBlockSort()
-Arrays configured with 1 copies of each value using block_configuration FULL_A0_BLOCK
-Array size     16 repeated   1000 ave time complexity      5.6 compares and      7.6 moves
-Array size     32 repeated   1000 ave time complexity     13.1 compares and     33.4 moves; nlog ratio  2.50 compares ratio  2.35 moves ratio  4.39
-Array size     64 repeated   1000 ave time complexity     17.2 compares and     54.5 moves; nlog ratio  2.40 compares ratio  1.31 moves ratio  1.63
-Array size    128 repeated   1000 ave time complexity     28.6 compares and    129.5 moves; nlog ratio  2.33 compares ratio  1.66 moves ratio  2.38
-Array size    256 repeated   1000 ave time complexity     40.2 compares and    246.1 moves; nlog ratio  2.29 compares ratio  1.41 moves ratio  1.90
-Array size    512 repeated   1000 ave time complexity     56.6 compares and    463.5 moves; nlog ratio  2.25 compares ratio  1.41 moves ratio  1.88
-Array size   1024 repeated   1000 ave time complexity     83.8 compares and    941.9 moves; nlog ratio  2.22 compares ratio  1.48 moves ratio  2.03
-Array size   2048 repeated   1000 ave time complexity    116.2 compares and   1841.5 moves; nlog ratio  2.20 compares ratio  1.39 moves ratio  1.96
-Array size   4096 repeated   1000 ave time complexity    165.5 compares and   3732.8 moves; nlog ratio  2.18 compares ratio  1.42 moves ratio  2.03
 Arrays configured with 1 copies of each value using block_configuration SYMMETRIC    
-Array size     16 repeated   1000 ave time complexity      5.5 compares and      7.6 moves
-Array size     32 repeated   1000 ave time complexity     13.3 compares and     34.4 moves; nlog ratio  2.50 compares ratio  2.41 moves ratio  4.53
-Array size     64 repeated   1000 ave time complexity     17.7 compares and     55.9 moves; nlog ratio  2.40 compares ratio  1.33 moves ratio  1.63
-Array size    128 repeated   1000 ave time complexity     28.1 compares and    124.1 moves; nlog ratio  2.33 compares ratio  1.59 moves ratio  2.22
-Array size    256 repeated   1000 ave time complexity     40.4 compares and    246.1 moves; nlog ratio  2.29 compares ratio  1.44 moves ratio  1.98
-Array size    512 repeated   1000 ave time complexity     57.4 compares and    470.3 moves; nlog ratio  2.25 compares ratio  1.42 moves ratio  1.91
-Array size   1024 repeated   1000 ave time complexity     84.3 compares and    963.7 moves; nlog ratio  2.22 compares ratio  1.47 moves ratio  2.05
-Array size   2048 repeated   1000 ave time complexity    116.4 compares and   1854.0 moves; nlog ratio  2.20 compares ratio  1.38 moves ratio  1.92
-Array size   4096 repeated   1000 ave time complexity    163.5 compares and   3649.4 moves; nlog ratio  2.18 compares ratio  1.41 moves ratio  1.97
+Array size     16 repeated   1000 ave time complexity      5.0 compares and      7.6 moves
+Array size     32 repeated   1000 ave time complexity     13.8 compares and     33.4 moves; nlog ratio  2.50 compares ratio  2.74 moves ratio  4.39
+Array size     64 repeated   1000 ave time complexity     18.8 compares and     54.5 moves; nlog ratio  2.40 compares ratio  1.36 moves ratio  1.63
+Array size    128 repeated   1000 ave time complexity     31.2 compares and    129.5 moves; nlog ratio  2.33 compares ratio  1.66 moves ratio  2.38
+Array size    256 repeated   1000 ave time complexity     43.7 compares and    246.1 moves; nlog ratio  2.29 compares ratio  1.40 moves ratio  1.90
+Array size    512 repeated   1000 ave time complexity     61.1 compares and    463.5 moves; nlog ratio  2.25 compares ratio  1.40 moves ratio  1.88
+Array size   1024 repeated   1000 ave time complexity     89.3 compares and    941.9 moves; nlog ratio  2.22 compares ratio  1.46 moves ratio  2.03
+Array size   2048 repeated   1000 ave time complexity    122.7 compares and   1841.5 moves; nlog ratio  2.20 compares ratio  1.37 moves ratio  1.96
+Array size   4096 repeated   1000 ave time complexity    173.1 compares and   3732.8 moves; nlog ratio  2.18 compares ratio  1.41 moves ratio  2.03
 PASS:  function testBlockSortSort() returns TRUE
 testBlockSort() ran 1 successful tests

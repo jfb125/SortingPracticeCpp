@@ -18,6 +18,8 @@
 #ifndef BLOCKSORT_H_
 #define BLOCKSORT_H_
 
+#include <cstdlib>
+
 #include "BlockSortDataTypes.h"
 #include "IntegerArithmetic.h"
 #include "SortingUtilities.h"
@@ -52,7 +54,8 @@ namespace BlockSort {
 	/*	Returns the index of the first element that is greater than 'value'
 	 * 	This is used to insert a value to the right of it's peers	*/
 	template <typename T>
-	index_t binarySearchLastElement(T** array, index_t range_start, index_t range_end, T *value);
+	index_t binarySearchLastElement(T** array, index_t range_start, index_t range_end, T *value,
+			ComparesAndMoves &metrics);
 
 	/*	Returns the index of the first element that is equal to or greater than 'value'
 	 * 	This is used to insert a value to the left of it's peers	*/
@@ -303,7 +306,9 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	index_t binarySearchLastElement(T** array, index_t range_start, index_t range_end, T *value) {
+	index_t binarySearchLastElement(T** array, index_t range_start, index_t range_end,
+									T *value,
+									ComparesAndMoves &metrics) {
 
 		index_t start = range_start;
 		index_t end	 	= range_end;
@@ -313,6 +318,7 @@ namespace BlockSort {
 			//	determine the midpoint in an even size span
 			//	or the index on the left of mid in an odd size span
 			mid = start + (end-start)/2;
+			metrics._compares++;
 			if (*array[mid] <= *value) {
 				//	if the array value at [mid] is < value
 				//	  look to the right for a [] >= value
@@ -436,9 +442,12 @@ namespace BlockSort {
 
 
 	/*
-	 * 	TODO -  add optimization of looking for all values on the left (u[]) side
-	 * 			of the array that are > the v[n]
-	 * ComparesAndMoves mergeBlocksByRotating(arr, start, mid, end);
+	 * ComparesAndMoves mergeBlocksByRotating(array, start, mid, end);
+	 *
+	 *		start 	is the index of the start of the block on the left
+	 *		mid		is the index of the start of the block on the right,
+	 *				  which is one past the end of the block on the left
+	 *		end		is the index of the end of the block on the right
 	 *
 	 *   This uses rotate operations to put the { u[], v[] } array in order
 	 *   The requirement is that the sub portions of uv_array, u[] and v[]
@@ -486,40 +495,74 @@ namespace BlockSort {
 
 		bool debug_verbose = false;
 
-		ComparesAndMoves result(0,0);
+		if(debug_verbose) {
+			std::cout << __FUNCTION__ << std::endl;
+		}
+
+		ComparesAndMoves metrics(0,0);
 
 		index_t u = mid-1;
 		index_t v = end;
 		index_t rotate_count;
 
+		//	These choose between:
+		//	  PURE_RIGHT_TO_LEFT	Always start from right-to-left both u & v indices
+		//	  PURE_BINARY			Always use a binary search
+		//	  HYBRID				Binary search first time, the right-to-left
+		bool binary_search 					= true;
+		bool binary_search_first_time_only	= true;
+		//	binary_search		binary_search_first_time_only		mode
+		//		false					d.c.						PURE_RIGHT_TO_LEFT
+		//		true					false						PURE_BINARY
+		//		true					true						HYBRID
+
 		while (u >= start) {
-			//	find the first [v] that is less than [u]
-			while (v > u) {
-				result._compares++;
-				if (*array[u] > *array[v])
-					break;
-				--v;
-			}
 
-			//	if v is pointing to u, then all elements in [v+1:end]
-			//	  and all elements [start:u] are in order and [u] < [v+1]
-			//	  therefore the array is in order
-			if (u == v)
-				break;
+			index_t lower_shift_bound;
 
-			//	u is pointing to a value that is > v
-			//	it is possible that lesser values to the left of [u]
-			//	  are also > v. Keep moving --u until a value is
-			//	  found that is <= [v].  At that point, everything
-			rotate_count = -1;
-			u--;
-			while (u >= start) {
-				result._compares++;
-				if (*array[u] <= *array[v]) {
-					break;
+			if (!binary_search) {
+				//	find the first [v] that is less than [u]
+				while (v > u) {
+					metrics._compares++;
+					if (*array[u] > *array[v])
+						break;
+					--v;
 				}
-				--u;
-				--rotate_count;
+				//	If v is equal to u, then all elements in [v+1:end]
+				//	  and all elements [start:u] are in order
+				//	  therefore the array is in order
+				if (u==v)
+					break;
+				//	u is pointing to a value that is > v
+				//	it is possible that lesser values to the left of [u]
+				//	  are also > [v]. Keep moving --u until a value is
+				//	  found that is <= [v].  At that point, everything
+				//	  between [u+1] to [v] is greater than [v]
+				rotate_count = -1;
+				u--;
+				while (u >= start) {
+					metrics._compares++;
+					if (*array[u] <= *array[v]) {
+						break;
+					}
+					--u;
+					--rotate_count;
+				}
+				lower_shift_bound = u+1;
+			} else {
+				//	find the rightmost (least) value remaining in v that is > u
+				v = binarySearchFirstElement(array, u+1, v, array[u]);
+				//	the values to rotate are to the left of the value > u
+				v--;
+				//	it there were no values in v that are less than u, done
+				if (u==v)
+					break;
+				//	find the leftmost (least) value in u that is > v
+				lower_shift_bound = binarySearchLastElement(array, start, u, array[v], metrics);
+				rotate_count = -(u-lower_shift_bound+1);
+				u = lower_shift_bound-1;
+				if (binary_search_first_time_only)
+					binary_search = false;
 			}
 
 			if (debug_verbose) {
@@ -528,32 +571,40 @@ namespace BlockSort {
 						  << " u+1 " << u+1 << " v " << v
 						  << " rotating " << rotate_count
 						  << std::endl;
-				for (int i = start; i != end; i++) {
+				for (int i = start; i <= end; i++) {
 					std::cout << std::setw(3) << i << ' ';
 				}
 				std::cout << std::endl;
 				std::cout << SortingUtilities::arrayElementsToString(&array[start], end-start+1, 3, 4)
 						  << std::endl;
 			}
-			//	at this point `
-			//	rotate u to the right in the array
-			//	  past the last value in v that was equal to u_value
-			result += rotateArrayElementsRight(array, u+1, v, rotate_count);
+			//	All elements between {u+1:v} are greater than v, and [u] <= [v].
+			//	Rotate left a sufficient amove to the element a [u+1] to the right of [v]
+			//	Rotate_count is < 0, which indicates a shift left
+			metrics += rotateArrayElementsRight(array, lower_shift_bound, v, rotate_count);
 
 			if (debug_verbose) {
 				std::cout << "AFTER\n";
 				std::cout << SortingUtilities::arrayElementsToString(&array[start], end-start+1, 3, 4)
 						  << std::endl;
 			}
-			//  point to the element that is one past the element
-			//    that u was pointing to which has now been rotated
+			//    Point to the v element that is one before the element
+			// that u was pointing to which has been rotated left
+			//
+			//	Consider assume that the value at u6 which is in position 12
+			//	     is greater than the value at v4 which is in position 17
+			//		 rotate count will be -2 (left)
+			//			  11 12 13 14 15 16 17 18 19
+			//		Was:  u5 u6 u7 v1 v2 v3 v4 v5 v6
+			//		Is:	  u5 v1 v2 v3 v4 u6 u7 v5 v6
+			//		v4 has moved from 17 to 15
 			v = v + rotate_count;
 		}
 
 		if (debug_verbose)
 			std::cout << "Exiting mergeBlocksByRotation()\n\n";
 
-		return result;
+		return metrics;
 	}
 
 	//	starting at the right-most block, merge the previous (left) block into
