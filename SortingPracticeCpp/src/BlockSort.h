@@ -865,13 +865,16 @@ namespace BlockSort {
 	 * 	   Source block:  B0     A0  B0  A0      A1        B0
 	 * 	   Sequence    : [A  B] [C] [C] [D E F] [G H I J] [K]
 	 *
+	 *	The elements in the B0 block(s) on the right are already in order.  Thus,
+	 *	as soon as a B_Block value is found that it greater than it's neighbor
+	 *	to the left, all the values out to 'end' are in order and the function returns
 	 *	Usage:
 	 *
-	 * 	callers_metrics = insertionSortFromN(array, a[0].start, b[0].start, b[0].end)
+	 * 	callers_metrics = mergeByInsertionSort(array, a[0].start, b[0].start, b[0].end)
 	 */
 
 	template <typename T>
-	ComparesAndMoves insertionSortFromN(T** array, index_t begin, index_t mid, index_t end)
+	ComparesAndMoves mergeByInsertionSort(T** array, index_t begin, index_t mid, index_t end)
 	{
 		ComparesAndMoves metrics(0,0);
 
@@ -881,10 +884,13 @@ namespace BlockSort {
 
 		//	from here to the end of the array
 		for (int i = mid; i <= end ; i++) {
-			// if the element is correct, move on
+			// The first time a B_Block element is found that is
+			//	in order that means all the elements to the right,
+			//	which are in order b/c they came from the same
+			//	B_Block, are sorted.  Return.
 			metrics._compares++;
 			if (*array[i-1] <= *array[i])
-				continue;
+				break;
 			T* temp = array[i];
 			metrics._moves++;
 			int j = i;
@@ -1047,7 +1053,7 @@ namespace BlockSort {
 					index_t mid		= block_descriptors[dst_block].start_index;
 					index_t end		= block_descriptors[dst_block].end_index;
 					metrics = mergeContiguousBlocksByRotating(array, start, mid, end);
-//					metrics = insertionSortFromN(array, start, mid, end);
+//					metrics = mergeByInsertionSort(array, start, mid, end);
 				}
 			}
 
@@ -1124,7 +1130,7 @@ namespace BlockSort {
 				index_t mid		= block_descriptors[dst_block].start_index;
 				index_t end		= block_descriptors[num_blocks-1].end_index;
 				metrics = mergeContiguousBlocksByRotating(array, start, mid, end);
-//				metrics = insertionSortFromN(array, start, mid, end);
+//				metrics = mergeByInsertionSort(array, start, mid, end);
 			}
 		}
 		return metrics;

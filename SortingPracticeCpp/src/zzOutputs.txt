@@ -1,4 +1,4 @@
-Sorting Performance In C++ built on Oct  3 2025 at 23:47:08
+Sorting Performance In C++ built on Oct  4 2025 at 10:46:49
 testBlockSort()
 Arrays configured with 1 copies of each value using block_configuration FULL_A0_BLOCK
 Array size     16 repeated   1000 ave time complexity      5.6 compares and      7.6 moves
