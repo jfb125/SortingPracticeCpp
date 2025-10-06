@@ -13,6 +13,7 @@
 #define BLOCKSORTDEBUGGING_H_
 //	for VALUE_WIDTH and ELEMENT_WIDTH
 #include "SortingUtilities.h"
+#include "BlockSortBlockDescriptors.h"
 
 namespace BlockSort {
 
@@ -131,14 +132,14 @@ namespace BlockSort {
 			result << __FUNCTION__ << " called with element_width == 0";
 			break;
 		case 1:
-			result << to_char(tag.type);
+			result << std::to_char(tag.type);
 			break;
 		default:
 			if (chars_remaining > 2) {
 				result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
 			}
 			if (tag.type == BlockType::B_BLOCK) {
-				result << to_char(tag.type);
+				result << std::to_char(tag.type);
 			} else {
 				result << TAG_SPACE_CHAR;
 			}
@@ -160,14 +161,14 @@ namespace BlockSort {
 			result << __FUNCTION__ << " called with element_width == 0";
 			break;
 		case 1:
-			result << to_char(tag.type);
+			result << std::to_char(tag.type);
 			break;
 		default:
 			result << TAG_BOUNDARY_CHAR;
 			chars_remaining--;
 			switch (tag.type) {
 			case BlockType::A_BLOCK:
-				result << to_char(tag.type);
+				result << std::to_char(tag.type);
 				chars_remaining--;
 				if (chars_remaining >0) {
 					result << std::setw(chars_remaining) << TAG_SPACE_CHAR;
@@ -200,14 +201,14 @@ namespace BlockSort {
 			result << __FUNCTION__ << " called with element_width == 0";
 			break;
 		case 1:
-			result << to_char(tag.type);
+			result << std::to_char(tag.type);
 			break;
 		case 2:
 			result << TAG_BOUNDARY_CHAR
-				   << to_char(tag.type);
+				   << std::to_char(tag.type);
 			break;
 		case 3:
-			result << TAG_BOUNDARY_CHAR << to_char(tag.type)
+			result << TAG_BOUNDARY_CHAR << std::to_char(tag.type)
 				   << TAG_BOUNDARY_CHAR;
 			break;
 		default:
@@ -215,7 +216,7 @@ namespace BlockSort {
 			chars_remaining--;
 			switch (tag.type) {
 			case BlockType::A_BLOCK:
-				result << to_char(tag.type);
+				result << std::to_char(tag.type);
 				chars_remaining--;
 				if (chars_remaining > 1) {
 					result << std::setw(chars_remaining-1) << TAG_SPACE_CHAR;
@@ -225,7 +226,7 @@ namespace BlockSort {
 				if (chars_remaining > 2) {
 					result << std::setw(chars_remaining-2) << TAG_SPACE_CHAR;
 				}
-				result << to_char(tag.type);
+				result << std::to_char(tag.type);
 				break;
 			default:
 				result.fill('?');

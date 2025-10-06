@@ -25,6 +25,7 @@
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
 #include "BlockSortDebugging.h"
+#include "BlockSortBlockDescriptors.h"
 
 #define DEBUG_VERBOSE_BLOCK_SORT
 
@@ -43,7 +44,7 @@ namespace BlockSort {
 
 	/*	Assigns key values to the blocks if the underlying array has been reordered */
 	template <typename T>
-	ComparesAndMoves assignKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors);
+	ComparesAndMoves assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors);
 
 	/*	In an array of blockDescriptors, find the leftmost block that is > key */
 	template <typename T>
@@ -61,13 +62,6 @@ namespace BlockSort {
 	 * 	This is used to insert a value to the left of it's peers	*/
 	template <typename T>
 	index_t binarySearchFirstElement(T** array, index_t range_start, index_t range_end, T *value);
-
-	/*	Creates an array of block descriptors of types A & B {A[0]A[1]..A[m]B[0]..B[n]}
-	 * 	  where A[0] is a full block but B[n] if present will not be full. */
-	template <typename T>
-	int createBlockDescriptors_A0_Full( T** array, index_t start, index_t mid, index_t end,
-			    						int block_size,
-										std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
 
 	/*	Merges a sorted list of descriptors which results in the underlying array
 	 * being in order.  Starts at right block an moves left wards */
@@ -136,7 +130,7 @@ namespace BlockSort {
 	 *	  block descriptors were created
 	 */
 	template <typename T>
-	ComparesAndMoves assignKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors) {
+	ComparesAndMoves assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors) {
 
 		for (int i = 0; i != num_descriptors; i++) {
 			BlockDescriptor<T>*p = &descriptors[i];	// improves readability
@@ -331,113 +325,6 @@ namespace BlockSort {
 		if (start == range_end && *array[start] <= *value)
 			start++;
 		return start;
-	}
-
-
-	/*
-	 * 	createBlockDescriptors_A0_Full(array, start, mid, end, block_size, descriptor_dst&);
-	 *
-	 *		<<< !!! 'mid' must be an integer multiple of 'block_size' from 'start' !!! >>>
-	 *
-	 *	Inputs: array		- pointer to an array of pointers to type T
-	 *			start		- index of first element in the span
-	 *			mid			- the expected location of the left most element  block B[0]
-	 *			end			- index of last element in the span
-	 *			block_size	- size of each block
-	 *			descriptors	- pointer to the destination of the array of descriptors
-	 *
-	 *	Output:	returns number of descriptors created
-	 *
-	 *	  This creates an array of block descriptors such that block A[0] is guaranteed
-	 *	to be a full 'block_size' wide.  If the size of the span, 'end' - 'start' +1
-	 *	is not an integer multiple of 'block_size', the final will be < '_size'.
-	 *
-	 *	'A_Block' is defined as a block that has a key value of the first element
-	 *	'B_Block' is defined as a block that has a key value of the last element
-	 *
-	 *	The array of descriptors is of the form {A[0],A[1]..A[m],B[0]..B[n]}
-	 *
-	 * 	  If in creating the A_Blocks there would not being an integer number of
-	 * 	A_Blocks in the portion of the array from [start:mid-1], 0 is returned.
-	 *	Thus, it is the caller's responsibility to ensure that
-	 *		(mid-start) % block_size == 0
-	 *
-	 * 	  The underlying array is not modified. The BlockTags contain
-	 * 	information about the array, but they are not part of the array
-	 *
-	 * 	The blocks are generated in such a way to ensure that
-	 * 		[mid-1] is the end_index of the last A-type block and
-	 * 		[mid] is the start_index of the first B-type block
-	 *
-	 * 	Consider the following array with start = 0, mid = 6, end = 9, block_size = 3
-	 * 		             0  1  2  3  4  5  6  7  8  9
-	 * 		           { a, c, e, g, i, k, b, d, f, h
-	 * 	tags types are  |A      ||A      ||B      ||B|
-	 *  tag indices are [0:2    ][3:5    ][    6:8][9]
-	 *  tag keys are    'a'      'g'            'f''h'
-	 *
-	 * 	Returns the count of tags which is 4
-	 */
-
-	template <typename T>
-	int createBlockDescriptors_A0_Full(
-			T** array,
-			index_t start, index_t mid, index_t end,
-			int block_size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks) {
-
-		index_t lower_span = mid-start;
-		index_t upper_span = end-mid + 1;
-
-		// calculate the total number of blocks
-		int num_blocks = lower_span / block_size + upper_span / block_size;
-		//	if there is a partial last B_Block
-		if (upper_span % block_size)
-			num_blocks++;
-
-		// create the block storage
-		blocks = std::unique_ptr<BlockDescriptor<T>[]>(new BlockDescriptor<T>[num_blocks]);
-
-		// if there are no blocks, or if there is a partial block in the A_Blocks
-		if ((num_blocks == 0) || (lower_span % block_size != 0)) {
-			return 0;
-		}
-
-		//	assign values to the blocks
-		int block_number = 0;
-		index_t start_of_block = start;
-
-		//	the full A_Blocks where .end_index = (.start_index+block_size-1)
-		while (start_of_block < mid) {
-			blocks[block_number].type 			= BlockType::A_BLOCK;
-			blocks[block_number].start_index	= start_of_block;
-			blocks[block_number].end_index		= start_of_block+block_size-1;
-			blocks[block_number].key			= array[start_of_block];
-			start_of_block += block_size;
-			block_number++;
-		}
-
-		//	If there are any B_Blocks
-		if (block_number != num_blocks) {
-			//	the full B_Blocks where .end_index = (.start_index+block_size-1)
-			while (block_number < num_blocks-1) {
-				blocks[block_number].type 		= BlockType::B_BLOCK;
-				blocks[block_number].start_index= start_of_block;
-				blocks[block_number].end_index	= start_of_block+block_size-1;
-				blocks[block_number].key		= array[start_of_block + block_size-1];
-				start_of_block += block_size;
-				block_number++;
-			}
-
-			//	the final B_Block may be a partial block, but regardless of its size,
-			//		.end_index = 'end'
-			blocks[block_number].type 			= BlockType::B_BLOCK;
-			blocks[block_number].start_index	= start_of_block;
-			blocks[block_number].end_index		= end;
-			blocks[block_number].key			= array[end];
-		}
-
-		return num_blocks;
 	}
 
 
@@ -1754,6 +1641,14 @@ namespace BlockSort {
 	}
 
 
+	template <typename T>
+	ComparesAndMoves sortPointersToObjects(T**, index_t start, index_t mid, index_t end, index_t block_size) {
+
+		ComparesAndMoves metrics(0,0);
+
+		return metrics;
+	}
+
 	/*	**************************************************	*/
 	/*	**************************************************	*/
 	/*						the sort						*/
@@ -1812,7 +1707,7 @@ namespace BlockSort {
 		//	the array has been re-ordered independently of the block descriptors
 		//	assign the block's key value from the underlying array
 
-		assignKeys(array, block_descriptors, num_blocks);
+		assignBlockKeys(array, block_descriptors, num_blocks);
 		result += sortEachBlockTypeSeparately(array, size, block_descriptors, num_blocks);
 
 		msg << "after ordering A_Blocks and ordering B_Blocks\n"

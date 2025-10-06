@@ -16,156 +16,101 @@
 
 #include "SortingPracticeDataTypes.h"
 
+/*	MACROS FOR ENABLING / DISABLING ALGORITHMS	*/
+#undef ENABLE_CREATE_BLOCK_DESCIRPTORS_SYMMETRICALLY
+
+
 using index_t = array_size_t;
 
-enum class BlockType {
-	A_BLOCK,
-	B_BLOCK,
-	UNSPECIFIED
-};
-#define A_BLOCK_CHAR 'A'
-#define B_BLOCK_CHAR 'B'
-#define U_BLOCK_CHAR 'U'
-
-char to_char(BlockType type);
-std::ostream& operator<<(std::ostream& out, BlockType object);
-
 namespace BlockSort {
-
 	template <typename T>
-	class BlockDescriptor {
-	public:
-		BlockType type;
-		T* key;
-		index_t start_index;
-		index_t end_index;
+	class BlockDescriptor;
+}
 
-		index_t	getWidth() const {
-			return end_index - start_index + 1;
-		}
 
-		T* assignKey(T**array) {
-			switch(type) {
-			case BlockType::A_BLOCK:
-				key = array[start_index];
-				break;
-			case BlockType::B_BLOCK:
-				key = array[end_index];
-				break;
-			case BlockType::UNSPECIFIED:
-				//	TODO - throw exception
-				key = nullptr;
-				break;
-			default:
-				key = nullptr;
-				//	TODO - throw exception
-				break;
-			}
-			return key;
-		}
+	/*	**********************************************************	*/
+	/*							BlockType							*/
+	/*	**********************************************************	*/
 
-		std::string spanString(int index_width = 1) const {
-			std::stringstream sstring;
-			sstring << "[" << start_index << ":" << end_index << "]";
-			return sstring.str();
-		}
-
-		BlockDescriptor() {
-			type = BlockType::UNSPECIFIED;
-			key = nullptr;
-			start_index = 0;
-			end_index = 0;
-		}
-		BlockDescriptor(BlockType t, T* k, index_t s, index_t e) {
-			type = t;
-			key = k;
-			start_index = s;
-			end_index = e;
-		}
-		BlockDescriptor(const BlockDescriptor &other) {
-			if (this != &other) {
-				type = other.type;
-				key = other.key;
-				start_index = other.start_index;
-				end_index = other.end_index;
-			}
-		}
-		BlockDescriptor& operator=(const BlockDescriptor &other) {
-			if (this != &other) {
-				type = other.type;
-				key = other.key;
-				start_index = other.start_index;
-				end_index = other.end_index;
-			}
-			return *this;
-		}
-
-		bool operator==(const BlockDescriptor &other) const {
-			if (key != nullptr && other.key != nullptr) {
-				return *key == *other.key;
-			}
-			return false;
-		}
-		bool operator<(const BlockDescriptor &other) const {
-			if (key != nullptr && other.key != nullptr) {
-				return *key < *other.key;
-			}
-			return false;
-		}
-		bool operator<=(const BlockDescriptor &other) const {
-			return *this == other || *this < other;
-		}
-		bool operator>(const BlockDescriptor &other) const {
-			return  !(*this == other || *this < other);
-		}
-		bool operator>=(const BlockDescriptor &other) const {
-			return !(*this < other);
-		}
-		bool operator!=(const BlockDescriptor &other) const {
-			return !(*this == other);
-		}
-
-		bool isExactlyEqual(const BlockDescriptor &other) const {
-			if (type != other.type) 				return false;
-			if (key != other.key)					return false;
-			if (start_index != other.start_index)	return false;
-			if (end_index != other.end_index)		return false;
-			return true;
-		}
-
-		std::string to_string(int index_width = 0) const {
-			std::stringstream result;
-			if (type != BlockType::UNSPECIFIED) {
-				result 	<< (type == BlockType::A_BLOCK ? "A block " : "B block ");
-				result 	<< "[" << std::setw(index_width) << start_index << ":"
-						<< std::setw(index_width) << end_index << "] ";
-				if (type == BlockType::A_BLOCK) {
-					result << "[" << std::setw(index_width) << start_index << "] = ";
-					if (key != nullptr) {
-						result << *key;
-					} else {
-						result << "key is nullptr";
-					}
-				} else {
-					result << "[" << std::setw(index_width) << end_index << "] = ";
-					if (key != nullptr) {
-						result << *key;
-					} else {
-						result << "key is nullptr";
-					}
-				}
-			} else {
-				result << "Unintialized block";
-			}
-			return result.str();
-		}
+	namespace BlockSort {
+	enum class BlockType {
+		A_BLOCK,
+		B_BLOCK,
+		UNSPECIFIED
 	};
-
-	template <typename T>
-	std::ostream& operator<<(std::ostream& out, const BlockDescriptor<T> &object) {
-		out << object.to_string();
-		return out;
 	}
+	namespace std{
+	enum class BlockType {
+		A_BLOCK,
+		B_BLOCK,
+		UNSPECIFIED
+	};
+	}
+	#define A_BLOCK_CHAR 'A'
+	#define B_BLOCK_CHAR 'B'
+	#define U_BLOCK_CHAR 'U'
+
+	namespace std {
+		char to_char(BlockSort::BlockType type);
+		ostream& operator<<(ostream& out, BlockSort::BlockType object);
+	}
+
+	/*	**********************************************************	*/
+	/*							BlockOrganizations					*/
+	/*	**********************************************************	*/
+
+	namespace BlockSort {
+	enum class BlockOrganizations {
+		FULL_A0_BLOCK,
+		SYMMETRIC
+	};
+	}
+	namespace std {
+	enum class BlockOrganizations {
+		FULL_A0_BLOCK,
+		SYMMETRIC
+	};
+	}
+
+	#define	BLOCK_ORGANIZATION_FULL_A0_BLOCK_STRING	"FULL_A0_BLOCK"
+	#define BLOCK_ORGANIZATION_SYMMETRIC_STRING		"SYMMETRIC"
+	#define	BLOCK_ORGANIZATION_UNKNOWN_STRING		"UNKNOWN"
+	#define	BLOCK_ORGANIZATION_MAX_STRING_LENGTH	13
+
+	namespace std {
+		string to_string(BlockSort::BlockOrganizations organization);
+		ostream& operator<<(ostream& out, const BlockSort::BlockOrganizations organization);
+	}
+
+	/*	**********************************************************	*/
+	/*							MergeStrategy						*/
+	/*	**********************************************************	*/
+
+	namespace BlockSort {
+	enum class MergeStrategy {
+		 TABLE, AUXILLIARY, ROTATE
+	};
+	}
+
+	#define MERGE_STRATEGY_TABLE_STRING			"TABLE"
+	#define MERGE_STRATEGY_AUXILLIARY_STRING	"AUXILLIARY"
+	#define MERGE_STRATEGY_ROTATE_STRING		"ROTATE"
+	#define MERGE_STRATEGY_UNKNOWN_STRING		"UNKNOWN"
+	#define MERGE_STRATEGY_MAX_STRING_LENGTH	10
+
+	namespace std{
+		string to_string(BlockSort::MergeStrategy strategy);
+		ostream& operator<<(ostream& out, const BlockSort::MergeStrategy strategy);
+	}
+
+	namespace std {
+	enum class MergeStrategy {
+		TABLE, AUXILLIARY, ROTATE
+	};
+	}
+namespace BlockSort {
+	template <typename T>
+	class BlockDescriptor;
 }
 
 #endif

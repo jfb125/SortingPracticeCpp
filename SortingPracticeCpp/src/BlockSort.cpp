@@ -17,7 +17,7 @@ using namespace BlockSort;
 
 /*	******************************************************	*/
 /*	******************************************************	*/
-/*							functions						*/
+/*					Algorthmic Functions					*/
 /*	******************************************************	*/
 /*	******************************************************	*/
 
@@ -36,21 +36,71 @@ index_t blockSortModulo(index_t rotation_count, index_t span) {
 	return rotation_count;
 }
 
+/*	******************************************************	*/
+/*	******************************************************	*/
+/*					Formatted Output of enums				*/
+/*	******************************************************	*/
+/*	******************************************************	*/
 
-char to_char(BlockType type) {
-	switch(type) {
-	case BlockType::A_BLOCK:
-		return A_BLOCK_CHAR;
-	case BlockType::B_BLOCK:
-		return B_BLOCK_CHAR;
-	case BlockType::UNSPECIFIED:
-		return U_BLOCK_CHAR;
-	default:
-		return '?';
+namespace std
+{
+	char to_char(BlockSort::BlockType type) {
+		switch(type) {
+		case BlockSort::BlockType::A_BLOCK:
+			return A_BLOCK_CHAR;
+		case BlockSort::BlockType::B_BLOCK:
+			return B_BLOCK_CHAR;
+		case BlockSort::BlockType::UNSPECIFIED:
+			return U_BLOCK_CHAR;
+		default:
+			return '?';
+		}
+	}
+
+	std::ostream& operator<<(std::ostream& out, BlockSort::BlockType object) {
+		out << to_char(object);
+		return out;
 	}
 }
 
-std::ostream& operator<<(std::ostream& out, BlockType object) {
-	out << to_char(object);
-	return out;
+namespace std
+{
+	string to_string(BlockSort::BlockOrganizations organization) {
+		switch(organization) {
+		case BlockSort::BlockOrganizations::FULL_A0_BLOCK:
+			return string(BLOCK_ORGANIZATION_FULL_A0_BLOCK_STRING);
+		case BlockSort::BlockOrganizations::SYMMETRIC:
+			return string(BLOCK_ORGANIZATION_SYMMETRIC_STRING);
+		default:
+			return string(BLOCK_ORGANIZATION_UNKNOWN_STRING);
+		}
+	};
+
+	ostream& operator<<(ostream& out, const BlockSort::BlockOrganizations organization) {
+		out << to_string(organization);
+		return out;
+	}
 }
+
+
+namespace std
+{
+	string to_string(BlockSort::MergeStrategy strategy) {
+		switch (strategy) {
+		case BlockSort::MergeStrategy::AUXILLIARY:
+			return string(MERGE_STRATEGY_AUXILLIARY_STRING);
+		case BlockSort::MergeStrategy::TABLE:
+			return string(MERGE_STRATEGY_TABLE_STRING);
+		case BlockSort::MergeStrategy::ROTATE:
+			return string(MERGE_STRATEGY_ROTATE_STRING);
+		default:
+			return string(MERGE_STRATEGY_UNKNOWN_STRING);
+		};
+	}
+
+	ostream& operator<<(ostream& out, const BlockSort::MergeStrategy strategy) {
+		out << to_string(strategy);
+		return out;
+	}
+}
+

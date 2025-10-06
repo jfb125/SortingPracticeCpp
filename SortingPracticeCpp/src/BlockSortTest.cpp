@@ -27,41 +27,6 @@
 using namespace BlockSort;
 
 
-enum class BlockOrganizations {
-	FULL_A0_BLOCK,
-	SYMMETRIC
-};
-
-std::string toString(BlockOrganizations organization) {
-	switch(organization) {
-	case BlockOrganizations::FULL_A0_BLOCK:
-		return std::string("FULL_A0_BLOCK");
-	case BlockOrganizations::SYMMETRIC:
-		return std::string("SYMMETRIC    ");
-	default:
-		return std::string("UNKNOWN BLOCK ORGANIZAITON");
-	}
-	return std::string("UNKNOWN BLOCK ORGANIZAITON");
-};
-
-enum class MergeStrategy {
-	 TABLE, AUXILLIARY, ROTATE
-};
-
-std::string toString(MergeStrategy strategy) {
-	switch (strategy) {
-	case MergeStrategy::AUXILLIARY:
-		return std::string("AUXILIARY");
-	case MergeStrategy::TABLE:
-		return std::string("TABLE    ");
-	case MergeStrategy::ROTATE:
-		return std::string("ROTATE   ");
-	default:
-		return std::string("UKNOWN   ");
-	};
-}
-
-
 /*	**********************************************	*/
 /*	**********************************************	*/
 /*		forward declaration of test functions		*/
@@ -74,7 +39,7 @@ std::string toString(MergeStrategy strategy) {
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
-//#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
+#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
@@ -84,7 +49,7 @@ std::string toString(MergeStrategy strategy) {
 //#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
 //#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
-#define TEST_BLOCK_SORT_SORT
+//#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortBinarySearchFirstBlock();
 bool testBlockSortBinarySearchLastBlock();
@@ -461,42 +426,128 @@ template <typename T>
 bool validateCreateBlocks_A0_Full(
 		std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
 		int num_descriptors,
+		index_t array_size,
 		index_t mid,
 		int block_size,
 		std::stringstream &msg)
 {
 	bool test_result = true;
-	msg.str("");
 
-	int block_number = 0;
+	int block_i = 0;
 
-	//	it is possible that the descriptors are only A_BLOCKs
-	for (; block_number != num_descriptors; block_number++) {
-		if (descriptors[block_number].type == BlockType::B_BLOCK) {
-			break;
-		}
-		if (descriptors[block_number].getWidth() != block_size) {
-			test_result = false;
-			msg << "ERROR - A_BLOCK[" << block_number << "] is not full size = " << block_size;
-			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
-		}
+	index_t expected_last_block_size = array_size % block_size;
+	int expected_total_num_blocks = (array_size / block_size) +
+									(expected_last_block_size ? 1 : 0);
+
+	//	if there is no fractional final block, the final blockis full size
+	if (expected_last_block_size == 0) {
+		expected_last_block_size = block_size;
 	}
+	int expected_num_a_blocks = mid / block_size;
+	int expected_num_b_blocks = expected_total_num_blocks - expected_num_a_blocks;
 
-	// first B_Block must start at 'mid'
-	if (descriptors[block_number].start_index != mid) {
+	if (mid % block_size) {
 		test_result = false;
-		msg << "ERROR - the first B_Block.start_index " << descriptors[block_number].start_index
-			<< " is not = " << mid;
+		msg << __FUNCTION__ << " returning false because there are not an "
+			<< " integer number of blocks of size " << block_size
+			<< " from start = 0 to mid = " << mid;
 		goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
 	}
 
-	//	all but the final B_Block has to be 'block_size'
-	for (; block_number < num_descriptors-1; block_number++) {
-		if (descriptors[block_number].getWidth() != block_size) {
+	if (num_descriptors != expected_total_num_blocks) {
+		test_result = false;
+		msg << __FUNCTION__ << " returning false because"
+			<< " expected num_blocks " << expected_total_num_blocks
+			<< " does not match actual " << num_descriptors;
+		goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+	}
+
+	//	if there any A_Blocks
+	for (; block_i != expected_num_a_blocks; block_i++) {
+		int expected_block_size = block_size;
+		if (descriptors[block_i].type != BlockType::A_BLOCK) {
 			test_result = false;
-			msg << "ERROR - B_BLOCK[" << block_number << "] is not full size = " << block_size;
+			msg << __FUNCTION__
+				<< " returns false because Block["
+				<< block_i << "] is not an A_Block";
+				goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+		}
+		if (descriptors[block_i].getWidth() != expected_block_size) {
+			test_result = false;
+			msg << __FUNCTION__
+				<< " returns false because block["
+				<< block_i << "] which is an A_Block is wrong size: "
+				<< "expected " << expected_block_size
+				<< " vs actual " << descriptors[0].getWidth();
+				goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+		}
+	}
+
+	if (block_i != expected_num_a_blocks) {
+		test_result = false;
+		msg << __FUNCTION__
+			<< " returns false because expected number of A_Blocks "
+			<< expected_num_a_blocks
+			<< " does not match "
+			<< block_i;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+	}
+
+	if (descriptors[block_i-1].end_index != mid-1) {
+		test_result = false;
+		msg << __FUNCTION__
+			<< " returns false because end index of final A_Block "
+			<< descriptors[block_i-1].end_index
+			<< " does not match (mid-1) "
+			<< mid-1;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+	}
+
+	if (descriptors[block_i].start_index != mid) {
+		test_result = false;
+		msg << __FUNCTION__
+			<< " returns false because start index of first B_Block "
+			<< descriptors[block_i].start_index
+			<< " does not match mid "
+			<< mid;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+	}
+
+	//	if there any B_Blocks
+	for (; block_i != expected_total_num_blocks; block_i++) {
+		int expected_block_size;
+		// last B_Block ? or expected_last_block is a full block
+		if (block_i != expected_total_num_blocks-1 || expected_last_block_size == 0) {
+			expected_block_size = block_size;
+		} else {
+			expected_block_size = expected_last_block_size;
+		}
+		if (descriptors[block_i].type != BlockType::B_BLOCK) {
+			test_result = false;
+			msg << __FUNCTION__
+				<< " returns false because block["
+				<< block_i << "] is not a B_Block";
 			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
 		}
+		if (descriptors[block_i].getWidth() != expected_block_size) {
+			test_result = false;
+			msg << __FUNCTION__
+				<< " returns false because block["
+				<< block_i << "] which is a B_Block is wrong size: "
+				<< "expected " << expected_block_size
+				<< " vs uut " << descriptors[0].getWidth();
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
+		}
+	}
+
+	if (block_i != expected_total_num_blocks) {
+		test_result = false;
+		msg << __FUNCTION__
+			<< " returns false because expected number of B_Blocks "
+			<< expected_num_b_blocks
+			<< " does not match "
+			<< block_i - expected_num_a_blocks;
+		goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT;
 	}
 
 VALIDATE_CREATE_BLOCK_DESCRIPTORS_A0_FULL_RETURN_POINT:
@@ -507,38 +558,142 @@ template <typename T>
 bool validateCreateBlocksSymmetrically(
 		std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
 		int num_descriptors,
+		index_t array_size,
 		index_t mid,
 		int block_size,
 		std::stringstream &msg)
 {
 	bool test_result = true;
-	msg.str("");
 
-	//	the first A_Block may not be a full block
-	int block_number = 1;
-
-	//	it is possible that the descriptors are only A_BLOCKs
-	for (; block_number != num_descriptors; block_number++) {
-		if (descriptors[block_number].type == BlockType::B_BLOCK) {
-			break;
-		}
+	index_t left_span 					= mid;
+	index_t right_span 					= array_size - mid;
+	index_t expected_first_block_size	= left_span% block_size;
+	index_t expected_last_block_size	= right_span % block_size;
+	int	expected_num_a_blocks = left_span / block_size + (expected_first_block_size ? 1 : 0);
+	int expected_num_b_blocks = right_span / block_size + (expected_last_block_size ? 1 : 0);
+	int expected_total_num_blocks = expected_num_a_blocks + expected_num_b_blocks;
+	//	These assignments have to come after these variables were used to
+	//	indicated to add one to the number of blocks for fractional block size
+	if (expected_first_block_size == 0) {
+		//	if the first block is not a fractional block, it is full size
+		expected_first_block_size = block_size;
 	}
+	if (expected_last_block_size == 0) {
+		//	if the last block is not a fractional block, it is full size
+		expected_last_block_size = block_size;
+	}
+	int block_i = 0;
 
-	// first B_Block must start at 'mid'
-	if (descriptors[block_number].start_index != mid) {
+	if (num_descriptors != expected_total_num_blocks) {
 		test_result = false;
-		msg << "ERROR - the first B_Block.start_index " << descriptors[block_number].start_index
-			<< " is not = " << mid;
+		msg << __FUNCTION__ << " returning false because"
+			<< " expected num_blocks " << expected_total_num_blocks
+			<< " does not match actual " << num_descriptors;
 		goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
 	}
 
-	//	all but the final B_Block has to be 'block_size'
-	for (; block_number < num_descriptors-1; block_number++) {
-		if (descriptors[block_number].getWidth() != block_size) {
-			test_result = false;
-			msg << "ERROR - B_BLOCK[" << block_number << "] is not full size = " << block_size;
-			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+	//	if there any A_Blocks
+	for (; block_i != expected_num_a_blocks; block_i++) {
+		int expected_block_size;
+		// first A_Block or expected first block size is full block
+		if (block_i != 0) {
+			expected_block_size = block_size;
+		} else {
+			expected_block_size = expected_first_block_size;
 		}
+		if (descriptors[block_i].type != BlockType::A_BLOCK) {
+			test_result = false;
+			msg << __FUNCTION__
+				<< " returns false because Block["
+				<< block_i << "] is not an A_Block";
+				goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+		}
+		if (descriptors[block_i].getWidth() != expected_block_size) {
+			test_result = false;
+			msg << __FUNCTION__
+				<< " returns false because block["
+				<< block_i << "] which is an A_Block is wrong size: "
+				<< "expected " << expected_block_size
+				<< " vs actual " << descriptors[0].getWidth();
+				goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+		}
+	}
+
+	if (block_i != expected_num_a_blocks) {
+		test_result = false;
+		msg << __FUNCTION__
+			<< " returns false because expected number of A_Blocks "
+			<< expected_num_a_blocks
+			<< " does not match "
+			<< block_i;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+	}
+
+	if (descriptors[block_i-1].end_index != mid-1) {
+		test_result = false;
+		msg << __FUNCTION__
+			<< " returns false because end index of final A_Block "
+			<< descriptors[block_i-1].end_index
+			<< " does not match (mid-1) "
+			<< mid-1;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+	}
+
+	if (descriptors[block_i].start_index != mid) {
+		test_result = false;
+		msg << __FUNCTION__
+			<< " returns false because start index of first B_Block "
+			<< descriptors[block_i].start_index
+			<< " does not match mid "
+			<< mid;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+	}
+
+	//	if there any B_Blocks
+	for (; block_i != expected_total_num_blocks; block_i++) {
+		int expected_block_size;
+		// last B_Block ? or expected_last_block is a full block
+		if (block_i != expected_total_num_blocks-1 || expected_last_block_size == 0) {
+			expected_block_size = block_size;
+		} else {
+			expected_block_size = expected_last_block_size;
+		}
+		if (descriptors[block_i].type != BlockType::B_BLOCK) {
+			test_result = false;
+			msg << __FUNCTION__
+				<< " returns false because block["
+				<< block_i << "] is not a B_Block";
+				goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+		}
+		if (descriptors[block_i].getWidth() != expected_block_size) {
+			test_result = false;
+			msg << __FUNCTION__
+				<< " returns false because block["
+				<< block_i << "] which is a B_Block is wrong size: "
+				<< "expected " << expected_block_size
+				<< " vs uut " << descriptors[0].getWidth();
+				goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+		}
+	}
+
+	if (block_i != expected_total_num_blocks) {
+		test_result = false;
+		msg << __FUNCTION__
+			<< " returns false because expected number of B_Blocks "
+			<< expected_num_b_blocks
+			<< " does not match "
+			<< block_i - expected_num_a_blocks;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
+	}
+
+	if (descriptors[block_i-1].end_index != array_size-1) {
+		test_result = false;
+		msg << __FUNCTION__
+			<< " returns false because end index of final B_Block "
+			<< descriptors[block_i-1].end_index
+			<< " does not match (array_size-1) "
+			<< mid-1;
+			goto VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT;
 	}
 
 VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT:
@@ -548,11 +703,13 @@ VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT:
 bool testBlockSortCreateDescriptors() {
 
 	constexpr bool verbose_output = true;
-
-	bool test_result = true;
-	bool test_a0_full = true;
+	constexpr int array_size_width = 3;
+	constexpr int block_size_width = 3;
+	constexpr int num_blocks_width = 3;
 	std::stringstream test_result_msg;
 	std::stringstream validation_msg;
+
+	bool test_result = true;
 
 	char *test_vector[] = {
 		new char('a'), new char('b'), new char('c'), new char('d'),
@@ -571,47 +728,67 @@ bool testBlockSortCreateDescriptors() {
 		new char('Y'), new char('Z')
 		};
 
-//	int test_vector_size = sizeof(test_vector) / sizeof(char*);
 
 	int minimum_block_size = 2;
-	int maximum_block_size = 2;
+	int maximum_block_size = 3;
 	int nominal_array_size = 16;
+
+	BlockOrganizations block_organizations[] = {
+//		BlockOrganizations::FULL_A0_BLOCK,
+		BlockOrganizations::SYMMETRIC
+	};
+
+	int num_block_organizations = sizeof(block_organizations) / sizeof(BlockOrganizations);
 
 	//	perform the test both on createBlockDescriptors_A0_Full()
 	//	  					 and createBlocKDescriptorsSymmetrically()
-	do {
+	for (int block_organization_i = 0;
+			 block_organization_i != num_block_organizations;
+			 block_organization_i++)
+	{
+		BlockOrganizations block_organization = block_organizations[block_organization_i];
+
 		for (int block_size  = minimum_block_size;
 				 block_size <= maximum_block_size; block_size++) {
 
-			//	try all necessary array sizes to generate all fractional
-			//	  sizes of the final B_Block, from 0 to block_size-1
+			//	to ensure in a symmetric array of blocks that the all
+			//	possible sizes of the first and last block are tested
 			int num_blocks_possible = nominal_array_size / block_size;
 			int num_complete_blocks = num_blocks_possible;
 			int minimum_array_size = num_complete_blocks * block_size;
-			int maximum_array_size = minimum_array_size+block_size-1;
+			int maximum_array_size = minimum_array_size+2*block_size-1;
 			for (int array_size = minimum_array_size;
 				 array_size <= maximum_array_size; array_size++) {
 				// calculate how many full blocks there will be
 				int minimum_num_blocks = array_size / block_size;
 				// the mid, which is where the first B_Block starts
 				//	is the the left of all the A_Blocks
-				int start = 0;
-				int end = array_size-1;
+				index_t start = 0;
+				index_t end = array_size-1;
 				std::unique_ptr<BlockDescriptor<char>[]> descriptors;
-				int mid = 0;
+				index_t mid = 0;
 				int num_blocks = 0;
-				if (test_a0_full) {
+
+				switch (block_organization) {
+				case BlockOrganizations::FULL_A0_BLOCK:
 					mid = (minimum_num_blocks / 2) * block_size;
 					num_blocks = createBlockDescriptors_A0_Full(test_vector,
 																start, mid, end,
 																block_size,
 																descriptors);
-				} else {
+					break;
+				case BlockOrganizations::SYMMETRIC:
 					mid = array_size / 2;
-					num_blocks = regressionTestOnly_CreateBlockDescriptorsSymmetrically(test_vector,
+					num_blocks = createBlockDescriptorsSymmetrically(test_vector,
 																	 start, mid, end,
 																	 block_size,
 																	 descriptors);
+					break;
+				default:
+					std::cout << __FUNCTION__ << " unrecognized block organization" << std::endl;
+					test_result = false;
+					goto TEST_CREATE_BLOCKS_RETURN_POINT;
+					break;
 				}
 
 	//			/* ways to force errors */
@@ -630,28 +807,34 @@ bool testBlockSortCreateDescriptors() {
 	//			descriptors[num_blocks-2].end_index--;
 
 				test_result_msg.str("");
-				if (test_a0_full) {
-					test_result_msg << "Created blocks with A0 full on ";
-				} else {
-					test_result_msg << "Created blocks symmetrically ";
-				}
-				test_result_msg	<< "array size " << std::setw(3) << array_size
-						  	  	<< " block size " << std::setw(3) << block_size
-								<< " yields " << std::setw(3) << num_blocks
-								<< std::endl
+				test_result_msg << "Created blocks with "
+								<< std::setw(BLOCK_ORGANIZATION_MAX_STRING_LENGTH)
+								<< std::left << std::to_string(block_organization)
+								<< " on an array size "
+								<< std::setw(array_size_width) << array_size
+						  	  	<< " block size "
+								<< std::setw(block_size_width) << block_size
+								<< " yields "
+								<< std::setw(num_blocks_width) << num_blocks
+								<< " blocks\n"
 								<< arrayIndicesToString(array_size, mid) << std::endl
 								<< SortingUtilities::arrayElementsToString(test_vector, array_size) << std::endl
 								<< blockDescriptorsToString(descriptors, num_blocks) << std::endl;
+
 				bool correct;
-				if (test_a0_full) {
+				switch (block_organization) {
+				case BlockOrganizations::FULL_A0_BLOCK:
 					correct = validateCreateBlocks_A0_Full(descriptors, num_blocks,
-														   mid, block_size,
+														   array_size, mid, block_size,
 														   validation_msg);
-				} else {
+					break;
+				case BlockOrganizations::SYMMETRIC:
 					correct = validateCreateBlocksSymmetrically(descriptors, num_blocks,
-																mid, block_size,
+																array_size, mid, block_size,
 																validation_msg);
+					break;
 				}
+
 				if (verbose_output || !correct) {
 					std::cout << test_result_msg.str();
 				}
@@ -666,12 +849,7 @@ bool testBlockSortCreateDescriptors() {
 				}
 			}
 		}
-		if (test_a0_full) {
-			test_a0_full = false;
-		} else {
-			test_a0_full = true;
-		}
-	} while (false && test_a0_full == false);
+	}
 
 TEST_CREATE_BLOCKS_RETURN_POINT:
 	return test_result;
@@ -1060,7 +1238,8 @@ bool testBlockSortMergeBlocksExhaustively() {
 					most_moves = result;
 				}
 
-				test_message << " merged using strategy " << toString(merge_strategy) << " to "
+				test_message << " merged using strategy "
+							 << std::to_string(merge_strategy) << " to "
 							 << testVectorToString(test_vectors[i], test_vector_size)
 							 << " which took "
 							 << result;
@@ -1081,7 +1260,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 				std::cout << "Merging all " << std::setw(3) << num_test_vectors
 						  << " pairs of unique arrays of size "
 						  << test_vector_size << " where mid = " << mid << " using strategy "
-						  << toString(merge_strategy)
+						  << std::to_string(merge_strategy)
 						  << std::endl
 						  << " took average of  "
 						  << std::fixed
@@ -1257,7 +1436,7 @@ bool testBlockSortMergeBlocksRandomly() {
 					break;
 				case MergeStrategy::AUXILLIARY:
 					std::cout << __FUNCTION__ << " using strategy "
-							  << toString(merge_strategy)
+							  << std::to_string(merge_strategy)
 							  << " which is not implemented\n";
 					test_passed = false;
 					goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
@@ -1306,7 +1485,7 @@ bool testBlockSortMergeBlocksRandomly() {
 				std::cout << "Merging blocks " << num_test_passes
 						 << " times on an test_array of size "
 						 << std::setw(4) << array_size
-						 << " using stategy " << toString(merge_strategy)
+						 << " using stategy " << std::to_string(merge_strategy)
 						 << " took on average "
 						 << std::fixed << std::setprecision(1) << std::setw(8)
 						 << static_cast<double>(total_results._compares) / num_test_passes
@@ -1884,7 +2063,7 @@ bool testBlockSortSortBlocks() {
 					InsertionSort::sortPointersToObjects(array, mid);
 					InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
 
-					num_blocks = BlockSort::regressionTestOnly_CreateBlockDescriptorsSymmetrically(array, start, mid, end, block_size, blocks);
+					num_blocks = BlockSort::createBlockDescriptorsSymmetrically(array, start, mid, end, block_size, blocks);
 					messages << "Test run of strategy " << sorting_string << "\n";
 					messages << blockSortToString(array, array_size, mid,
 												  blocks, num_blocks)
@@ -2212,7 +2391,7 @@ bool testBlockSortSwapBlocks() {
 				std::cout << "Test number " << std::setw(12) << test_number
 						  << " with array size " << array_size
 						  << " block size " << block_size
-						  << " organization " << toString(organization);
+						  << " organization " << std::to_string(organization);
 				if (!output_metrics)
 					std::cout << std::endl;
 				else
@@ -2242,7 +2421,7 @@ bool testBlockSortSwapBlocks() {
 					break;
 				case BlockOrganizations::SYMMETRIC:
 					num_descriptors =
-						BlockSort::regressionTestOnly_CreateBlockDescriptorsSymmetrically(
+						BlockSort::createBlockDescriptorsSymmetrically(
 							test_vector, 0, mid, span_end,
 							block_size, test_descriptors);
 					break;
@@ -2263,7 +2442,7 @@ bool testBlockSortSwapBlocks() {
 							std::cout << "     *** TEST START : " << std::setw(12) << test_number
 									  << ": array size " << array_size
 									  << " with blocks size " << block_size
-									  << " " << toString(organization) << " "
+									  << " " << std::to_string(organization) << " "
 									  << " swapping " << i
 									  << " vs " << j
 									  << std::endl;;
@@ -2430,7 +2609,7 @@ bool testBlockSortSort() {
 							 << repeated_copies_string
 							 << " copies of each value"
 							 << " using block_configuration "
-							 << toString(block_organization)
+							 << std::to_string(block_organization)
 							 << std::endl;
 			std::cout << array_config_msg.str();
 		}
@@ -2537,7 +2716,7 @@ bool testBlockSortSort() {
 									block_size, descriptors);
 				break;
 				case BlockOrganizations::SYMMETRIC:
-					num_blocks = regressionTestOnly_CreateBlockDescriptorsSymmetrically(
+					num_blocks = createBlockDescriptorsSymmetrically(
 									test_array,
 									array_start, array_mid, array_end,
 									block_size, descriptors);
