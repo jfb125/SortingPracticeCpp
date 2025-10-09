@@ -19,6 +19,12 @@ namespace BlockSort {
 	template <typename T>
 	class BlockDescriptor;
 
+	/*	Assigns key values to the blocks.  This is useful if the underlying array
+	 * has been sorted, such as initially sorting element within blocks. */
+
+	template <typename T>
+	ComparesAndMoves assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors);
+
 	/*	Creates an array of block descriptors of types A & B {A[0]A[1]..A[m]B[0]..B[n]}
 	 * 	  where A[0] is a full block but B[n] may not be a full block in the case where
 	 * 	  the size of the array is not an integer multiple of the block size.  For example,
@@ -57,6 +63,35 @@ namespace BlockSort {
 	/*										functions										*/
 	/*	***********************************************************************************	*/
 	/*	***********************************************************************************	*/
+
+	/*
+	 * Assigns each block's key value based on the values in 'array'.  This
+	 *	  is necessary when the underlying array has been reordered directly
+	 *	  rather than using one of the blockDescriptor sorting functions
+	 */
+
+	template <typename T>
+	ComparesAndMoves assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors) {
+
+		for (int i = 0; i != num_descriptors; i++) {
+			BlockDescriptor<T>*p = &descriptors[i];	// improves readability
+			switch(p->type) {
+			case BlockType::A_BLOCK:
+				p->key = array[p->start_index];
+				break;
+			case BlockType::B_BLOCK:
+				p->key = array[p->end_index];
+				break;
+			default:
+				//	TODO - throw an exception
+				p->key = nullptr;
+			}
+			p++;
+		}
+
+		return ComparesAndMoves(0,0);
+	}
+
 
 	/*
 	 * 	createBlockDescriptors_A0_Full(array, start, mid, end, block_size, descriptor_dst&);
@@ -243,7 +278,7 @@ namespace BlockSort {
 		while (start_of_block < mid) {
 			assignBlockData(blocks[block_number], array,
 							BlockType::A_BLOCK, start_of_block, block_size);
-			start_of_block += first_block_size;
+			start_of_block += block_size;
 			block_number++;
 		}
 
@@ -251,7 +286,7 @@ namespace BlockSort {
 		while (block_number < num_blocks-1) {
 			assignBlockData(blocks[block_number], array,
 							BlockType::B_BLOCK, start_of_block, block_size);
-			start_of_block += first_block_size;
+			start_of_block += block_size;
 			block_number++;
 		}
 

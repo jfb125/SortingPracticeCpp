@@ -19,12 +19,16 @@
 /*	MACROS FOR ENABLING / DISABLING ALGORITHMS	*/
 #undef ENABLE_CREATE_BLOCK_DESCIRPTORS_SYMMETRICALLY
 
-
 using index_t = array_size_t;
+
+index_t blockSortModulo(index_t rotation_count, index_t span);
 
 namespace BlockSort {
 	template <typename T>
 	class BlockDescriptor;
+
+	template <typename T>
+	using Descriptors = std::unique_ptr<BlockDescriptor<T>[]>;
 }
 
 
@@ -39,6 +43,8 @@ namespace BlockSort {
 		UNSPECIFIED
 	};
 	}
+	//	I do this to force the compiler to error if the type
+	//	is instantiated without the name space
 	namespace std{
 	enum class BlockType {
 		A_BLOCK,
@@ -65,6 +71,8 @@ namespace BlockSort {
 		SYMMETRIC
 	};
 	}
+	//	I do this to force the compiler to error if the type
+	//	is instantiated without the name space
 	namespace std {
 	enum class BlockOrganizations {
 		FULL_A0_BLOCK,
@@ -108,6 +116,41 @@ namespace BlockSort {
 		TABLE, AUXILLIARY, ROTATE
 	};
 	}
+
+	/*	**********************************************************	*/
+	/*						SortingStrategy							*/
+	/*	**********************************************************	*/
+
+	namespace BlockSort {
+	enum class SortingStrategy {
+		BINARY,
+		HYBRID,
+		RIGHT_TO_LEFT,
+		TABLE
+	};
+	}
+	//	I do this to force the compiler to error if the type
+	//	is instantiated without the name space
+	namespace std {
+	enum class SortingStrategy {
+		BINARY,
+		HYBRID,
+		RIGHT_TO_LEFT,
+		TABLE
+	};
+	}
+
+	#define SORTING_STRATEGY_BINARY_STRING			"BINARY"
+	#define SORTING_STRATEGY_HYBRID_STRING			"HYBRID"
+	#define SORTING_STRATEGY_RIGHT_TO_LEFT_STRING	"RIGHT_TO_LEFT"
+	#define SORTING_STRATEGY_TABLE_STRING			"TABLE"
+	#define SORTING_STRATEGY_MAX_STRING_LENGTH		13
+
+	namespace std {
+		string to_string(BlockSort::SortingStrategy strategy);
+		ostream& operator<<(ostream& out, const BlockSort::SortingStrategy organization);
+	}
+
 namespace BlockSort {
 	template <typename T>
 	class BlockDescriptor;

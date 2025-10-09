@@ -39,7 +39,7 @@ using namespace BlockSort;
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
-#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
+//#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
@@ -48,7 +48,7 @@ using namespace BlockSort;
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
 //#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
-//#define TEST_BLOCK_SORT_SORT_BLOCKS
+#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortBinarySearchFirstBlock();
@@ -209,15 +209,23 @@ bool testBlockSort() {
 	num_tests++;
 	runTest(all_tests_passed, testBlockSortBinarySearchFirstElement, "function testBlockSortBinaryFirst()");
 	if (!all_tests_passed)
-		return passed;
+		return tests_passed;
 	tests_passed++;
 #endif
+#ifdef	TEST_BLOCK_SORT_SWAP_DESCRIPTORS
+	num_tests++;
+	runTest(all_tests_passed, testBlockSortSwapDescriptors, "function testBlockSortSwapDescriptors()");
+	if (!all_tests_passed)
+		return tests_passed;
+	tests_passed++;
+#endif
+
 
 #ifdef	TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
 	num_tests++;
 	runTest(all_tests_passed, testBlockSortBinarySearchLastElement, "function testBlockSortBinaryLast()");
 	if (!all_tests_passed)
-		return passed;
+		return tests_passed;
 	tests_passed++;
 #endif
 
@@ -702,10 +710,10 @@ VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT:
 
 bool testBlockSortCreateDescriptors() {
 
-	constexpr bool verbose_output = true;
-	constexpr int array_size_width = 3;
-	constexpr int block_size_width = 3;
-	constexpr int num_blocks_width = 3;
+	constexpr bool verbose_output 	= false;
+	constexpr int array_size_width 	= 3;
+	constexpr int block_size_width 	= 3;
+	constexpr int num_blocks_width 	= 3;
 	std::stringstream test_result_msg;
 	std::stringstream validation_msg;
 
@@ -734,7 +742,7 @@ bool testBlockSortCreateDescriptors() {
 	int nominal_array_size = 16;
 
 	BlockOrganizations block_organizations[] = {
-//		BlockOrganizations::FULL_A0_BLOCK,
+		BlockOrganizations::FULL_A0_BLOCK,
 		BlockOrganizations::SYMMETRIC
 	};
 
@@ -756,6 +764,8 @@ bool testBlockSortCreateDescriptors() {
 			int num_blocks_possible = nominal_array_size / block_size;
 			int num_complete_blocks = num_blocks_possible;
 			int minimum_array_size = num_complete_blocks * block_size;
+			//	guarantee that all possible combinations of symmetric descriptors
+			//	that have partial B_Blocks, and possibly A_Bloks, are tested
 			int maximum_array_size = minimum_array_size+2*block_size-1;
 			for (int array_size = minimum_array_size;
 				 array_size <= maximum_array_size; array_size++) {
@@ -766,7 +776,7 @@ bool testBlockSortCreateDescriptors() {
 				index_t start = 0;
 				index_t end = array_size-1;
 				std::unique_ptr<BlockDescriptor<char>[]> descriptors;
-				index_t mid = 0;
+				index_t mid = array_size/2;
 				int num_blocks = 0;
 
 				switch (block_organization) {
@@ -821,7 +831,7 @@ bool testBlockSortCreateDescriptors() {
 								<< SortingUtilities::arrayElementsToString(test_vector, array_size) << std::endl
 								<< blockDescriptorsToString(descriptors, num_blocks) << std::endl;
 
-				bool correct;
+				bool correct = false;
 				switch (block_organization) {
 				case BlockOrganizations::FULL_A0_BLOCK:
 					correct = validateCreateBlocks_A0_Full(descriptors, num_blocks,
@@ -864,6 +874,7 @@ TEST_CREATE_BLOCKS_RETURN_POINT:
 
 bool testFloorLog2() {
 
+	constexpr bool announce_each_test_result = false;
 	//	a way of calculating that uses a loop,
 	//		which is slow due to branching
 	auto calc_expected = [](array_size_t num) {
@@ -882,46 +893,60 @@ bool testFloorLog2() {
 
 	constexpr int num_width = 10;
 	bool passed = true;
+	//	do 0 as a separate case
 	array_size_t value = highestPowerOf2(0);
 	array_size_t expected = calc_expected(0);
-	std::cout << "floor(log2(" << std::setw(num_width) << 0 << ")) = "
-			<< std::setw(num_width) << value;
+	if (announce_each_test_result) {
+		std::cout << "floor(log2(" << std::setw(num_width) << 0 << ")) = "
+				<< std::setw(num_width) << value;
+	}
 	if (value != expected) {
 		std::cout << " does not match expected " << std::setw(num_width)
 				<< expected << std::endl;
 		passed = false;
 		goto TEST_FLOOR_LOG_2_RETURN_LABEL;
 	}
-	std::cout << std::endl;
+	if (announce_each_test_result) {
+		std::cout << std::endl;
+	}
 
 	for (array_size_t i = 2; i < (1 << 30); i <<= 1) {
 		// one less than a power of 2
 		value = highestPowerOf2(i - 1);
 		expected = calc_expected(i - 1);
-		std::cout << "floor(log2(" << std::setw(num_width) << i - 1 << ")) = "
-				<< std::setw(num_width) << value;
+		if (announce_each_test_result) {
+			std::cout << "floor(log2(" << std::setw(num_width) << i - 1 << ")) = "
+					<< std::setw(num_width) << value;
+		}
 		if (value != expected) {
 			std::cout << " does not match expected " << std::setw(num_width)
 					<< expected << std::endl;
 			passed = false;
 			goto TEST_FLOOR_LOG_2_RETURN_LABEL;
 		}
-		std::cout << std::endl;
+		if (announce_each_test_result) {
+			std::cout << std::endl;
+		}
 
 		// a power of 2
 		value = highestPowerOf2(i);
 		expected = calc_expected(i);
-		std::cout << "floor(log2(" << std::setw(num_width) << i << ")) = "
-				<< std::setw(num_width) << value;
+		if (announce_each_test_result) {
+			std::cout << "floor(log2(" << std::setw(num_width) << i << ")) = "
+					<< std::setw(num_width) << value;
+		}
 		if (value != expected) {
 			std::cout << " does not match expected " << std::setw(num_width)
 					<< expected << std::endl;
 			passed = false;
 			goto TEST_FLOOR_LOG_2_RETURN_LABEL;
 		}
-		std::cout << std::endl;
+		if (announce_each_test_result) {
+			std::cout << std::endl;
+		}
 	}
-	TEST_FLOOR_LOG_2_RETURN_LABEL: return passed;
+TEST_FLOOR_LOG_2_RETURN_LABEL:
+	return passed;
 }
 
 
@@ -932,14 +957,16 @@ bool testFloorLog2() {
 /*	*******************************************************	*/
 
 bool testBlockSortBinarySearchFirstBlock() {
+	std::cout << __FUNCTION__ << " not implemented\n";
 	return false;
 }
 
 
 bool testBlockSortBinarySearchLastBlock() {
 
-	constexpr bool debug_verbose = false;
-	constexpr bool announce_each_test_result = true;
+	constexpr bool debug_verbose 				= false;
+	constexpr bool announce_each_test_result 	= false;
+	constexpr bool announce_total_test_result	= false;
 	constexpr int element_width = ELEMENT_WIDTH;
 
 	OStreamState ostream_state;	// restores state in its destructor
@@ -1082,7 +1109,7 @@ bool testBlockSortBinarySearchLastBlock() {
 		}
 	}
 TEST_BLOCK_SORT_BINARY_SEARCH_SEARCH_EXIT:
-	if (true || debug_verbose) {
+	if (debug_verbose || announce_total_test_result) {
 		std::cout << "After " << test_number << " tests "
 				  << __FUNCTION__ << "() returns "
 				  << (test_passed ? "passed\n" : "failed\n");
@@ -1102,9 +1129,9 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	std::cout << __FUNCTION__ << std::endl;
 
-	bool debug_verbose = false;
-	bool echo_result = true;
-	bool test_passed = true;
+	bool debug_verbose 	= false;
+	bool echo_result 	= false;
+	bool test_passed 	= true;
 
 	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
 	int num_test_vectors_sizes = sizeof(test_vector_sizes) / sizeof(int);
@@ -1140,7 +1167,9 @@ bool testBlockSortMergeBlocksExhaustively() {
 	for (int test_vector_i = 0; test_vector_i < num_test_vectors_sizes; test_vector_i++) {
 		int test_vector_size = test_vector_sizes[test_vector_i];
 
-		std::cout << "Test Vector Size = " << test_vector_size << std::endl;
+		if (debug_verbose) {
+			std::cout << "Test Vector Size = " << test_vector_size << std::endl;
+		}
 		//	build the array of test values
 		char *test_values[test_vector_size];
 		for (int i = 0; i != test_vector_size; i++) {
@@ -1166,13 +1195,17 @@ bool testBlockSortMergeBlocksExhaustively() {
 	    }
 
 	    char **test_vectors[num_test_vectors];
-	    std::cout << "Generating " << num_test_vectors << " vectors ... " << std::endl;
+	    if (debug_verbose) {
+	    	std::cout << "Generating " << num_test_vectors << " vectors ... " << std::endl;
+	    }
 		if (!generateAllCombinationsOfValues(test_vectors, test_values, num_test_vectors, test_vector_size, mid)) {
 			std::cout << "Unable to generate " << num_test_vectors << " test vectors" << std::endl;
 			test_passed = false;
 			goto TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN;
 		}
-		std::cout << " generated " << num_test_vectors << " vectors" << std::endl;
+		if (debug_verbose) {
+			std::cout << " generated " << num_test_vectors << " vectors" << std::endl;
+		}
 
 		array_size_t left_start = 0;
 		array_size_t left_end = mid - 1;
@@ -1218,7 +1251,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 					result = mergeTwoBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
 					break;
 				case MergeStrategy::ROTATE:
-					result = mergeContiguousBlocksByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
+					result = mergeContiguousElementsByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
 					break;
 				case MergeStrategy::AUXILLIARY:
 				default:
@@ -1295,8 +1328,8 @@ bool testBlockSortMergeBlocksRandomly() {
 
 	bool test_passed = true;
 //	SimpleRandomizer randomizer;
-	bool debug_verbose = false;
-	bool echo_test_result = true;
+	bool debug_verbose 		= false;
+	bool echo_test_result 	= false;
 	std::stringstream message;
 
 	using data_type = int;
@@ -1426,7 +1459,7 @@ bool testBlockSortMergeBlocksRandomly() {
 
 				switch(merge_strategy) {
 				case MergeStrategy::ROTATE:
-					result += mergeContiguousBlocksByRotating(test_array,
+					result += mergeContiguousElementsByRotating(test_array,
 															  left_start, mid, right_end);
 					break;
 				case MergeStrategy::TABLE:
@@ -1485,7 +1518,10 @@ bool testBlockSortMergeBlocksRandomly() {
 				std::cout << "Merging blocks " << num_test_passes
 						 << " times on an test_array of size "
 						 << std::setw(4) << array_size
-						 << " using stategy " << std::to_string(merge_strategy)
+						 << " using stategy "
+						 << std::setw(MERGE_STRATEGY_MAX_STRING_LENGTH)
+						 << std::left << merge_strategy
+						 << std::right
 						 << " took on average "
 						 << std::fixed << std::setprecision(1) << std::setw(8)
 						 << static_cast<double>(total_results._compares) / num_test_passes
@@ -1530,6 +1566,9 @@ bool testBlockSortRotateArrayElements() {
 
 	std::cout << __FUNCTION__ << std::endl;
 
+	bool announce_results 	= false;
+	bool show_results 		= false;
+
 	auto rotateArrayElementsLongWay =
 		[](int** array,array_size_t start, array_size_t end, array_size_t count)
 		{
@@ -1557,15 +1596,22 @@ bool testBlockSortRotateArrayElements() {
 		};
 
 	bool test_passed = true;
-	ComparesAndMoves rotate_result;
+	ComparesAndMoves rotate_result(0,0);
 
-	array_size_t array_sizes[] = {	8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
-	int num_array_sizes = sizeof(array_sizes)/sizeof(array_size_t);
+	//	list all the array sizes to be tested
+	//	array_size_t array_sizes[] = {	8, 9, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
+	array_size_t array_sizes[] = {	8, 9, 16, 32 };
+	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
-	array_size_t rotate_counts[] = { 2 };
-	int num_rotate_counts = sizeof(rotate_counts)/sizeof(array_size_t);
+	//	Determining the array counts to be tested for each array size
+	array_size_t rotate_counts[] = { 3 };
+	int  num_rotate_counts = sizeof(rotate_counts)/sizeof(array_size_t);
+	//	Setting this will ignore 'rotate_counts'
+	constexpr bool exhaustively_test_rotate_counts = true;
+	array_size_t min_rotate_count;	//	= -(2*array_size-1)
+	array_size_t max_rotate_count;	//	= +(2*array_size+1);
+	array_size_t current_rotate_count;
 
-	// test an array of even size and an array o]f odd size
 	for (int array_size_i = 0; array_size_i != num_array_sizes; array_size_i++)
 	{
 		array_size_t array_size = array_sizes[array_size_i];
@@ -1574,9 +1620,32 @@ bool testBlockSortRotateArrayElements() {
 			reference_array[i] = new int(static_cast<int>(i));
 		}
 
-		for (int rotate_count_i = 0; rotate_count_i != num_rotate_counts; rotate_count_i++)
+		num_rotate_counts = sizeof(rotate_counts)/sizeof(array_size_t);
+		if (exhaustively_test_rotate_counts) {
+			min_rotate_count = -2 * array_size - 1;
+			max_rotate_count  = 2 * array_size + 1;
+			current_rotate_count =  min_rotate_count;
+		}
+
+		int rotate_count_i = 0;
+		while (rotate_count_i != num_rotate_counts)
 		{
+			//	rotate_count is either specified, or calculated
 			array_size_t rotate_count = rotate_counts[rotate_count_i];
+			if (!exhaustively_test_rotate_counts) {
+				rotate_count = rotate_counts[rotate_count_i];
+				rotate_count_i++;
+			} else {
+				rotate_count_i = 0;
+				//	force the loop counter to exit
+				if (current_rotate_count > max_rotate_count) {
+					break;
+				}
+				//	force the loop counter to continue
+				rotate_count = current_rotate_count++;
+				//	if there are no more test runs, break
+			}
+
 			// 	create an array to test rotation and an array of expecteds
 			int *rotated_array[array_size];
 			int *expected_array[array_size];
@@ -1596,28 +1665,31 @@ bool testBlockSortRotateArrayElements() {
 					break;
 				}
 			}
-			std::cout << (test_passed ? "PASSED " : "FAILED ");
-			//	print out before / after
-			std::cout << "array size " << std::setw(4) << array_size << " ";
-			std::cout << "rotate(" << std::setw(3) << rotate_count << ") ";
-			if (array_size < 32) {
-				std::cout << "\"";
-				for (int j = 0; j != array_size; j++) {
-					std::cout << *reference_array[j];
+			if (announce_results || show_results) {
+				std::cout << (test_passed ? "PASSED " : "FAILED ");
+				//	print out before / after
+				std::cout << "array size " << std::setw(4) << array_size << " ";
+				std::cout << "rotate(" << std::setw(3) << rotate_count << ") ";
+				if (show_results) {
+					if (array_size < 32) {
+						std::cout << "\"";
+						for (int j = 0; j != array_size; j++) {
+							std::cout << *reference_array[j];
+						}
+						std::cout << "\" yields \"";
+						for (int j = 0; j != array_size; j++) {
+							std::cout << *rotated_array[j];
+						}
+						std::cout << "\" vs expected \"";
+						for (int j = 0; j != array_size; j++) {
+							std::cout << *expected_array[j];
+						}
+						std::cout << "\"";
+					}
 				}
-				std::cout << "\" yields \"";
-				for (int j = 0; j != array_size; j++) {
-					std::cout << *rotated_array[j];
-				}
-				std::cout << "\" vs expected \"";
-				for (int j = 0; j != array_size; j++) {
-					std::cout << *expected_array[j];
-				}
-				std::cout << "\"";
+				std::cout << " took:" << std::setw(7) << rotate_result._moves
+						  << " moves\n";
 			}
-			std::cout << " took:" << std::setw(7) << rotate_result._moves
-					  << " moves\n";
-
 			if (!test_passed) {
 				break;
 			}
@@ -1634,261 +1706,378 @@ bool testBlockSortRotateBlocks() {
 
 	std::cout << __FUNCTION__ << std::endl;
 
-	bool test_result = true;
+	using DataType = int;
 
-	constexpr bool verbose = false;
-	constexpr bool echo_test_name = true;
-
-	/*	******************************	*/
-	/*		helpful lambdas				*/
-	/*	******************************	*/
-
-	auto calculateNumberOfTags = [](array_size_t _size, array_size_t _v,
-			int block_size) -> int {
-		array_size_t left_span = _v;
-		array_size_t right_span = _size - _v;
-		int num_blocks = left_span / block_size
-				+ (left_span % block_size ? 1 : 0);
-		num_blocks += right_span / block_size
-				+ (right_span % block_size ? 1 : 0);
-		return num_blocks;
-	};
+	/*	***************************************************	*/
+	/*		lambda that rotates simply but inefficiently	*/
+	/*	***************************************************	*/
 
 	auto copyArray = [](int **_dst, int **_src, array_size_t _size) {
 		for (int i = 0; i != _size; i++) {
 			_dst[i] = _src[i];
 		}
 	};
-	auto copyTags = [](std::unique_ptr<BlockDescriptor<int> []> &_dst,
-					   std::unique_ptr<BlockDescriptor<int> []> &_src, int num_tags) {
-		for (int i = 0; i != num_tags; i++) {
-			_dst[i] = _src[i];
+
+	auto copyDescriptors = [](Descriptors<DataType> &dst,
+							  	  	  Descriptors<DataType> &src,
+									  int num_blocks) {
+		for (int i = 0; i != num_blocks; i++) {
+			dst[i] = src[i];
 		}
 	};
-	auto compareResult = [](int **_test_array, int **_expected_array, int _array_size,
-			std::unique_ptr<BlockDescriptor<int> []> &_test_tags,
-			std::unique_ptr<BlockDescriptor<int> []> &_expected_tags, int _num_tags,
-			std::stringstream &message) -> bool {
 
-		for (int i = 0; i != _array_size; i++) {
-			if (*_test_array[i] != *_expected_array[i]) {
-				message << "ERROR: test value[" << i << "] '" << *_test_array[i]
-						<< "' does not match expected value[" << i << "] '"
-						<< _expected_array[i] << "'";
+	auto generateReferenceArray = [] (DataType* (&dst_array)[],index_t size, DataType first_value) {
+		for (array_size_t i = 0; i != size; i++) {
+			dst_array[i] = new DataType(first_value + i);
+		}
+	};
+
+	auto generateExpected = [] (DataType* (&array)[],
+								Descriptors<DataType> &descriptors,
+								index_t window_start, index_t window_end,
+								int block_rotate_count)
+	{
+#pragma push_macro("debug")
+#define debug(msg)	msg
+		index_t span_start 	= descriptors[window_start].start_index;
+		index_t span_end	= descriptors[window_end].end_index;
+
+		if (block_rotate_count < 0) {
+			//	rotate left the number of times requested
+			for (int rotate_num = 0; rotate_num > block_rotate_count; rotate_num--) {
+				//	rotate left the underlying array the width of the left-most block
+				for (int element_shift_count = descriptors[window_start].getWidth();
+						 element_shift_count; element_shift_count--) {
+					//	store the first element in the span which will be overwritten
+					DataType* first_element = array[span_start];
+					//	move each element one position to the left
+					for (int i = span_start; i < span_end; i++) {
+						array[i] = array[i+1];
+					}
+					//	write the element that was at the span_start to the span_end
+					array[span_end] = first_element;
+				}
+				//	rotate the descriptors over by 1
+				BlockDescriptor<DataType> first_descriptor = descriptors[window_start];
+				for(int i = window_start; i < window_end; i++) {
+					descriptors[i] = descriptors[i+1];
+				}
+				descriptors[window_end] = first_descriptor;
+
+				//	update the indices and thus the keys of the descriptors
+//				std::cout << "The underlying array: " << std::endl;
+//				for (int i = span_start; i <= span_end; i++) {
+//					std::cout << std::setw(3) << *array[i] << " ";
+//				}
+//				std::cout << std::endl;
+				index_t block_start = span_start;
+				index_t block_end;
+				//	reassign the descriptors' values to the updated array
+				for (int i = window_start; i <= window_end; i++) {
+					index_t block_size = descriptors[i].getWidth();
+					block_end = block_start + block_size-1;
+					descriptors[i].start_index 	= block_start;
+					descriptors[i].end_index	= block_end;
+					if (descriptors[i].type == BlockSort::BlockType::A_BLOCK)
+						descriptors[i].key	= array[block_start];
+					else
+						descriptors[i].key	= array[block_end];
+					block_start = block_end+1;
+				}
+				if (block_start != span_end+1) {
+					std::cout << "Something went seriously wrong\n";
+				}
+//				std::cout << "The descriptors: " << std::endl;
+//				for (int i = window_start; i <= window_end; i++) {
+//					std::cout << descriptors[i] << " ";
+//				}
+//				std::cout << std::endl;
+			}
+		} else {
+			//	rotate right
+			for (int rotate_num = 0; rotate_num < block_rotate_count; rotate_num++) {
+				//	rotate left the underlying array the width of the rightmost block
+				for (int element_shift_count = descriptors[window_end].getWidth();
+						 element_shift_count; element_shift_count--) {
+					//	store the last element in the span which will be overwritten
+					DataType* last_element = array[span_end];
+					//	move each element one position to the right
+					for (int i = span_end; i > span_start; i--) {
+						array[i] = array[i-1];
+					}
+					//	write the element that was at the span_start to the span_end
+					array[span_start] = last_element;
+				}
+
+				//	rotate the descriptors to the right by 1
+				BlockDescriptor<DataType> last_descriptor = descriptors[window_end];
+				for(int i = window_end; i > window_start; i--) {
+					descriptors[i] = descriptors[i-1];
+				}
+				descriptors[window_start] = last_descriptor;
+
+				//	update the indices and thus the keys of the descriptors
+//				std::cout << "The underlying array: " << std::endl;
+//				for (int i = span_start; i <= span_end; i++) {
+//					std::cout << std::setw(3) << *array[i] << " ";
+//				}
+//				std::cout << std::endl;
+				index_t block_start = span_start;
+				index_t block_end;
+				//	reassign the descriptors' values to the updated array
+				for (int i = window_start; i <= window_end; i++) {
+					//	the width of the block is correct
+					index_t block_size = descriptors[i].getWidth();
+					block_end = block_start + block_size-1;
+					descriptors[i].start_index 	= block_start;
+					descriptors[i].end_index	= block_end;
+					if (descriptors[i].type == BlockSort::BlockType::A_BLOCK)
+						descriptors[i].key	= array[block_start];
+					else
+						descriptors[i].key	= array[block_end];
+					block_start = block_end+1;
+				}
+				if (block_start != span_end+1) {
+					std::cout << "Something went seriously wrong\n";
+				}
+//				std::cout << "The descriptors: " << std::endl;
+//				for (int i = window_start; i <= window_end; i++) {
+//					std::cout << descriptors[i] << " ";
+//				}
+//				std::cout << std::endl;
+			}
+		}
+#pragma pop_macro("debug")
+	};
+
+	auto verifyResult = [] (DataType* (&test_array)[], DataType* (&expected_array)[],
+							index_t array_size,
+							Descriptors<DataType> &test_descriptors,
+							Descriptors<DataType> &expected_descriptors,
+							int num_descriptors) -> bool {
+		//	check the array
+		for (index_t i = 0; i != array_size; i++) {
+			if (*test_array[i] != *expected_array[i]) {
 				return false;
 			}
 		}
-		for (int i = 0; i != _num_tags; i++) {
-			if (!_test_tags[i].isExactlyEqual(_expected_tags[i])) {
-				message << "ERROR: test tag[" << i << "] '"
-						<< _test_tags[i]
-						<< "' does not match expected tag[" << i << "] '"
-						<< _expected_tags[i] << "'";
+		//	check the descriptors
+		for (int i = 0; i != num_descriptors; i++) {
+			if (test_descriptors[i].start_index != expected_descriptors[i].start_index)
 				return false;
-			}
+			if (test_descriptors[i].end_index != expected_descriptors[i].end_index)
+				return false;
+			if (test_descriptors[i].key != expected_descriptors[i].key)
+				return false;
+			if (*test_descriptors[i].key != *expected_descriptors[i].key)
+				return false;
+			if (test_descriptors[i].type != expected_descriptors[i].type)
+				return false;
 		}
 		return true;
 	};
 
-	/*	***************************************************	*/
-	/*		lambda that rotates simply but inefficiently	*/
-	/*	***************************************************	*/
-
-	auto rotateExpectedBlocks = [](int **x_array,
-			std::unique_ptr<BlockDescriptor<int> []> &x_tags, int x_array_size,
-			int x_tag_rotate_count, int x_first_tag, int x_last_tag)
-	{
-		int array_start = x_tags[x_first_tag].start_index;
-		int array_end	= x_tags[x_last_tag].end_index;
-
-		for (; x_tag_rotate_count > 0; --x_tag_rotate_count) {
-			// rotate the elements in the underlying array
-			int tag_span = x_tags[x_last_tag].getWidth();
-			for (int element_counter = tag_span; element_counter != 0; element_counter--) {
-				// store the last element.  it will become the first element
-				int *end_key = x_array[array_end];
-				// move every element one position to the right
-				for (int element_ptr = array_end; element_ptr > array_start; --element_ptr) {
-					x_array[element_ptr] = x_array[element_ptr - 1];
-				}
-				x_array[array_start] = end_key;
-			}
-			// rotate each of the tags by one position
-			// 	the start_index of [x_first_tag] will get written into
-			//	the tag that is coming off of the right side of the array
-			int first_start_index 	= x_tags[x_first_tag].start_index;
-			// make a copy of the tag on the right side of the array
-			//	  so that it can be put into 'first_tag' position in the array
-			BlockDescriptor<int> tmp_block;
-			tmp_block = x_tags[x_last_tag];
-			for (int tag_ptr = x_last_tag; tag_ptr > x_first_tag; --tag_ptr) {
-				// copy the tag that is to the left into her
-				x_tags[tag_ptr] 			= x_tags[tag_ptr - 1];
-				// add the amount that the underlying array was shifted
-				//	to the indices of the tag when it was to the left
-				x_tags[tag_ptr].start_index += tag_span;
-				x_tags[tag_ptr].end_index 	+= tag_span;
-			}
-			x_tags[x_first_tag] 			= tmp_block;
-			x_tags[x_first_tag].start_index = first_start_index;
-			x_tags[x_first_tag].end_index 	= first_start_index + tag_span - 1;
-		}
+	auto debug = [] (DataType *r[], DataType *e[], DataType *t[],
+					 index_t a_sz, index_t mid,
+					 Descriptors<DataType> &rd, Descriptors<DataType> &ed,
+					 Descriptors<DataType> &td, int n_d) -> std::string {
+		std::stringstream result;
+		result << BlockSort::blockSortToString(r, a_sz, mid, rd, n_d, "Reference ")
+			   << std::endl;
+		result << BlockSort::blockSortToString(e, a_sz, mid, ed, n_d, "Expected  ")
+			   << std::endl;
+		result << BlockSort::blockSortToString(t, a_sz, mid, td, n_d, "Resultant ")
+			   << std::endl;
+		return result.str();
 	};
 
 	/* ***********************************************************************	*/
 	/* 								test code									*/
 	/* ***********************************************************************	*/
 
-	int array_sizes[] = { //15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256, 257,
-						  16, 32, 64, 128, 256 };
-	int num_array_sizes = sizeof(array_sizes)/ sizeof(int);
+	constexpr bool debug_verbose 	= false;
+	constexpr bool echo_test_params = false;
 
-	int num_test_permutations = 0;
+	bool test_passed = true;
+	int test_count = 0;
 
-	int previous_array_size = 0;
-	int previous_block_size = 0;
+	DataType first_value = 0;
 
-	for (int array_size_i = 0; array_size_i != num_array_sizes; array_size_i++)
+	BlockSort::BlockOrganizations block_organizations[] = {
+//			BlockSort::BlockOrganizations::FULL_A0_BLOCK,
+			BlockSort::BlockOrganizations::SYMMETRIC,
+	};
+	int num_block_organizations = sizeof(block_organizations) / sizeof (BlockOrganizations);
+
+	int block_sizes[] = { 3, 4, 5 };
+	int num_block_sizes = sizeof(block_sizes)/sizeof(int);
+	int block_counts[]	= { 2, 3, 4, 5, 6, 7, 8 };
+	int num_block_counts = sizeof(block_counts)/sizeof(int);
+
+	for (int block_organization_i = 0;
+			 block_organization_i != num_block_organizations;
+			 block_organization_i++)
 	{
-		int array_size = array_sizes[array_size_i];
-		// divide the array up such that the size of right side of the array, 'v'
-		//	will be equal or larger than the size of left side of the array, 'u'
-		int v = array_size / 2;
-
-		//	'v' also is the number of elements in the smaller 'u' half of the array
-		//	The algorithm authors define the block size as <= sqrt(sizeof(u))
-		int max_block_size = static_cast<int>(std::sqrt(v)+1);
-		int min_block_size = max_block_size-2;
-
-		for (int block_size = min_block_size; block_size <= max_block_size; block_size++)
+		BlockSort::BlockOrganizations block_organization =
+				block_organizations[block_organization_i];
+		for (int block_size_i = 0; block_size_i < num_block_sizes; block_size_i++)
 		{
-			int num_tags = calculateNumberOfTags(array_size, v, block_size);
-			int *reference_array[array_size];
-
-			for (int i = 0; i != array_size; i++) {
-				reference_array[i] = new int(i);
-			}
-
-			//	The algorithm requires the two portions of the array, left & right,
-			//	  are sorted although the total array may not be sorted
-			//	  For this test, that invariant need not be true, however, it
-			//	  makes reading dumps of the operation easier if it is true
-			randomizeArray(reference_array, array_size);
-			InsertionSort::sortPointersToObjects(reference_array, v);
-			InsertionSort::sortPointersToObjects(&reference_array[v], array_size - v);
-
-			std::unique_ptr<BlockDescriptor<int> []> reference_tags;
-			num_tags = createBlockDescriptors_A0_Full(
-					reference_array, 0, v, array_size - 1,
-					block_size, reference_tags);
-
-			//	anchor span [left:right] rotate_count
-			//	0		5		[0:4]	  { 0, 1, 2, 3, 4, 5 }
-			//	0		4		[0:3]	  { 0, 1, 2, 3, 4 }
-			//	0       4       [1:4]	  { 0, 1, 2, 3, 4 }
-			//	0       3		[0:2]	  { 0, 1, 2, 3 }
-			//	0       3		[1:3]	  { 0, 1, 2, 3 }
-			//	0		3		[2:4]	  { 0, 1, 2, 3 }
-			//  0		2		[0:1]	  { 0, 1, 2 }
-			//  0       2       [1:2]     { 0, 1, 2 }
-			//  0       2       [2:3]     { 0, 1, 2 }
-			//  0       2       [3:4]     { 0, 1, 2 }
-			//  0       1       [0:0]     { 0, 1 }
-			//  0       1       [1:1]     { 0, 1 }
-			//  0       1       [2:2]     { 0, 1 }
-			//  0       1       [3:3]     { 0, 1 }
-			//  0       1       [4:4]     { 0, 1 }
-			//	1		4		[1:4]	  { 0, 1, 2, 3, 4 }
-			//  1       3       [1:3]     { 0, 1, 2, 3 }
-			//  1       3       [2:4]     { 0, 1, 2, 3 }
-			//				etc
-			//  3       1       [3:4]     { 0, 1 }
-			//  4       1		[4:4]	  { 0, 1 }
-
-			for (int anchor_block = 0; anchor_block < num_tags; ++anchor_block)
+			int block_size = block_sizes[block_size_i];
+			for (int block_count_i = 0; block_count_i < num_block_counts; block_count_i++)
 			{
-				for (array_size_t block_span = num_tags-anchor_block; block_span > 0; --block_span)
+				int block_count 	= block_counts[block_count_i];
+				int min_array_size 	= block_size * block_count;
+				int max_array_size 	= min_array_size;
+				switch(block_organization) {
+				case BlockSort::BlockOrganizations::FULL_A0_BLOCK:
+					//	the right most B_Block may be anywhere from 1 to block_size-1
+					//	A[0:2]B[3:5]	A[0:2]B[3:5]B[6]	A[0:2]B[3:5]B[6:7]
+					max_array_size = min_array_size + block_size-1;
+					break;
+				case BlockSort::BlockOrganizations::SYMMETRIC:
+					//	there may be partial blocks on both A & B
+					//	A[0:2]B[3:5] 			A[0:2]B[3:5]B[6:6]
+					//	A[0]A[1:3][B[4:6]B[7]	A[0]A[1:3]B[4:6]B[7:8]
+					//	A[0:1]A[2:4]B[5:7]B[8:9]
+					max_array_size = min_array_size + 2*block_size-1;
+					break;
+				default:
+					std::cout << __FUNCTION__ << " ERROR undefined BlockOrganization\n";
+					return false;
+				}
+				for (index_t array_size = min_array_size; array_size <= max_array_size; array_size++)
 				{
-					array_size_t first_block = anchor_block;
-					array_size_t last_block  = anchor_block + block_span - 1;
-					//	move right the group of blocks [left:right]that will be rotated
-					for ( ; last_block < num_tags; ++first_block, ++last_block)
+					Descriptors<DataType> reference_descriptors;
+					DataType *reference_array[array_size];
+					int num_blocks = 0;
+					generateReferenceArray(reference_array, array_size, first_value);
+					index_t start = 0;
+					index_t mid;
+					index_t end = array_size-1;
+					//	at this point, block_organization is valid
+					switch(block_organization) {
+					case BlockSort::BlockOrganizations::FULL_A0_BLOCK:
+						//	guarantee that there are an integer number of A blocks
+						mid = (block_count / 2) * block_size;
+						num_blocks =
+							createBlockDescriptors_A0_Full(reference_array,
+														   start, mid, end,
+														   block_size,
+														   reference_descriptors);
+						break;
+					default:
+					case BlockSort::BlockOrganizations::SYMMETRIC:
+						//	there can be partial A and partial B blocks
+						mid = array_size/2;
+						num_blocks =
+							createBlockDescriptorsSymmetrically(reference_array,
+																start, mid, end,
+																block_size,
+																reference_descriptors);
+					}
+					if (debug_verbose) {
+						std::cout << "Organization " << block_organization
+								  << " array_size " << array_size
+								  << " mid " << mid
+								  << " block_size " << block_size
+								  << " num_blocks " << num_blocks
+								  << std::endl;
+						std::cout << blockSortToString(reference_array, array_size, mid,
+													   reference_descriptors, num_blocks)
+								  << std::endl;
+					}
+
+//					for (int window_size = num_blocks; window_size > 0; window_size--) {
+					for (int window_size = 1; window_size <= num_blocks; window_size++)
 					{
-						// rotate blocks [first:last] within [anchor:anchor+span] by { 0, 1, ... }
-						for (array_size_t rotate_count = block_span; rotate_count >= 0; --rotate_count)
-						{
-							num_test_permutations++;
-							ComparesAndMoves compares_and_moves(0,0);
-							std::stringstream test_name_message;
-							std::stringstream test_debug_message;
+						int window_start 	= 0;
+						int window_end 		= window_start + window_size;
+						for (; window_end < num_blocks; window_start++, window_end++) {
+							//	rotate lefts up to slightly more than window size
+							int min_rotate_count = -window_size-1;
+							//	rotate right up to slightly more than window size
+							int max_rotate_count =  window_size+1;
+							//min_rotate_count = -1;
+							//max_rotate_count = +1;
+							for (int rotate_count  = min_rotate_count;
+									 rotate_count <= max_rotate_count;
+									 rotate_count++) {
+								test_count++;
+								std::stringstream test_name_msg;
+								std::stringstream test_debug_msg;
+								DataType *test_array[array_size];
+								DataType *expected_array[array_size];
+								Descriptors<DataType> test_descriptors
+									= std::unique_ptr<BlockDescriptor<DataType>[]>(new BlockDescriptor<DataType>[num_blocks]);
+								Descriptors<DataType> expected_descriptors
+									= std::unique_ptr<BlockDescriptor<DataType>[]>(new BlockDescriptor<DataType>[num_blocks]);
 
-							int *test_array[array_size];
-							int *expected_array[array_size];
-							std::unique_ptr<BlockDescriptor<int> []> test_tags(
-									new BlockDescriptor<int> [num_tags]);
-							std::unique_ptr<BlockDescriptor<int> []> expected_tags(
-									new BlockDescriptor<int> [num_tags]);
-
-							copyArray(test_array, reference_array, array_size);
-							copyTags(test_tags, reference_tags, num_tags);
-							copyArray(expected_array, test_array, array_size);
-							copyTags(expected_tags, test_tags, num_tags);
-							rotateExpectedBlocks(expected_array, expected_tags,
-												 array_size, rotate_count,
-												 first_block, last_block);
-
-							test_name_message << "on an array of size " << std::setw(4) << array_size
-											  << " with " << std::setw(3) << num_tags << " blocks total "
-											  << "rotating blocks [" << std::setw(3) << first_block
-											  << ":" << std::setw(3) << last_block
-											  << "] of maximum size " << std::setw(3) << block_size
-											  << " by " << std::setw(2) << rotate_count;
-							test_debug_message << blockSortToString(test_array, array_size,
-																	v, test_tags, num_tags)
-											   << std::endl;
-
-							// perform the operation under test
-							compares_and_moves +=
-							rotateBlocksRight(test_array, test_tags,
-										 	  first_block, last_block, rotate_count);
-
-							test_debug_message << "result:\n"
-											   << blockSortToString(test_array, array_size,
-													   	   	   	    v, test_tags, num_tags)
-											   << "\nexpected:\n"
-											   << blockSortToString(expected_array, array_size,
-													   	   	        v, expected_tags, num_tags);
-
-							if (!compareResult(test_array, expected_array,
-											   array_size, test_tags, expected_tags,
-											   num_tags, test_debug_message))
-							{
-								std::cout << "*************** ERROR ***************" << std::endl;
-								std::cout << "On test number " << num_test_permutations << std::endl;
-								std::cout << test_name_message.str();
-								std::cout << test_debug_message.str() <<  std::endl;
-								std::cout << "*************** ERROR ***************" << std::endl;
-								test_result = false;
-								return test_result;
-							}
-
-							if (verbose) {
-								std::cout << test_name_message.str() << std::endl;
-								std::cout << test_debug_message.str() << std::endl << std::endl;
-							} else {
-								if (echo_test_name) {
-									if ((false || (block_size != previous_block_size ||
-												   array_size != previous_array_size)) &&
-										(false || compares_and_moves._moves != 0)) {
-										previous_array_size = array_size;
-										previous_block_size = block_size;
-										std::cout << "Test run "
-												  << std::setw(9) << num_test_permutations
-												  << " " << test_name_message.str()
-												  << " took " << compares_and_moves._compares
-												  << " compares and " << std::setw(4)
-												  << compares_and_moves._moves << " moves\n";
+								copyArray(test_array, reference_array, array_size);
+								copyArray(expected_array, reference_array, array_size);
+								for (int i = 0; i != num_blocks; i++) {
+									test_descriptors[i] = reference_descriptors[i];
+									expected_descriptors[i] = reference_descriptors[i];
+								}
+								copyDescriptors(expected_descriptors, reference_descriptors, num_blocks);
+								copyDescriptors(test_descriptors, reference_descriptors, num_blocks);
+								generateExpected(expected_array, expected_descriptors,
+												 window_start, window_end,
+												 rotate_count);
+								if (debug_verbose) {
+									std::cout << "reference [" << reference_descriptors[0].start_index << ":" << reference_descriptors[num_blocks-1].end_index << "]"
+											  << " expected [" << expected_descriptors[0].start_index << ":" << expected_descriptors[num_blocks-1].end_index << "]"
+											  << " test [" << test_descriptors[0].start_index << ":" << test_descriptors[num_blocks-1].end_index << "]"
+											  << " window_start " << window_start
+											  << " window_end " << window_end
+											  << " num_blocks " << num_blocks
+											  << std::endl;
+								}
+								rotateBlocksRight(test_array, test_descriptors,
+												  window_start, window_end,
+												  rotate_count);
+								bool pass_passed = verifyResult(test_array, expected_array, array_size,
+														   	    test_descriptors, expected_descriptors,
+																num_blocks);
+								test_name_msg
+									<< "Test Number " << std::setw(4) << test_count
+								 	<< " Block organization "
+									<< std::setw(BLOCK_ORGANIZATION_MAX_STRING_LENGTH)
+									<< std::left << block_organization
+									<< std::right
+									<< " array_size " 	<< std::setw(5) << array_size
+									<< " block size "   << std::setw(3) << block_size
+									<< " block count " 	<< std::setw(3) << num_blocks
+									<< " window start " << std::setw(3) << window_start
+									<< " window end " 	<< std::setw(3) << window_end
+									<< " rotate_count " << std::setw(3) << rotate_count
+									<< std::endl;
+								test_debug_msg
+									<< debug(reference_array,
+											 expected_array,
+											 test_array,
+											 array_size, mid,
+											 reference_descriptors,
+											 expected_descriptors,
+											 test_descriptors,
+											 num_blocks);
+								if (echo_test_params || debug_verbose) {
+									std::cout << test_name_msg.str();
+								}
+								if (debug_verbose && (window_end - window_start != 0)) {
+									std::cout << test_debug_msg.str();
+								}
+								if (!pass_passed) {
+									if (!echo_test_params && !debug_verbose)
+										std::cout << test_name_msg.str();
+									if (!debug_verbose) {
+										std::cout << test_debug_msg.str();
 									}
+									std::cout << "!!! ERROR !!!" << std::endl;
+									test_passed = false;
+									goto TEST_ROTATE_BLOCKS_RETURN_POINT;
+								}
+								if (debug_verbose) {
+									std::cout << std::endl;
 								}
 							}
 						}
@@ -1897,8 +2086,10 @@ bool testBlockSortRotateBlocks() {
 			}
 		}
 	}
-	std::cout << " All " << num_test_permutations << " tests passed\n";
-	return test_result;
+
+	std::cout << " All " << test_count << " tests passed\n";
+TEST_ROTATE_BLOCKS_RETURN_POINT:
+	return test_passed;
 }
 
 bool testBlockSortSortBlocks() {
@@ -1907,7 +2098,7 @@ bool testBlockSortSortBlocks() {
 	OStreamState ostream_state;
 
 	std::cout << __FUNCTION__ << "()" << std::endl;
-
+#if 0
 	enum SortingStrategy { BINARY, HYBRID, RIGHT_TO_LEFT, TABLE };
 	std::string (*strategyToString)(SortingStrategy) =
 			[] (SortingStrategy strategy) -> std::string {
@@ -1919,19 +2110,20 @@ bool testBlockSortSortBlocks() {
 		default:			return std::string("?????????????");
 		}
 	};
-
+#endif
 	using BlockArray_t = std::unique_ptr<BlockSort::BlockDescriptor<int>[]>;
 
-	constexpr bool echo_every_test_step = false;
-	constexpr bool echo_every_test_result = false;
-	constexpr bool echo_test_configuration_summary = true;
+	constexpr bool echo_every_test_step 			= false;
+	constexpr bool echo_every_test_result 			= false;
+	constexpr bool echo_test_configuration_summary	= true;
 
+	//	constants related to output number format
 //	constexpr const int object_width = 3;
 //	constexpr const int element_width = 4;
 //	constexpr const char separator = ' ';
-	constexpr const int compares_precision = 1;
-	constexpr const int moves_precision = 1;
-	constexpr const int num_unique_values = 5;
+	constexpr const int compares_precision 	= 1;
+	constexpr const int moves_precision 	= 1;
+	constexpr const int num_unique_values 	= 5;
 
 //	auto out = [object_width, element_width, separator]
 //					(int ** array, array_size_t array_size,
@@ -2019,11 +2211,11 @@ bool testBlockSortSortBlocks() {
 			goto TEST_BLOCK_SORT_SORT_BLOCKS_RETURN_LABEL;
 		}
 
-		constexpr SortingStrategy sorting_strategies[] = {
-				BINARY,
-				RIGHT_TO_LEFT,
-				HYBRID,
-				TABLE
+		constexpr BlockSort::SortingStrategy sorting_strategies[] = {
+			BlockSort::SortingStrategy::BINARY,
+			BlockSort::SortingStrategy::HYBRID,
+			BlockSort::SortingStrategy::RIGHT_TO_LEFT,
+			BlockSort::SortingStrategy::TABLE,
 		};
 
 		int num_sorting_strategies = sizeof(sorting_strategies) / sizeof(SortingStrategy);
@@ -2045,8 +2237,8 @@ bool testBlockSortSortBlocks() {
 				{
 					ComparesAndMoves result(0,0);
 					std::stringstream messages;
-					SortingStrategy sorting_strategy = sorting_strategies[strategy_i];
-					std::string sorting_string = strategyToString(sorting_strategy);
+					BlockSort::SortingStrategy sorting_strategy
+						= sorting_strategies[strategy_i];
 					int* array[array_size];
 					for (int i = 0; i != array_size; i++) {
 						array[i] = reference_array[i];
@@ -2064,21 +2256,21 @@ bool testBlockSortSortBlocks() {
 					InsertionSort::sortPointersToObjects(&array[mid], end-mid+1);
 
 					num_blocks = BlockSort::createBlockDescriptorsSymmetrically(array, start, mid, end, block_size, blocks);
-					messages << "Test run of strategy " << sorting_string << "\n";
+					messages << "Test run of strategy " << sorting_strategy << "\n";
 					messages << blockSortToString(array, array_size, mid,
 												  blocks, num_blocks)
 							 << std::endl;
-					switch(sorting_strategies[strategy_i]) {
-					case RIGHT_TO_LEFT:
+					switch(sorting_strategy) {
+					case BlockSort::SortingStrategy::RIGHT_TO_LEFT:
 						result = BlockSort::regressionTestOnly_sortBlocksRightToLeft(array, array_size, blocks, num_blocks);
 						break;
-					case BINARY:
+					case BlockSort::SortingStrategy::BINARY:
 						result = BlockSort::regressionTestOnly_sortBlocksBinarySearch(array, array_size, blocks, num_blocks);
 						break;
-					case HYBRID:
+					case BlockSort::SortingStrategy::HYBRID:
 						result = BlockSort::regressionTestOnly_sortBlocksHybrid(array, array_size, blocks, num_blocks);
 						break;
-					case TABLE:
+					case BlockSort::SortingStrategy::TABLE:
 						result = BlockSort::sortBlocksByTable(array, blocks, num_blocks);
 						break;
 					default:
@@ -2101,7 +2293,8 @@ bool testBlockSortSortBlocks() {
 						std::cout << messages.str();
 					}
 					if (echo_every_test_result) { // && (test_num % 1000 == 0)) {
-						std::cout << strategyToString(sorting_strategies[strategy_i])
+						std::cout << std::setw(SORTING_STRATEGY_MAX_STRING_LENGTH)
+								  << std::left << sorting_strategy << std::right
 								  << " sorting an array of " << array_size << " elements "
 								  << " with block size " << block_size
 								  << " took "
@@ -2115,7 +2308,8 @@ bool testBlockSortSortBlocks() {
 				for (int strategy_i = 0; strategy_i < num_sorting_strategies; strategy_i++)
 				{
 					std::cout  << std::setw(6) << num_tests << " tests of sorting blocks using strategy "
-							   << strategyToString(sorting_strategies[strategy_i])
+							   << std::setw(SORTING_STRATEGY_MAX_STRING_LENGTH)
+							   << std::left << sorting_strategies[strategy_i] << std::right
 							   << " on an array with " << std::setw(6) << this_passes_unique_value_count
 							   << " unique values and a block size of "
 							   << std::setw(3) << block_size << " took on average "
@@ -2148,22 +2342,24 @@ bool testBlockSortSwapBlocks() {
 
 	OStreamState ostream_state;	// restores ostream flags in destructor
 
-	using ssb_data_t = char;
+	std::cout << __FUNCTION__ << std::endl;
+
+	using DataType = char;
 
 	/*	******************************************************************	*/
 	/*								lambdas									*/
 	/*	******************************************************************	*/
 
-	auto copy_array = [] (ssb_data_t **dst, ssb_data_t **src, index_t size) {
+	auto copy_array = [] (DataType **dst, DataType **src, index_t size) {
 
 		for (int i = 0; i != size; i++) {
 			dst[i] = new char(*src[i]);
 		}
 	};
 
-	auto copy_descriptors = [] (ssb_data_t** expected_array,
-			 	 	 	 	 	Descriptors<ssb_data_t> &dst,
-								Descriptors<ssb_data_t> &src,
+	auto copy_descriptors = [] (DataType** expected_array,
+			 	 	 	 	 	Descriptors<DataType> &dst,
+								Descriptors<DataType> &src,
 								int num_descriptors) {
 		//	ensure that the expected descriptors point to the
 		//	  expected arrray
@@ -2173,7 +2369,7 @@ bool testBlockSortSwapBlocks() {
 		}
 	};
 
-	auto compare_arrays = [] (ssb_data_t **u, ssb_data_t **v, index_t size) -> bool {
+	auto compare_arrays = [] (DataType **u, DataType **v, index_t size) -> bool {
 		bool identical = true;
 		for (int i = 0; i != size; i++) {
 			if (*u[i] != *v[i]) {
@@ -2184,8 +2380,8 @@ bool testBlockSortSwapBlocks() {
 		return identical;
 	};
 
-	auto compare_descriptors = [] (Descriptors<ssb_data_t> &expected,
-							  Descriptors<ssb_data_t> &result,
+	auto compare_descriptors = [] (Descriptors<DataType> &expected,
+							  Descriptors<DataType> &result,
 							  int num_descriptors) -> bool{
 
 		bool identical = true;
@@ -2206,8 +2402,8 @@ bool testBlockSortSwapBlocks() {
 		return identical;
 	};
 
-	auto generate_expected_array = [] (ssb_data_t **expected,
-								 	   Descriptors<ssb_data_t> &descriptors,
+	auto generate_expected_array = [] (DataType **expected,
+								 	   Descriptors<DataType> &descriptors,
 									   int u, int v) {
 
 		if (u == v)	return;
@@ -2227,14 +2423,14 @@ bool testBlockSortSwapBlocks() {
 			index_t u_p = u_start;
 			index_t v_p = v_start;
 			for (int i = 0; i != u_size; i++, u_p++, v_p++) {
-				ssb_data_t *temp = expected[u_p];
+				DataType *temp = expected[u_p];
 				expected[u_p] = expected[v_p];
 				expected[v_p] = temp;
 			}
 		} else {
 			//	set aside the values for the blocks that are going to be swapped
-			ssb_data_t* u_values[u_size];
-			ssb_data_t* v_values[v_size];
+			DataType* u_values[u_size];
+			DataType* v_values[v_size];
 			for (int i = 0; i != u_size; i++) {
 				u_values[i] = expected[u_start+i];
 			}
@@ -2273,7 +2469,7 @@ bool testBlockSortSwapBlocks() {
 	};
 
 	auto generate_expected_descriptors = [] (
-			ssb_data_t **expected_array, Descriptors<ssb_data_t> &expected, int u, int v)
+			DataType **expected_array, Descriptors<DataType> &expected, int u, int v)
 	{
 		if (u == v)	return;
 		if (u > v) {
@@ -2282,7 +2478,7 @@ bool testBlockSortSwapBlocks() {
 			v = temp;
 		}
 		index_t start_span 				= expected[u].start_index;
-		BlockDescriptor<ssb_data_t> temp = expected[u];
+		BlockDescriptor<DataType> temp = expected[u];
 		expected[u]						= expected[v];
 		expected[v]						= temp;
 		for (int i = u; i <= v; i++) {
@@ -2294,7 +2490,7 @@ bool testBlockSortSwapBlocks() {
 		}
 	};
 
-	auto make_test_vector_1 = [] (ssb_data_t **dst, index_t size, index_t mid) {
+	auto make_test_vector_1 = [] (DataType **dst, index_t size, index_t mid) {
 		char left_start = 'A';
 		char right_start = 'a';
 		int i = 0;
@@ -2308,10 +2504,10 @@ bool testBlockSortSwapBlocks() {
 
 	SimpleRandomizer randomizer(getChronoSeed());
 
-	auto randomize = [&randomizer] (ssb_data_t **array, index_t length) {
+	auto randomize = [&randomizer] (DataType **array, index_t length) {
 		for (int i = 0; i != length; i++) {
 			index_t r = randomizer.rand(i, length);
-			ssb_data_t* temp = array[i];
+			DataType* temp = array[i];
 			array[i] = array[r];
 			array[r] = temp;
 		}
@@ -2331,8 +2527,8 @@ bool testBlockSortSwapBlocks() {
 	/*	**********************************************************************	*/
 
 	constexpr bool announce_each_result = false;
-	constexpr bool debug_verbose = false;
-	constexpr bool output_metrics = true;
+	constexpr bool debug_verbose 		= false;
+	constexpr bool output_metrics 		= false;
 
 	bool test_passed = true;
 
@@ -2391,7 +2587,10 @@ bool testBlockSortSwapBlocks() {
 				std::cout << "Test number " << std::setw(12) << test_number
 						  << " with array size " << array_size
 						  << " block size " << block_size
-						  << " organization " << std::to_string(organization);
+						  << " organization "
+						  << std::setw(BLOCK_ORGANIZATION_MAX_STRING_LENGTH)
+						  << std::left << organization
+						  << std::right;
 				if (!output_metrics)
 					std::cout << std::endl;
 				else
@@ -2402,14 +2601,14 @@ bool testBlockSortSwapBlocks() {
 			total_moves_t max_moves = 0;
 
 			for (int test_counter = 0; test_counter != num_repeats_per_test; test_counter++) {
-				std::vector<std::vector<ssb_data_t*>> 	test_vectors_log;
-				ssb_data_t *test_vector[array_size];
+				std::vector<std::vector<DataType*>> 	test_vectors_log;
+				DataType *test_vector[array_size];
 				make_test_vector_1(test_vector, array_size, mid);
 				randomize(test_vector, array_size);
 				InsertionSort::sortPointersToObjects(test_vector, mid);
 				InsertionSort::sortPointersToObjects(&test_vector[mid], array_size-mid);
 
-				std::unique_ptr<BlockDescriptor<char>[]> test_descriptors;
+				Descriptors<DataType> test_descriptors;
 				int num_descriptors;
 
 				switch(organization) {
@@ -2450,12 +2649,12 @@ bool testBlockSortSwapBlocks() {
 						}
 
 						ComparesAndMoves metrics(0,0);
-						ssb_data_t *array_under_test[array_size];
-						std::unique_ptr<BlockDescriptor<char>[]> descriptors_under_test =
-							std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
-						ssb_data_t *expected_array[array_size];
-						std::unique_ptr<BlockDescriptor<char>[]> expected_descriptors =
-							std::unique_ptr<BlockDescriptor<char>[]>(new BlockDescriptor<char>[num_descriptors]);
+						DataType *array_under_test[array_size];
+						Descriptors<DataType> descriptors_under_test =
+							Descriptors<DataType>(new BlockDescriptor<DataType>[num_descriptors]);
+						DataType *expected_array[array_size];
+						Descriptors<DataType> expected_descriptors =
+							Descriptors<DataType>(new BlockDescriptor<DataType>[num_descriptors]);
 						copy_array(array_under_test, test_vector, array_size);
 						copy_array(expected_array, test_vector, array_size);
 						copy_descriptors(array_under_test,
@@ -2841,8 +3040,10 @@ TEST_BLOCK_SORT_SORT_RETURN_LABEL:
 
 bool testBlockSortSwapBlockElements() {
 
-	constexpr bool verbose = true;
-	constexpr int value_width = 3;
+	OStreamState ostream_state;
+
+	constexpr bool verbose 		= false;
+	constexpr int value_width 	= 3;
 	constexpr int element_width = 4;
 
 	constexpr int min_array_size = 20;
@@ -2895,11 +3096,15 @@ bool testBlockSortSwapBlockElements() {
 					test_case++;
 					//	if the bounds of the right block are outside the array
 					if (right_block_begin + block_size >= array_size) {
-						std::cout << messages.str() << " !!! right block end index > array_size-1" << std::endl;
+						if (verbose) {
+							std::cout << messages.str() << " !!! right block end index > array_size-1" << std::endl;
+						}
 						continue;
 					}
 					if (left_block_begin <0) {
-						std::cout << messages.str() << " !!! left block start index < 0" << std::endl;
+						if (verbose) {
+							std::cout << messages.str() << " !!! left block start index < 0" << std::endl;
+						}
 						continue;
 					}
 					messages << std::endl;
@@ -2922,10 +3127,10 @@ bool testBlockSortSwapBlockElements() {
 					if (true || block_gap >= 0) {
 						//	if the block gap is not negative,
 						//	   the blocks can be swapped
-						BlockSort::swapBlockElements( array,
-											  	  	  left_block_begin,
-													  right_block_begin,
-													  block_size);
+						BlockSort::swapBlockElementsOfEqualSize(array,
+											  	  	  	  	    left_block_begin,
+																right_block_begin,
+																block_size);
 					}
 					messages << " expected: "
 							 << SortingUtilities::arrayElementsToString(expected, array_size,
@@ -2958,6 +3163,8 @@ TEST_BLOCK_SORT_SWAP_BLOCKS_RETURN_LABEL:
 }
 
 bool testBlockSortSwapDescriptors() {
+	std::cout << __FUNCTION__ << std::endl;
+	std::cout << "NOT IMPLEMENTED\n";
 	bool test_passed = true;
 	return test_passed;
 }
