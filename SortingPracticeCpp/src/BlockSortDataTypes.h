@@ -21,8 +21,6 @@
 
 using index_t = array_size_t;
 
-index_t blockSortModulo(index_t rotation_count, index_t span);
-
 namespace BlockSort {
 	template <typename T>
 	class BlockDescriptor;

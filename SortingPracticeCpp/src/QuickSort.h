@@ -21,9 +21,9 @@ namespace QuickSort {
 
 	/*	requires that the caller ensure that end >= start	*/
 	template <typename T>
-	ComparesAndMoves partitionArray(T** array, array_size_t start, array_size_t end) {
+	SortMetrics partitionArray(T** array, array_size_t start, array_size_t end) {
 
-		ComparesAndMoves ret_val(0,0);
+		SortMetrics ret_val(0,0);
 
 		if (end == start) {
 			return ret_val;
@@ -33,9 +33,9 @@ namespace QuickSort {
 
 		// an array with only two elements can be sorted simply
 		if (span == 2) {
-			ret_val._compares++;
+			ret_val.compares++;
 			if (*array[start] > *array[end]) {
-				ret_val._moves +=
+				ret_val.assignments +=
 						SortingUtilities::swap(array, start, end);
 			}
 			return ret_val;
@@ -49,17 +49,17 @@ namespace QuickSort {
 		// from the left,  find an array value that is > pivot
 		// exchange the two values
 		while (1) {
-			ret_val._compares++;
+			ret_val.compares++;
 			// find an array value that is <= pivot
 			while (*array[upper] > *array[pivot]) {
 				upper--;
-				ret_val._compares++;
+				ret_val.compares++;
 			}
 			// find an array value that is > pivot
 			//   or stop when lower == upper
 			//	 which means no value < pivot was found
 			while (lower < upper) {
-				ret_val._compares++;
+				ret_val.compares++;
 				if (*array[lower] > *array[pivot])
 					break;
 				lower++;
@@ -67,7 +67,7 @@ namespace QuickSort {
 			//	if lower crossed upper, the partition is
 			//	 complete, so swap pivot with upper and exit
 			if (lower >= upper) {
-				ret_val._moves +=
+				ret_val.assignments +=
 						SortingUtilities::swap(array, pivot, upper);
 				break;
 			}
@@ -75,7 +75,7 @@ namespace QuickSort {
 			// [lower] >  pivot
 			//   and lower < upper
 			//   so exchange them
-			ret_val._moves +=
+			ret_val.assignments +=
 				SortingUtilities::swap(array, lower, upper);
 			// at this point,
 			//	[upper] >  [pivot]
@@ -97,9 +97,9 @@ namespace QuickSort {
 	}
 
 	template <typename T>
-	ComparesAndMoves sortPointerstoObjects(T** array, array_size_t size) {
+	SortMetrics sortPointerstoObjects(T** array, array_size_t size) {
 
-		ComparesAndMoves retval(0,0);
+		SortMetrics retval(0,0);
 
 		if (size <= 1)
 			return retval;

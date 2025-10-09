@@ -13,138 +13,40 @@
 
 namespace BlockSort {
 
-	/*	Returns the index of the first element that is greater than 'value'
-	 * 	This is used to insert a value to the right of it's peers	*/
+	/*	Performs an insertion sort starting with the 'mid' element.  This is used
+	 * In cases where all of the elements to the left of mid are in order, but
+	 * elements to the right of 'mid' may be smaller than elements on the left. */
 	template <typename T>
-	index_t binarySearchLastElement(T** array,
-									index_t range_start, index_t range_end,
-									T *value,
-									ComparesAndMoves &metrics);
-
-	/*	Returns the index of the first element that is equal to or greater than 'value'
-	 * 	This is used to insert a value to the left of it's peers	*/
-	template <typename T>
-	index_t binarySearchFirstElement(T** array,
-									 index_t range_start, index_t range_end,
-									 T *value);
-
-
-	template <typename T>
-	ComparesAndMoves insertionSortPartial(T** array, index_t begin, index_t mid, index_t end);
+	SortMetrics insertionSortPartial(T** array,
+										  index_t begin, index_t mid, index_t end);
 
 	/*
 	 * 	Blocks must be contiguous
 	 */
 	template <typename T>
-	ComparesAndMoves mergeContiguousElementsByRotating(T** array, index_t start,
+	SortMetrics mergeContiguousElementsByRotating(T** array, index_t start,
 																index_t mid, index_t end);
+
 
 	/*
 	 * 	Blocks do not have to be continuous nor do they have to be the same size
 	 */
 	template <typename T>
-	ComparesAndMoves mergeTwoBlockElementsByTable(T ** array,
+	SortMetrics mergeTwoBlockElementsByTable(T ** array,
 										index_t block_1_start, index_t block_1_end,
 										index_t block_2_start, index_t block_2_end);
 
 	template <typename T>
-	ComparesAndMoves rotateArrayElementsRight(T** array, index_t start, index_t end, index_t amount);
-
-	template <typename T>
-	ComparesAndMoves swapBlockElementsOfEqualSize( T** array,
+	SortMetrics swapBlockElementsOfEqualSize( T** array,
 										index_t block1_start, index_t block_2_start,
 										index_t block_size);
+
 
 	/*	**********************************************************************	*/
 	/*	**********************************************************************	*/
 	/*								Functions									*/
 	/*	**********************************************************************	*/
 	/*	**********************************************************************	*/
-
-	/*
-	 * binaryFirst(array, first, last, value);
-	 *
-	 * This function returns the index of the first element that is
-	 *  greater than or equal to value. If the passed value is greater than
-	 *	all of the elements on the span, an index (range_end+1) is returned.
-	 *
-	 *	  0  1  2  3  4  5
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &-1) returns 0
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &0) returns 0
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &1) returns 2
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &2) returns 4
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryFirst(array, 0, 5, &3) returns 6
-	 */
-
-	template <typename T>
-	index_t binarySearchFirstElement(T** array, index_t range_start, index_t range_end, T *value) {
-
-		index_t start = range_start;
-		index_t end	 	= range_end;
-		index_t mid		= start + (end-start)/2;
-
-		while (start != end) {
-			//	determine the midpoint in an even size span
-			//	or the index on the left of mid in an odd size span
-			mid = start + (end-start)/2;
-			if (*array[mid] < *value) {
-				//	if the array value at [mid] is < value
-				//	  look to the right for a [] >= value
-				start = mid+1;
-			} else {
-				//	else the look to the right for a value < passed
-				end = mid;
-			}
-		}
-		if (start == range_end && *array[start] < *value)
-			start++;
-		return start;
-	}
-
-
-	/*
-	 * binaryLast(array, first, last, value);
-	 *
-	 * This function returns the index of first element that is greater than value
-	 *	If the passed value is equal to or greater than
-	 *	all of the elements on the span, an index (range_end+1) is returned.
-	 *
-	 *	  0  1  2  3  4  5
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &-1) returns 0
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &0) returns 2
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &1) returns 4
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &2) returns 6
-	 *	{ 0, 0, 1, 1, 2, 2 }	binaryLast(array, 0, 5, &3) returns 6
-	 */
-
-	template <typename T>
-	index_t binarySearchLastElement(T** array, index_t range_start, index_t range_end,
-									T *value,
-									ComparesAndMoves &metrics) {
-
-		index_t start = range_start;
-		index_t end	 	= range_end;
-		index_t mid		= start + (end-start)/2;
-
-		while (start != end) {
-			//	determine the midpoint in an even size span
-			//	or the index on the left of mid in an odd size span
-			mid = start + (end-start)/2;
-			metrics._compares++;
-			if (*array[mid] <= *value) {
-				//	if the array value at [mid] is < value
-				//	  look to the right for a [] >= value
-				start = mid+1;
-			} else {
-				//	else the look to the right for a value < passed
-				end = mid;
-			}
-		}
-		if (start == range_end && *array[start] <= *value)
-			start++;
-		return start;
-	}
-
 
 	/*
 	 * 	This performs an insertion sort on the array starting from element 'suspect',
@@ -192,9 +94,9 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves insertionSortPartial(T** array, index_t begin, index_t mid, index_t end)
+	SortMetrics insertionSortPartial(T** array, index_t begin, index_t mid, index_t end)
 	{
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 
 		if (begin > end || mid > end) {
 			return metrics;
@@ -206,31 +108,31 @@ namespace BlockSort {
 			//	in order that means all the elements to the right,
 			//	which are in order b/c they came from the same
 			//	B_Block, are sorted.  Return.
-			metrics._compares++;
+			metrics.compares++;
 			if (*array[i-1] <= *array[i])
 				break;
 			T* temp = array[i];
-			metrics._moves++;
+			metrics.assignments++;
 			int j = i;
 			for ( ; j > begin; j--) {
-				metrics._compares++;
+				metrics.compares++;
 				//	if the elemet to the left
 				//	  is <= temp, temp goes here
 				if (*array[j-1] <= *temp) {
 					array[j] = temp;
-					metrics._moves++;
+					metrics.assignments++;
 					break;
 				}
 				//	shift the element to the right
 				array[j] = array[j-1];
-				metrics._moves++;
+				metrics.assignments++;
 			}
 			// if the loop terminated b/c j == begin
 			//	there were no elements found <= temp
 			//	temp goes at begin
 			if (j <= begin) {
 				array[begin] = temp;
-				metrics._moves++;
+				metrics.assignments++;
 			}
 		}
 		return metrics;
@@ -287,7 +189,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves mergeContiguousElementsByRotating(T** array, index_t start, index_t mid, index_t end) {
+	SortMetrics mergeContiguousElementsByRotating(T** array, index_t start, index_t mid, index_t end) {
 
 		bool debug_verbose = false;
 
@@ -295,7 +197,7 @@ namespace BlockSort {
 			std::cout << __FUNCTION__ << std::endl;
 		}
 
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 
 		index_t u = mid-1;
 		index_t v = end;
@@ -319,7 +221,7 @@ namespace BlockSort {
 			if (!binary_search) {
 				//	find the first [v] that is less than [u]
 				while (v > u) {
-					metrics._compares++;
+					metrics.compares++;
 					if (*array[u] > *array[v])
 						break;
 					--v;
@@ -337,7 +239,7 @@ namespace BlockSort {
 				rotate_count = -1;
 				u--;
 				while (u >= start) {
-					metrics._compares++;
+					metrics.compares++;
 					if (*array[u] <= *array[v]) {
 						break;
 					}
@@ -347,14 +249,15 @@ namespace BlockSort {
 				lower_shift_bound = u+1;
 			} else {
 				//	find the rightmost (least) value remaining in v that is > u
-				v = binarySearchFirstElement(array, u+1, v, array[u]);
+				v = SortingUtilities::binarySearchFirstElement(array, u+1, v, array[u], metrics);
 				//	the values to rotate are to the left of the value > u
 				v--;
 				//	it there were no values in v that are less than u, done
 				if (u==v)
 					break;
 				//	find the leftmost (least) value in u that is > v
-				lower_shift_bound = binarySearchLastElement(array, start, u, array[v], metrics);
+				lower_shift_bound =
+					SortingUtilities::binarySearchLastElement(array, start, u, array[v], metrics);
 				rotate_count = -(u-lower_shift_bound+1);
 				u = lower_shift_bound-1;
 				if (binary_search_first_time_only)
@@ -377,7 +280,7 @@ namespace BlockSort {
 			//	All elements between {u+1:v} are greater than v, and [u] <= [v].
 			//	Rotate left a sufficient amove to the element a [u+1] to the right of [v]
 			//	Rotate_count is < 0, which indicates a shift left
-			metrics += rotateArrayElementsRight(array, lower_shift_bound, v, rotate_count);
+			metrics += SortingUtilities::rotateArrayElementsRight(array, lower_shift_bound, v, rotate_count);
 
 			if (debug_verbose) {
 				std::cout << "AFTER\n";
@@ -404,71 +307,6 @@ namespace BlockSort {
 	}
 
 	/*
-	 * 	ComparesAndSwaps rotateArray(array, amount, start, end);
-	 *
-	 * 	rotate the contents of the array by 'amount' positions
-	 * 	  where the array is defined as array[start]:array[end] (inclusive)
-	 *
-	 * 	algorithm:
-	 * 		consider amount to rotate = 3
-	 * 		array									{ A, B, C, D, E, F, G }
-	 * 		reverse the array						{ G, F, E, D, C, B, A }
-	 * 		reverse the sub array [start:amount-1]  { E, F, G  D, C, B, A }
-	 * 		reverse the sub array [amount:end]		{ E, F, G, A, B, C, D }
-	 *
-	 * 	note that amount can be negative or greater than the span
-	 * 		negative amounts are converted into the equivalent positive amount
-	 * 		amounts greater than the span are modulo-division to be within the span
-	 */
-
-	template <typename T>
-	ComparesAndMoves rotateArrayElementsRight(T** array,
-											  index_t start, index_t end,
-											  index_t amount) {
-		ComparesAndMoves result(0,0);
-
-		if (end <= start)
-			return result;
-
-		index_t span = end - start + 1;
-		if (span == 0)
-			return result;
-
-		//	converts amounts that are not in [0,span) to in range
-		amount = blockSortModulo(amount, span);
-
-		if (amount == 0)
-			return result;
-
-		//	reverse the entire array
-		T* temp;
-		for (index_t i = start, j = end; i < j; i++, j--) {
-			temp = array[i];
-			array[i] = array[j];
-			array[j] = temp;
-			result._moves += 3;
-		}
-
-		//	reverse the left hand side
-		for (index_t i = start, j = start+amount-1; i < j; i++, j--) {
-			temp = array[i];
-			array[i] = array[j];
-			array[j] = temp;
-			result._moves += 3;
-		}
-
-		//	reverse the right hand side
-		for (index_t i = start + amount, j = end; i < j; i++, j--) {
-			temp = array[i];
-			array[i] = array[j];
-			array[j] = temp;
-			result._moves += 3;
-		}
-		return result;
-	}
-
-
-	/*
 	 *	ComparesAndMoves swapBlockElements(array, b1_start, b2_start, block_size)
 	 *
 	 *	usage	num_ops = blockSwap(array, 40, 20, 10);
@@ -477,12 +315,12 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves swapBlockElementsOfEqualSize(
+	SortMetrics swapBlockElementsOfEqualSize(
 										T** array,
 										index_t block1_start, index_t block2_start,
 										index_t block_size)
 	{
-		ComparesAndMoves result(0,0);
+		SortMetrics result(0,0);
 
 		if (block_size <= 0)
 			return result;
@@ -495,7 +333,7 @@ namespace BlockSort {
 
 		T* temp;
 		for (index_t i = 0; i != block_size; i++) {
-			result._moves += 3;
+			result.assignments += 3;
 			temp = array[block1_start];
 			array[block1_start] = array[block2_start];
 			array[block2_start] = temp;

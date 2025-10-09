@@ -7,6 +7,21 @@
 
 #include "SortingUtilities.h"
 
+/*
+ * 	converts negative rotation counts (rotate left) into
+ * 		an equivalent positive (rotate right)
+ * 	ensures that the rotate count is [0:span) to avoid
+ * 		excessive rotations
+ */
+
+array_size_t blockSortModulo(array_size_t rotation_count, array_size_t span) {
+	while (rotation_count < 0) {
+		rotation_count += span;
+	}
+	rotation_count %= span;
+	return rotation_count;
+}
+
 
 std::string arrayIndicesToString(array_size_t size, array_size_t v, int element_width) {
 

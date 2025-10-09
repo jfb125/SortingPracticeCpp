@@ -6,13 +6,11 @@
  */
 
 /*	TODO - List
- * 	Create a sqrtMerge() that uses an auxiliary array the size of an A_Block
- * 		to hold the A_Block, then merges the A_Block & B_Block into the
- * 		place in the original array where the A_Block is.
- *  Aux                Aux                Aux            	Aux
- *  0 3 5 6            x 3 5 6            x x x 6           x x x x
- * 	A	    B          A       B          A       B         A       B
- * 	0 3 5 6 1 2 4 7    0 1 2 3 1 2 4 7    0 1 2 3 4 5 4 7   0 1 2 3 4 5 6 7
+ * Change 'ComparesAndMoves' to 'ComparesAndAssignments'
+ * Change every variable of tylpe 'ComparesAndMoves' to 'metrics'
+ * Change every function that returns 'metrics' to access them by
+ * 	a pointer passed the function parameters
+ * Set the default value of the p_metrics to nullptr
  */
 
 #ifndef BLOCKSORT_H_
@@ -41,10 +39,7 @@ namespace BlockSort {
 	/*	**************************************************************************	*/
 
 	template <typename T>
-	ComparesAndMoves sortBlocksByTable(T** array, Descriptors<T>&, int num_blocks);
-
-	template <typename T>
-	ComparesAndMoves sortAndMergeBlocks(T** array, Descriptors<T>&, int num_blocks);
+	SortMetrics sortAndMergeBlocks(T** array, Descriptors<T>&, int num_blocks);
 
 	/*	**********************************************************************	*/
 	/*	**********************************************************************	*/
@@ -80,13 +75,13 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves sortAndMergeBlocks(
+	SortMetrics sortAndMergeBlocks(
 				T** array,
 				Descriptors<T> &block_descriptors,
 				int num_blocks)
 	{
 		constexpr bool debug_verbose = false;
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 
 		//	if all the block_descriptors are A_Blocks, they do not need to be sorted
 		if (block_descriptors[num_blocks-1].type == BlockType::A_BLOCK) {
@@ -127,7 +122,7 @@ namespace BlockSort {
 			//	determine the smaller block, with deference given to the
 			//	  block on the left (A_Block) if the two blocks have equal
 			//	  keys in order to preserve stability
-			metrics._compares++;
+			metrics.compares++;
 			if (*block_descriptors[a_positions[table_i]].key <= *block_descriptors[b_source].key) {
 				src_block = a_positions[table_i];
 				table_i++;
@@ -185,8 +180,8 @@ namespace BlockSort {
 					index_t start = block_descriptors[0].start_index;
 					index_t mid		= block_descriptors[dst_block].start_index;
 					index_t end		= block_descriptors[dst_block].end_index;
-					metrics = mergeContiguousElementsByRotating(array, start, mid, end);
-//					metrics = insertionSortPartial(array, start, mid, end);
+//					metrics = mergeContiguousElementsByRotating(array, start, mid, end);
+					metrics = insertionSortPartial(array, start, mid, end);
 				}
 			}
 
@@ -373,137 +368,10 @@ namespace BlockSort {
 	 *	  of the key within the array will change if the block's position changes
 	 */
 
-	/*
-	 * 	ComparesAndMoves sortBlocksByTable(array, block_descriptors, num_blocks)
-	 *
-	 *	This only works on an array where all of the blocks are the same size
-	 *	except for (possibly) the final (rightmost) block.
-	 *
-	 * 	  Sorts the array using the block descriptors.  The descriptors themselves
-	 * 	are sorted using an in-place MergeSort that has a table to keep track of
-	 * 	where elements that are swapped out of place are moved to.
-	 *
-	 * 	  At any given time, the table contains a pointer / index to the location
-	 * 	of the next element to be merged from the A_Blocks.  The table's index,
-	 * 	'i' is used.
-	 *
-	 * 	  If an A_Block is moved to make was for a dst block, the A_Block's
-	 * 	entry in the table must be updated, which is not O(n)
-	 *
-	 *	indices 0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15
-	 *  values  D   E   F   G   H   I   S   T   X   A   B   C   M   N   R   P
-	 * 	blocks  |A0        ||A1        ||A2        ||      B0||        B1||B2|
-	 *
-	 *	Summarizing Block:Key pairs, i is the index into the A positions table
-	 *	       Block Descriptors            Table      a =
-	 *    0    1    2    3    4    5      A0 A1 A2  i  [i]  b   dst   AKey BKey
-	 *	  A0:D A1:G A2:S B0:C B1:R B2:P   0  1  2   0   0   3    0    :D > :A
-	 *	  B0:A A1:6 A2:S A0:D B1:R B2:P   3  1  2   0   3   4    1    :D <=:O
-	 *	  B0:A AO:D A2:S A1:G B1:R B2:P   x  3  2   1   3   4    2    :G <=:O
-	 *	  B0:A AO:D A1:G A2:S B1:R B2:P   x  x  3   2   3   4    3    :S > :O
-	 *	  B0:A AO:D A1:G B1:R A2:S B2:P   x  x  4   2   4   5    4    :S <=:P
-	 *	  B0:A AO:D A1:G B1:R B2:P A2:S   x  x  x   3   x   5    5    complete
-	 */
-
 	template <typename T>
-	ComparesAndMoves sortBlocksByTable(T** array,
-									   Descriptors<T> &descriptors,
-									   int num_blocks) {
+	SortMetrics sortPointersToObjects(T**, index_t start, index_t mid, index_t end, index_t block_size) {
 
-		ComparesAndMoves result(0,0);
-
-		//	if all the descriptors are A_Blocks, they do not need to be sorted
-		if (descriptors[num_blocks-1].type == BlockType::A_BLOCK) {
-			return result;
-		}
-
-		//	if all the descriptors are B_Blocks, they do not need to be sorted
-		if (descriptors[0].type == BlockType::B_BLOCK) {
-			return result;
-		}
-		//	Count the number of A Blocks
-		index_t num_A_blocks = 0;
-
-		for (index_t i = 0; i != num_blocks; i++) {
-			if (descriptors[i].type != BlockType::A_BLOCK) {
-				break;
-			}
-			num_A_blocks++;
-		}
-
-		//	Build a table of A_Block indices
-		index_t a_positions[num_A_blocks];
-		for (index_t i = 0; i != num_A_blocks; i++) {
-			a_positions[i] = i;
-		}
-
-		//	Create source & destination indices
-
-		index_t table_i 	= 0;
-		index_t b_source 	= num_A_blocks;
-		index_t dst			= 0;
-		index_t src			= 0;
-
-		while (table_i != num_A_blocks && b_source != num_blocks) {
-
-			result._compares++;
-			//	determine the smaller block, with deference given to the
-			//	  block on the left (A_Block) if the two blocks have equal
-			//	  keys in order to preserve stability
-			if (*descriptors[a_positions[table_i]].key <= *descriptors[b_source].key) {
-				src = a_positions[table_i];
-				table_i++;
-			} else {
-				src = b_source;
-				b_source++;
-			}
-
-			//	if the block that goes here is already in-place, move on
-			if (src == dst) {
-				dst++;
-				continue;
-			}
-
-			result += swapBlocks(array, descriptors, dst, src);
-
-			for (index_t i = table_i; i < num_A_blocks; i++) {
-				//	If there was an A_Block in the table that was at
-				//	  position 'dst', it has been swapped to 'src'.
-				//    If that block at dst was in the table, it is now at src
-				if (a_positions[i] == dst) {
-					a_positions[i] = src;
-					break;
-				}
-			}
-			dst++;
-		}
-
-		//	  If there are any remaining A_Blocks,
-		//	move them within the array back to in order
-		while (table_i != num_A_blocks) {
-			src = a_positions[table_i];
-			table_i++;
-			if (dst != src) {
-				result += swapBlocks(array, descriptors, dst, src);
-				//	The A_Block that was at 'dst' has now been swapped to 'src'
-				//  Update that block's entry in the table
-				for (index_t i = table_i; i < num_A_blocks; i++) {
-					if (a_positions[i] == dst) {
-						a_positions[i] = src;
-						break;
-					}
-				}
-			}
-			dst++;
-		}
-
-		return result;
-	}
-
-	template <typename T>
-	ComparesAndMoves sortPointersToObjects(T**, index_t start, index_t mid, index_t end, index_t block_size) {
-
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 
 		return metrics;
 	}
@@ -519,14 +387,14 @@ namespace BlockSort {
 	/*	**************************	*/
 
 	template <typename T>
-	ComparesAndMoves sortPointerstoObjects(T **array, index_t size) {
+	SortMetrics sortPointerstoObjects(T **array, index_t size) {
 
 		bool debug_verbose = false;
 		bool print_error = true;
 		std::stringstream msg;
 		constexpr index_t minimum_block_size = 16;
 
-		ComparesAndMoves result(0,0);
+		SortMetrics result(0,0);
 
 		//	Do an insertion sort if the array size is not large enough
 		//	  to justify the time spent managing the block overhead

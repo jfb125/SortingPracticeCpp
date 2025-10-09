@@ -20,8 +20,8 @@ OneTestResult::OneTestResult() {
 	_ordering = InitialOrderings::INITIAL_ORDERINGS_COUNT;
 	_failure_log = new SortFailureLog();
 	_size = 0;
-	_sort_metrics._compares = 0;
-	_sort_metrics._moves = 0;
+	_sort_metrics.compares = 0;
+	_sort_metrics.assignments = 0;
 	_sort_metrics._num_repetitions = 0;
 	_messages = new MessageList();
 }
@@ -41,8 +41,8 @@ OneTestResult::OneTestResult(SortAlgorithms algorithm,
 	_composition = composition;
 	_ordering = ordering;
 	_size = size;
-	_sort_metrics._compares = 0;
-	_sort_metrics._moves = 0;
+	_sort_metrics.compares = 0;
+	_sort_metrics.assignments = 0;
 	_sort_metrics._num_repetitions = num_repetitions;
 	_failure_log = new SortFailureLog();
 	_messages = new MessageList();

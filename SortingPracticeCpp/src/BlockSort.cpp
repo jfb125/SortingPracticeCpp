@@ -21,21 +21,6 @@ using namespace BlockSort;
 /*	******************************************************	*/
 /*	******************************************************	*/
 
-/*
- * 	converts negative rotation counts (rotate left) into
- * 		an equivalent positive (rotate right)
- * 	ensures that the rotate count is [0:span) to avoid
- * 		excessive rotations
- */
-
-index_t blockSortModulo(index_t rotation_count, index_t span) {
-	while (rotation_count < 0) {
-		rotation_count += span;
-	}
-	rotation_count %= span;
-	return rotation_count;
-}
-
 /*	******************************************************	*/
 /*	******************************************************	*/
 /*					Formatted Output of enums				*/

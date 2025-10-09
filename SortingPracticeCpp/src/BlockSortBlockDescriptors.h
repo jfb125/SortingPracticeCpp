@@ -23,7 +23,7 @@ namespace BlockSort {
 	 * has been sorted, such as initially sorting element within blocks. */
 
 	template <typename T>
-	ComparesAndMoves assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors);
+	SortMetrics assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors);
 
 	/*	Creates an array of block descriptors of types A & B {A[0]A[1]..A[m]B[0]..B[n]}
 	 * 	  where A[0] is a full block but B[n] may not be a full block in the case where
@@ -71,7 +71,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors) {
+	SortMetrics assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors) {
 
 		for (int i = 0; i != num_descriptors; i++) {
 			BlockDescriptor<T>*p = &descriptors[i];	// improves readability
@@ -89,7 +89,7 @@ namespace BlockSort {
 			p++;
 		}
 
-		return ComparesAndMoves(0,0);
+		return SortMetrics(0,0);
 	}
 
 

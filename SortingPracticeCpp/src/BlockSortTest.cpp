@@ -18,11 +18,6 @@
 #include "nChoosek.h"
 
 #include "BlockSort.h"
-//	BlockSortUnused.h contains functions that are no longer used to implement
-//	the BlockSort, but have been retained to avoid losing all the work that went
-//	into creating them.  They can be accessed for regression testing by prepending
-//	'regressionTestOnly_' to their function names.
-#include "BlockSortUnused.h"
 
 using namespace BlockSort;
 
@@ -41,14 +36,14 @@ using namespace BlockSort;
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 //#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-//#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
 //#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
-#define TEST_BLOCK_SORT_SORT_BLOCKS
+//#define TEST_BLOCK_SORT_SORT_BLOCKS
 //#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortBinarySearchFirstBlock();
@@ -105,7 +100,7 @@ bool testBlockSort() {
 	bool all_tests_passed = true;
 	int num_tests = 0;
 	int tests_passed = 0;
-	std::cout << "testBlockSort()" << std::endl;
+	std::cout << __FUNCTION__ << std::endl;
 
 #ifdef TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 	num_tests++;
@@ -288,7 +283,7 @@ int num_times_repeated = 3;
 
 bool testBlockSortBinarySearchFirstElement() {
 	bool test_passed = true;
-
+	SortMetrics dummy_metrics(0,0);
 	for (int array_end = unique_values_size-2; array_end < unique_values_size; array_end++) {
 		std::cout << "\nTesting binaryFirst() with an array with a "
 				  << array_end << " unique elements\n";
@@ -297,7 +292,9 @@ bool testBlockSortBinarySearchFirstElement() {
 		for (int i = minimum_unique_value-1; i <= array_end+1; i++) {
 			std::cout << toStringValueArray(unique_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binarySearchFirstElement(unique_values, 0, array_end, value);
+			index_t result =
+				SortingUtilities::binarySearchFirstElement(
+					unique_values, 0, array_end, value, dummy_metrics);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if ((i <= minimum_unique_value && result != minimum_unique_value) ||
 				(i > minimum_unique_value && result != *value)) {
@@ -320,7 +317,9 @@ bool testBlockSortBinarySearchFirstElement() {
 		for (int i = minimum_repeated_value-1; i <= maximum_repeated_value+1; i++) {
 			std::cout << toStringValueArray(triple_repeated_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binarySearchFirstElement(triple_repeated_values, 0, array_end, value);
+			index_t result =
+				SortingUtilities::binarySearchFirstElement(
+					triple_repeated_values, 0, array_end, value, dummy_metrics);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if (i <= minimum_repeated_value) {
 				if (result != 0) {
@@ -353,7 +352,7 @@ TEST_BINARY_SEARCH_FIRST_RETURN_LABEL:
 bool testBlockSortBinarySearchLastElement() {
 
 	bool test_passed = true;
-	ComparesAndMoves metrics;
+	SortMetrics metrics;
 
 	for (int array_end = unique_values_size-2;
 			  array_end < unique_values_size; array_end++) {
@@ -364,9 +363,9 @@ bool testBlockSortBinarySearchLastElement() {
 		for (int i = minimum_unique_value-1; i <= array_end+1; i++) {
 			std::cout << toStringValueArray(unique_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binarySearchLastElement(unique_values, 0, array_end,
-													 value,
-													 metrics);
+			index_t result =
+				SortingUtilities::binarySearchLastElement(
+					unique_values, 0, array_end, value, metrics);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if ((i <  minimum_unique_value && result != minimum_unique_value) ||
 				(i >= minimum_unique_value && i < maximum_unique_value && result != *value+1) ||
@@ -390,9 +389,9 @@ bool testBlockSortBinarySearchLastElement() {
 		for (int i = minimum_repeated_value-1; i <= maximum_repeated_value+1; i++) {
 			std::cout << toStringValueArray(triple_repeated_values, 0, array_end, -1, 4);
 			int *value = new int(i);
-			index_t result = binarySearchLastElement (triple_repeated_values, 0, array_end,
-													  value,
-													  metrics);
+			index_t result =
+				SortingUtilities::binarySearchLastElement (
+					triple_repeated_values, 0, array_end, value, metrics);
 			std::cout << " insert " << std::setw(2) << *value << " before " << result;
 			if (i < minimum_repeated_value) {
 				if (result != 0) {
@@ -1067,7 +1066,7 @@ bool testBlockSortBinarySearchLastBlock() {
 				}
 			}
 
-			ComparesAndMoves result(0,0);
+			SortMetrics result(0,0);
 			index_t result_index = 0;
 			result += binarySearchLastBlock(haystack, haystack_start, haystack_end,
 										  	key, result_index);
@@ -1082,7 +1081,7 @@ bool testBlockSortBinarySearchLastBlock() {
 			msg << std::endl;
 			msg << "returned " 	  << std::setw(2) << result_index
 				<< " when passed "<< std::setw(2) << *key
-				<< " which took " << std::setw(2) << result._compares
+				<< " which took " << std::setw(2) << result.compares
 				<< " compares\n"
 				<< std::endl;
 			//	check the result of the function
@@ -1130,7 +1129,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 	std::cout << __FUNCTION__ << std::endl;
 
 	bool debug_verbose 	= false;
-	bool echo_result 	= false;
+	bool echo_result 	= true;
 	bool test_passed 	= true;
 
 	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
@@ -1212,11 +1211,11 @@ bool testBlockSortMergeBlocksExhaustively() {
 		array_size_t right_start = mid;
 		array_size_t right_end = test_vector_size-1;
 
-		ComparesAndMoves total_results(0,0);
-		ComparesAndMoves least_moves	(100000000,100000000);
-		ComparesAndMoves least_compares	(100000000,100000000);
-		ComparesAndMoves most_moves		(        0,        0);
-		ComparesAndMoves most_compares	(        0,        0);
+		SortMetrics total_results(0,0);
+		SortMetrics least_moves		(100000000,100000000);
+		SortMetrics least_compares	(100000000,100000000);
+		SortMetrics most_moves		(        0,        0);
+		SortMetrics most_compares	(        0,        0);
 
 		int num_tests_run = 0;
 
@@ -1245,7 +1244,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 				test_message << " when divided into two subarrays, each sorted: "
 							 << testVectorToString(test_vectors[i], test_vector_size);
 
-				ComparesAndMoves result;
+				SortMetrics result;
 				switch(merge_strategy) {
 				case MergeStrategy::TABLE:
 					result = mergeTwoBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
@@ -1258,16 +1257,16 @@ bool testBlockSortMergeBlocksExhaustively() {
 					break;
 				}
 				total_results += result;
-				if (result._compares < least_compares._compares) {
+				if (result.compares < least_compares.compares) {
 					least_compares = result;
 				}
-				if (result._moves < least_moves._moves) {
+				if (result.assignments < least_moves.assignments) {
 					least_moves = result;
 				}
-				if (result._compares > most_compares._compares) {
+				if (result.compares > most_compares.compares) {
 					most_compares = result;
 				}
-				if (result._moves > most_moves._moves) {
+				if (result.assignments > most_moves.assignments) {
 					most_moves = result;
 				}
 
@@ -1299,19 +1298,19 @@ bool testBlockSortMergeBlocksExhaustively() {
 						  << std::fixed
 						  << std::setprecision(1)
 						  << std::setw(8)
-						  << static_cast<double>(total_results._compares) / num_tests_run
+						  << static_cast<double>(total_results.compares) / num_tests_run
 						  << " compares and "
 						  << std::setw(4)
-						  << static_cast<double>(total_results._moves) / num_tests_run
+						  << static_cast<double>(total_results.assignments) / num_tests_run
 						  << " moves\n"
-						  << " worst case moves " << std::setw(8) << most_moves._compares << " compares and "
-						  << std::setw(4) << most_moves._moves << " moves\n"
-						  << " worst case cmprs " << std::setw(8) << most_compares._compares << " compares and "
-						  << std::setw(4) << most_compares._moves << " moves\n"
-						  << "  best case moves " << std::setw(8) << least_moves._compares << " compares and "
-						  << std::setw(4) << least_moves._moves << " moves\n"
-						  << "  best case cmprs " << std::setw(8) << least_compares._compares << " compares and "
-						  << std::setw(4) << least_moves._moves << " moves\n";
+						  << " worst case moves " << std::setw(8) << most_moves.compares << " compares and "
+						  << std::setw(4) << most_moves.assignments << " moves\n"
+						  << " worst case cmprs " << std::setw(8) << most_compares.compares << " compares and "
+						  << std::setw(4) << most_compares.assignments << " moves\n"
+						  << "  best case moves " << std::setw(8) << least_moves.compares << " compares and "
+						  << std::setw(4) << least_moves.assignments << " moves\n"
+						  << "  best case cmprs " << std::setw(8) << least_compares.compares << " compares and "
+						  << std::setw(4) << least_moves.assignments << " moves\n";
 			}
 		}
 	}
@@ -1346,17 +1345,17 @@ bool testBlockSortMergeBlocksRandomly() {
 		return result.str();
 	};
 
-	ComparesAndMoves (*sortArray)(data_type**, int, int) = [] (data_type **l_array, int l_start, int l_end) {
-		ComparesAndMoves result(0,0);
+	SortMetrics (*sortArray)(data_type**, int, int) = [] (data_type **l_array, int l_start, int l_end) {
+		SortMetrics result(0,0);
 		for (int i = l_start+1; i <= l_end; i++) {
 			for (int j = i; j != l_start; j--) {
-				result._compares++;
+				result.compares++;
 				if (*l_array[j-1] > *l_array[j]) {
 					data_type *tmp = l_array[j-1];
 					l_array[j-1] = l_array[j];
 					l_array[j] = tmp;
-					result._moves += 3;
-					result._compares++;
+					result.assignments += 3;
+					result.compares++;
 				} else {
 					break;
 				}
@@ -1410,11 +1409,11 @@ bool testBlockSortMergeBlocksRandomly() {
 
 			MergeStrategy merge_strategy = merge_strategies[merge_strategy_num];
 
-			ComparesAndMoves total_results(0,0);
+			SortMetrics total_results(0,0);
 
 			for (int test_number = 0; test_number != num_test_passes; test_number++) {
 
-				ComparesAndMoves result(0, 0);
+				SortMetrics result(0, 0);
 				//	create a linear array
 				for (int i = 0; i != array_size; i++) {
 					test_array[i] 		= reference_array[i];
@@ -1524,10 +1523,10 @@ bool testBlockSortMergeBlocksRandomly() {
 						 << std::right
 						 << " took on average "
 						 << std::fixed << std::setprecision(1) << std::setw(8)
-						 << static_cast<double>(total_results._compares) / num_test_passes
+						 << static_cast<double>(total_results.compares) / num_test_passes
 						 << " compares and "
 						 << std::fixed << std::setprecision(1) << std::setw(12)
-						 << static_cast<double>(total_results._moves) / num_test_passes
+						 << static_cast<double>(total_results.assignments) / num_test_passes
 						 << " moves" << std::endl;
 			}
 		}
@@ -1596,7 +1595,7 @@ bool testBlockSortRotateArrayElements() {
 		};
 
 	bool test_passed = true;
-	ComparesAndMoves rotate_result(0,0);
+	SortMetrics rotate_result(0,0);
 
 	//	list all the array sizes to be tested
 	//	array_size_t array_sizes[] = {	8, 9, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
@@ -1655,7 +1654,8 @@ bool testBlockSortRotateArrayElements() {
 			}
 
 			rotateArrayElementsLongWay(expected_array, 0, array_size-1, rotate_count);
-			rotate_result = rotateArrayElementsRight<int>(rotated_array, 0, array_size-1, rotate_count);
+			rotate_result =
+				SortingUtilities::rotateArrayElementsRight<int>(rotated_array, 0, array_size-1, rotate_count);
 			//	check results
 			for (int i = 0 ; i < array_size; i++) {
 				if (rotated_array[i] != expected_array[i]) {
@@ -1687,7 +1687,7 @@ bool testBlockSortRotateArrayElements() {
 						std::cout << "\"";
 					}
 				}
-				std::cout << " took:" << std::setw(7) << rotate_result._moves
+				std::cout << " took:" << std::setw(7) << rotate_result.assignments
 						  << " moves\n";
 			}
 			if (!test_passed) {
@@ -2223,7 +2223,7 @@ bool testBlockSortSortBlocks() {
 		for (int block_size = min_block_size; block_size <= max_block_size; ++block_size)
 		{
 			int num_tests = 10;
-			ComparesAndMoves total_results[num_sorting_strategies];
+			SortMetrics total_results[num_sorting_strategies];
 
 			// run the test with the same reference_array (input)
 			//	using however many strategies desired
@@ -2235,7 +2235,7 @@ bool testBlockSortSortBlocks() {
 
 				for (int strategy_i = 0; strategy_i < num_sorting_strategies; strategy_i++)
 				{
-					ComparesAndMoves result(0,0);
+					SortMetrics result(0,0);
 					std::stringstream messages;
 					BlockSort::SortingStrategy sorting_strategy
 						= sorting_strategies[strategy_i];
@@ -2262,13 +2262,13 @@ bool testBlockSortSortBlocks() {
 							 << std::endl;
 					switch(sorting_strategy) {
 					case BlockSort::SortingStrategy::RIGHT_TO_LEFT:
-						result = BlockSort::regressionTestOnly_sortBlocksRightToLeft(array, array_size, blocks, num_blocks);
+						result = BlockSort::sortBlocksRightToLeft(array, array_size, blocks, num_blocks);
 						break;
 					case BlockSort::SortingStrategy::BINARY:
-						result = BlockSort::regressionTestOnly_sortBlocksBinarySearch(array, array_size, blocks, num_blocks);
+						result = BlockSort::sortBlocksBinarySearch(array, array_size, blocks, num_blocks);
 						break;
 					case BlockSort::SortingStrategy::HYBRID:
-						result = BlockSort::regressionTestOnly_sortBlocksHybrid(array, array_size, blocks, num_blocks);
+						result = BlockSort::sortBlocksHybrid(array, array_size, blocks, num_blocks);
 						break;
 					case BlockSort::SortingStrategy::TABLE:
 						result = BlockSort::sortBlocksByTable(array, blocks, num_blocks);
@@ -2298,8 +2298,8 @@ bool testBlockSortSortBlocks() {
 								  << " sorting an array of " << array_size << " elements "
 								  << " with block size " << block_size
 								  << " took "
-								  << std::setw(5) << result._compares << " compares and"
-								  << std::setw(8) << result._moves    << " moves\n";
+								  << std::setw(5) << result.compares << " compares and"
+								  << std::setw(8) << result.assignments    << " moves\n";
 					}
 				}
 			}
@@ -2314,10 +2314,10 @@ bool testBlockSortSortBlocks() {
 							   << " unique values and a block size of "
 							   << std::setw(3) << block_size << " took on average "
 							   << std::fixed << std::setprecision(compares_precision) << std::setw(8)
-							   << static_cast<double>(total_results[strategy_i]._compares) / (num_tests)
+							   << static_cast<double>(total_results[strategy_i].compares) / (num_tests)
 							   << " compares and "
 							   << std::fixed << std::setprecision(moves_precision) << std::setw(10)
-							   << static_cast<double>(total_results[strategy_i]._moves) / (num_tests)
+							   << static_cast<double>(total_results[strategy_i].assignments) / (num_tests)
 							   << " moves\n";
 				}
 			}
@@ -2648,7 +2648,7 @@ bool testBlockSortSwapBlocks() {
 //							first_test_pass = false;
 						}
 
-						ComparesAndMoves metrics(0,0);
+						SortMetrics metrics(0,0);
 						DataType *array_under_test[array_size];
 						Descriptors<DataType> descriptors_under_test =
 							Descriptors<DataType>(new BlockDescriptor<DataType>[num_descriptors]);
@@ -2672,8 +2672,8 @@ bool testBlockSortSwapBlocks() {
 
 						metrics = BlockSort::swapBlocks(array_under_test, descriptors_under_test, i, j);
 
-						if (metrics._moves > max_moves) {
-							max_moves = metrics._moves;
+						if (metrics.assignments > max_moves) {
+							max_moves = metrics.assignments;
 						}
 
 						bool arrays_passed = compare_arrays(expected_array, array_under_test, array_size);
@@ -2768,7 +2768,7 @@ bool testBlockSortSort() {
 //	};
 	int num_array_sizes = sizeof(array_sizes) / sizeof(index_t);
 
-	ComparesAndMoves total_metrics[num_array_sizes];
+	SortMetrics total_metrics[num_array_sizes];
 
 	double nlogn[num_array_sizes];
 	double ave_compares[num_array_sizes];
@@ -2865,11 +2865,11 @@ bool testBlockSortSort() {
 				}
 			}
 
-			total_metrics[array_size_i] = ComparesAndMoves(0,0);
+			total_metrics[array_size_i] = SortMetrics(0,0);
 
 			for (int test_number = 1; test_number <= num_test_runs; test_number++)
 			{
-				ComparesAndMoves test_metrics(0,0);
+				SortMetrics test_metrics(0,0);
 
 				data_type* test_array[array_size];
 				for (int i = 0; i != array_size; i++) {
@@ -2957,8 +2957,8 @@ bool testBlockSortSort() {
 						std::cout << msg.str();
 					}
 					std::cout << "test number " << std::setw(5) << test_number
-							  << " took " 		<< test_metrics._compares
-							  << " compares and " << test_metrics._moves
+							  << " took " 		<< test_metrics.compares
+							  << " compares and " << test_metrics.assignments
 							  << " moves" 		<< std::endl;
 					if (debug_verbose) {
 						//	there is a lot of info in the console if debugging,
@@ -2967,8 +2967,8 @@ bool testBlockSortSort() {
 					}
 				}
 			}
-			ave_moves[array_size_i] 	= static_cast<double>(total_metrics[array_size_i]._moves)/num_test_runs;
-			ave_compares[array_size_i]	= static_cast<double>(total_metrics[array_size_i]._compares)/num_test_runs;
+			ave_moves[array_size_i] 	= static_cast<double>(total_metrics[array_size_i].assignments)/num_test_runs;
+			ave_compares[array_size_i]	= static_cast<double>(total_metrics[array_size_i].compares)/num_test_runs;
 			if (present_summary || announce_each_test_result || debug_verbose) {
 				std::cout << "Array size " << std::setw(6) << array_size
 						  << " repeated " << std::setw(6) << num_test_runs

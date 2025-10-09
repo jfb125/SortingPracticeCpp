@@ -1,110 +1,12 @@
-Sorting Performance In C++ built on Oct  8 2025 at 21:29:24
-testBlockSort()
-testBlockSortSortBlocks()
-    10 tests of sorting blocks using strategy BINARY        on an array with     30 unique values and a block size of   3 took on average     20.5 compares and      121.2 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     30 unique values and a block size of   3 took on average     17.1 compares and      121.2 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     30 unique values and a block size of   3 took on average     16.2 compares and      121.2 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     30 unique values and a block size of   3 took on average      8.5 compares and       63.8 moves
+Sorting Performance In C++ built on Oct  9 2025 at 19:43:09
+Algorithms: 3 Compositions: 1 Orderings: 1 of : 4 different sizes resulting in 12 outcomes over 100 repetitions
+====================================
+Sort Test Results
+====================================
+                                  Array sizes:             64                        128                        256                        512             
+number of repetitions: 100                         avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov      
+INSERTION_SORT  ALL_DISCRETE  IN_RANDOM_ORDER:      1065.9 /      1125.2       4178.6 /      4300.6      16604.4 /     16854.7      66063.7 /     66568.9  
+MERGE_SORT      ALL_DISCRETE  IN_RANDOM_ORDER:       306.9 /       384.0        737.5 /      1024.0       1728.2 /      2048.0       3965.3 /      5120.0  
+INPLACE_MERGE   ALL_DISCRETE  IN_RANDOM_ORDER:       528.3 /      1666.3       1382.2 /      6495.8       3523.6 /     25684.6       8794.6 /    101292.7  
 
-    10 tests of sorting blocks using strategy BINARY        on an array with     31 unique values and a block size of   3 took on average     22.0 compares and      117.0 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     31 unique values and a block size of   3 took on average     17.7 compares and      117.0 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     31 unique values and a block size of   3 took on average     17.0 compares and      117.0 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     31 unique values and a block size of   3 took on average      8.7 compares and       58.3 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     32 unique values and a block size of   4 took on average     16.8 compares and      105.9 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     32 unique values and a block size of   4 took on average     13.6 compares and      105.9 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     32 unique values and a block size of   4 took on average     12.8 compares and      105.9 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     32 unique values and a block size of   4 took on average      6.8 compares and       54.6 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     33 unique values and a block size of   4 took on average     16.1 compares and      101.4 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     33 unique values and a block size of   4 took on average     13.7 compares and      101.4 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     33 unique values and a block size of   4 took on average     13.9 compares and      101.4 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     33 unique values and a block size of   4 took on average      6.7 compares and       58.8 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     34 unique values and a block size of   4 took on average     18.0 compares and      108.3 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     34 unique values and a block size of   4 took on average     15.3 compares and      108.3 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     34 unique values and a block size of   4 took on average     15.4 compares and      108.3 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     34 unique values and a block size of   4 took on average      7.7 compares and       69.3 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     35 unique values and a block size of   4 took on average     20.4 compares and      136.2 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     35 unique values and a block size of   4 took on average     16.1 compares and      136.2 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     35 unique values and a block size of   4 took on average     15.6 compares and      136.2 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     35 unique values and a block size of   4 took on average      8.5 compares and       70.0 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     48 unique values and a block size of   4 took on average     28.4 compares and      242.7 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     48 unique values and a block size of   4 took on average     21.9 compares and      242.7 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     48 unique values and a block size of   4 took on average     20.5 compares and      242.7 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     48 unique values and a block size of   4 took on average     10.9 compares and      113.4 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     49 unique values and a block size of   4 took on average     26.2 compares and      204.6 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     49 unique values and a block size of   4 took on average     21.1 compares and      204.6 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     49 unique values and a block size of   4 took on average     20.6 compares and      204.6 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     49 unique values and a block size of   4 took on average     10.6 compares and      100.8 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     50 unique values and a block size of   5 took on average     23.7 compares and      205.8 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     50 unique values and a block size of   5 took on average     18.0 compares and      205.8 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     50 unique values and a block size of   5 took on average     16.9 compares and      205.8 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     50 unique values and a block size of   5 took on average      8.9 compares and      103.7 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     51 unique values and a block size of   5 took on average     22.7 compares and      176.4 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     51 unique values and a block size of   5 took on average     18.0 compares and      176.4 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     51 unique values and a block size of   5 took on average     17.4 compares and      176.4 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     51 unique values and a block size of   5 took on average      8.5 compares and       95.2 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     52 unique values and a block size of   5 took on average     27.3 compares and      222.0 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     52 unique values and a block size of   5 took on average     20.8 compares and      222.0 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     52 unique values and a block size of   5 took on average     19.7 compares and      222.0 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     52 unique values and a block size of   5 took on average     10.0 compares and      108.8 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     53 unique values and a block size of   5 took on average     25.8 compares and      207.6 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     53 unique values and a block size of   5 took on average     19.8 compares and      207.6 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     53 unique values and a block size of   5 took on average     19.0 compares and      207.6 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     53 unique values and a block size of   5 took on average      9.9 compares and      123.5 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     54 unique values and a block size of   5 took on average     24.8 compares and      189.3 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     54 unique values and a block size of   5 took on average     19.5 compares and      189.3 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     54 unique values and a block size of   5 took on average     19.0 compares and      189.3 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     54 unique values and a block size of   5 took on average      9.6 compares and      118.7 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     62 unique values and a block size of   5 took on average     33.0 compares and      303.0 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     62 unique values and a block size of   5 took on average     24.2 compares and      303.0 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     62 unique values and a block size of   5 took on average     23.1 compares and      303.0 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     62 unique values and a block size of   5 took on average     12.0 compares and      144.5 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     63 unique values and a block size of   5 took on average     29.4 compares and      277.5 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     63 unique values and a block size of   5 took on average     23.2 compares and      277.5 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     63 unique values and a block size of   5 took on average     22.3 compares and      277.5 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     63 unique values and a block size of   5 took on average     11.9 compares and      136.3 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     64 unique values and a block size of   5 took on average     29.0 compares and      249.3 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     64 unique values and a block size of   5 took on average     22.5 compares and      249.3 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     64 unique values and a block size of   5 took on average     22.0 compares and      249.3 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     64 unique values and a block size of   5 took on average     11.6 compares and      145.7 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     65 unique values and a block size of   5 took on average     32.3 compares and      304.8 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     65 unique values and a block size of   5 took on average     23.9 compares and      304.8 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     65 unique values and a block size of   5 took on average     22.9 compares and      304.8 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     65 unique values and a block size of   5 took on average     12.3 compares and      142.8 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     66 unique values and a block size of   5 took on average     32.2 compares and      312.0 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     66 unique values and a block size of   5 took on average     24.1 compares and      312.0 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     66 unique values and a block size of   5 took on average     23.4 compares and      312.0 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     66 unique values and a block size of   5 took on average     12.1 compares and      142.8 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     67 unique values and a block size of   5 took on average     31.9 compares and      313.2 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     67 unique values and a block size of   5 took on average     24.3 compares and      313.2 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     67 unique values and a block size of   5 took on average     23.5 compares and      313.2 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     67 unique values and a block size of   5 took on average     12.1 compares and      167.0 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     68 unique values and a block size of   5 took on average     31.9 compares and      332.7 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     68 unique values and a block size of   5 took on average     24.1 compares and      332.7 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     68 unique values and a block size of   5 took on average     23.1 compares and      332.7 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     68 unique values and a block size of   5 took on average     12.7 compares and      170.7 moves
-
-    10 tests of sorting blocks using strategy BINARY        on an array with     69 unique values and a block size of   5 took on average     33.8 compares and      349.8 moves
-    10 tests of sorting blocks using strategy HYBRID        on an array with     69 unique values and a block size of   5 took on average     25.2 compares and      349.8 moves
-    10 tests of sorting blocks using strategy RIGHT_TO_LEFT on an array with     69 unique values and a block size of   5 took on average     24.0 compares and      349.8 moves
-    10 tests of sorting blocks using strategy TABLE         on an array with     69 unique values and a block size of   5 took on average     12.5 compares and      161.5 moves
-
-PASS:  function testBlockSortSortBlocks() returns TRUE
-testBlockSort() ran 1 successful tests
+Completed Sorting Performance In C++

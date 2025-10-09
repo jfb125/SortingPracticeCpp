@@ -21,13 +21,13 @@
 namespace HeapSort {
 
 	template <typename T>
-	ComparesAndMoves sinkNode(array_size_t this_node, T**array, array_size_t size);
+	SortMetrics sinkNode(array_size_t this_node, T**array, array_size_t size);
 
 	template <typename T>
 	bool isMaxHeap(T**array, array_size_t size);
 
 	template <typename T>
-	ComparesAndMoves heapify(T**array, array_size_t size);
+	SortMetrics heapify(T**array, array_size_t size);
 
 	/* ****************************************	*/
 	/*			indices management				*/
@@ -90,9 +90,9 @@ namespace HeapSort {
 	/* ****************************************	*/
 
 	template <typename T>
-	ComparesAndMoves heapify(T**array, array_size_t size) {
+	SortMetrics heapify(T**array, array_size_t size) {
 
-		ComparesAndMoves retval(0,0);
+		SortMetrics retval(0,0);
 
 		// node will be pre-decremented before each sink
 		array_size_t node = farthestNode(size)+1;
@@ -106,9 +106,9 @@ namespace HeapSort {
 	}
 
 	template <typename T>
-	ComparesAndMoves sinkNode(array_size_t this_node, T**array, array_size_t size) {
+	SortMetrics sinkNode(array_size_t this_node, T**array, array_size_t size) {
 
-		ComparesAndMoves retval(0,0);
+		SortMetrics retval(0,0);
 
 		if (size <= 1)
 			return retval;
@@ -130,7 +130,7 @@ namespace HeapSort {
 				largest_child = left_child;
 			} else {
 				// there is both a left & right child
-				retval._compares++;
+				retval.compares++;
 				if (*array[left_child] > *array[right_child]) {
 					largest_child = left_child;
 				} else {
@@ -139,10 +139,10 @@ namespace HeapSort {
 			}
 
 			// compare the larger of the two children to this_node
-			retval._compares++;
+			retval.compares++;
 			if (*array[this_node] < *array[largest_child]) {
 				// swap the nodes
-				retval._moves +=
+				retval.assignments +=
 					SortingUtilities::swap(array, this_node, largest_child);
 				// move down to the lower node
 				//  that had previously housed the largest child
@@ -157,9 +157,9 @@ namespace HeapSort {
 	}
 
 	template <typename T>
-	ComparesAndMoves sortPointersToObjects(T** array, array_size_t size) {
+	SortMetrics sortPointersToObjects(T** array, array_size_t size) {
 
-		ComparesAndMoves retval(0,0);
+		SortMetrics retval(0,0);
 		if (size <= 1)	return retval;
 
 		if (SortingUtilities::isSorted(array, size, retval))
@@ -170,7 +170,7 @@ namespace HeapSort {
 		// starting at the end of the array
 		for(array_size_t last_node = size-1; last_node != 0; last_node--) {
 			// swap the largest element [0] with the element in the last node
-			retval._moves += SortingUtilities::swap(array, last_node, 0);
+			retval.assignments += SortingUtilities::swap(array, last_node, 0);
 			// sink the element that was in the last node downward to preserve heap
 			retval += sinkNode(0, array, last_node);
 		}

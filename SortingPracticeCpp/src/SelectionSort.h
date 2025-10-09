@@ -17,9 +17,9 @@
 namespace SelectionSort {
 
 	template <typename T>
-	ComparesAndMoves sortPointerstoObjects(T **array, array_size_t array_size) {
+	SortMetrics sortPointerstoObjects(T **array, array_size_t array_size) {
 
-		ComparesAndMoves result(0,0);
+		SortMetrics result(0,0);
 
 		if (!SortingUtilities::isSorted(array, array_size, result))
 		{
@@ -34,14 +34,14 @@ namespace SelectionSort {
 				for (array_size_t searching_index = first_unsorted_element+1;
 								  searching_index < array_size;
 								  searching_index++) {
-					result._compares++;
+					result.compares++;
 					if (*array[searching_index] < *array[index_of_smallest_value]) {
 						index_of_smallest_value = searching_index;
 					}
 				}
 
 				if (index_of_smallest_value != first_unsorted_element) {
-					result._moves += SortingUtilities::swap(array, index_of_smallest_value, first_unsorted_element);
+					result.assignments += SortingUtilities::swap(array, index_of_smallest_value, first_unsorted_element);
 				}
 			}
 		}

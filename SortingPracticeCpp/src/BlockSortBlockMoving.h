@@ -26,7 +26,7 @@ namespace BlockSort {
 	 * equal or lesser keys.
 	 */
 	template <typename T>
-	ComparesAndMoves binarySearchLastBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+	SortMetrics binarySearchLastBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
 											   index_t range_left, index_t range_right,
 								   	   	   	   T* key, index_t &key_location);
 
@@ -34,7 +34,7 @@ namespace BlockSort {
 	 *  Rotates the block descriptors, and the underlying array, to the right
 	 */
 	template <typename T>
-	ComparesAndMoves rotateBlocksRight(T** array,
+	SortMetrics rotateBlocksRight(T** array,
 								   	   std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
 									   index_t first, index_t last,
 									   int block_rotate_count);
@@ -45,7 +45,7 @@ namespace BlockSort {
 	 */
 
 	template<typename T>
-	ComparesAndMoves rotate_ONLY_BlockDescriptorsRight(
+	SortMetrics rotate_ONLY_BlockDescriptorsRight(
 												Descriptors<T> &descriptors,
 												int list_start, int list_end,
 												int rotate_count);
@@ -55,20 +55,20 @@ namespace BlockSort {
 	 * RightSmallerThanLeft
 	 */
 	template <typename T>
-	ComparesAndMoves swapBlocks(T** array, Descriptors<T> &descriptors, int i, int j);
+	SortMetrics swapBlocks(T** array, Descriptors<T> &descriptors, int i, int j);
 
 	template <typename T>
-	ComparesAndMoves swapBlocksLeftSmallerThanRight(T** array,
+	SortMetrics swapBlocksLeftSmallerThanRight(T** array,
 													Descriptors<T> &descriptors,
 													int u, int v);
 
 	template <typename T>
-	ComparesAndMoves swapBlocksOfEqualSize(T** array,
+	SortMetrics swapBlocksOfEqualSize(T** array,
 										   Descriptors<T> &descriptors,
 										   int u, int v);
 
 	template <typename T>
-	ComparesAndMoves swapBlocksRightSmallerThanLeft(T** array,
+	SortMetrics swapBlocksRightSmallerThanLeft(T** array,
 													Descriptors<T> &descriptors,
 													int u, int v);
 
@@ -76,7 +76,7 @@ namespace BlockSort {
 	 * 	This swaps block descriptors, but DOES NOT move the underlying array
 	 */
 	template<typename T>
-	ComparesAndMoves swap_ONLY_BlockDescriptors(Descriptors<T> &descriptors,
+	SortMetrics swap_ONLY_BlockDescriptors(Descriptors<T> &descriptors,
 										  	    int i, int j);
 
 	/*	**********************************************************************	*/
@@ -98,7 +98,7 @@ namespace BlockSort {
 
 
 	template <typename T>
-	ComparesAndMoves binarySearchLastBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
+	SortMetrics binarySearchLastBlock(std::unique_ptr<BlockDescriptor<T>[]> &blocks,
 											   index_t range_left, index_t range_right,
 								   	   	   	   T* key, index_t &key_location)
 	{
@@ -109,7 +109,7 @@ namespace BlockSort {
 
 		// return number of compares & moves(=0) which is a
 		//	figure of merit in evaluating the algorithm
-		ComparesAndMoves result(0,0);
+		SortMetrics result(0,0);
 
 		index_t start = range_left;
 		index_t end	  = range_right;
@@ -125,7 +125,7 @@ namespace BlockSort {
 					<< " greater than " << *key;
 			}
 
-			result._compares++;
+			result.compares++;
 			if (*blocks[mid].key <= *key) {
 				start = mid+1;
 			} else {
@@ -143,7 +143,7 @@ namespace BlockSort {
 		//	return the element after the right side.
 		//	  It is the caller's responsibility to ensure the range_right+1
 		//	is within the bounds of the caller's array of blocks
-		result._compares++;
+		result.compares++;
 		if (start == range_right && *blocks[start].key <= *key) {
 			msg << "start = " << std::setw(2) << start
 				<< " end = " << std::setw(2) << end
@@ -176,7 +176,7 @@ namespace BlockSort {
 
 
 	template <typename T>
-	ComparesAndMoves rotateBlocksRight(T** array,
+	SortMetrics rotateBlocksRight(T** array,
 									   Descriptors<T> &descriptors,
 							           index_t first, index_t last,
 									   int block_rotate_count)
@@ -216,7 +216,7 @@ namespace BlockSort {
 		/*				function logic				*/
 		/*	**************************************	*/
 
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 
 		//	determine the start & end tag
 		if (last == first) {
@@ -249,9 +249,11 @@ namespace BlockSort {
 
 		/*	rotate the underlying array	*/
 		debug("Before rotate");
-		metrics += rotateArrayElementsRight(array,
-											first_start_index, last_end_index,
-											array_rotate_count);
+		metrics +=
+			SortingUtilities::rotateArrayElementsRight(array,
+													   first_start_index,
+													   last_end_index,
+													   array_rotate_count);
 		debug("After element rotate");
 
 		/*	rotate the descriptors	*/
@@ -280,7 +282,7 @@ namespace BlockSort {
 	 * 	If rotate_count is negative, the rotation is to the left
 	 */
 	template<typename T>
-	ComparesAndMoves rotate_ONLY_BlockDescriptorsRight(
+	SortMetrics rotate_ONLY_BlockDescriptorsRight(
 									Descriptors<T> &descriptors,
 									int start, int end,
 									int rotate_count)
@@ -296,7 +298,7 @@ namespace BlockSort {
 		};
 
 
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 
 		//	convert a negative (left) rotate count into equivalent right count
 		rotate_count = blockSortModulo(rotate_count, end-start+1);
@@ -339,9 +341,9 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves swapBlocks(T** array, Descriptors<T> &descriptors, int u, int v) {
+	SortMetrics swapBlocks(T** array, Descriptors<T> &descriptors, int u, int v) {
 
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 
 		if (u == v) {
 			return metrics;
@@ -401,10 +403,10 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	ComparesAndMoves swapBlocksLeftSmallerThanRight(T** array, Descriptors<T> &descriptors, int u, int v) {
+	SortMetrics swapBlocksLeftSmallerThanRight(T** array, Descriptors<T> &descriptors, int u, int v) {
 
 //		std::cout << __FUNCTION__ << std::endl;
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 		/*
 		 * 	left_size = lz = 1					right_size = rz = 4
 		 * 	left_start 	= 0						right_start = 22
@@ -443,7 +445,7 @@ namespace BlockSort {
 			T* temp 			= array[left_index];
 			array[left_index] 	= array[right_index];
 			array[right_index]	= temp;
-			metrics._moves += 3;
+			metrics.assignments += 3;
 			//	next left & right
 			left_index++;
 			right_index++;
@@ -453,7 +455,11 @@ namespace BlockSort {
 		//	Rotate the remaining portion of the array to get the remaining elements
 		//	  of descriptor[v] on the right hand side into the left hand side
 //		std::cout << "u < v Before rotate " << SortingUtilities::arrayElementsToString(array, 33) << std::endl;
-		metrics += rotateArrayElementsRight(array, left_index, descriptors[v].end_index, rotate_count);
+		metrics +=
+			SortingUtilities::rotateArrayElementsRight(	array,
+														left_index,
+														descriptors[v].end_index,
+														rotate_count);
 //		std::cout << "u < v After  rotate " << SortingUtilities::arrayElementsToString(array, 33) << std::endl;
 		//	  Swap the two block_descriptors
 		BlockDescriptor<T> temp = descriptors[u];
@@ -466,7 +472,7 @@ namespace BlockSort {
 			descriptors[i].start_index 	= span_start;
 			descriptors[i].end_index 	= span_start + size - 1;
 			//	changing the key value requires moving / copying an array element
-			metrics._moves++;
+			metrics.assignments++;
 			descriptors[i].assignKey(array);
 			span_start += size;
 		}
@@ -487,10 +493,10 @@ namespace BlockSort {
 	 *  adds considerable more time complexity.
 	 */
 	template <typename T>
-	ComparesAndMoves swapBlocksOfEqualSize(T** array, Descriptors<T> &descriptors, int u, int v) {
+	SortMetrics swapBlocksOfEqualSize(T** array, Descriptors<T> &descriptors, int u, int v) {
 
 //		std::cout << __FUNCTION__ << std::endl;
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 		metrics += swapBlockElementsOfEqualSize(
 									 array,
 									 descriptors[u].start_index,
@@ -501,15 +507,15 @@ namespace BlockSort {
 		descriptors[v].type = temp;
 		descriptors[u].assignKey(array);
 		descriptors[v].assignKey(array);
-		metrics._moves += 2;
+		metrics.assignments += 2;
 		return metrics;
 	}
 
 	template <typename T>
-	ComparesAndMoves swapBlocksRightSmallerThanLeft(T** array, Descriptors<T> &descriptors, int u, int v) {
+	SortMetrics swapBlocksRightSmallerThanLeft(T** array, Descriptors<T> &descriptors, int u, int v) {
 
 //		std::cout << __FUNCTION__ << std::endl;
-		ComparesAndMoves metrics(0,0);
+		SortMetrics metrics(0,0);
 
 		/*
 		 * 	left_size = lz = 4					right_size = rz = 1
@@ -551,17 +557,18 @@ namespace BlockSort {
 			T* temp = array[left_index];
 			array[left_index] = array[right_index];
 			array[right_index] = temp;
-			metrics._moves += 3;
+			metrics.assignments += 3;
 			left_index++;
 			right_index++;
 			swap_count--;
 		}
 
 //		std::cout << "u > v Before rotate " << SortingUtilities::arrayElementsToString(array, 33) << std::endl;
-		metrics += rotateArrayElementsRight(array,
-											left_index,
-											descriptors[v].end_index,
-											rotate_right_count);
+		metrics +=
+			SortingUtilities::rotateArrayElementsRight(	array,
+														left_index,
+														descriptors[v].end_index,
+														rotate_right_count);
 //		std::cout << "u > v After  rotate " << SortingUtilities::arrayElementsToString(array, 33) << std::endl;
 
 		BlockDescriptor<T> temp = descriptors[u];
@@ -573,7 +580,7 @@ namespace BlockSort {
 			descriptors[i].start_index = span_start;
 			descriptors[i].end_index = span_start+size-1;
 			//	moving a key value into a descriptor is one move of an element
-			metrics._moves++;
+			metrics.assignments++;
 			descriptors[i].assignKey(array);
 			span_start += size;
 		}
@@ -587,7 +594,7 @@ namespace BlockSort {
 	 * 	This will (most likely) result in the underlying keys being incorrect.
 	 */
 	template<typename T>
-	ComparesAndMoves swap_ONLY_BlockDescriptors(Descriptors<T> &descriptors,
+	SortMetrics swap_ONLY_BlockDescriptors(Descriptors<T> &descriptors,
 										  	    int i, int j) {
 
 		BlockDescriptor<T> temp = descriptors[i];
@@ -595,7 +602,7 @@ namespace BlockSort {
 		descriptors[j]			= temp;
 
 		//	Although the key is no longer correct, swapping the key is 3 moves
-		return ComparesAndMoves(0,3);
+		return SortMetrics(0,3);
 	}
 }
 

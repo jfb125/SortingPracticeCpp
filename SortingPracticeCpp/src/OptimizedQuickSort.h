@@ -23,9 +23,9 @@ namespace OptimizedQuickSort {
 
 	/*	requires that the caller ensure that end > start	*/
 	template <typename T>
-	ComparesAndMoves partitionArray(T** array, array_size_t start, array_size_t end) {
+	SortMetrics partitionArray(T** array, array_size_t start, array_size_t end) {
 
-		ComparesAndMoves ret_val(0,0);
+		SortMetrics ret_val(0,0);
 
 		if (start == end) {
 			return ret_val;
@@ -35,9 +35,9 @@ namespace OptimizedQuickSort {
 
 		// an array with only two elements can be sorted simply
 		if (span == 2) {
-			ret_val._compares++;
+			ret_val.compares++;
 			if (*array[start] > *array[end]) {
-				ret_val._moves +=
+				ret_val.assignments +=
 					SortingUtilities::swap(array, start, end);
 			}
 			return ret_val;
@@ -57,13 +57,13 @@ namespace OptimizedQuickSort {
 		array_size_t lower = start+1;
 
 		while (1) {
-			ret_val._compares++;
+			ret_val.compares++;
 			while (*array[upper] > *array[pivot]) {
 				upper--;
-				ret_val._compares++;
+				ret_val.compares++;
 			}
 			while (lower < upper) {
-				ret_val._compares++;
+				ret_val.compares++;
 				if (*array[lower] > *array[pivot])
 					break;
 				lower++;
@@ -71,11 +71,11 @@ namespace OptimizedQuickSort {
 			if (lower >= upper) {
 				// upper is at the right-most element that
 				//	is less than or equal to the pivot
-				ret_val._moves +=
+				ret_val.assignments +=
 					SortingUtilities::swap(array, pivot, upper);
 				break;
 			}
-			ret_val._moves +=
+			ret_val.assignments +=
 				SortingUtilities::swap(array, lower, upper);
 		}
 
@@ -89,9 +89,9 @@ namespace OptimizedQuickSort {
 	}
 
 	template <typename T>
-	ComparesAndMoves sortPointerstoObjects(T** array, array_size_t size) {
+	SortMetrics sortPointerstoObjects(T** array, array_size_t size) {
 
-		ComparesAndMoves retval(0,0);
+		SortMetrics retval(0,0);
 
 		if (size <= 1)
 			return retval;
