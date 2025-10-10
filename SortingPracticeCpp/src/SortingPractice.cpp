@@ -13,15 +13,19 @@
 #include "SortTest.h"
 #include "ResultOutput.h"
 
-array_size_t next_power_of_2(array_size_t current_size) {
+array_size_t multiply_by_2(array_size_t current_size) {
 	return current_size * 2;
+}
+
+array_size_t multiply_by_4(array_size_t current_size) {
+	return current_size * 4;
 }
 
 array_size_t next_increment(array_size_t current_size) {
 	return current_size+1;
 }
 
-array_size_t next_power_of_10(array_size_t current_size) {
+array_size_t multiply_by_10(array_size_t current_size) {
 	return current_size * 10;
 }
 
@@ -46,14 +50,15 @@ int main(int argc, char *argv[])
 //	testBlockSort();
 //	return EXIT_SUCCESS;
 
-	int num_repetitions = 1;
+	int num_repetitions = 100;
 
-	constexpr array_size_t min_array_size =    64;
-	constexpr array_size_t max_array_size =  1024;
+	constexpr array_size_t min_array_size =    8;
+	constexpr array_size_t max_array_size = 2048;
 	//	comment out all but the one used in this test
 //	array_size_t (*next_size)(array_size_t current) = next_increment;
-	array_size_t (*next_size)(array_size_t current) = next_power_of_2;
-//	array_size_t (*next_size)(array_size_t current) = next_power_of_10;
+//	array_size_t (*next_size)(array_size_t current) = multiply_by_2;
+	array_size_t (*next_size)(array_size_t current) = multiply_by_4;
+//	array_size_t (*next_size)(array_size_t current) = multiply_by_10;
 	int num_array_sizes = getNumSizes(min_array_size, max_array_size, next_size);
 
 	SortAlgorithms 	sort_algorithms[] = {

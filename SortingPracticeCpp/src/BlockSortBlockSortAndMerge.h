@@ -40,10 +40,10 @@ namespace BlockSort {
 
 	/*	Merge a pair of blocks by using a table to keep track of where displaced
 	 * elements in block_1 are moved to in block_2 during the merge. */
-	template <typename T>
-	SortMetrics mergeTwoBlocksByTable(T ** array,
-									  index_t block_1_start, index_t block_1_end,
-									  index_t block_2_start, index_t block_2_end);
+//	template <typename T>
+//	SortMetrics mergeTwoBlocksByTable(T ** array,
+//									  index_t block_1_start, index_t block_1_end,
+//									  index_t block_2_start, index_t block_2_end);
 
 	/*	sort an array of [start:end] by key, ignoring block type	*/
 	template <typename T>
@@ -141,330 +141,6 @@ namespace BlockSort {
 													  index_t block2_end);
 
 
-	/*
-	 * 	mergeBlocksByTable(	array,
-	 * 						block_1_start, block_1_end,
-	 * 						blocK_2_start, block_2_end)
-	 *
-	 * 	This function merges the array elements from [b1_start:b1_end] with
-	 * 	  the array elements from [b2_start:b2_end] by using a table to keep
-	 * 	  track of where the elements from [b1_start:b1_end] get moved as the
-	 * 	  merge proceeds.
-	 *
-	 * 	It is assumed that the values within each block are in ascending order.
-	 *
-	 * 	Note that this algorithm does not require the blocks to be contiguous, nor
-	 * 	 does it require the size of block_1 to be less than the size of block_2
-	 *
-	 * 	The algorithm creates a table of where each element from block_1
-	 * 	  moves to if it is swapped out of its position in the array.
-	 * 	  This table of array indices allows the algorithm to only require
-	 * 	  one temporary location for an array element during the swap.  However, it
-	 * 	  requires the space necessary for table of indices that initially has
-	 * 	  a quantity of elements equal to the size of the block_1
-	 *
-	 *	Note that updating the table of block_1 indices takes an element-wise search
-	 *	  through the table to determine which where a displaced block_1 element is
-	 *	  stored in the table.  This is denoted in the following example by t[x] = t[t_ptr]
-	 *	  where the block_1 element at 'dst' was stored in table at table index 'x'.
-	 *	  Note in the example that block_1 elements often get displaced multiple times.
-	 *	  The element in the table at table index [x] which was a 'dst' is now at:
-	 *	  	b2_ptr if the source of the swap was an element from block_2,
-	 *	  		which do not get displaced out of their original location during merging
-	 *	  	t[tpr] if the source of the swap was an element originally in block_1,
-	 *	  		which do often get displaced out of their original location during merging
-	 *
-	 *	In the following discussion
-	 *		'b1s' is block_1_start		'b1e' is block_1_end
-	 *		'b2s' is blocK_2_start		'b2e' is block_2_end
-	 *		b1_ptr is the array index of the location of the next element from block_1
-	 *		b2_ptr is the array index of the location of the next element from block_2
-	 *		t_ptr  is the index into the table of where block_1 elements have been displaced
-	 *		'-' indicates an index that is no longer part of the algorithm
-	 *
-	 * 	Consider the blocks "BDF" and "ACEG
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [B   D   F  ]   [A   C   E   G  ] ||  m    [ m+0 m+1 m+2 ]    0      m+0       n+0
-	 *
-	 *  [t[t_ptr=0]=m+0] = 'B'  > [b2_ptr] = 'A' .... xchg(dst, b2_ptr);    t[0]=b2_ptr; b2_ptr++;
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   D   F  ]   [B   C   E   G  ] ||  m+1  [ n+0 m+1 m+2 ]    0      n+0       n+1
-	 *
-	 *  [t[t_ptr=0]=n+0] = 'B' <= [b2_ptr] = 'C' .... xchg(dst, t[t_ptr]);  t[x=1]=t[t_ptrr]; t_ptr++;
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   B   F  ]   [D   C   E   G  ] ||  m+2  [ -   n+0 m+2 ]    1      n+0       n+1
-	 *
-	 *  [t[t_ptr=1]=n+0] = 'D' >  [b2_ptr] = 'C' .... xchg(dst, b2_ptr);    t[x=2]=b2_ptr; b2_ptr++;
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   B   C  ]   [D   F   E   G  ] ||  n+0  [ -   n+0 n+1 ]    1      n+0       n+2
-	 *
-	 * 	[t[tpr=1]=n+0] = 'D' <= [r_rptr] = 'E' ... dst == t[t_ptr=1], no swap occurred, t_ptr++
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   B   C  ]   [D   F   E   G  ] ||  n+1  [ -   -   n+1 ]    2      n+1       n+2
-	 *
-	 * 	[t[t_ptr=2]=n+1] = 'F' <= [r_rptr] = 'E' ... xchng(dst, b2_ptr);    t[x=2]=b2_ptr; b2_ptr++
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			   table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   B   C  ]   [D   E   F   G  ] ||  n+2  [ -   -   -   ]    3       -        n+3
-	 *
-	 * 	t_ptr has been exhausted because t_ptr = sizeof(table)),
-	 * 		therefore all block_1 elements are in their correct location and all unexamined
-	 * 		elements are block_2 elements which are in the originial, and correct, locations
-	 *
-	 *	The displacement of the block_1 elements, often multiple times, causes this algorithm
-	 *	  to use more swaps than a merge sort that uses an auxilliary array, which has a
-	 *	  guaranteed min & max number of swaps == nlog(n).  It was empirically observed
-	 *	  that this algorithm is on the order of swap complexity of insertion sort.
-	 *
-	 * 	As an example of the number of displacements of block_1 elements that can occur,
-	 * 	  consider the blocks "EFG" and "ABCD"
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3   dst      table            t_ptr  t[t_ptr] b2_ptr
-	 * 	E   F   G  ...  A   B   C   D  ||  m+0  [ m+0 m+1 m+2 ]     0      [0]=m+0  n+0
-	 * 	A   F   G  ...  E   B   C   D  ||  m+1  [ n+0 m+1 m+2 ]     0      [0]=n+0  n+1
-	 * 	A   B   C  ...  E   F   G   D  ||  m+2  [ n+0 n+1 m+2 ]     0      [0]=n+0  n+2
-	 * 	A   B   C  ...  D   F   G   E  ||  n+0  [ n+3 n+1 n+2 ]     0      [0]=n+0  n+3
-	 * 	A   B   C  ...  D   F   G   E  ||  n+1  [ n+3 n+1 n+2 ]     0      [0]=n+3  n+4
-	 *
-	 * 	All of the right block values "A:D" have been placed b/c n+4 > right_end = n+3,
-	 * 		but the left block values are no longer in sequence
-	 *
-	 * 	A   B   C  ...  D   F   G   E  ||  n+1  [ n+3 n+1 n+2 ]     0      [0]=n+3  -
-	 * 	A   B   C  ...  D   E   G   F  ||  n+2  [ -   n+3 n+2 ]     1      [1]=n+3  -
-	 * 	A   B   C  ...  D   E   F   G  ||  n+3  [ -   -   n+3 ]     2      [1]=n+3  -
-	 * 	A   B   C  ...  D   E   F   G  ||  n+4  [ -   -   -   ]     3      -        -
-	 *
-	 * 	t_ptr= has exceeded sizeof(table)=2 and all right blocks are in place, done
-	 *
-	 * 									Algorithm:
-	 * 	nextDestination(dst)
-	 *		if (dst == block_1_end)	dst = block_2_start
-	 *		else					dst++
-	 *
-	 * 	dst = block_1_start
-	 * 	t_ptr = 0
-	 * 	b2_ptr = blocK_2_start
-	 * 	while (dst <= right_end) {
-	 * 		b1_ptr = table[t_ptr]
-	 *
-	 * 		if (array[b1_ptr] <= array[b2_ptr] {
-	 * 			// the element to be merged came from block_1
-	 * 			if (dst != b1_ptr) {
-	 * 			 	swap(dst, b1_ptr)
-	 * 			 	//	the element block was from block_1
-	 * 			 	for (x = t_ptr+1; x != sizeof(table), x++) {
-	 * 			 		if(table[x] == dst) {
-	 * 			 			table[x] = table[t_ptr]
-	 * 			 			break
-	 * 			 		}
-	 * 			 	}
-	 * 			t_ptr++
-	 * 			if (t_ptr == sizeof(table))
-	 * 				break;
-	 * 		} else {
-	 * 			// the element came from block_2
-	 * 			if (dst != b2_ptr) {
-	 * 				swap(dst, b2_ptr)
-	 * 				//	block_2 elements always overwrite block_1 elements
-	 * 				//	search table to determine if the element
-	 * 				//	  displaced element was from block_1
-	 * 				for (x = t_ptr; x != sizeof(table), x++) {
-	 * 					if(table[x] == dst)
-	 * 						table[x] = b2_ptr
-	 * 				}
-	 * 			}
-	 * 			b2_ptr++
-	 *		}
-	 * 		next_destination(dst)
-	 */
-
-	template <typename T>
-	SortMetrics mergeTwoBlocksByTable(T ** array,
-											index_t block_1_start, index_t block_1_end,
-											index_t block_2_start, index_t block_2_end) {
-
-		/*	**************************************************************	*/
-		/*							debug									*/
-		/*	**************************************************************	*/
-
-		constexpr bool debug_verbose = false;
-		std::stringstream message;
-
-		/*	**************************************************************	*/
-		/*							lambdas									*/
-		/*	**************************************************************	*/
-
-		auto next_destination = [=] (index_t _dest) -> index_t {
-			if (_dest != block_1_end)
-				return _dest + 1;
-			else
-				return block_2_start;
-		};
-
-		//	If an element swapped into 'dst' was in the displacement table,
-		//	update the table's entry for the element to now be located at 'src'
-		auto update_locations_table = [] (index_t *table, index_t start, index_t end,
-										  index_t dst, index_t src) {
-			for (index_t i = start; i <= end; i++) {
-				//	the element in the table which was
-				//	previously at 'dst', it is now at 'src'
-				if (table[i] == dst) {
-					table[i] = src;
-					break;
-				}
-			}
-		};
-
-		/*	**************************************************************	*/
-		/*							algorithm								*/
-		/*	**************************************************************	*/
-
-		SortMetrics result(0,0);
-
-		index_t block_1_span = block_1_end - block_1_start + 1;
-		index_t block_2_span = block_2_end - block_2_start + 1;
-
-		if (block_1_span == 0 || block_2_span == 0) {
-			return result;
-		}
-
-		index_t block_1_locations_table_size = block_1_span;
-		index_t block_1_locations_table[block_1_locations_table_size];
-
-		for (index_t i = 0, src = block_1_start; i < block_1_locations_table_size; ) {
-			block_1_locations_table[i++] = src++;
-		}
-
-		index_t block_1_locations_table_index = 0;
-		index_t block_2_index				  = block_2_start;
-		index_t destination_index  			  = block_1_start;
-
-		auto debug_string = [&]() -> std::string {
-			std::stringstream result;
-			for (index_t i = block_1_start; i <= block_2_end; ) {
-				result << std::setw(3) << *array[i] << " ";
-				i++;
-				if (i-1 == block_1_end) {
-					i = block_2_start;
-				}
-			}
-			result << " " << std::setw(3) << block_1_locations_table_index
-				   << " using table [";
-			for (int i = 0; i != block_1_locations_table_size; i++) {
-				if (i < block_1_locations_table_index) {
-					result << " - ";
-				} else {
-					result << std::setw(3) << block_1_locations_table[i];
-				}
-			}
-			result 	<< "] dst " << std::setw(2) << destination_index
-					<< " t_ptr " << std::setw(2) << block_1_locations_table_index
-					<< " b2_ptr " << std::setw(2) << block_2_index;
-			return result.str();
-		};
-
-
-		/*	******************************************************	*/
-		/*					the algorithm code						*/
-		/*	******************************************************	*/
-
-		while (destination_index <= block_2_end)
-		{
-			// Point to the current location of the next block_1 element
-			//	which may not be stored in its original position b/c
-			//	the block_1 element may have been displaced in a previous
-			//	pass through this loop.
-			index_t block_1_index = block_1_locations_table[block_1_locations_table_index];
-
-			result.compares++;
-			if (*array[block_1_index] <= *array[block_2_index]) {
-				// the value from the left block goes into destination
-				if (destination_index != block_1_index) {
-					T* tmp 					 = array[destination_index];
-					array[destination_index] = array[block_1_index];
-					array[block_1_index] 	 = tmp;
-					result.assignments += 3;
-
-					// Update the table location of the entry that was just displaced,
-					//	which will be somewhere in the table after the current entry
-					update_locations_table(block_1_locations_table,
-								   	   	   block_1_locations_table_index+1, block_1_locations_table_size-1,
-										   destination_index, block_1_index);
-				}
-
-				if (debug_verbose) message   << "left:  " << debug_string() << std::endl;
-
-				destination_index = next_destination(destination_index);
-
-				//	if we have moved / merged all of the block_1 elements, we are done
-				if (++block_1_locations_table_index == block_1_locations_table_size) {
-					if (debug_verbose) message << "Terminated due to table_index == table_size " << std::endl;
-					break;
-				}
-			}
-			else
-			{
-				// value from the right block is < value from the left block
-				T* tmp 					 = array[destination_index];
-				array[destination_index] = array[block_2_index];
-				array[block_2_index] 	 = tmp;
-				result.assignments += 3;
-
-				//	Update the table entry of the location of the element
-				//	that was just displaced, which may be in any position in the table
-				update_locations_table(block_1_locations_table,
-								   	   block_1_locations_table_index, block_1_locations_table_size-1,
-									   destination_index, block_2_index);
-
-				if (debug_verbose) message << "right: " << debug_string() << std::endl;
-
-				destination_index = next_destination(destination_index);
-
-				//	if all the elements from block_2 are in place, break loop
-				if (++block_2_index > block_2_end) {
-					if (debug_verbose) message << "Terminated due to block_2_index > block_2_end" << std::endl;
-					break;
-				}
-			}
-		}
-
-		//	If the while loop terminated because all block_2 elements are now in place,
-		//	  it is possible that there are displaced block_1 elements that are not
-		//	  in order.  Reorder any remaining block_1 values that have been displaced
-		while(destination_index <= block_2_end &&
-			  block_1_locations_table_index < block_1_locations_table_size)
-		{
-			if (debug_verbose) message << "flush: " << debug_string() << std::endl;
-
-			index_t block_1_index	= block_1_locations_table[block_1_locations_table_index];
-			T* temp 				= array[destination_index];
-			array[destination_index]= array[block_1_index];
-			array[block_1_index]	= temp;
-			result.assignments += 3;
-			//	update the table's contents from AFTER the element that was just stored
-			update_locations_table(block_1_locations_table,
-								   block_1_locations_table_index+1, block_1_locations_table_size-1,
-								   destination_index, block_1_index);
-			block_1_locations_table_index++;
-			destination_index = next_destination(destination_index);
-		}
-
-		if (debug_verbose)	std::cout << message.str() << std::endl;
-		return result;
-	}
-
-
 	//	starting at the right-most block, merge the previous (left) block into
 	//	  the elements to the right
 	template <typename T>
@@ -473,13 +149,13 @@ namespace BlockSort {
 									int num_blocks) {
 
 		SortMetrics result;
-		index_t sorted_span_start 	= block_descriptors[num_blocks-1].start_index;
-		index_t sorted_span_end		= block_descriptors[num_blocks-1].end_index;
+		array_size_t sorted_span_start 	= block_descriptors[num_blocks-1].start_index;
+		array_size_t sorted_span_end		= block_descriptors[num_blocks-1].end_index;
 		int left_block = num_blocks-2;
 
 		while (left_block >= 0) {
-			index_t left_start 	= block_descriptors[left_block].start_index;
-			index_t left_end	= block_descriptors[left_block].end_index;
+			array_size_t left_start 	= block_descriptors[left_block].start_index;
+			array_size_t left_end	= block_descriptors[left_block].end_index;
 			result += mergeTwoBlocksByTable(array,
 											left_start, left_end,
 											sorted_span_start, sorted_span_end);
@@ -490,6 +166,7 @@ namespace BlockSort {
 		}
 		return result;
 	}
+
 
 	/*
 	 * 	ComparesAndMoves sortBlocksBinarySearch(array, size, descriptors, num_desc);

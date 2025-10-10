@@ -37,8 +37,7 @@ namespace OptimizedQuickSort {
 		if (span == 2) {
 			ret_val.compares++;
 			if (*array[start] > *array[end]) {
-				ret_val.assignments +=
-					SortingUtilities::swap(array, start, end);
+				ret_val += SortingUtilities::swap(array, start, end);
 			}
 			return ret_val;
 		}
@@ -71,12 +70,10 @@ namespace OptimizedQuickSort {
 			if (lower >= upper) {
 				// upper is at the right-most element that
 				//	is less than or equal to the pivot
-				ret_val.assignments +=
-					SortingUtilities::swap(array, pivot, upper);
+				ret_val += SortingUtilities::swap(array, pivot, upper);
 				break;
 			}
-			ret_val.assignments +=
-				SortingUtilities::swap(array, lower, upper);
+			ret_val += SortingUtilities::swap(array, lower, upper);
 		}
 
 		if (upper != start) {

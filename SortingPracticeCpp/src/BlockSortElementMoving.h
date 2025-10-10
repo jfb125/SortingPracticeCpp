@@ -23,18 +23,10 @@ namespace BlockSort {
 	/*
 	 * 	Blocks must be contiguous
 	 */
-	template <typename T>
-	SortMetrics mergeContiguousElementsByRotating(T** array, index_t start,
-																index_t mid, index_t end);
-
-
-	/*
-	 * 	Blocks do not have to be continuous nor do they have to be the same size
-	 */
-	template <typename T>
-	SortMetrics mergeTwoBlockElementsByTable(T ** array,
-										index_t block_1_start, index_t block_1_end,
-										index_t block_2_start, index_t block_2_end);
+//	template <typename T>
+//	SortMetrics mergeContiguousElementsByRotating(T** array, index_t start,
+//																index_t mid, index_t end);
+//
 
 	template <typename T>
 	SortMetrics swapBlockElementsOfEqualSize( T** array,
@@ -138,7 +130,7 @@ namespace BlockSort {
 		return metrics;
 	}
 
-
+#if 0
 	/*
 	 * ComparesAndMoves mergeBlocksByRotating(array, start, mid, end);
 	 *
@@ -305,7 +297,7 @@ namespace BlockSort {
 
 		return metrics;
 	}
-
+#endif
 	/*
 	 *	ComparesAndMoves swapBlockElements(array, b1_start, b2_start, block_size)
 	 *

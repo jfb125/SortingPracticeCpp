@@ -41,7 +41,10 @@ namespace SelectionSort {
 				}
 
 				if (index_of_smallest_value != first_unsorted_element) {
-					result.assignments += SortingUtilities::swap(array, index_of_smallest_value, first_unsorted_element);
+					result +=
+						SortingUtilities::swap(array,
+											   index_of_smallest_value,
+											   first_unsorted_element);
 				}
 			}
 		}

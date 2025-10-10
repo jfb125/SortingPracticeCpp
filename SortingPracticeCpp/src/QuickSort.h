@@ -35,8 +35,7 @@ namespace QuickSort {
 		if (span == 2) {
 			ret_val.compares++;
 			if (*array[start] > *array[end]) {
-				ret_val.assignments +=
-						SortingUtilities::swap(array, start, end);
+				ret_val += SortingUtilities::swap(array, start, end);
 			}
 			return ret_val;
 		}
@@ -67,16 +66,14 @@ namespace QuickSort {
 			//	if lower crossed upper, the partition is
 			//	 complete, so swap pivot with upper and exit
 			if (lower >= upper) {
-				ret_val.assignments +=
-						SortingUtilities::swap(array, pivot, upper);
+				ret_val += SortingUtilities::swap(array, pivot, upper);
 				break;
 			}
 			// [upper] <= pivot
 			// [lower] >  pivot
 			//   and lower < upper
 			//   so exchange them
-			ret_val.assignments +=
-				SortingUtilities::swap(array, lower, upper);
+			ret_val += SortingUtilities::swap(array, lower, upper);
 			// at this point,
 			//	[upper] >  [pivot]
 			//	[lower] <= [pivot]

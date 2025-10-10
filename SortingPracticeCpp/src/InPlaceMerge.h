@@ -14,136 +14,9 @@
 #include "InsertionSort.h"
 
 namespace InPlaceMerge {
-using index_t = array_size_t;
-
-	/*	Merge blocks using binary searches to identify spans to rotate
-	 *
-	 * In the following discussion,
-	 * 	last(start,end,key) 	refers to a binary search that
-	 * 	 							returns the left-most element
-	 * 	 							that is > the search term
-	 * 	rotate(span_start, span_end, rotate_count)
-	 * 							refers to the rotating all element righ
-	 * 	As						refers to the least (leftmost) element
-	 * 								from the A_Block that has not been placed
-	 * 	Ae						refers to the greatest (rightmost) element
-	 * 								that has not been placed
-	 * 	Bs						refers to the least (leftmost) element
-	 * 								from the B_Block that has nto been placed
-	 * 	Be						is always the last element in B
-	 * 	Ss						is the start of the span to be rotated
-	 * 	Se						is the end of the span to be rotated
-	 * 	Rc						is the count to rotate the span right
-	 *
-	 * Consider the following array:
-	 *[       A Block        ][    B Block
-	 * 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14	| As Ae Bs Be | Ss Se Rc
-	 * A  G  H  I  M  N  O  P  B  C  D  E  F  J  K	  0  7  8  14   1  13  5
-	 * 		span_start 	= last(As,Ae,[Bs]='B')		=  1
-	 * 		span_end	= last(Bs,Be,[Ss]='G') - 1	= 12
-	 * 		rotate_count= span_end - b_start + 1 	= (12 -  8 +  1) = 5
-	 * 	After
-	 * 		rotate(span_start, span_end, rotate_count)
-	 * 		As = span_start + rotate_count			=  1 + 5 	= 6
-	 * 		Ae = a_end + rotate_count				=  7 + 5 	= 12
-	 * 		Bs = span_end + 1						= 12 + 1 	= 13
-	 *
-	 * 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14	| As Ae Bs Be | Ss Se Rc
-	 * A  B  C  D  E  F  G  H  I  M  N  O  P  J  K	  6  12 13 14   9  12  2
-	 *
-	 *		span_start 	= last(As,Ae,[Bs]='J')		=  9
-	 *		span_end	= last(As,Ae,[Ss]='M') - 1	= 14
-	 *		rotate_count= span_end - b_start + 1	= (14 - 13 + 1) = 2
-	 *	After
-	 *		rotate(span_start, span_end, rotate_count)
-	 *		As = span_start + rotate_count			=  9 + 2 = 11
-	 *		Ae = a_end + rotate_count				= 12 + 2 = 14
-	 *		Bs = span_end + 1						= 14 + 1 = 15  out of bound
-	 *
-	 *
-	 *	Although it is not necessary to pass 'block_1_end' as a parameter, it
-	 *	is included so this function is compatible with other merge functions
-	 *	that have the capability to merge non-contiguous blocks and thus need
-	 *	to know explicitly where block_1 ends.
-	 */
-
-	template <typename T>
-	SortMetrics mergeTwoAdjacentBlocksByRotation( T** array,
-												  index_t block_1_start,
-												  index_t block_1_end,
-												  index_t block_2_start,
-												  index_t block_2_end) {
-		constexpr bool debug_verbose = false;
-		SortMetrics metrics(0,0);
-		index_t	a_start = block_1_start;
-		index_t a_end	= block_1_end;
-		index_t b_start	= block_2_start;
-		index_t b_end	= block_2_end;
-		index_t span_start 	= 0;
-		index_t span_end 	= 1;
-		index_t rotate_count;
-
-		//	if b_start moves off the end of the array, all b_blocks are in place
-		//		and therefore the remaining a_blocks will not go after b_start
-		//		  As       Ae                 Bs       Be
-		//		[ A  B, G, H ]  merged with [ C, D, E, F ] 	ss = [2], se = [7]
-		//	   	[ A, B, C, D, E. F. G. H ]					bs = se + 1 =  [8]
-
-		//	if span_start == span_end, the remaining span of a_blocks are in place
-		//		even though b_start may not be at the end
-		//		[ A, D, E, F ]  merged with [ B, C, G, H ]	ss = [1], se = [6]
-		//		[ A, B, C, D, E, F, G, H ]			b		ss = [8], se = [8]
-
-		while (b_start <= block_2_end && span_start != span_end /*&& a_start != a_end*/) {
-			if (debug_verbose) {
-				std::cout << "Start of loop ";
-			}
-			span_start =
-				SortingUtilities::binarySearchLastElement(array,
-														  a_start, a_end,
-														  array[b_start],
-														  metrics);
-			span_end =
-				SortingUtilities::binarySearchLastElement(array,
-														  b_start, b_end,
-														  array[span_start],
-														  metrics);
-			rotate_count = span_end - b_start;
-			span_end--;
-			if (debug_verbose) {
-				std::cout 	<< " block1_start "	<< std::setw(2) << block_1_start
-							<< " block2_start "	<< std::setw(2)	<< block_2_start
-							<< " block2_end "	<< std::setw(2) << block_2_end
-							<< " a_start " 		<< std::setw(2) << a_start
-							<< " a_end "		<< std::setw(2)	<< a_end
-							<< " b_start "		<< std::setw(2) << b_start
-							<< " b_end "		<< std::setw(2)	<< b_end
-							<< " span_start " 	<< std::setw(2)	<< span_start
-							<< " span_end "		<< std::setw(2)	<< span_end
-							<< " rotate_count "	<< std::setw(2)	<< rotate_count;
-			}
-			metrics +=
-				SortingUtilities::rotateArrayElementsRight(array,
-														   span_start, span_end,
-														   rotate_count);
-			if (debug_verbose) {
-				std::cout << " got past rotateElements\n";
-			}
-			a_start = span_start + rotate_count;
-			a_end	+= rotate_count;
-			b_start = span_end+1;
-		}
-		return metrics;
-	}
 
 	/*
-	 * 	Merge two blocks by keeping a table of where the elements in the smaller
-	 * 	block get swapped (displaced) to.
-	 */
-
-
-	/*
-	 * 	Address the array as being made up of blocks, and merge adjacent blocks.
+	 * 	Address the array as being made up of blocks, and merges adjacent blocks.
 	 *
 	 * 	Double the block size each time so what was previously two separate blocks
 	 * 	  is now treated as a single block.  Note that the size of the last block
@@ -158,58 +31,71 @@ using index_t = array_size_t;
 	 *	The mergeInPlace is done using different algorithms
 	 */
 
-	constexpr index_t initial_block_size = 16;
+	constexpr array_size_t initial_block_size = 16;
+
 
 	template <typename T>
-	SortMetrics sortPointerstoObjects(T **array_of_pointers, array_size_t size) {
+	SortMetrics sortPointerstoObjects(T **array, array_size_t size) {
 
-		constexpr bool debug_verbose = false;
+		bool debug_verbose = false;
+
 		SortMetrics metrics(0,0);
 
-		SortMetrics (*mergeInPlace)(T**array,
-									index_t block_1_start,
-									index_t block_1_end,
-									index_t block_2_start,
-									index_t block_2_end) =
-//			mergeTwoAdjacentBlocksByRotation;
-			BlockSort::mergeTwoBlocksByTable;
+		BlockSort::MergeStrategy merge_strategy =
+					BlockSort::MergeStrategy::TABLE;
+
+		SortMetrics (*mergeBlocks)(T** array,
+								   array_size_t block_1_start,
+								   array_size_t block_1_end,
+								   array_size_t block_2_start,
+								   array_size_t block_2_end);
+
+		switch(merge_strategy) {
+		case BlockSort::MergeStrategy::ROTATE:
+			mergeBlocks = SortingUtilities::mergeTwoAdjacentBlocksByRotation;
+			break;
+		case BlockSort::MergeStrategy::TABLE:
+		default:
+			mergeBlocks = SortingUtilities::mergeTwoBlocksElementsByTable;
+			break;
+		}
+
+		if (debug_verbose) std::cout << "InPlaceMerge using " << merge_strategy << std::endl;
 
 		if (size < 2*initial_block_size) {
-			metrics = InsertionSort::sortPointersToObjects(array_of_pointers, size);
+			metrics = InsertionSort::sortPointersToObjects(array, size);
 			return metrics;
 		}
-		index_t block_size = initial_block_size;
 
-		index_t block_1_start = 0;
+		array_size_t block_size = initial_block_size;
+		array_size_t block_start = 0;
 
-		while (block_1_start < size) {
-			index_t num_elements = block_size;
-			if (block_1_start + num_elements > size)
-				num_elements = size - block_1_start;
+		//	Ensure that each block's elements are sorted
+		while (block_start < size) {
+			array_size_t num_elements = block_size;
+			if (block_start + num_elements > size)
+				num_elements = size - block_start;
 			metrics +=
-				InsertionSort::sortPointersToObjects(&array_of_pointers[block_1_start],
+				InsertionSort::sortPointersToObjects(&array[block_start],
 													 num_elements);
-			block_1_start += block_size;
+			block_start += block_size;
 		}
-		if (debug_verbose) {
-			std::cout << "  Made it through sorting initial blocks\n";
-		}
+
+		if (debug_verbose) std::cout << "  Made it through sorting initial blocks\n";
+
+		//	continuously merge pairs of adjoining blocks of ever larger sizes
 		while (block_size < size) {
-			block_1_start = 0;
-			index_t block_1_end	  = block_1_start + block_size-1;
-			index_t block_2_start = block_1_end + 1;
-			index_t block_2_end	  = block_2_start + block_size - 1;
+			array_size_t block_1_start = 0;
+			array_size_t block_1_end	= block_1_start + block_size-1;
+			array_size_t block_2_start 	= block_1_end + 1;
+			array_size_t block_2_end	 = block_2_start + block_size - 1;
 			//	it is possible that block size is greater than half the array
 			if (block_2_end > size-1)
 				block_2_end = size-1;
 			while (block_2_start < size) {
-				metrics += mergeInPlace(array_of_pointers,
+				metrics += mergeBlocks(	array,
 							 	 	 	block_1_start, block_1_end,
 										block_2_start, block_2_end);
-//				metrics +=
-//					InsertionSort::sortPointersToObjects(
-//							&array_of_pointers[block_1_start],
-//							block_2_end - block_1_start + 1);
 				block_1_start = block_2_end+1;
 				block_1_end	  = block_1_start + block_size - 1;
 				//	if block 1 extends to or past the end of the array
@@ -231,5 +117,4 @@ using index_t = array_size_t;
 		}
 		return metrics;
 	}
-
 }

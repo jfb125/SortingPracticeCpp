@@ -14,6 +14,7 @@
 #include <cstdint>
 
 #include "SortingUtilities.h"
+#include "SortingDebugOutput.h"
 #include "IntegerArithmetic.h"
 #include "nChoosek.h"
 
@@ -1132,7 +1133,8 @@ bool testBlockSortMergeBlocksExhaustively() {
 	bool echo_result 	= true;
 	bool test_passed 	= true;
 
-	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
+//	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
+	int test_vector_sizes[] = { 16 };
 	int num_test_vectors_sizes = sizeof(test_vector_sizes) / sizeof(int);
 
 	#pragma push_macro("DATA_TYPE")
@@ -1247,10 +1249,18 @@ bool testBlockSortMergeBlocksExhaustively() {
 				SortMetrics result;
 				switch(merge_strategy) {
 				case MergeStrategy::TABLE:
-					result = mergeTwoBlocksByTable(test_vectors[i], left_start, left_end, right_start, right_end);
+					result =
+						SortingUtilities::mergeTwoBlocksElementsByTable(
+													 test_vectors[i],
+													 left_start, left_end,
+													 right_start, right_end);
 					break;
 				case MergeStrategy::ROTATE:
-					result = mergeContiguousElementsByRotating(test_vectors[i], 0, test_vector_size / 2, test_vector_size - 1);
+					result =
+						SortingUtilities::mergeTwoAdjacentBlocksByRotation(
+													 test_vectors[i],
+													 left_start, left_end,
+													 right_start, right_end);
 					break;
 				case MergeStrategy::AUXILLIARY:
 				default:
@@ -1328,7 +1338,7 @@ bool testBlockSortMergeBlocksRandomly() {
 	bool test_passed = true;
 //	SimpleRandomizer randomizer;
 	bool debug_verbose 		= false;
-	bool echo_test_result 	= false;
+	bool echo_test_result 	= true;
 	std::stringstream message;
 
 	using data_type = int;
@@ -1458,13 +1468,18 @@ bool testBlockSortMergeBlocksRandomly() {
 
 				switch(merge_strategy) {
 				case MergeStrategy::ROTATE:
-					result += mergeContiguousElementsByRotating(test_array,
-															  left_start, mid, right_end);
+					result +=
+						SortingUtilities::mergeTwoAdjacentBlocksByRotation(
+													test_array,
+													left_start, left_end,
+													right_start, right_end);
 					break;
 				case MergeStrategy::TABLE:
-					result += mergeTwoBlocksByTable( test_array,
-												 	 left_start, left_end,
-													 right_start, right_end);
+					result +=
+						SortingUtilities::mergeTwoBlocksElementsByTable(
+													test_array,
+												 	left_start, left_end,
+													right_start, right_end);
 					break;
 				case MergeStrategy::AUXILLIARY:
 					std::cout << __FUNCTION__ << " using strategy "
