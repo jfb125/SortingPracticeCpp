@@ -46,10 +46,10 @@ int main(int argc, char *argv[])
 //	testBlockSort();
 //	return EXIT_SUCCESS;
 
-	int num_repetitions = 100;
+	int num_repetitions = 1;
 
 	constexpr array_size_t min_array_size =    64;
-	constexpr array_size_t max_array_size =   512;
+	constexpr array_size_t max_array_size =  1024;
 	//	comment out all but the one used in this test
 //	array_size_t (*next_size)(array_size_t current) = next_increment;
 	array_size_t (*next_size)(array_size_t current) = next_power_of_2;

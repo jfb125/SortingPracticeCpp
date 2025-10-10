@@ -28,10 +28,13 @@ namespace BlockSort {
 											   Descriptors<T> &block_descriptors,
 											   int num_blocks);
 
-	/*	Merge blocks using binary searches to identify spans to rotate	*/
+	/*	Merge blocks using binary searches to identify spans to rotate
+	 * Although not strictly necessary, 'block_1_end' is passed to be consistent
+	 * with the other block merging functions	*/
 	template <typename T>
 	SortMetrics mergeTwoAdjacentBlocksByRotation(T** array,
 													  index_t block_1_start,
+													  index_t block_1_end,
 													  index_t block_2_start,
 													  index_t block2_end);
 
@@ -39,8 +42,8 @@ namespace BlockSort {
 	 * elements in block_1 are moved to in block_2 during the merge. */
 	template <typename T>
 	SortMetrics mergeTwoBlocksByTable(T ** array,
-											index_t block_1_start, index_t block_1_end,
-											index_t block_2_start, index_t block_2_end);
+									  index_t block_1_start, index_t block_1_end,
+									  index_t block_2_start, index_t block_2_end);
 
 	/*	sort an array of [start:end] by key, ignoring block type	*/
 	template <typename T>
@@ -133,6 +136,7 @@ namespace BlockSort {
 	template <typename T>
 	SortMetrics mergeTwoAdjacentBlocksByRotation(T** array,
 													  index_t block_1_start,
+													  index_t block_1_end,
 													  index_t block_2_start,
 													  index_t block2_end);
 

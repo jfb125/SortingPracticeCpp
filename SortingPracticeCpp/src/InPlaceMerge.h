@@ -59,26 +59,42 @@ using index_t = array_size_t;
 	 *		As = span_start + rotate_count			=  9 + 2 = 11
 	 *		Ae = a_end + rotate_count				= 12 + 2 = 14
 	 *		Bs = span_end + 1						= 14 + 1 = 15  out of bound
+	 *
+	 *
+	 *	Although it is not necessary to pass 'block_1_end' as a parameter, it
+	 *	is included so this function is compatible with other merge functions
+	 *	that have the capability to merge non-contiguous blocks and thus need
+	 *	to know explicitly where block_1 ends.
 	 */
 
 	template <typename T>
 	SortMetrics mergeTwoAdjacentBlocksByRotation( T** array,
 												  index_t block_1_start,
+												  index_t block_1_end,
 												  index_t block_2_start,
 												  index_t block_2_end) {
 		constexpr bool debug_verbose = false;
 		SortMetrics metrics(0,0);
 		index_t	a_start = block_1_start;
-		index_t a_end	= block_2_start-1;
+		index_t a_end	= block_1_end;
 		index_t b_start	= block_2_start;
 		index_t b_end	= block_2_end;
 		index_t span_start 	= 0;
 		index_t span_end 	= 1;
 		index_t rotate_count;
 
-		//	if b_start moves off the end of the array, it is sorted
-		//	if there are no more a values to merge, it is sorted
-		while (b_start <= block_2_end && span_start != span_end && a_start != a_end) {
+		//	if b_start moves off the end of the array, all b_blocks are in place
+		//		and therefore the remaining a_blocks will not go after b_start
+		//		  As       Ae                 Bs       Be
+		//		[ A  B, G, H ]  merged with [ C, D, E, F ] 	ss = [2], se = [7]
+		//	   	[ A, B, C, D, E. F. G. H ]					bs = se + 1 =  [8]
+
+		//	if span_start == span_end, the remaining span of a_blocks are in place
+		//		even though b_start may not be at the end
+		//		[ A, D, E, F ]  merged with [ B, C, G, H ]	ss = [1], se = [6]
+		//		[ A, B, C, D, E, F, G, H ]			b		ss = [8], se = [8]
+
+		while (b_start <= block_2_end && span_start != span_end /*&& a_start != a_end*/) {
 			if (debug_verbose) {
 				std::cout << "Start of loop ";
 			}
@@ -121,6 +137,12 @@ using index_t = array_size_t;
 	}
 
 	/*
+	 * 	Merge two blocks by keeping a table of where the elements in the smaller
+	 * 	block get swapped (displaced) to.
+	 */
+
+
+	/*
 	 * 	Address the array as being made up of blocks, and merge adjacent blocks.
 	 *
 	 * 	Double the block size each time so what was previously two separate blocks
@@ -146,9 +168,11 @@ using index_t = array_size_t;
 
 		SortMetrics (*mergeInPlace)(T**array,
 									index_t block_1_start,
+									index_t block_1_end,
 									index_t block_2_start,
 									index_t block_2_end) =
-			mergeTwoAdjacentBlocksByRotation;
+//			mergeTwoAdjacentBlocksByRotation;
+			BlockSort::mergeTwoBlocksByTable;
 
 		if (size < 2*initial_block_size) {
 			metrics = InsertionSort::sortPointersToObjects(array_of_pointers, size);
@@ -172,20 +196,27 @@ using index_t = array_size_t;
 		}
 		while (block_size < size) {
 			block_1_start = 0;
-			index_t block_2_start = block_1_start + block_size;
+			index_t block_1_end	  = block_1_start + block_size-1;
+			index_t block_2_start = block_1_end + 1;
 			index_t block_2_end	  = block_2_start + block_size - 1;
 			//	it is possible that block size is greater than half the array
 			if (block_2_end > size-1)
 				block_2_end = size-1;
 			while (block_2_start < size) {
 				metrics += mergeInPlace(array_of_pointers,
-							 	 	 	block_1_start, block_2_start, block_2_end);
+							 	 	 	block_1_start, block_1_end,
+										block_2_start, block_2_end);
 //				metrics +=
 //					InsertionSort::sortPointersToObjects(
 //							&array_of_pointers[block_1_start],
 //							block_2_end - block_1_start + 1);
 				block_1_start = block_2_end+1;
-				block_2_start = block_1_start + block_size;
+				block_1_end	  = block_1_start + block_size - 1;
+				//	if block 1 extends to or past the end of the array
+				//	then there is not a block_2 and no need to merge
+				if (block_1_end >= size-1)
+					break;
+				block_2_start = block_1_end + 1;
 				block_2_end	  = block_2_start + block_size - 1;
 				if (block_2_end > size-1)
 					block_2_end = size-1;
