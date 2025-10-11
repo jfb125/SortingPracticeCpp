@@ -357,11 +357,12 @@ namespace SortingUtilities {
 	 */
 
 	template <typename T>
-	SortMetrics mergeTwoBlocksElementsByTable(T ** array,
+	array_size_t mergeTwoBlocksElementsByTable(T ** array,
 											 array_size_t block_1_start,
 											 array_size_t block_1_end,
 											 array_size_t block_2_start,
-											 array_size_t block_2_end) {
+											 array_size_t block_2_end,
+											 SortMetrics &metrics) {
 
 		/*	**************************************************************	*/
 		/*							debug									*/
@@ -399,13 +400,16 @@ namespace SortingUtilities {
 		/*							algorithm								*/
 		/*	**************************************************************	*/
 
-		SortMetrics result(0,0);
-
+		//	Keep track of where the final element in block 2 (B_Block) ends up
+		//	after the merge.  This is the position of the last element guaranteed
+		//	to be in it's final place.  Any A_Block elements at the end of
+		//	the array may be larger than the next B_Block's first elements
+		array_size_t block_2_end_position = block_2_end;
 		array_size_t block_1_span = block_1_end - block_1_start + 1;
 		array_size_t block_2_span = block_2_end - block_2_start + 1;
 
 		if (block_1_span == 0 || block_2_span == 0) {
-			return result;
+			return block_2_end_position;
 		}
 
 		array_size_t block_1_locations_table_size = block_1_span;
@@ -456,14 +460,14 @@ namespace SortingUtilities {
 			//	pass through this loop.
 			array_size_t block_1_index = block_1_locations_table[block_1_locations_table_index];
 
-			result.compares++;
+			metrics.compares++;
 			if (*array[block_1_index] <= *array[block_2_index]) {
 				// the value from the left block goes into destination
 				if (destination_index != block_1_index) {
 					T* tmp 					 = array[destination_index];
 					array[destination_index] = array[block_1_index];
 					array[block_1_index] 	 = tmp;
-					result.assignments += 3;
+					metrics.assignments += 3;
 
 					// Update the table location of the entry that was just displaced,
 					//	which will be somewhere in the table after the current entry
@@ -488,7 +492,11 @@ namespace SortingUtilities {
 				T* tmp 					 = array[destination_index];
 				array[destination_index] = array[block_2_index];
 				array[block_2_index] 	 = tmp;
-				result.assignments += 3;
+				metrics.assignments += 3;
+
+				if (block_2_index == block_2_end_position) {
+					block_2_end_position = destination_index;
+				}
 
 				//	Update the table entry of the location of the element
 				//	that was just displaced, which may be in any position in the table
@@ -520,7 +528,7 @@ namespace SortingUtilities {
 			T* temp 				= array[destination_index];
 			array[destination_index]= array[block_1_index];
 			array[block_1_index]	= temp;
-			result.assignments += 3;
+			metrics.assignments += 3;
 			//	update the table's contents from AFTER the element that was just stored
 			update_locations_table(block_1_locations_table,
 								   block_1_locations_table_index+1, block_1_locations_table_size-1,
@@ -530,7 +538,7 @@ namespace SortingUtilities {
 		}
 
 		if (debug_verbose)	std::cout << message.str() << std::endl;
-		return result;
+		return block_2_end_position;
 	}
 
 

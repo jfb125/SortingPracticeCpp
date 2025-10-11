@@ -37,7 +37,7 @@ using namespace BlockSort;
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 //#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+//#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
@@ -45,7 +45,7 @@ using namespace BlockSort;
 //#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
 //#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
 //#define TEST_BLOCK_SORT_SORT_BLOCKS
-//#define TEST_BLOCK_SORT_SORT
+#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortBinarySearchFirstBlock();
 bool testBlockSortBinarySearchLastBlock();
@@ -1246,17 +1246,17 @@ bool testBlockSortMergeBlocksExhaustively() {
 				test_message << " when divided into two subarrays, each sorted: "
 							 << testVectorToString(test_vectors[i], test_vector_size);
 
-				SortMetrics result;
+				SortMetrics metrics;
 				switch(merge_strategy) {
 				case MergeStrategy::TABLE:
-					result =
 						SortingUtilities::mergeTwoBlocksElementsByTable(
 													 test_vectors[i],
 													 left_start, left_end,
-													 right_start, right_end);
+													 right_start, right_end,
+													 metrics);
 					break;
 				case MergeStrategy::ROTATE:
-					result =
+					metrics =
 						SortingUtilities::mergeTwoAdjacentBlocksByRotation(
 													 test_vectors[i],
 													 left_start, left_end,
@@ -1266,25 +1266,25 @@ bool testBlockSortMergeBlocksExhaustively() {
 				default:
 					break;
 				}
-				total_results += result;
-				if (result.compares < least_compares.compares) {
-					least_compares = result;
+				total_results += metrics;
+				if (metrics.compares < least_compares.compares) {
+					least_compares = metrics;
 				}
-				if (result.assignments < least_moves.assignments) {
-					least_moves = result;
+				if (metrics.assignments < least_moves.assignments) {
+					least_moves = metrics;
 				}
-				if (result.compares > most_compares.compares) {
-					most_compares = result;
+				if (metrics.compares > most_compares.compares) {
+					most_compares = metrics;
 				}
-				if (result.assignments > most_moves.assignments) {
-					most_moves = result;
+				if (metrics.assignments > most_moves.assignments) {
+					most_moves = metrics;
 				}
 
 				test_message << " merged using strategy "
 							 << std::to_string(merge_strategy) << " to "
 							 << testVectorToString(test_vectors[i], test_vector_size)
 							 << " which took "
-							 << result;
+							 << metrics;
 				if (isSorted(test_vectors[i], test_vector_size)) {
 					test_message << " which is correct" << std::endl;
 				} else {
@@ -1423,7 +1423,7 @@ bool testBlockSortMergeBlocksRandomly() {
 
 			for (int test_number = 0; test_number != num_test_passes; test_number++) {
 
-				SortMetrics result(0, 0);
+				SortMetrics metrics(0, 0);
 				//	create a linear array
 				for (int i = 0; i != array_size; i++) {
 					test_array[i] 		= reference_array[i];
@@ -1468,18 +1468,18 @@ bool testBlockSortMergeBlocksRandomly() {
 
 				switch(merge_strategy) {
 				case MergeStrategy::ROTATE:
-					result +=
+					metrics +=
 						SortingUtilities::mergeTwoAdjacentBlocksByRotation(
 													test_array,
 													left_start, left_end,
 													right_start, right_end);
 					break;
 				case MergeStrategy::TABLE:
-					result +=
 						SortingUtilities::mergeTwoBlocksElementsByTable(
 													test_array,
 												 	left_start, left_end,
-													right_start, right_end);
+													right_start, right_end,
+													metrics);
 					break;
 				case MergeStrategy::AUXILLIARY:
 					std::cout << __FUNCTION__ << " using strategy "
@@ -1488,12 +1488,12 @@ bool testBlockSortMergeBlocksRandomly() {
 					test_passed = false;
 					goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
 				}
-				total_results += result;
+				total_results += metrics;
 
 				if (debug_verbose) {
 					message << "          after: "
 							<< _arrayToString(test_array, array_size)
-							<< " used: " << result
+							<< " used: " << metrics
 							<< "\n";
 					std::cout << message.str();
 				}

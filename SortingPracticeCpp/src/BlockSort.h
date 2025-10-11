@@ -11,6 +11,11 @@
  * Change every function that returns 'metrics' to access them by
  * 	a pointer passed the function parameters
  * Set the default value of the p_metrics to nullptr
+ *
+ * TODO - List
+ * Include the version of insertionSort that uses a pointer to the leftmost
+ * 	element that is known to be sorted in this namespace.
+ * Use the local version of insertionSortFromN to do the initial insertion sort
  */
 
 #ifndef BLOCKSORT_H_
@@ -34,6 +39,16 @@
 //#include "BlockSortElementMoving.h"
 
 #define DEBUG_VERBOSE_BLOCK_SORT
+#pragma push_macro("_dbg_ln")
+#pragma push_macro("_dbg")
+#define _dbg_ln(msg)\
+	do {\
+		if (debug_verbose) std::cout << msg << std::endl;\
+	} while(false)
+#define _dbg(msg)\
+	do {\
+		if (debug_verbose) std::cout << msg;\
+	} while (false)
 
 namespace BlockSort {
 
@@ -119,6 +134,7 @@ namespace BlockSort {
 		array_size_t b_source 	= num_A_blocks;
 		array_size_t dst_block	= 0;
 		array_size_t src_block	= 0;
+//		array_size_t highest_b_position = block_descriptors[num_blocks-1].end_index;
 
 		while (table_i != num_A_blocks && b_source != num_blocks) {
 
@@ -182,11 +198,11 @@ namespace BlockSort {
 			//	  be moved to their correct place in the combined sequence.
 			if (dst_block > 0) {
 				if (block_descriptors[dst_block].type == BlockType::B_BLOCK) {
-					array_size_t start = block_descriptors[0].start_index;
-					array_size_t mid		= block_descriptors[dst_block].start_index;
-					array_size_t end		= block_descriptors[dst_block].end_index;
+					array_size_t start 	= block_descriptors[0].start_index;
+					array_size_t mid	= block_descriptors[dst_block].start_index;
+					array_size_t end	= block_descriptors[dst_block].end_index;
 //					metrics = mergeContiguousElementsByRotating(array, start, mid, end);
-					metrics = insertionSortPartial(array, start, mid, end);
+					insertionSortPartial(array, start, mid, end, metrics);
 				}
 			}
 
@@ -270,6 +286,8 @@ namespace BlockSort {
 		}
 		return metrics;
 	}
+
+
 	/*	  Performs a block sort by creating the elements from [start:mid-1]
 	 * as the A_Blocks, and the elements form [mid:end] as the B_Blocks.
 	 */
@@ -281,10 +299,13 @@ namespace BlockSort {
 		SortMetrics metrics(0,0);
 
 		array_size_t u_size	= mid-start;
-		array_size_t v_size = end-mid+1;
 		array_size_t block_size = static_cast<array_size_t>(std::sqrt(u_size));
-//		BlockDescriptors<T> descriptors;
-
+		Descriptors<T> descriptors;
+		int num_desc =
+				createBlockDescriptorsSymmetrically(array, start, mid, end,
+													block_size, descriptors);
+		metrics += sortBlocksByTable(array, descriptors, num_desc);
+		metrics += mergeAllBlocksLeftToRight(array, descriptors, num_desc);
 		return metrics;
 	}
 
@@ -298,13 +319,19 @@ namespace BlockSort {
 	/*		the sorting function	*/
 	/*	**************************	*/
 
+	constexpr array_size_t initial_block_size = 16;
+
 	template <typename T>
 	SortMetrics sortPointerstoObjects(T **array, array_size_t size) {
 
 		constexpr bool debug_verbose = false;
 		SortMetrics metrics(0,0);
-		constexpr array_size_t initial_block_size = 16;
 
+		if (size < 2*initial_block_size) {
+			metrics = InsertionSort::sortPointersToObjects(array, size);
+			return metrics;
+		}
+#if 0
 		SortMetrics (*mergeInPlace)(T**array,
 									array_size_t block_1_start,
 									array_size_t block_1_end,
@@ -312,12 +339,7 @@ namespace BlockSort {
 									array_size_t block_2_end) =
 //			SortingUtilities::mergeTwoAdjacentBlocksByRotation;
 			SortingUtilities::mergeTwoBlocksElementsByTable;
-
-		if (size < 2*initial_block_size) {
-			metrics = InsertionSort::sortPointersToObjects(array, size);
-			return metrics;
-		}
-
+#endif
 		//	Initially sort the elements within each block using an insertion sort
 		for (array_size_t block_start = 0;
 						  block_start < size;
@@ -330,38 +352,24 @@ namespace BlockSort {
 			metrics += InsertionSort::sortPointersToObjects(&array[block_start],
 												 	 	 	 sub_array_size);
 		}
+		_dbg_ln("  Made it through sorting initial blocks");
 
 		array_size_t block_size = initial_block_size;
 		array_size_t block_1_start = 0;
 
-		while (block_1_start < size) {
-			array_size_t num_elements = block_size;
-			if (block_1_start + num_elements > size)
-				num_elements = size - block_1_start;
-			metrics +=
-				InsertionSort::sortPointersToObjects(&array[block_1_start],
-													 num_elements);
-			block_1_start += block_size;
-		}
-		if (debug_verbose) {
-			std::cout << "  Made it through sorting initial blocks\n";
-		}
 		while (block_size < size) {
 			block_1_start = 0;
-			array_size_t block_1_end	  = block_1_start + block_size-1;
-			array_size_t block_2_start = block_1_end + 1;
-			array_size_t block_2_end	  = block_2_start + block_size - 1;
+			array_size_t block_1_end	= block_1_start + block_size-1;
+			array_size_t block_2_start 	= block_1_end + 1;
+			array_size_t block_2_end	= block_2_start + block_size - 1;
 			//	it is possible that block size is greater than half the array
 			if (block_2_end > size-1)
 				block_2_end = size-1;
 			while (block_2_start < size) {
-				metrics += mergeInPlace(array,
-							 	 	 	block_1_start, block_1_end,
-										block_2_start, block_2_end);
-//				metrics +=
-//					InsertionSort::sortPointersToObjects(
-//							&array_of_pointers[block_1_start],
-//							block_2_end - block_1_start + 1);
+//				metrics += mergeInPlace(array,
+//							 	 	 	block_1_start, block_1_end,
+//										block_2_start, block_2_end);
+				metrics += sort(array, block_1_start, block_2_start, block_2_end);
 				block_1_start = block_2_end+1;
 				block_1_end	  = block_1_start + block_size - 1;
 				//	if block 1 extends to or past the end of the array
@@ -373,17 +381,15 @@ namespace BlockSort {
 				if (block_2_end > size-1)
 					block_2_end = size-1;
 			}
-			if (debug_verbose) {
-				std::cout << "  Made it through merging blocks of size " << block_size << std::endl;
-			}
+			_dbg_ln("  Made it through merging blocks of size " << block_size);
 			block_size *= 2;
 		}
-		if (debug_verbose) {
-			std::cout << __FUNCTION__ << " is returning\n";
-		}
+		_dbg_ln("BlockSort() is returning");
 		return metrics;
 	}
 
 }
+#pragma pop_macro("_dbg")
+#pragma pop_macro("_dbg_ln")
 
 #endif /* BLOCKSORT_H_ */

@@ -13,6 +13,17 @@
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
 
+#pragma push_macro("_dbg_ln")
+#pragma push_macro("_dbg")
+#define	_dbg_ln(msg)	do { \
+						if (debug_verbose)\
+							std::cout << msg << std::endl;\
+					}while(false)
+#define _dbg(msg)	do {\
+						if (debug_verbose)\
+							std::cout << msg;\
+					} while(false)
+
 namespace InPlaceMerge {
 
 	/*
@@ -43,24 +54,25 @@ namespace InPlaceMerge {
 
 		BlockSort::MergeStrategy merge_strategy =
 					BlockSort::MergeStrategy::TABLE;
+		_dbg_ln("InPlaceMerge using " << merge_strategy);
 
-		SortMetrics (*mergeBlocks)(T** array,
+
+		array_size_t (*mergeBlocks)(T** array,
 								   array_size_t block_1_start,
 								   array_size_t block_1_end,
 								   array_size_t block_2_start,
-								   array_size_t block_2_end);
+								   array_size_t block_2_end,
+								   SortMetrics &metrics);
 
 		switch(merge_strategy) {
-		case BlockSort::MergeStrategy::ROTATE:
-			mergeBlocks = SortingUtilities::mergeTwoAdjacentBlocksByRotation;
-			break;
+//		case BlockSort::MergeStrategy::ROTATE:
+//			mergeBlocks = SortingUtilities::mergeTwoAdjacentBlocksByRotation;
+//			break;
 		case BlockSort::MergeStrategy::TABLE:
 		default:
 			mergeBlocks = SortingUtilities::mergeTwoBlocksElementsByTable;
 			break;
 		}
-
-		if (debug_verbose) std::cout << "InPlaceMerge using " << merge_strategy << std::endl;
 
 		if (size < 2*initial_block_size) {
 			metrics = InsertionSort::sortPointersToObjects(array, size);
@@ -81,7 +93,7 @@ namespace InPlaceMerge {
 			block_start += block_size;
 		}
 
-		if (debug_verbose) std::cout << "  Made it through sorting initial blocks\n";
+		_dbg_ln("  Made it through sorting initial blocks");
 
 		//	continuously merge pairs of adjoining blocks of ever larger sizes
 		while (block_size < size) {
@@ -93,9 +105,9 @@ namespace InPlaceMerge {
 			if (block_2_end > size-1)
 				block_2_end = size-1;
 			while (block_2_start < size) {
-				metrics += mergeBlocks(	array,
-							 	 	 	block_1_start, block_1_end,
-										block_2_start, block_2_end);
+				mergeBlocks(array, 	block_1_start, block_1_end,
+									block_2_start, block_2_end,
+									metrics);
 				block_1_start = block_2_end+1;
 				block_1_end	  = block_1_start + block_size - 1;
 				//	if block 1 extends to or past the end of the array
@@ -107,14 +119,13 @@ namespace InPlaceMerge {
 				if (block_2_end > size-1)
 					block_2_end = size-1;
 			}
-			if (debug_verbose) {
-				std::cout << "  Made it through merging blocks of size " << block_size << std::endl;
-			}
+			_dbg_ln("  Made it through merging blocks of size "<<block_size);
 			block_size *= 2;
 		}
-		if (debug_verbose) {
-			std::cout << __FUNCTION__ << " is returning\n";
-		}
+		_dbg_ln("InPlaceMerge sort is returning");
 		return metrics;
 	}
 }
+
+#pragma pop_macro("_dbg")
+#pragma pop_macro("_dbg_ln")

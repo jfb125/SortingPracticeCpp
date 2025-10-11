@@ -22,6 +22,13 @@ namespace BlockSort {
 										 Descriptors<T> &descriptors,
 										 int num_descriptors);
 
+	/*	Starting with the leftmost A_Block, merge blocks
+	 * expects a set of descriptors that is in order by key	*/
+	template <typename T>
+	SortMetrics mergeAllBlocksLeftToRight(T** array,
+										   Descriptors<T> &block_descriptors,
+										   int num_blocks);
+
 	/*	Starting with the rightmost B_Block, merge blocks to the left	*/
 	template <typename T>
 	SortMetrics mergeAllBlocksRightToLeft(T** array,
@@ -59,19 +66,19 @@ namespace BlockSort {
 	/*	sort an array of [A_0..A_m:B_0..B_n] using a table to keep track of where
 	 * 	the displaced A_Blocks go in the upper portion (B_Block) of the array	*/
 	template <typename T>
-	SortMetrics sortBlocksByTable(		T** array,
-									   	  	Descriptors<T> &descriptors, int num_blocks);
+	SortMetrics sortBlocksByTable(	T** array,
+									Descriptors<T> &descriptors, int num_blocks);
 
 	/*	sort an array of [A_0..A_m:B_0..B_n] using a binary search to find the
 	 * 	location where each of the blocks should go 							*/
 	template <typename T>
-	SortMetrics sortBlocksHybrid(		T **array, index_t size,
-											Descriptors<T> &blocks, int num_blocks);
+	SortMetrics sortBlocksHybrid(	T **array, index_t size,
+									Descriptors<T> &blocks, int num_blocks);
 
 	/*	sort an array of blocks [A_0..A_m:B_0..Bn] starting at right A_m & B_n	*/
 	template <typename T>
 	SortMetrics sortBlocksRightToLeft(	T **array, index_t size,
-										   	Descriptors<T> &blocks, int num_blocks);
+									   	Descriptors<T> &blocks, int num_blocks);
 
 
 	/*	**********************************************************************	*/
@@ -139,6 +146,158 @@ namespace BlockSort {
 													  index_t block_1_end,
 													  index_t block_2_start,
 													  index_t block2_end);
+
+
+	/*	********************************************************************* */
+	/*	SortMetrics mergeAllBlocksLeftToRight(array, descriptors, num_desc);  */
+	/*	********************************************************************* */
+
+	/*	 Moves through the blocks starting with block[0], building an ordered
+	 * span in the left portion of the array.
+	 *
+	 * 	 It is important to remember when analyzing this algorithm that
+	 * all of the elements in the A portion of the array are in order
+	 * and all of the elements in the B portion of the array are in order.
+	 * What remains to be done is to interleave segments of the B array
+	 * into their correct place in the A array.
+	 *
+	 *   An A_Block that follows an A_Block will be in order
+	 *   A  B_Block that follows a  B_BLock will be in order
+	 *   An A_Block that follows a  B_Block will be in order
+	 *     (Because B's key is the last element,
+	 *      and A's key is the first element)
+	 *   A  B_Block that follows an A_Block may need to be merged.
+	 *
+	 * Consider 	A_Block containing { A, B, G, H } 	whose key is 'A'
+	 *followed by	B_Block containing { C, D, E, F }   whose key is 'F'
+	 *
+	 * While the two block's keys are in order { A, F }, their elements
+	 * need to be interleaved.
+	 *
+	 *   After a B_Block is merged with the preceding A_Block(s), the portion
+	 * of the up to where the last element of the B_Block ended up is in order
+	 *
+	 * Consider:
+	 *	[A0        ][A1        ][        B0][        B1]	keys
+	 * 	 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+	 *   A  B  H  I  J  K  L  M  C  D  E  F  G  N  O  P		A, J, F, P
+	 *
+	 *	The first swap will swap B0='F' with A1='G'
+	 *	[A0        ][        B0][A1        ][        B1]
+	 * 	 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+	 *   A  B  H  I  C  D  E  F  J  K  L  M  G  N  O  P		A, F, J, P
+	 *
+	 *	A call to "merge(array, [0:3], [4:7])" will produce
+	 *	[A0  ][        B0][A0  ][A1       ][         B1]
+	 * 	 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+	 *   A  B  C  D  E  F  H  I  J  K  L  M  G  N  O  P
+	 *
+	 *  Note that everything to the left of, including, the highest
+	 *    element from B0, 'F' at position 5, is in order.
+	 *    Further note that the 'G' in block B1 at position 12 will
+	 *    need to be merged into the array at position 6.
+	 *    Thus, 'last_ordered' is position 5
+	 *
+	 *	(In some author's discussion, the portion of the array up to
+	 *	 position is called the 'Mega-block' or M_Block)
+	 *
+	 *  The next merge operation, which will combine Block B1
+	 *  with the previous portion of the array, only needs to merge
+	 *  	A[6:11] = { H .. M } with B[12:15] = { G, N, O, P }
+	 *
+	 *	Thus, it is important to keep track of where the highest element from
+	 *	the most recent B_Block merge is now located.  The element after that
+	 *	highest element is the left start of the next 'B after A merge'.
+	 */
+
+	template <typename T>
+	SortMetrics mergeAllBlocksLeftToRight(T** array,
+										   Descriptors<T> &block_descriptors,
+										   int num_blocks) {
+		SortMetrics metrics(0,0);
+
+		enum class ParsingState {
+			A_LOOKING_FOR_B,
+			B_LOOKING_FOR_A
+		};
+
+		//	ordered_end is the position of the largest b_element in the
+		//	portion of the array to the left of where the search for a B->A
+		//	transition is in progress  a.k.a - the end of the Mega-block
+		array_size_t ordered_end;
+		array_size_t first_b_element;
+		array_size_t previous_blocks_end;
+		int			 block_i;
+		ParsingState parsing_state;
+		bool		 a_block_seen_previously;
+
+		if (block_descriptors[0].type == BlockType::B_BLOCK) {
+			a_block_seen_previously = false;
+			first_b_element = block_descriptors[0].start_index;
+			parsing_state = ParsingState::B_LOOKING_FOR_A;
+		} else {
+			a_block_seen_previously = true;
+			parsing_state = ParsingState::A_LOOKING_FOR_B;
+		}
+
+		block_i 			= 1;
+		ordered_end			= block_descriptors[0].start_index-1;
+		previous_blocks_end = block_descriptors[0].end_index;
+
+		while (block_i < num_blocks) {
+			switch(parsing_state) {
+			case ParsingState::A_LOOKING_FOR_B:
+				if (block_descriptors[block_i].type == BlockType::B_BLOCK) {
+					first_b_element = block_descriptors[block_i].start_index;
+					parsing_state 	= ParsingState::B_LOOKING_FOR_A;
+				}
+				break;
+			case ParsingState::B_LOOKING_FOR_A:
+				if (block_descriptors[block_i].type == BlockType::A_BLOCK) {
+					if (a_block_seen_previously) {
+						array_size_t start 	= ordered_end + 1;
+						array_size_t mid	= first_b_element;
+						array_size_t end	= previous_blocks_end;
+						ordered_end = insertionSortPartial(array,
+										 	 	 	 	   start,
+														   mid,
+														   end,
+														   metrics);
+//						ordered_end = insertionSortPartial(array,
+//														   start,
+//														   mid,
+//														   end,
+//														   metrics);
+//							SortingUtilities::mergeTwoBlocksElementsByTable(
+//										array, start, mid-1, mid, end, metrics);
+					}
+					a_block_seen_previously = true;
+					parsing_state 			= ParsingState::A_LOOKING_FOR_B;
+				}
+				break;
+			}
+			previous_blocks_end = block_descriptors[block_i].end_index;
+			block_i++;
+		}
+
+		//	If the final block was a B_Block, ensure that it gets merged
+		//	with any unordered portions of the array to its left
+		if (block_descriptors[num_blocks-1].type == BlockType::B_BLOCK) {
+			//	Although unlikely, it is possible that this function gets
+			//	called with all of the block types being B_Blocks
+			if (a_block_seen_previously) {
+				array_size_t start	= ordered_end + 1;
+				array_size_t mid	= first_b_element;
+				array_size_t end	= block_descriptors[num_blocks-1].end_index;
+//				insertionSortPartial(array, start, mid, end, metrics);
+				SortingUtilities::mergeTwoBlocksElementsByTable(array,
+																start, mid-1,
+																mid, end,
+																metrics);
+			}
+		}
+		return metrics;
+	}
 
 
 	//	starting at the right-most block, merge the previous (left) block into

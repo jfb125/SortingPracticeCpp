@@ -16,22 +16,22 @@ namespace BlockSort {
 	/*	Performs an insertion sort starting with the 'mid' element.  This is used
 	 * In cases where all of the elements to the left of mid are in order, but
 	 * elements to the right of 'mid' may be smaller than elements on the left. */
-	template <typename T>
-	SortMetrics insertionSortPartial(T** array,
-										  index_t begin, index_t mid, index_t end);
+//	template <typename T>
+//	SortMetrics insertionSortPartial(T** array,
+//										  array_size_t begin, array_size_t mid, array_size_t end);
 
 	/*
 	 * 	Blocks must be contiguous
 	 */
 //	template <typename T>
-//	SortMetrics mergeContiguousElementsByRotating(T** array, index_t start,
-//																index_t mid, index_t end);
+//	SortMetrics mergeContiguousElementsByRotating(T** array, array_size_t start,
+//																array_size_t mid, array_size_t end);
 //
 
 	template <typename T>
 	SortMetrics swapBlockElementsOfEqualSize( T** array,
-										index_t block1_start, index_t block_2_start,
-										index_t block_size);
+										array_size_t block1_start, array_size_t block_2_start,
+										array_size_t block_size);
 
 
 	/*	**********************************************************************	*/
@@ -82,24 +82,36 @@ namespace BlockSort {
 	 *	to the left, all the values out to 'end' are in order and the function returns
 	 *	Usage:
 	 *
-	 * 	callers_metrics = mergeByInsertionSort(array, a[0].start, b[0].start, b[0].end)
+	 * 	This returns the index of the final position of the element that was
+	 * 	  at the end of the array. This is useful for keeping track of where the rightmost value that is in the correct place is located.  knowing
+	 * 	  where the rightmost value in the array is that is in the correct order
+	 * 	  allows the next merge to know what portion of the array is potentially
+	 * 	  not ordered
+	 *
+	 * 	highest_b_position = mergeByInsertionSort(array, a[0].start, b[0].start, b[0].end)
 	 */
 
 	template <typename T>
-	SortMetrics insertionSortPartial(T** array, index_t begin, index_t mid, index_t end)
+	array_size_t insertionSortPartial(T** array,
+									  array_size_t begin,
+									  array_size_t mid,
+									  array_size_t end,
+									  SortMetrics &metrics)
 	{
-		SortMetrics metrics(0,0);
+		array_size_t highest_b_position = end;
 
 		if (begin > end || mid > end) {
-			return metrics;
+			return highest_b_position;
 		}
 
 		//	from here to the end of the array
 		for (int i = mid; i <= end ; i++) {
+			//	keep reseting highest_b_position to the end
+			highest_b_position = end;
 			// The first time a B_Block element is found that is
 			//	in order that means all the elements to the right,
 			//	which are in order b/c they came from the same
-			//	B_Block, are sorted.  Return.
+			//	B_Block, are sorted.  Abort the loop
 			metrics.compares++;
 			if (*array[i-1] <= *array[i])
 				break;
@@ -113,6 +125,7 @@ namespace BlockSort {
 				if (*array[j-1] <= *temp) {
 					array[j] = temp;
 					metrics.assignments++;
+					highest_b_position = j;
 					break;
 				}
 				//	shift the element to the right
@@ -125,9 +138,10 @@ namespace BlockSort {
 			if (j <= begin) {
 				array[begin] = temp;
 				metrics.assignments++;
+				highest_b_position = begin;
 			}
 		}
-		return metrics;
+		return highest_b_position;
 	}
 
 #if 0
@@ -181,7 +195,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	SortMetrics mergeContiguousElementsByRotating(T** array, index_t start, index_t mid, index_t end) {
+	SortMetrics mergeContiguousElementsByRotating(T** array, array_size_t start, array_size_t mid, array_size_t end) {
 
 		bool debug_verbose = false;
 
@@ -191,9 +205,9 @@ namespace BlockSort {
 
 		SortMetrics metrics(0,0);
 
-		index_t u = mid-1;
-		index_t v = end;
-		index_t rotate_count;
+		array_size_t u = mid-1;
+		array_size_t v = end;
+		array_size_t rotate_count;
 
 		//	These choose between:
 		//	  PURE_RIGHT_TO_LEFT	Always start from right-to-left both u & v indices
@@ -208,7 +222,7 @@ namespace BlockSort {
 
 		while (u >= start) {
 
-			index_t lower_shift_bound;
+			array_size_t lower_shift_bound;
 
 			if (!binary_search) {
 				//	find the first [v] that is less than [u]
@@ -309,8 +323,8 @@ namespace BlockSort {
 	template <typename T>
 	SortMetrics swapBlockElementsOfEqualSize(
 										T** array,
-										index_t block1_start, index_t block2_start,
-										index_t block_size)
+										array_size_t block1_start, array_size_t block2_start,
+										array_size_t block_size)
 	{
 		SortMetrics result(0,0);
 
@@ -324,7 +338,7 @@ namespace BlockSort {
 		}
 
 		T* temp;
-		for (index_t i = 0; i != block_size; i++) {
+		for (array_size_t i = 0; i != block_size; i++) {
 			result.assignments += 3;
 			temp = array[block1_start];
 			array[block1_start] = array[block2_start];

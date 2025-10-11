@@ -14,7 +14,7 @@
 
 namespace BlockSort {
 
-	using index_t = long;
+	using array_size_t = long;
 
 	template <typename T>
 	class BlockDescriptor;
@@ -33,7 +33,7 @@ namespace BlockSort {
 	 * 	  of block_size from start. 	*/
 
 	template <typename T>
-	int createBlockDescriptors_A0_Full( T** array, index_t start, index_t mid, index_t end,
+	int createBlockDescriptors_A0_Full( T** array, array_size_t start, array_size_t mid, array_size_t end,
 										int block_size,
 										std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
 
@@ -46,16 +46,16 @@ namespace BlockSort {
 
 	template <typename T>
 	int createBlockDescriptorsSymmetrically(T** array,
-											index_t start, index_t mid, index_t end,
+											array_size_t start, array_size_t mid, array_size_t end,
 		    								int block_size,
-											std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
+											Descriptors<T> &descriptors);
 
 	/*
 	 * 	Makes createBlock_______() more concise
 	 */
 
 	template <typename T>
-	void assignBlockData(BlockDescriptor<T> &block, T**array, BlockType type, index_t start, index_t block_size);
+	void assignBlockData(BlockDescriptor<T> &block, T**array, BlockType type, array_size_t start, array_size_t block_size);
 
 
 	/*	***********************************************************************************	*/
@@ -141,12 +141,12 @@ namespace BlockSort {
 	template <typename T>
 	int createBlockDescriptors_A0_Full(
 			T** array,
-			index_t start, index_t mid, index_t end,
+			array_size_t start, array_size_t mid, array_size_t end,
 			int block_size,
 			std::unique_ptr<BlockDescriptor<T>[]> &blocks) {
 
-		index_t lower_span = mid-start;
-		index_t upper_span = end-mid + 1;
+		array_size_t lower_span = mid-start;
+		array_size_t upper_span = end-mid + 1;
 
 		// calculate the total number of blocks
 		int num_blocks = lower_span / block_size + upper_span / block_size;
@@ -164,7 +164,7 @@ namespace BlockSort {
 
 		//	assign values to the blocks
 		int block_number 		= 0;
-		index_t start_of_block 	= start;
+		array_size_t start_of_block 	= start;
 
 		//	the full A_Blocks where .end_index = (.start_index+block_size-1)
 		while (start_of_block < mid) {
@@ -233,12 +233,12 @@ namespace BlockSort {
 	template <typename T>
 	int  createBlockDescriptorsSymmetrically(
 			T** array,
-			index_t start, index_t mid, index_t end,
+			array_size_t start, array_size_t mid, array_size_t end,
 			int block_size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks) {
+			Descriptors<T> &blocks) {
 
-		index_t lower_span = mid-start;
-		index_t upper_span = end-mid + 1;
+		array_size_t lower_span = mid-start;
+		array_size_t upper_span = end-mid + 1;
 
 		// calculate the total number of blocks
 		int num_blocks = lower_span / block_size + upper_span / block_size;
@@ -263,7 +263,7 @@ namespace BlockSort {
 
 		//	assign values to the blocks
 		int block_number 		= 0;
-		index_t start_of_block 	= start;
+		array_size_t start_of_block 	= start;
 
 		//	do the A_Blocks first
 		//	if the first A_Block is a partial, it's .end_index != (.start_index+block_size-1)
@@ -306,7 +306,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	void assignBlockData(BlockDescriptor<T> &block, T**array, BlockType type, index_t start, index_t block_size) {
+	void assignBlockData(BlockDescriptor<T> &block, T**array, BlockType type, array_size_t start, array_size_t block_size) {
 		block.type 			= type;
 		block.start_index 	= start;
 		block.end_index		= start + block_size-1;
@@ -326,10 +326,10 @@ namespace BlockSort
 	public:
 		BlockType type;
 		T* key;
-		index_t start_index;
-		index_t end_index;
+		array_size_t start_index;
+		array_size_t end_index;
 
-		index_t	getWidth() const {
+		array_size_t	getWidth() const {
 			return end_index - start_index + 1;
 		}
 
@@ -365,7 +365,7 @@ namespace BlockSort
 			start_index = 0;
 			end_index = 0;
 		}
-		BlockDescriptor(BlockType t, T* k, index_t s, index_t e) {
+		BlockDescriptor(BlockType t, T* k, array_size_t s, array_size_t e) {
 			type = t;
 			key = k;
 			start_index = s;
