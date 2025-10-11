@@ -91,22 +91,22 @@ namespace std
 
 namespace std
 {
-	string to_string(BlockSort::SortingStrategy strategy) {
+	string to_string(BlockSort::BlockSortingStrategy strategy) {
 		switch(strategy) {
-		case BlockSort::SortingStrategy::BINARY:
+		case BlockSort::BlockSortingStrategy::BINARY:
 			return string(SORTING_STRATEGY_BINARY_STRING);
-		case BlockSort::SortingStrategy::HYBRID:
+		case BlockSort::BlockSortingStrategy::HYBRID:
 			return string(SORTING_STRATEGY_HYBRID_STRING);
-		case BlockSort::SortingStrategy::RIGHT_TO_LEFT:
+		case BlockSort::BlockSortingStrategy::RIGHT_TO_LEFT:
 			return string(SORTING_STRATEGY_RIGHT_TO_LEFT_STRING);
-		case BlockSort::SortingStrategy::TABLE:
+		case BlockSort::BlockSortingStrategy::TABLE:
 			return string(SORTING_STRATEGY_TABLE_STRING);
 		default:
 			return string("UNRECOGNZED_SORTING_STRATEGY");
 		}
 	}
 
-	std::ostream& operator<<(std::ostream& out, BlockSort::SortingStrategy strategy) {
+	std::ostream& operator<<(std::ostream& out, BlockSort::BlockSortingStrategy strategy) {
 		out << to_string(strategy);
 		return out;
 	}

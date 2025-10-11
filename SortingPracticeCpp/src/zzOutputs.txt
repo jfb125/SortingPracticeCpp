@@ -1,12 +1,18 @@
-Sorting Performance In C++ built on Oct 10 2025 at 23:29:02
-Algorithms: 3 Compositions: 1 Orderings: 1 of : 3 different sizes resulting in 9 outcomes over 1 repetitions
-====================================
-Sort Test Results
-====================================
-                                 Array sizes:             32                         64                        128             
-number of repetitions: 1                          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov      
-MERGE_SORT     ALL_DISCRETE  IN_RANDOM_ORDER:       124.0 /       192.0        308.0 /       384.0        733.0 /      1024.0  
-INPLACE_MERGE  ALL_DISCRETE  IN_RANDOM_ORDER:       163.0 /       231.0        424.0 /       710.0        926.0 /      1671.0  
-BLOCK_SORT     ALL_DISCRETE  IN_RANDOM_ORDER:       192.0 /       271.0        599.0 /       920.0       1621.0 /      2475.0  
+Sorting Performance In C++ built on Oct 11 2025 at 16:50:54
+testBlockSort
+testBlockSortMergeBlocksExhaustively
+Merging all 12870 pairs of unique arrays of size 16 where mid = 8 using strategy ROTATE
+ took average of      22.3 compares and 65.3 moves
+ worst case moves       37 compares and  111 moves
+ worst case cmprs       40 compares and  105 moves
+  best case moves        7 compares and    0 moves
+  best case cmprs        7 compares and    0 moves
+Merging all 12870 pairs of unique arrays of size 16 where mid = 8 using strategy TABLE
+ took average of      15.1 compares and 32.6 moves
+ worst case moves       37 compares and  111 moves
+ worst case cmprs       40 compares and  105 moves
+  best case moves        7 compares and    0 moves
+  best case cmprs        7 compares and    0 moves
+PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
 
-Completed Sorting Performance In C++
+testBlockSort() ran 1 successful tests

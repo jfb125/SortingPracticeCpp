@@ -66,20 +66,22 @@ namespace SortingUtilities {
 
 	/* 	Blocks do not have to be continuous nor do they have to be the same size */
 	template <typename T>
-	SortMetrics mergeTwoBlocksElementsByTable(T ** array,
+	array_size_t mergeTwoBlocksElementsByTable(T ** array,
 											  array_size_t block_1_start,
 											  array_size_t block_1_end,
 											  array_size_t block_2_start,
-											  array_size_t block_2_end);
+											  array_size_t block_2_end,
+											  SortMetrics &metrics);
 
 	/*	Uses a binary search to identify spans of block_1 that can be
 	 * rotated into the midst of the block_2 */
 	template <typename T>
-	SortMetrics mergeTwoAdjacentBlocksByRotation( T** array,
+	array_size_t mergeTwoAdjacentBlocksByRotation( T** array,
 												  array_size_t block_1_start,
 												  array_size_t block_1_end,
 												  array_size_t block_2_start,
-												  array_size_t block_2_end) ;
+												  array_size_t block_2_end,
+												  SortMetrics &metrics);
 
 	/*	rotates elements of an array [start:end] an amount, where negative
 	 * values of 'amount' indicate to rotate the span to the left */
@@ -594,20 +596,21 @@ namespace SortingUtilities {
 	 */
 
 	template <typename T>
-	SortMetrics mergeTwoAdjacentBlocksByRotation( T** array,
-												  array_size_t 	block_1_start,
-												  array_size_t	block_1_end,
+	array_size_t mergeTwoAdjacentBlocksByRotation(T** array,
+												  array_size_t block_1_start,
+												  array_size_t block_1_end,
 												  array_size_t block_2_start,
-												  array_size_t block_2_end) {
+												  array_size_t block_2_end,
+												  SortMetrics &metrics) {
 		constexpr bool debug_verbose = false;
-		SortMetrics metrics(0,0);
-		array_size_t	a_start = block_1_start;
-		array_size_t a_end	= block_1_end;
+		array_size_t a_start	= block_1_start;
+		array_size_t a_end		= block_1_end;
 		array_size_t b_start	= block_2_start;
-		array_size_t b_end	= block_2_end;
-		array_size_t span_start 	= 0;
+		array_size_t b_end		= block_2_end;
+		array_size_t span_start = 0;
 		array_size_t span_end 	= 1;
 		array_size_t rotate_count;
+		array_size_t final_b_pos= block_2_end;
 
 		//	if b_start moves off the end of the array, all b_blocks are in place
 		//		and therefore the remaining a_blocks will not go after b_start
@@ -618,7 +621,7 @@ namespace SortingUtilities {
 		//	if span_start == span_end, the remaining span of a_blocks are in place
 		//		even though b_start may not be at the end
 		//		[ A, D, E, F ]  merged with [ B, C, G, H ]	ss = [1], se = [6]
-		//		[ A, B, C, D, E, F, G, H ]			b		ss = [8], se = [8]
+		//		[ A, B, C, D, E, F, G, H ]					ss = [8], se = [8]
 
 		while (b_start <= block_2_end && span_start != span_end /*&& a_start != a_end*/) {
 			if (debug_verbose) {
@@ -636,6 +639,7 @@ namespace SortingUtilities {
 														  metrics);
 			rotate_count = span_end - b_start;
 			span_end--;
+			final_b_pos = span_end-rotate_count;
 			if (debug_verbose) {
 				std::cout 	<< " block1_start "	<< std::setw(2) << block_1_start
 							<< " block2_start "	<< std::setw(2)	<< block_2_start
@@ -646,7 +650,8 @@ namespace SortingUtilities {
 							<< " b_end "		<< std::setw(2)	<< b_end
 							<< " span_start " 	<< std::setw(2)	<< span_start
 							<< " span_end "		<< std::setw(2)	<< span_end
-							<< " rotate_count "	<< std::setw(2)	<< rotate_count;
+							<< " rotate_count "	<< std::setw(2)	<< rotate_count
+							<< " final_b_pos "  << std::setw(2) << final_b_pos;
 			}
 			metrics +=
 				SortingUtilities::rotateArrayElementsRight(array,
@@ -659,7 +664,7 @@ namespace SortingUtilities {
 			a_end	+= rotate_count;
 			b_start = span_end+1;
 		}
-		return metrics;
+		return final_b_pos;
 	}
 
 

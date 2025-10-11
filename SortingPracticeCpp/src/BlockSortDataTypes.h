@@ -116,11 +116,11 @@ namespace BlockSort {
 	}
 
 	/*	**********************************************************	*/
-	/*						SortingStrategy							*/
+	/*						BlockSortingStrategy					*/
 	/*	**********************************************************	*/
 
 	namespace BlockSort {
-	enum class SortingStrategy {
+	enum class BlockSortingStrategy {
 		BINARY,
 		HYBRID,
 		RIGHT_TO_LEFT,
@@ -130,7 +130,7 @@ namespace BlockSort {
 	//	I do this to force the compiler to error if the type
 	//	is instantiated without the name space
 	namespace std {
-	enum class SortingStrategy {
+	enum class BlockSortingStrategy {
 		BINARY,
 		HYBRID,
 		RIGHT_TO_LEFT,
@@ -145,8 +145,8 @@ namespace BlockSort {
 	#define SORTING_STRATEGY_MAX_STRING_LENGTH		13
 
 	namespace std {
-		string to_string(BlockSort::SortingStrategy strategy);
-		ostream& operator<<(ostream& out, const BlockSort::SortingStrategy organization);
+		string to_string(BlockSort::BlockSortingStrategy strategy);
+		ostream& operator<<(ostream& out, const BlockSort::BlockSortingStrategy organization);
 	}
 
 namespace BlockSort {

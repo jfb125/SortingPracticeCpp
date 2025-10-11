@@ -47,10 +47,10 @@ int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-//	testBlockSort();
-//	return EXIT_SUCCESS;
+	testBlockSort();
+	return EXIT_SUCCESS;
 
-	int num_repetitions = 1;
+	int num_repetitions = 1000;
 
 	constexpr array_size_t min_array_size =   32;
 	constexpr array_size_t max_array_size =  128;

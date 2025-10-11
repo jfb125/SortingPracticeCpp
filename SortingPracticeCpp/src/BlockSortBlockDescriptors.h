@@ -33,9 +33,12 @@ namespace BlockSort {
 	 * 	  of block_size from start. 	*/
 
 	template <typename T>
-	int createBlockDescriptors_A0_Full( T** array, array_size_t start, array_size_t mid, array_size_t end,
-										int block_size,
-										std::unique_ptr<BlockDescriptor<T>[]> &descriptors);
+	int createBlockDescriptors_A0_Full( 	T** array,
+											array_size_t start,
+											array_size_t mid,
+											array_size_t end,
+											array_size_t block_size,
+											Descriptors<T> &descriptors);
 
 
 	/*	Creates an array of block descriptors of types A & B {[A0][A1]..[Am][B0]..[Bn]}
@@ -46,8 +49,10 @@ namespace BlockSort {
 
 	template <typename T>
 	int createBlockDescriptorsSymmetrically(T** array,
-											array_size_t start, array_size_t mid, array_size_t end,
-		    								int block_size,
+											array_size_t start,
+											array_size_t mid,
+											array_size_t end,
+		    								array_size_t block_size,
 											Descriptors<T> &descriptors);
 
 	/*
@@ -139,14 +144,21 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	int createBlockDescriptors_A0_Full(
-			T** array,
-			array_size_t start, array_size_t mid, array_size_t end,
-			int block_size,
-			std::unique_ptr<BlockDescriptor<T>[]> &blocks) {
+	int createBlockDescriptors_A0_Full( T** array,
+										array_size_t start,
+										array_size_t mid,
+										array_size_t end,
+										array_size_t block_size,
+										Descriptors<T> &blocks) {
 
 		array_size_t lower_span = mid-start;
 		array_size_t upper_span = end-mid + 1;
+
+		//	If there is not an integer number of blocks in A
+		//	TODO - throw an error
+		if (lower_span % block_size) {
+			return 0;
+		}
 
 		// calculate the total number of blocks
 		int num_blocks = lower_span / block_size + upper_span / block_size;
@@ -154,13 +166,14 @@ namespace BlockSort {
 		if (upper_span % block_size)
 			num_blocks++;
 
-		// create the block storage
-		blocks = std::unique_ptr<BlockDescriptor<T>[]>(new BlockDescriptor<T>[num_blocks]);
-
 		// if there are no blocks, or if there is a partial block in the A_Blocks
-		if ((num_blocks == 0) || (lower_span % block_size != 0)) {
+		//	TODO - throw an error
+		if (num_blocks == 0) {
 			return 0;
 		}
+
+		// create the block storage
+		blocks = Descriptors<T>(new BlockDescriptor<T>[num_blocks]);
 
 		//	assign values to the blocks
 		int block_number 		= 0;
@@ -231,11 +244,12 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	int  createBlockDescriptorsSymmetrically(
-			T** array,
-			array_size_t start, array_size_t mid, array_size_t end,
-			int block_size,
-			Descriptors<T> &blocks) {
+	int  createBlockDescriptorsSymmetrically(	T** array,
+												array_size_t start,
+												array_size_t mid,
+												array_size_t end,
+												array_size_t block_size,
+												Descriptors<T> &blocks) {
 
 		array_size_t lower_span = mid-start;
 		array_size_t upper_span = end-mid + 1;
