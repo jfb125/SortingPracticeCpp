@@ -258,12 +258,8 @@ namespace BlockSort {
 						array_size_t start 	= ordered_end + 1;
 						array_size_t mid	= first_b_element;
 						array_size_t end	= previous_blocks_end;
-//						ordered_end = insertionSortPartial(array,
-//										 	 	 	 	   start,
-//														   mid,
-//														   end,
-//														   metrics);
-						SortingUtilities::mergeTwoBlocksElementsByTable(
+						ordered_end =
+								SortingUtilities::mergeTwoBlocksElementsByTable(
 									array, start, mid-1, mid, end, metrics);
 					}
 					a_block_seen_previously = true;
@@ -284,7 +280,6 @@ namespace BlockSort {
 				array_size_t start	= ordered_end + 1;
 				array_size_t mid	= first_b_element;
 				array_size_t end	= block_descriptors[num_blocks-1].end_index;
-//				insertionSortPartial(array, start, mid, end, metrics);
 				SortingUtilities::mergeTwoBlocksElementsByTable(array,
 																start, mid-1,
 																mid, end,

@@ -103,9 +103,7 @@ namespace BlockSort {
 	 * The blocks are then sorted.  The blocks are then merged
 	 */
 	template <typename T>
-	SortMetrics sort(T**array, 	array_size_t start,
-								array_size_t mid,
-								array_size_t end)
+	SortMetrics sort(T**array, array_size_t start, array_size_t mid, array_size_t end)
 	{
 		array_size_t u_size		= mid-start;
 		array_size_t block_size = static_cast<array_size_t>(std::sqrt(u_size));

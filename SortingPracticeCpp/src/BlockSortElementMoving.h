@@ -11,22 +11,14 @@
 #include "BlockSortDataTypes.h"
 #include "SortingUtilities.h"
 
-namespace BlockSort {
-
-	/*	Performs an insertion sort starting with the 'mid' element.  This is used
-	 * In cases where all of the elements to the left of mid are in order, but
-	 * elements to the right of 'mid' may be smaller than elements on the left. */
-//	template <typename T>
-//	SortMetrics insertionSortPartial(T** array,
-//										  array_size_t begin, array_size_t mid, array_size_t end);
-
-	/*
-	 * 	Blocks must be contiguous
-	 */
-//	template <typename T>
-//	SortMetrics mergeContiguousElementsByRotating(T** array, array_size_t start,
-//																array_size_t mid, array_size_t end);
-//
+	namespace BlockSort {
+	template <typename T>
+	array_size_t insertionSortPartial(T** array,
+									  array_size_t begin,
+									  array_size_t ignored,
+									  array_size_t mid,
+									  array_size_t end,
+									  SortMetrics &metrics);
 
 	template <typename T>
 	SortMetrics swapBlockElementsOfEqualSize( T** array,
@@ -93,8 +85,9 @@ namespace BlockSort {
 
 	//	'ignored' is only used so that the signature of this function matches
 	//	the signature of merging functions that get the bounds of both blocks
-	//	passed to them, such as mergeToAdjacentBlocksByRotation or
-	//	mergeTwoBlocksElementsByTable
+	//	passed to them, such as mergeToAdjacentBlocksByRotation() or
+	//	mergeTwoBlocksElementsByTable()
+
 	template <typename T>
 	array_size_t insertionSortPartial(T** array,
 									  array_size_t begin,

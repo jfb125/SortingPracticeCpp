@@ -53,7 +53,7 @@ namespace InPlaceMerge {
 		SortMetrics metrics(0,0);
 
 		BlockSort::MergeStrategy merge_strategy =
-					BlockSort::MergeStrategy::TABLE;
+					BlockSort::MergeStrategy::ROTATE;
 		_dbg_ln("InPlaceMerge using " << merge_strategy);
 
 
@@ -65,15 +65,19 @@ namespace InPlaceMerge {
 								   SortMetrics &metrics);
 
 		switch(merge_strategy) {
-//		case BlockSort::MergeStrategy::ROTATE:
-//			mergeBlocks = SortingUtilities::mergeTwoAdjacentBlocksByRotation;
-//			break;
+		case BlockSort::MergeStrategy::INSERTION:
+			mergeBlocks = BlockSort::insertionSortPartial;
+			break;
+		case BlockSort::MergeStrategy::ROTATE:
+			mergeBlocks = SortingUtilities::mergeTwoAdjacentBlocksByRotation;
+			break;
 		case BlockSort::MergeStrategy::TABLE:
 		default:
 			mergeBlocks = SortingUtilities::mergeTwoBlocksElementsByTable;
 			break;
 		}
 
+		//	Small arrays can just be InsertionSorted and done
 		if (size < 2*initial_block_size) {
 			metrics = InsertionSort::sortPointersToObjects(array, size);
 			return metrics;
@@ -96,18 +100,23 @@ namespace InPlaceMerge {
 		_dbg_ln("  Made it through sorting initial blocks");
 
 		//	continuously merge pairs of adjoining blocks of ever larger sizes
-		while (block_size < size) {
-			array_size_t block_1_start = 0;
+		while (block_size < size)
+		{
+			//	assign the block boundaries to the first pair of blocks
+			array_size_t block_1_start	= 0;
 			array_size_t block_1_end	= block_1_start + block_size-1;
 			array_size_t block_2_start 	= block_1_end + 1;
-			array_size_t block_2_end	 = block_2_start + block_size - 1;
-			//	it is possible that block size is greater than half the array
-			if (block_2_end > size-1)
-				block_2_end = size-1;
+			array_size_t block_2_end	= block_2_start + block_size - 1;
+			//	It is possible that block size is greater than half the array
+			//	  when size is not an integer multiple of a power of 2
+			if (block_2_end > size-1) 	  block_2_end = size-1;
+
+			//	move through each pair of blocks left to right merging them
 			while (block_2_start < size) {
 				mergeBlocks(array, 	block_1_start, block_1_end,
 									block_2_start, block_2_end,
 									metrics);
+				//	move the indices to the next pair of blocks
 				block_1_start = block_2_end+1;
 				block_1_end	  = block_1_start + block_size - 1;
 				//	if block 1 extends to or past the end of the array

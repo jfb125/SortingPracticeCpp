@@ -359,7 +359,15 @@ namespace SortingUtilities {
 	 */
 
 	template <typename T>
-	array_size_t mergeTwoBlocksElementsByTable(T ** array,
+	array_size_t mergeTwoBlocksElementsByTableUpperSmallest(T ** array,
+											 array_size_t block_1_start,
+											 array_size_t block_1_end,
+											 array_size_t block_2_start,
+											 array_size_t block_2_end,
+											 SortMetrics &metrics);
+
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsByTableLowerSmallest(T ** array,
 											 array_size_t block_1_start,
 											 array_size_t block_1_end,
 											 array_size_t block_2_start,
@@ -372,6 +380,44 @@ namespace SortingUtilities {
 
 		constexpr bool debug_verbose = false;
 		std::stringstream message;
+
+#pragma push_macro("dbg_ln")
+#define dbg_ln(msg)\
+		do {\
+			if (debug_verbose)	{	std::cout << msg << std::endl;	}\
+		} while(false)
+
+#pragma push_macro("dbg")
+#define dbg(msg)\
+		do {\
+			if (debug_verbose)	{	std::cout << msg;	}\
+		} while(false)
+
+#pragma push_macro("define_debug_string")
+#define define_debug_string\
+		auto debug_string = [&] () -> std::string {\
+			std::stringstream result;\
+			for (array_size_t i = block_1_start; i <= block_2_end; ) {\
+				result << std::setw(3) << *array[i] << " ";\
+				i++;\
+				if (i-1 == block_1_end) {\
+					i = block_2_start;\
+				}\
+			}\
+			result << " " << std::setw(3) << block_1_locations_table_index\
+				   << " using table [";\
+			for (int i = 0; i != block_1_locations_table_size; i++) {\
+				if (i < block_1_locations_table_index) {\
+					result << " - ";\
+				} else {\
+					result << std::setw(3) << block_1_locations_table[i];\
+				}\
+			}\
+			result 	<< "] dst " << std::setw(2) << destination_index\
+					<< " t_ptr " << std::setw(2) << block_1_locations_table_index\
+					<< " b2_ptr " << std::setw(2) << block_2_index;\
+			return result.str();\
+		};\
 
 		/*	**************************************************************	*/
 		/*							lambdas									*/
@@ -406,49 +452,31 @@ namespace SortingUtilities {
 		//	after the merge.  This is the position of the last element guaranteed
 		//	to be in it's final place.  Any A_Block elements at the end of
 		//	the array may be larger than the next B_Block's first elements
-		array_size_t block_2_end_position = block_2_end;
-		array_size_t block_1_span = block_1_end - block_1_start + 1;
-		array_size_t block_2_span = block_2_end - block_2_start + 1;
 
-		if (block_1_span == 0 || block_2_span == 0) {
+		array_size_t block_2_end_position 	= block_2_end;
+		array_size_t block_1_size 			= block_1_end - block_1_start + 1;
+		array_size_t block_2_size 			= block_2_end - block_2_start + 1;
+
+		if (block_1_size <= 0 || block_2_size <= 0) {
 			return block_2_end_position;
 		}
 
-		array_size_t block_1_locations_table_size = block_1_span;
+		//	Build the table of locations of the lower block's elements
+
+		array_size_t block_1_locations_table_size = block_1_size;
 		array_size_t block_1_locations_table[block_1_locations_table_size];
 
 		for (array_size_t i = 0, src = block_1_start; i < block_1_locations_table_size; ) {
 			block_1_locations_table[i++] = src++;
 		}
 
-		array_size_t block_1_locations_table_index = 0;
-		array_size_t block_2_index				  = block_2_start;
-		array_size_t destination_index  			  = block_1_start;
+		//	Perform the merge
 
-		auto debug_string = [&]() -> std::string {
-			std::stringstream result;
-			for (array_size_t i = block_1_start; i <= block_2_end; ) {
-				result << std::setw(3) << *array[i] << " ";
-				i++;
-				if (i-1 == block_1_end) {
-					i = block_2_start;
-				}
-			}
-			result << " " << std::setw(3) << block_1_locations_table_index
-				   << " using table [";
-			for (int i = 0; i != block_1_locations_table_size; i++) {
-				if (i < block_1_locations_table_index) {
-					result << " - ";
-				} else {
-					result << std::setw(3) << block_1_locations_table[i];
-				}
-			}
-			result 	<< "] dst " << std::setw(2) << destination_index
-					<< " t_ptr " << std::setw(2) << block_1_locations_table_index
-					<< " b2_ptr " << std::setw(2) << block_2_index;
-			return result.str();
-		};
+		array_size_t block_1_locations_table_index 	= 0;
+		array_size_t block_2_index				  	= block_2_start;
+		array_size_t destination_index  			= block_1_start;
 
+		define_debug_string;
 
 		/*	******************************************************	*/
 		/*					the algorithm code						*/
@@ -541,8 +569,49 @@ namespace SortingUtilities {
 
 		if (debug_verbose)	std::cout << message.str() << std::endl;
 		return block_2_end_position;
+
+#pragma pop_macro("define_debug_string")
+#pragma pop_macro("dbg")
+#pragma pop_macro("dbg_ln")
 	}
 
+
+	/*
+	 * 	Primary function that determines which sub-function to call,
+	 * 		mergeTwoBlocksElemetnsByTableLowerSmaller or
+	 * 		mergeTwoBlocksElemetnsByTableUpperSmaller
+	 */
+
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsByTable(T ** array,
+											 array_size_t block_1_start,
+											 array_size_t block_1_end,
+											 array_size_t block_2_start,
+											 array_size_t block_2_end,
+											 SortMetrics &metrics) {
+		//	trap all errors
+		if (block_1_end < block_1_start)	return 0;
+		if (block_2_end < block_2_start)	return 0;
+
+		array_size_t u_size = block_1_end - block_1_start + 1;
+		array_size_t v_size = block_2_end - block_2_start + 1;
+
+		if (true || u_size <= v_size) {
+			return mergeTwoBlocksElementsByTableLowerSmallest(array,
+															  block_1_start,
+															  block_1_end,
+															  block_2_start,
+															  block_2_end,
+															  metrics);
+		} else {
+			return mergeTwoBlocksElementsByTableUpperSmallest(array,
+															  block_1_start,
+															  block_1_end,
+															  block_2_start,
+															  block_2_end,
+															  metrics);
+		}
+	}
 
 	/*	Merge blocks using binary searches to identify spans to rotate
 	 *
@@ -774,6 +843,7 @@ namespace SortingUtilities {
 		}
 		return result;
 	}
+
 	template <typename T>
 	SortMetrics randomizeArray(T** array, array_size_t size) {
 
