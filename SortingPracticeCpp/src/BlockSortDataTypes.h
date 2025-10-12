@@ -94,13 +94,15 @@ namespace BlockSort {
 
 	namespace BlockSort {
 	enum class MergeStrategy {
-		 TABLE, AUXILLIARY, ROTATE
+		 TABLE, AUXILLIARY, ROTATE, INSERTION
+
 	};
 	}
 
 	#define MERGE_STRATEGY_TABLE_STRING			"TABLE"
 	#define MERGE_STRATEGY_AUXILLIARY_STRING	"AUXILLIARY"
 	#define MERGE_STRATEGY_ROTATE_STRING		"ROTATE"
+	#define MERGE_STRATEGY_INSERTION_STRING     "INSERTION"
 	#define MERGE_STRATEGY_UNKNOWN_STRING		"UNKNOWN"
 	#define MERGE_STRATEGY_MAX_STRING_LENGTH	10
 
@@ -109,9 +111,10 @@ namespace BlockSort {
 		ostream& operator<<(ostream& out, const BlockSort::MergeStrategy strategy);
 	}
 
+	//	Cause a compiler error if this clashes with something in std
 	namespace std {
 	enum class MergeStrategy {
-		TABLE, AUXILLIARY, ROTATE
+		TABLE, AUXILLIARY, ROTATE, INSERTION
 	};
 	}
 

@@ -1,18 +1,53 @@
-Sorting Performance In C++ built on Oct 11 2025 at 16:50:54
+Sorting Performance In C++ built on Oct 11 2025 at 22:21:05
 testBlockSort
-testBlockSortMergeBlocksExhaustively
-Merging all 12870 pairs of unique arrays of size 16 where mid = 8 using strategy ROTATE
- took average of      22.3 compares and 65.3 moves
- worst case moves       37 compares and  111 moves
- worst case cmprs       40 compares and  105 moves
-  best case moves        7 compares and    0 moves
-  best case cmprs        7 compares and    0 moves
-Merging all 12870 pairs of unique arrays of size 16 where mid = 8 using strategy TABLE
- took average of      15.1 compares and 32.6 moves
- worst case moves       37 compares and  111 moves
- worst case cmprs       40 compares and  105 moves
-  best case moves        7 compares and    0 moves
-  best case cmprs        7 compares and    0 moves
-PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
+testBlockSortMergeBlocksRandomly
+Merging two blocks 1000 times on an test_array of size    8 divided into two blocks using stategy ROTATE     took on average      8.7 compares and         19.4 moves
+Merging two blocks 1000 times on an test_array of size    8 divided into two blocks using stategy INSERTION  took on average     14.3 compares and         14.3 moves
+Merging two blocks 1000 times on an test_array of size    8 divided into two blocks using stategy TABLE      took on average      6.4 compares and         16.5 moves
 
+Merging two blocks 1000 times on an test_array of size   16 divided into two blocks using stategy ROTATE     took on average     21.3 compares and         65.0 moves
+Merging two blocks 1000 times on an test_array of size   16 divided into two blocks using stategy INSERTION  took on average     46.1 compares and         46.1 moves
+Merging two blocks 1000 times on an test_array of size   16 divided into two blocks using stategy TABLE      took on average     14.2 compares and         38.0 moves
+
+Merging two blocks 1000 times on an test_array of size   31 divided into two blocks using stategy ROTATE     took on average     51.2 compares and        210.9 moves
+Merging two blocks 1000 times on an test_array of size   31 divided into two blocks using stategy INSERTION  took on average    149.6 compares and        149.6 moves
+Merging two blocks 1000 times on an test_array of size   31 divided into two blocks using stategy TABLE      took on average     29.1 compares and         81.1 moves
+
+Merging two blocks 1000 times on an test_array of size   32 divided into two blocks using stategy ROTATE     took on average     53.6 compares and        230.7 moves
+Merging two blocks 1000 times on an test_array of size   32 divided into two blocks using stategy INSERTION  took on average    158.0 compares and        158.0 moves
+Merging two blocks 1000 times on an test_array of size   32 divided into two blocks using stategy TABLE      took on average     30.1 compares and         84.1 moves
+
+Merging two blocks 1000 times on an test_array of size   33 divided into two blocks using stategy ROTATE     took on average     55.4 compares and        235.1 moves
+Merging two blocks 1000 times on an test_array of size   33 divided into two blocks using stategy INSERTION  took on average    166.3 compares and        166.3 moves
+Merging two blocks 1000 times on an test_array of size   33 divided into two blocks using stategy TABLE      took on average     31.1 compares and         86.5 moves
+
+Merging two blocks 1000 times on an test_array of size  127 divided into two blocks using stategy ROTATE     took on average    317.2 compares and       3172.4 moves
+Merging two blocks 1000 times on an test_array of size  127 divided into two blocks using stategy INSERTION  took on average   2146.8 compares and       2146.8 moves
+Merging two blocks 1000 times on an test_array of size  127 divided into two blocks using stategy TABLE      took on average    125.0 compares and        365.0 moves
+
+Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy ROTATE     took on average    319.1 compares and       3230.9 moves
+Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy INSERTION  took on average   2173.4 compares and       2173.4 moves
+Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy TABLE      took on average    126.1 compares and        367.9 moves
+
+Merging two blocks 1000 times on an test_array of size  129 divided into two blocks using stategy ROTATE     took on average    322.1 compares and       3256.9 moves
+Merging two blocks 1000 times on an test_array of size  129 divided into two blocks using stategy INSERTION  took on average   2212.7 compares and       2212.7 moves
+Merging two blocks 1000 times on an test_array of size  129 divided into two blocks using stategy TABLE      took on average    127.0 compares and        371.2 moves
+
+Merging two blocks 1000 times on an test_array of size   16 divided into two blocks using stategy ROTATE     took on average     21.3 compares and         65.0 moves
+Merging two blocks 1000 times on an test_array of size   16 divided into two blocks using stategy INSERTION  took on average     46.1 compares and         46.1 moves
+Merging two blocks 1000 times on an test_array of size   16 divided into two blocks using stategy TABLE      took on average     14.2 compares and         38.0 moves
+
+Merging two blocks 1000 times on an test_array of size   32 divided into two blocks using stategy ROTATE     took on average     53.6 compares and        230.7 moves
+Merging two blocks 1000 times on an test_array of size   32 divided into two blocks using stategy INSERTION  took on average    158.0 compares and        158.0 moves
+Merging two blocks 1000 times on an test_array of size   32 divided into two blocks using stategy TABLE      took on average     30.1 compares and         84.1 moves
+
+Merging two blocks 1000 times on an test_array of size   64 divided into two blocks using stategy ROTATE     took on average    131.4 compares and        842.6 moves
+Merging two blocks 1000 times on an test_array of size   64 divided into two blocks using stategy INSERTION  took on average    571.6 compares and        571.6 moves
+Merging two blocks 1000 times on an test_array of size   64 divided into two blocks using stategy TABLE      took on average     62.1 compares and        177.7 moves
+
+Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy ROTATE     took on average    319.1 compares and       3230.9 moves
+Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy INSERTION  took on average   2173.4 compares and       2173.4 moves
+Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy TABLE      took on average    126.1 compares and        367.9 moves
+
+PASS:  function testBlockSortMergeBlocksRandomly() returns TRUE
 testBlockSort() ran 1 successful tests

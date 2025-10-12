@@ -37,8 +37,8 @@ using namespace BlockSort;
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 //#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
-//#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
+//#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
@@ -1131,39 +1131,39 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	bool debug_verbose 	= false;
 	bool echo_result 	= true;
-	bool test_passed 	= true;
 
-//	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
+	/*	******************************************************	*/
+	/*						test configuration					*/
+	/*	******************************************************	*/
+
+	using DataType = char;
+	DataType first_data_value = 'A';
+
+	auto next_value = [](DataType current) -> DataType {
+		if(current != 'Z') 	return current+1;
+		else				return 'A';
+	};
+
+
+	//	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
 	int test_vector_sizes[] = { 16 };
 	int num_test_vectors_sizes = sizeof(test_vector_sizes) / sizeof(int);
 
-	#pragma push_macro("DATA_TYPE")
-	#define DATA_TYPE c
-	using DataType = char;
-//	#define DATA_TYPE i
-//	using data_type = int;
-
-	/*		lambdas		*/
-
-	auto testVectorToString = [] (DataType** array, int num) -> std::string {
-		std::stringstream result;
-		result << '\'';
-		for (int i = 0; i < num; i++) {
-			result << *array[i];
-		}
-		result << '\'';
-		return result.str();
+	MergeStrategy merge_strategies[] =
+	{
+//				MergeStrategy::AUXILLIARY,
+			MergeStrategy::INSERTION,
+			MergeStrategy::ROTATE,
+			MergeStrategy::TABLE,
 	};
 
-	bool (*isSorted)(DataType**, int) = [](DataType** array, int num) -> bool {
-		for (int i = 0; i != num-1; i++) {
-			if (*array[i+1] < *array[i])
-				return false;
-		}
-		return true;
-	};
+	int num_merge_strategies = sizeof(merge_strategies)/sizeof(MergeStrategy);
 
-	/*		test code	*/
+	/*	******************************************************	*/
+	/*						test code							*/
+	/*	******************************************************	*/
+
+	bool test_passed 	= true;
 
 	for (int test_vector_i = 0; test_vector_i < num_test_vectors_sizes; test_vector_i++) {
 		int test_vector_size = test_vector_sizes[test_vector_i];
@@ -1171,14 +1171,13 @@ bool testBlockSortMergeBlocksExhaustively() {
 		if (debug_verbose) {
 			std::cout << "Test Vector Size = " << test_vector_size << std::endl;
 		}
+		std::cout << std::endl;
 		//	build the array of test values
-		char *test_values[test_vector_size];
+		DataType data_value = first_data_value;
+		DataType *test_values[test_vector_size];
 		for (int i = 0; i != test_vector_size; i++) {
-			#if (DATA_TYPE == c)
-				test_values[i] = new char('A'+(i % 26));
-			#elif (DATA_TYPE == i)
-				test_values[i] = new int(i);
-			#endif
+			test_values[i] = new DataType(data_value);
+			data_value = next_value(data_value);
 		}
 
 		int mid = test_vector_size/2;
@@ -1195,7 +1194,8 @@ bool testBlockSortMergeBlocksExhaustively() {
 	        }
 	    }
 
-	    char **test_vectors[num_test_vectors];
+	    DataType **test_vectors[num_test_vectors];
+
 	    if (debug_verbose) {
 	    	std::cout << "Generating " << num_test_vectors << " vectors ... " << std::endl;
 	    }
@@ -1208,10 +1208,10 @@ bool testBlockSortMergeBlocksExhaustively() {
 			std::cout << " generated " << num_test_vectors << " vectors" << std::endl;
 		}
 
-		array_size_t left_start = 0;
-		array_size_t left_end = mid - 1;
-		array_size_t right_start = mid;
-		array_size_t right_end = test_vector_size-1;
+		array_size_t left_start 	= 0;
+		array_size_t left_end 		= mid - 1;
+		array_size_t right_start 	= mid;
+		array_size_t right_end 		= test_vector_size-1;
 
 		SortMetrics total_results(0,0);
 		SortMetrics least_moves		(100000000,100000000);
@@ -1220,15 +1220,6 @@ bool testBlockSortMergeBlocksExhaustively() {
 		SortMetrics most_compares	(        0,        0);
 
 		int num_tests_run = 0;
-
-		MergeStrategy merge_strategies[] =
-		{
-//				MergeStrategy::AUXILLIARY,
-				MergeStrategy::ROTATE,
-				MergeStrategy::TABLE
-		};
-
-		int num_merge_strategies = sizeof(merge_strategies)/sizeof(MergeStrategy);
 
 		for (int merge_strategy_i = 0;
 			     merge_strategy_i != num_merge_strategies; merge_strategy_i++) {
@@ -1241,19 +1232,25 @@ bool testBlockSortMergeBlocksExhaustively() {
 				test_message << std::setw(5) << num_tests_run << " ";
 				InsertionSort::sortPointersToObjects(&test_vectors[i][left_start], mid);
 				InsertionSort::sortPointersToObjects(&test_vectors[i][mid], right_end-right_start+1);
+				array_size_t u_size = mid;
+				array_size_t v_size = test_vector_size - mid;
+				DataType *final_b_value = test_vectors[i][test_vector_size-1];
+				array_size_t reported_final_b_location;
 
 				num_tests_run++;
 				test_message << " when divided into two subarrays, each sorted: "
-							 << testVectorToString(test_vectors[i], test_vector_size);
+							 << SortingUtilities::arrayElementsToString(test_vectors[i], u_size)
+							 << " |"
+							 << SortingUtilities::arrayElementsToString(&test_vectors[i][mid], v_size);
 
-				DataType *final_b_value = test_vectors[i][test_vector_size-1];
-				array_size_t test_final_b_location;
-
-
+				test_message << " , final b value " << *final_b_value
+							  << " is at " << std::setw(3) << test_vector_size-1
+							  << std::endl;
 				SortMetrics metrics;
+
 				switch(merge_strategy) {
 				case MergeStrategy::TABLE:
-					test_final_b_location =
+					reported_final_b_location =
 						SortingUtilities::mergeTwoBlocksElementsByTable(
 													 test_vectors[i],
 													 left_start, left_end,
@@ -1261,8 +1258,16 @@ bool testBlockSortMergeBlocksExhaustively() {
 													 metrics);
 					break;
 				case MergeStrategy::ROTATE:
-					test_final_b_location =
+					reported_final_b_location =
 						SortingUtilities::mergeTwoAdjacentBlocksByRotation(
+													 test_vectors[i],
+													 left_start, left_end,
+													 right_start, right_end,
+													 metrics);
+					break;
+				case MergeStrategy::INSERTION:
+					reported_final_b_location =
+						BlockSort::insertionSortPartial(
 													 test_vectors[i],
 													 left_start, left_end,
 													 right_start, right_end,
@@ -1272,6 +1277,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 				default:
 					break;
 				}
+
 				total_results += metrics;
 				if (metrics.compares < least_compares.compares) {
 					least_compares = metrics;
@@ -1286,12 +1292,30 @@ bool testBlockSortMergeBlocksExhaustively() {
 					most_moves = metrics;
 				}
 
-				test_message << " merged using strategy "
-							 << std::to_string(merge_strategy) << " to "
-							 << testVectorToString(test_vectors[i], test_vector_size)
-							 << " which took "
+				SortMetrics dummy(0,0);
+				array_size_t actual_final_b_location =
+						SortingUtilities::binarySearchLastElement(test_vectors[i],
+																  left_start,
+																  right_end,
+																  final_b_value,
+																  dummy);
+				//	binarySearchLast reports location of the element
+				//	greater than the final b, so we need to decrement
+				//	back to the actual location of the final b_value
+				actual_final_b_location--;
+				test_message << "       merged using strategy "
+							 << std::setw(MERGE_STRATEGY_MAX_STRING_LENGTH)
+							 << merge_strategy << " to "
+							 << std::setw(10) << ' '	/* total hack */
+							 << SortingUtilities::arrayElementsToString(test_vectors[i], u_size)
+							 << " |"
+							 << SortingUtilities::arrayElementsToString(&test_vectors[i][mid], v_size)
+							 << " , final b value location " << reported_final_b_location
+							 << " vs expected " << actual_final_b_location
+							 << "\n which took "
 							 << metrics;
-				if (isSorted(test_vectors[i], test_vector_size)) {
+				if (SortingUtilities::isSorted(test_vectors[i], test_vector_size) &&
+					(actual_final_b_location == reported_final_b_location)) {
 					test_message << " which is correct" << std::endl;
 				} else {
 					test_message << " which is in ERROR" << std::endl;
@@ -1318,14 +1342,14 @@ bool testBlockSortMergeBlocksExhaustively() {
 						  << " compares and "
 						  << std::setw(4)
 						  << static_cast<double>(total_results.assignments) / num_tests_run
-						  << " moves\n"
-						  << " worst case moves " << std::setw(8) << most_moves.compares << " compares and "
+						  << " assignments\n"
+						  << " worst case assigns  " << std::setw(8) << most_moves.compares << " compares and "
 						  << std::setw(4) << most_moves.assignments << " moves\n"
-						  << " worst case cmprs " << std::setw(8) << most_compares.compares << " compares and "
+						  << " worst case compares " << std::setw(8) << most_compares.compares << " compares and "
 						  << std::setw(4) << most_compares.assignments << " moves\n"
-						  << "  best case moves " << std::setw(8) << least_moves.compares << " compares and "
+						  << "  best case assigns  " << std::setw(8) << least_moves.compares << " compares and "
 						  << std::setw(4) << least_moves.assignments << " moves\n"
-						  << "  best case cmprs " << std::setw(8) << least_compares.compares << " compares and "
+						  << "  best case compares " << std::setw(8) << least_compares.compares << " compares and "
 						  << std::setw(4) << least_moves.assignments << " moves\n";
 			}
 		}
@@ -1333,8 +1357,6 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN:
 	return test_passed;
-
-	#pragma pop_macro("DATA_TYPE")
 }
 
 bool testBlockSortMergeBlocksRandomly() {
@@ -1378,15 +1400,16 @@ bool testBlockSortMergeBlocksRandomly() {
 		return result;
 	};
 
-//	array_size_t array_sizes[] = { 8, 16, 31, 32, 33, 127, 128, 129, 16, 32, 64, 128};
-	array_size_t array_sizes[] = { 512, 1024, 2048 };
+	array_size_t array_sizes[] = { 8, 16, 31, 32, 33, 127, 128, 129, 16, 32, 64, 128};
+//	array_size_t array_sizes[] = { 512, 1024, 2048 };
 
 	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
 	MergeStrategy merge_strategies[] = {
 //				MergeStrategy::AUXILLIARY,
 			MergeStrategy::ROTATE,
-			MergeStrategy::TABLE
+			MergeStrategy::INSERTION,
+			MergeStrategy::TABLE,
 	};
 
 	int num_merge_strategies = sizeof(merge_strategies) / sizeof(MergeStrategy);
@@ -1473,24 +1496,31 @@ bool testBlockSortMergeBlocksRandomly() {
 				}
 
 				DataType *final_b_value = test_array[right_end];
-				array_size_t expected_final_b_location = right_end;
-				array_size_t test_final_b_location;
+				array_size_t reported_final_b_position;
 
 				switch(merge_strategy) {
 				case MergeStrategy::ROTATE:
-					test_final_b_location =
+					reported_final_b_position =
 						SortingUtilities::mergeTwoAdjacentBlocksByRotation(
 													test_array,
 													left_start, left_end,
 													right_start, right_end, metrics);
 					break;
 				case MergeStrategy::TABLE:
-					test_final_b_location =
+					reported_final_b_position =
 						SortingUtilities::mergeTwoBlocksElementsByTable(
 													test_array,
 												 	left_start, left_end,
 													right_start, right_end,
 													metrics);
+					break;
+				case MergeStrategy::INSERTION:
+					reported_final_b_position =
+						BlockSort::insertionSortPartial(
+													 test_array,
+													 left_start, left_end,
+													 right_start, right_end,
+													 metrics);
 					break;
 				case MergeStrategy::AUXILLIARY:
 					std::cout << __FUNCTION__ << " using strategy "
@@ -1507,6 +1537,30 @@ bool testBlockSortMergeBlocksRandomly() {
 							<< " used: " << metrics
 							<< "\n";
 					std::cout << message.str();
+				}
+
+				SortMetrics dummy(0,0);
+				array_size_t actual_final_b_position =
+						SortingUtilities::binarySearchLastElement(test_array,
+																  left_start,
+																  right_end,
+																  final_b_value,
+																  dummy);
+				//	binarySearchLast reports location of the element
+				//	greater than the final b, so we need to decrement
+				//	back to the actual location of the final b_value
+				actual_final_b_position--;
+				if (reported_final_b_position != actual_final_b_position) {
+					test_passed = false;
+					message.clear();
+					message.str("");
+					message << " FAILED: reported final b position "
+							<< reported_final_b_position
+							<< " does not match actual "
+							<< actual_final_b_position
+							<< std::endl;
+					std::cout << message.str() << std::endl;
+					goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
 				}
 
 				for (int i = 0; i != array_size; i++) {
@@ -1540,10 +1594,10 @@ bool testBlockSortMergeBlocksRandomly() {
 				}
 			}
 			if (echo_test_result) {
-				std::cout << "Merging blocks " << num_test_passes
+				std::cout << "Merging two blocks " << num_test_passes
 						 << " times on an test_array of size "
 						 << std::setw(4) << array_size
-						 << " using stategy "
+						 << " divided into two blocks using stategy "
 						 << std::setw(MERGE_STRATEGY_MAX_STRING_LENGTH)
 						 << std::left << merge_strategy
 						 << std::right
@@ -1555,6 +1609,9 @@ bool testBlockSortMergeBlocksRandomly() {
 						 << static_cast<double>(total_results.assignments) / num_test_passes
 						 << " moves" << std::endl;
 			}
+		}
+		if (num_merge_strategies != 1 && echo_test_result) {
+			std::cout << std::endl;
 		}
 	}
 

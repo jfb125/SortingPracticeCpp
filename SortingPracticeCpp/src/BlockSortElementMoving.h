@@ -43,7 +43,7 @@ namespace BlockSort {
 	/*
 	 * 	This performs an insertion sort on the array starting from element 'suspect',
 	 * 	moving leftwards if necessary until 'start', and continuing with successive
-	 * 	elements until 'size-1'.
+	 * 	elements to the right until 'size-1'.
 	 *
 	 * 		A_Blocks are defined as coming from the left sub-array and use their
 	 * 		  first value as their key
@@ -91,9 +91,14 @@ namespace BlockSort {
 	 * 	highest_b_position = mergeByInsertionSort(array, a[0].start, b[0].start, b[0].end)
 	 */
 
+	//	'ignored' is only used so that the signature of this function matches
+	//	the signature of merging functions that get the bounds of both blocks
+	//	passed to them, such as mergeToAdjacentBlocksByRotation or
+	//	mergeTwoBlocksElementsByTable
 	template <typename T>
 	array_size_t insertionSortPartial(T** array,
 									  array_size_t begin,
+									  array_size_t ignored,
 									  array_size_t mid,
 									  array_size_t end,
 									  SortMetrics &metrics)

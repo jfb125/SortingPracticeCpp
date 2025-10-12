@@ -78,6 +78,8 @@ namespace std
 			return string(MERGE_STRATEGY_TABLE_STRING);
 		case BlockSort::MergeStrategy::ROTATE:
 			return string(MERGE_STRATEGY_ROTATE_STRING);
+		case BlockSort::MergeStrategy::INSERTION:
+			return string(MERGE_STRATEGY_INSERTION_STRING);
 		default:
 			return string(MERGE_STRATEGY_UNKNOWN_STRING);
 		};

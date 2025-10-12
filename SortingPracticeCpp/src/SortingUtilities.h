@@ -602,7 +602,11 @@ namespace SortingUtilities {
 												  array_size_t block_2_start,
 												  array_size_t block_2_end,
 												  SortMetrics &metrics) {
-		constexpr bool debug_verbose = false;
+		constexpr bool debug_verbose= false;
+		bool announce_initial_array = true;
+		bool a_rotation_occurred	= false;
+		std::stringstream initial_array_msg;
+
 		array_size_t a_start	= block_1_start;
 		array_size_t a_end		= block_1_end;
 		array_size_t b_start	= block_2_start;
@@ -622,47 +626,86 @@ namespace SortingUtilities {
 		//		even though b_start may not be at the end
 		//		[ A, D, E, F ]  merged with [ B, C, G, H ]	ss = [1], se = [6]
 		//		[ A, B, C, D, E, F, G, H ]					ss = [8], se = [8]
+		if (debug_verbose) {
+			array_size_t dbg_size = b_end-a_start+1;
+			initial_array_msg << SortingUtilities::arrayElementsToString(array, dbg_size)
+							  << " initial array state"
+							  << std::endl;
+		}
 
-		while (b_start <= block_2_end && span_start != span_end /*&& a_start != a_end*/) {
-			if (debug_verbose) {
-				std::cout << "Start of loop ";
-			}
-			span_start =
+		//	there are three ways that signal done
+		//	 a block is exhausted	a_start == a_end
+		//	 b_block is exhausted	b_start == block_2_end
+		//	 all elements in place	span_start == span_end
+		while (b_start <= block_2_end && span_start != span_end && a_start != a_end) {
+			std::stringstream dbg_msg;
+			array_size_t first_a_greater_than_b;
+			array_size_t first_b_greater_than_a;
+			first_a_greater_than_b =
 				SortingUtilities::binarySearchLastElement(array,
 														  a_start, a_end,
 														  array[b_start],
 														  metrics);
-			span_end =
+			//	if the b element in question is greater than all a elements, leave
+			if (first_a_greater_than_b == b_start) {
+				break;
+			}
+			span_start = first_a_greater_than_b;
+			first_b_greater_than_a =
 				SortingUtilities::binarySearchLastElement(array,
 														  b_start, b_end,
 														  array[span_start],
 														  metrics);
-			rotate_count = span_end - b_start;
-			span_end--;
-			final_b_pos = span_end-rotate_count;
-			if (debug_verbose) {
-				std::cout 	<< " block1_start "	<< std::setw(2) << block_1_start
-							<< " block2_start "	<< std::setw(2)	<< block_2_start
-							<< " block2_end "	<< std::setw(2) << block_2_end
-							<< " a_start " 		<< std::setw(2) << a_start
-							<< " a_end "		<< std::setw(2)	<< a_end
-							<< " b_start "		<< std::setw(2) << b_start
-							<< " b_end "		<< std::setw(2)	<< b_end
-							<< " span_start " 	<< std::setw(2)	<< span_start
-							<< " span_end "		<< std::setw(2)	<< span_end
-							<< " rotate_count "	<< std::setw(2)	<< rotate_count
-							<< " final_b_pos "  << std::setw(2) << final_b_pos;
+			//	the span of A values that can be rotated right ends at the
+			//	element immediately before the first B value that is
+			//	greater than the a_value at the start of the span
+			//	0 1 2 3 4   5 6 7 8 9
+			//	A B G H I | D E F J K	a[G] >_b_start[D] = 2  b[J] > a[G] = 8
+			//							span [2:7] [G:F], rotaate
+			span_end 	= first_b_greater_than_a - 1;
+			if (span_end == span_start)
+				break;
+			rotate_count= first_b_greater_than_a - b_start;
+			if (span_end == final_b_pos) {
+				final_b_pos = final_b_pos 				// current position
+							  + rotate_count			// moved to the right
+							  - (span_end-span_start+1);// modulo span size
 			}
 			metrics +=
 				SortingUtilities::rotateArrayElementsRight(array,
 														   span_start, span_end,
 														   rotate_count);
+			a_rotation_occurred = true;
 			if (debug_verbose) {
-				std::cout << " got past rotateElements\n";
+				if (announce_initial_array) {
+					std::cout << initial_array_msg.str();
+					announce_initial_array = false;
+				}
+				array_size_t dbg_size = block_2_end - block_1_start + 1;
+				dbg_msg 	<< SortingUtilities::arrayElementsToString(array, dbg_size)
+							<< " b1_st "	<< std::setw(2) << block_1_start
+							<< " b2_st "	<< std::setw(2)	<< block_2_start
+							<< " b2_nd "	<< std::setw(2) << block_2_end
+							<< " a_st  " 		<< std::setw(2) << a_start
+							<< " a_end "		<< std::setw(2)	<< a_end
+							<< " b_st  "		<< std::setw(2) << b_start
+							<< " b_end "		<< std::setw(2)	<< b_end
+							<< " sp_st " 	<< std::setw(2)	<< span_start
+							<< " sp_en "		<< std::setw(2)	<< span_end
+							<< " rrcnt "	<< std::setw(2)	<< rotate_count
+							<< " final_b_pos "
+						    << std::setw(2) << final_b_pos << std::endl;
+				std::cout   << dbg_msg.str();
 			}
 			a_start = span_start + rotate_count;
 			a_end	+= rotate_count;
 			b_start = span_end+1;
+		}
+		if (debug_verbose && a_rotation_occurred) {
+			array_size_t dbg_size = block_2_end - block_1_start + 1;
+			std::cout << SortingUtilities::arrayElementsToString(array, dbg_size)
+					  << " initial array state"
+					  << std::endl << std::endl;
 		}
 		return final_b_pos;
 	}
