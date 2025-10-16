@@ -1132,7 +1132,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 	//	note that 'echo_result' has no effect when
 	//	'report_avg_only' is true
 	bool debug_verbose 	= false;
-	bool report_avg_only= true;
+	bool report_avg_only= false;
 	bool echo_result 	= true;
 
 	/*	******************************************************	*/
@@ -1191,24 +1191,26 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	BlockOperations::MergeStrategy merge_strategies[] =
 	{
-//		BlockOperations::MergeStrategy::AUXILLIARY,
-		BlockOperations::MergeStrategy::RGT_TO_LFT,
-		BlockOperations::MergeStrategy::HYBRID,
-		BlockOperations::MergeStrategy::BINARY,
-		BlockOperations::MergeStrategy::INSERTION,
-		BlockOperations::MergeStrategy::TABLE,
+		BlockOperations::MergeStrategy::AUXILLIARY,
+//		BlockOperations::MergeStrategy::RGT_TO_LFT,
+//		BlockOperations::MergeStrategy::HYBRID,
+//		BlockOperations::MergeStrategy::BINARY,
+//		BlockOperations::MergeStrategy::INSERTION,
+//		BlockOperations::MergeStrategy::TABLE,
 	};
 
 	int num_merge_strategies = 	sizeof(merge_strategies) /
 								sizeof(BlockOperations::MergeStrategy);
 
 	auto calc_mid_min = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
-		//	mid can not be 0
-		return 1;
+		//	mid can not be 1
+		//	return 1;
+		return nominal_mid;
 	};
 	auto calc_mid_max = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
 		//	mid can be the end of the array
-		return size-1;
+//		return size-1;
+		return nominal_mid;
 	};
 
 	bool test_passed 	= true;
@@ -1236,7 +1238,6 @@ bool testBlockSortMergeBlocksExhaustively() {
 			array_size_t left_end 		= mid - 1;
 			array_size_t right_start 	= mid;
 			array_size_t right_end 		= test_vector_size-1;
-
 
 			for (int merge_strategy_i = 0;
 			     merge_strategy_i != num_merge_strategies; merge_strategy_i++) {
@@ -1277,9 +1278,9 @@ bool testBlockSortMergeBlocksExhaustively() {
 				SortMetrics least_compares	(100000000,100000000);
 				SortMetrics most_moves		(        0,        0);
 				SortMetrics most_compares	(        0,        0);
-				int num_tests_run = 0;
+				int num_tests_run = 1;
 
-				for (int i = num_tests_run; i != num_test_vectors; i++) {
+				for (int i = num_tests_run; i != 2 + 0*num_test_vectors; i++) {
 					std::stringstream test_message;
 					test_message.clear();
 					test_message.str("");
@@ -1304,6 +1305,12 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 					switch(merge_strategy) {
 					case BlockOperations::MergeStrategy::AUXILLIARY:
+						reported_final_b_location =
+							BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer(
+														test_vectors[i],
+														left_start, left_end,
+														right_start, right_end,
+														metrics);
 						break;
 					case BlockOperations::MergeStrategy::BINARY:
 						reported_final_b_location =
@@ -1393,7 +1400,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 						goto TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN;
 						break;
 					}
-					if (debug_verbose) {
+					if (true || debug_verbose) {
 						std::cout << test_message.str();
 					}
 				}

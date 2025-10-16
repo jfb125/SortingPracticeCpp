@@ -119,6 +119,15 @@ namespace BlockOperations
 												array_size_t block_2_end,
 												SortMetrics &metrics);
 
+	/* 	Blocks do not have to be continuous nor do they have to be the same size */
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer(
+												T ** array,
+											 	array_size_t block_1_start,
+												array_size_t block_1_end,
+												array_size_t block_2_start,
+												array_size_t block_2_end,
+												SortMetrics &metrics);
 
 	template <typename T>
 	SortMetrics swapBlockElementsOfEqualSize( T** array,
@@ -1305,174 +1314,189 @@ namespace BlockOperations
 	}
 
 
-#if 0
 	/*
-	 * ComparesAndMoves mergeBlocksByRotating(array, start, mid, end);
-	 *
-	 *		start 	is the index of the start of the block on the left
-	 *		mid		is the index of the start of the block on the right,
-	 *				  which is one past the end of the block on the left
-	 *		end		is the index of the end of the block on the right
-	 *
-	 *   This uses rotate operations to put the { u[], v[] } array in order
-	 *   The requirement is that the sub portions of uv_array, u[] and v[]
-	 *   	are in ascending order.
-	 *   		Consider an array where start = 5, mid = 9 & end is equal to 12
-	 *   					 s           m        e
-	 *   		             5  6  7  8  9 10 11 12
-	 *      then array[] = { B, C, C, D, A, C, G, G }
-	 *
-	 *   The algorithm looks for all elements in [mid:end] that are less
-	 *   	than the current element in u, then rotates all those elements
-	 *   	in v that are less than u.  This is equivalent to finding the
-	 *   	first element in v that is > u.
-	 *      	start with u = start = 5 & v = mid = 9, count = 0
-	 *
-	 *      Search u for a value > v
-	 *        5  6  7  8  9 10 11 12
-	 * 		{ B, C, C, D, A, C, G, G }	arr[u=5].'B' > arr[v= 9].'A'       count = 0
-	 * 		Search v for a value < u
-	 * 		{ B, C, C, D, A, C, G, G }	arr[u=5].'B' <= arr[v= 9].'A' v++  count++;
-	 * 		{ B, C, C, D, A, C, G, G }	arr[u=5].'B' >  arr[v=10].'C'      count = 1
-	 * 		arrayRotate(array, count = 1, start = u = 5, end = v-1 = 10 -1 = 9)
-	 * 		{ A, B, C, C, E, C, G, G }
-
-	 * 		Search u for a value > v
-	 * 		{ A, B, C, C, E, C, G, G }	arr[u=6].'B' <= arr[v=10].'C', u++ count = 0
-	 * 		{ A, B, C, C, E, C, G, G }	arr[u=7].'C' <= arr[v=10].'C', u++ count = 0
-	 * 		{ A, B, C, C, E, C, G, G }	arr[u=8].'C' <= arr[v=10].'C', u++ count = 0
-	 * 		{ A, B, C, C, E, C, G, G }	arr[u=9].'E' <= arr[v=10].'C',     count = 0
-	 * 		Search v for a  value < u
-	 * 		{ A, B, C, C, E, C, G, G }	arr[u=9].'E' <= arr[v=10].'C', v++ count++
-	 * 		{ A, B, C, C, E, C, G, G }	arr[u=9].'E' <= arr[v=11].'G'      count = 1
-	 * 		arrayRotate(array, count = 1, start = u = 9, end = v-1 = 11 - 10)
-	 * 		{ A, B, C, C, C, E, G, G }
-	 *
-	 * 		Search u for a value > v
-	 * 		{ A, B, C, C, C, E, G, G }	arr[u=9].'E' <= arr[v=11].'G' u++  count = 0
-	 * 		{ A, B, C, C, C, E, G, G }	arr[u=10].'E' <= arr[v=11].'G' u++  count = 0
-	 * 		{ A, B, C, C, C, E, G, G }	arr[u=11].'E' <= arr[v=11].'G' u++  count = 0
-	 * 		STOP u == v
+	 * 	Merge to blocks using an auxiliary buffer that is the size
+	 * 	of the smaller block
 	 */
 
 	template <typename T>
-	SortMetrics mergeContiguousElementsByRotating(T** array, array_size_t start, array_size_t mid, array_size_t end) {
+	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer_LOWER (
+												T ** array,
+											 	array_size_t block_1_start,
+												array_size_t block_1_end,
+												array_size_t block_2_start,
+												array_size_t block_2_end,
+												SortMetrics &metrics) {
 
-		bool debug_verbose = false;
+		bool debug_verbose = true;
+		std::cout << "Entering 'byAuxiliary'" << std::endl;
+		array_size_t block_1_size 		= block_1_end-block_1_start+1;
+		T* auxiliary[block_1_size];
+		array_size_t aux_dst			= 0;
+		array_size_t aux_src			= 0;
+		array_size_t b_2_src			= block_2_start;
+		array_size_t b_2_unmerged_st	= block_2_start;
+		array_size_t dst				= block_1_start;
 
-		if(debug_verbose) {
-			std::cout << __FUNCTION__ << std::endl;
-		}
+		auto isAuxEmpty = [&] () -> bool {	return aux_dst == aux_src; 	};
+		auto isDstInB1	= [&] () -> bool {	return dst <= block_1_end;	};
+		auto nextDst	= [&] () -> array_size_t {
+			return dst != block_1_end ? dst + 1 : block_2_start; };
 
-		SortMetrics metrics(0,0);
+		array_size_t b_max_pos		= block_2_end;
 
-		array_size_t u = mid-1;
-		array_size_t v = end;
-		array_size_t rotate_count;
-
-		//	These choose between:
-		//	  PURE_RIGHT_TO_LEFT	Always start from right-to-left both u & v indices
-		//	  PURE_BINARY			Always use a binary search
-		//	  HYBRID				Binary search first time, the right-to-left
-		bool binary_search 					= true;
-		bool binary_search_first_time_only	= true;
-		//	binary_search		binary_search_first_time_only		mode
-		//		false					d.c.						PURE_RIGHT_TO_LEFT
-		//		true					false						PURE_BINARY
-		//		true					true						HYBRID
-
-		while (u >= start) {
-
-			array_size_t lower_shift_bound;
-
-			if (!binary_search) {
-				//	find the first [v] that is less than [u]
-				while (v > u) {
-					metrics.compares++;
-					if (*array[u] > *array[v])
-						break;
-					--v;
-				}
-				//	If v is equal to u, then all elements in [v+1:end]
-				//	  and all elements [start:u] are in order
-				//	  therefore the array is in order
-				if (u==v)
-					break;
-				//	u is pointing to a value that is > v
-				//	it is possible that lesser values to the left of [u]
-				//	  are also > [v]. Keep moving --u until a value is
-				//	  found that is <= [v].  At that point, everything
-				//	  between [u+1] to [v] is greater than [v]
-				rotate_count = -1;
-				u--;
-				while (u >= start) {
-					metrics.compares++;
-					if (*array[u] <= *array[v]) {
+		auto debug = [&] (std::string trailer) -> std::string {
+			array_size_t dbg_sz = block_2_end - block_2_start + 1
+								+ block_1_end - block_1_start + 1;
+			std::stringstream msg;
+			msg << SortingUtilities::arrayElementsToString(array, dbg_sz);
+			msg << " dst = " 		<< std::setw(2) << dst
+				<< " aux_src = " 	<< std::setw(2) << aux_src
+				<< " aux_dst = " 	<< std::setw(2) << aux_dst
+				<< " b_2_st = "		<< std::setw(2) << b_2_unmerged_st
+				<< " b_2_src = "  	<< std::setw(2) << b_2_src
+				<< " aux: ";
+			for (int i = aux_src; i < aux_dst; i++) {
+				msg << std::setw(2) << *auxiliary[i] << " ";
+			}
+			msg << trailer;
+			return msg.str();
+		};
+		//	ensure that all block_1 values have been examined
+		//	and that there are no pending block_1 values in auxiliary
+		while (dst != b_2_unmerged_st || !isAuxEmpty())
+		{
+			if (debug_verbose) {
+				std::cout << debug(" top of loop") << std::endl;
+			}
+			//	block_1 value is taken
+			if (!isAuxEmpty()) {
+				// block_1 element has previously been moved to auxiliary
+				//	  prefer block_1 over block_2 to preserve stability
+				metrics.compares++;
+				if (*auxiliary[aux_src] <= *array[b_2_src]) {
+					//	if the destination is a b1 value, move it to aux
+					if (isDstInB1()) {
+						metrics.assignments++;
+						auxiliary[aux_dst++] = array[dst];
+					}
+					metrics.assignments++;
+					array[dst] = auxiliary[aux_src++];
+					dst = nextDst();
+				} else {
+					//	the element comes from block 2
+					if (isDstInB1()) {
+						metrics.assignments++;
+						auxiliary[aux_dst++] = array[dst];
+					}
+					if (dst != b_2_src) {
+						metrics.assignments++;
+						array[dst] 		= array[b_2_src];
+						b_2_unmerged_st	= b_2_src;
+					}
+					//	final b has been moved into position, b2 is exhausted
+					if (b_2_src == b_max_pos) {
+						b_max_pos 	= dst;
+						dst 		= nextDst();
+						//	copy what remains of block_1 to destination
+						while (!isAuxEmpty()) {
+							metrics.assignments++;
+							array[dst] 	= auxiliary[aux_src];
+							dst 		= nextDst();
+							aux_src++;
+						}
 						break;
 					}
-					--u;
-					--rotate_count;
+					//	there are remaining elements in block_2
+					dst = nextDst();
+					b_2_src++;
 				}
-				lower_shift_bound = u+1;
 			} else {
-				//	find the rightmost (least) value remaining in v that is > u
-				v = SortingUtilities::binarySearchFirstElement(array, u+1, v, array[u], metrics);
-				//	the values to rotate are to the left of the value > u
-				v--;
-				//	it there were no values in v that are less than u, done
-				if (u==v)
-					break;
-				//	find the leftmost (least) value in u that is > v
-				lower_shift_bound =
-					SortingUtilities::binarySearchLastElement(array, start, u, array[v], metrics);
-				rotate_count = -(u-lower_shift_bound+1);
-				u = lower_shift_bound-1;
-				if (binary_search_first_time_only)
-					binary_search = false;
-			}
-
-			if (debug_verbose) {
-				std::cout << "BEFORE\n";
-				std::cout << "start " << start << " end " << end
-						  << " u+1 " << u+1 << " v " << v
-						  << " rotating " << rotate_count
-						  << std::endl;
-				for (int i = start; i <= end; i++) {
-					std::cout << std::setw(3) << i << ' ';
+				//	auxiliary is empty - block_1 value comes from dst
+				metrics.compares++;
+				if (*array[dst] <= *array[b_2_src++]) {
+					dst = nextDst();
+				} else {
+					// block_2 value is taken
+					if (isDstInB1()) {
+						metrics.assignments++;
+						auxiliary[aux_dst++] = array[dst];
+					}
+					//	if the b value is moved from further along
+					//	the array, then the next b_2_unmerged will
+					//	be the next b_2_src location
+					if (dst != b_2_src) {
+						metrics.assignments++;
+						array[dst] 		= array[b_2_src];
+						b_2_unmerged_st = b_2_src+1;
+					}
+					//	If final b2 value has been moved into place
+					//	flush the auxiliary into the array
+					if (b_2_src == b_max_pos) {
+						b_max_pos 	= dst;
+						dst 		= nextDst();
+						while (!isAuxEmpty()) {
+							metrics.assignments++;
+							array[dst] = auxiliary[aux_src++];
+							dst = nextDst();
+						}
+						break;
+					}
+					b_2_src++;
+					dst = nextDst();
 				}
-				std::cout << std::endl;
-				std::cout << SortingUtilities::arrayElementsToString(&array[start], end-start+1, 3, 4)
-						  << std::endl;
 			}
-			//	All elements between {u+1:v} are greater than v, and [u] <= [v].
-			//	Rotate left a sufficient amove to the element a [u+1] to the right of [v]
-			//	Rotate_count is < 0, which indicates a shift left
-			metrics += SortingUtilities::rotateArrayElementsRight(array, lower_shift_bound, v, rotate_count);
-
 			if (debug_verbose) {
-				std::cout << "AFTER\n";
-				std::cout << SortingUtilities::arrayElementsToString(&array[start], end-start+1, 3, 4)
-						  << std::endl;
+				std::cout << debug(" bottom of loop") << std::endl;
 			}
-			//    Point to the v element that is one before the element
-			// that u was pointing to which has been rotated left
-			//
-			//	Consider assume that the value at u6 which is in position 12
-			//	     is greater than the value at v4 which is in position 17
-			//		 rotate count will be -2 (left)
-			//			  11 12 13 14 15 16 17 18 19
-			//		Was:  u5 u6 u7 v1 v2 v3 v4 v5 v6
-			//		Is:	  u5 v1 v2 v3 v4 u6 u7 v5 v6
-			//		v4 has moved from 17 to 15
-			v = v + rotate_count;
+//			std::getchar();
 		}
-
-		if (debug_verbose)
-			std::cout << "Exiting mergeBlocksByRotation()\n\n";
-
-		return metrics;
+		std::cout << "Exiting 'byAuxiliary'" << std::endl;
+		return b_max_pos;
 	}
-#endif
+
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer_UPPER (
+												T ** array,
+											 	array_size_t block_1_start,
+												array_size_t block_1_end,
+												array_size_t block_2_start,
+												array_size_t block_2_end,
+												SortMetrics &metrics);
+
+	/* 	Blocks do not have to be continuous nor do they have to be the same size */
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer(
+												T ** array,
+											 	array_size_t block_1_start,
+												array_size_t block_1_end,
+												array_size_t block_2_start,
+												array_size_t block_2_end,
+												SortMetrics &metrics)
+	{
+		array_size_t block_1_size = block_1_end - block_1_start + 1;
+		array_size_t block_2_size = block_2_end - block_2_start + 1;
+		if (true || block_1_size <= block_2_size) {
+			return BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer_LOWER(
+												array,
+												block_1_start,
+												block_1_end,
+												block_2_start,
+												block_2_end,
+												metrics);
+		} else {
+			return BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer_UPPER(
+												array,
+												block_1_start,
+												block_1_end,
+												block_2_start,
+												block_2_end,
+												metrics);
+
+		}
+	}
+
+
 	/*
 	 *	ComparesAndMoves swapBlockElements(array, b1_start, b2_start, block_size)
 	 *
