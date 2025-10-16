@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/ArrayComposition.cpp \
+../src/BlockOperations.cpp \
 ../src/BlockSort.cpp \
 ../src/BlockSortTest.cpp \
 ../src/Disorganizer.cpp \
@@ -31,6 +32,7 @@ CPP_SRCS += \
 
 CPP_DEPS += \
 ./src/ArrayComposition.d \
+./src/BlockOperations.d \
 ./src/BlockSort.d \
 ./src/BlockSortTest.d \
 ./src/Disorganizer.d \
@@ -57,6 +59,7 @@ CPP_DEPS += \
 
 OBJS += \
 ./src/ArrayComposition.o \
+./src/BlockOperations.o \
 ./src/BlockSort.o \
 ./src/BlockSortTest.o \
 ./src/Disorganizer.o \
@@ -94,7 +97,7 @@ src/%.o: ../src/%.cpp src/subdir.mk
 clean: clean-src
 
 clean-src:
-	-$(RM) ./src/ArrayComposition.d ./src/ArrayComposition.o ./src/BlockSort.d ./src/BlockSort.o ./src/BlockSortTest.d ./src/BlockSortTest.o ./src/Disorganizer.d ./src/Disorganizer.o ./src/InitialOrdering.d ./src/InitialOrdering.o ./src/MessageList.d ./src/MessageList.o ./src/OneTestResult.d ./src/OneTestResult.o ./src/ResultOutput.d ./src/ResultOutput.o ./src/SimpleRandomizer.d ./src/SimpleRandomizer.o ./src/SimpleRandomizer_test.d ./src/SimpleRandomizer_test.o ./src/SortAlgorithm.d ./src/SortAlgorithm.o ./src/SortFailureLog.d ./src/SortFailureLog.o ./src/SortFailureLog_test.d ./src/SortFailureLog_test.o ./src/SortTest.d ./src/SortTest.o ./src/SortTestMetrics.d ./src/SortTestMetrics.o ./src/SortableObject.d ./src/SortableObject.o ./src/SortingPractice.d ./src/SortingPractice.o ./src/SortingUtilities.d ./src/SortingUtilities.o ./src/StudentData.d ./src/StudentData.o ./src/StudentDataArray.d ./src/StudentDataArray.o ./src/StudentDataArray_test.d ./src/StudentDataArray_test.o ./src/StudentDataGenerator.d ./src/StudentDataGenerator.o ./src/nChoosek.d ./src/nChoosek.o ./src/nChoosek_test.d ./src/nChoosek_test.o
+	-$(RM) ./src/ArrayComposition.d ./src/ArrayComposition.o ./src/BlockOperations.d ./src/BlockOperations.o ./src/BlockSort.d ./src/BlockSort.o ./src/BlockSortTest.d ./src/BlockSortTest.o ./src/Disorganizer.d ./src/Disorganizer.o ./src/InitialOrdering.d ./src/InitialOrdering.o ./src/MessageList.d ./src/MessageList.o ./src/OneTestResult.d ./src/OneTestResult.o ./src/ResultOutput.d ./src/ResultOutput.o ./src/SimpleRandomizer.d ./src/SimpleRandomizer.o ./src/SimpleRandomizer_test.d ./src/SimpleRandomizer_test.o ./src/SortAlgorithm.d ./src/SortAlgorithm.o ./src/SortFailureLog.d ./src/SortFailureLog.o ./src/SortFailureLog_test.d ./src/SortFailureLog_test.o ./src/SortTest.d ./src/SortTest.o ./src/SortTestMetrics.d ./src/SortTestMetrics.o ./src/SortableObject.d ./src/SortableObject.o ./src/SortingPractice.d ./src/SortingPractice.o ./src/SortingUtilities.d ./src/SortingUtilities.o ./src/StudentData.d ./src/StudentData.o ./src/StudentDataArray.d ./src/StudentDataArray.o ./src/StudentDataArray_test.d ./src/StudentDataArray_test.o ./src/StudentDataGenerator.d ./src/StudentDataGenerator.o ./src/nChoosek.d ./src/nChoosek.o ./src/nChoosek_test.d ./src/nChoosek_test.o
 
 .PHONY: clean-src
 

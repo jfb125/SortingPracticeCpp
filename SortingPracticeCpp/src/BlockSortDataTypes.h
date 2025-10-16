@@ -89,41 +89,12 @@ namespace BlockSort {
 	}
 
 	/*	**********************************************************	*/
-	/*							MergeStrategy						*/
-	/*	**********************************************************	*/
-
-	namespace BlockSort {
-	enum class MergeStrategy {
-		 TABLE, AUXILLIARY, ROTATE, INSERTION
-
-	};
-	}
-
-	#define MERGE_STRATEGY_TABLE_STRING			"TABLE"
-	#define MERGE_STRATEGY_AUXILLIARY_STRING	"AUXILLIARY"
-	#define MERGE_STRATEGY_ROTATE_STRING		"ROTATE"
-	#define MERGE_STRATEGY_INSERTION_STRING     "INSERTION"
-	#define MERGE_STRATEGY_UNKNOWN_STRING		"UNKNOWN"
-	#define MERGE_STRATEGY_MAX_STRING_LENGTH	10
-
-	namespace std{
-		string to_string(BlockSort::MergeStrategy strategy);
-		ostream& operator<<(ostream& out, const BlockSort::MergeStrategy strategy);
-	}
-
-	//	Cause a compiler error if this clashes with something in std
-	namespace std {
-	enum class MergeStrategy {
-		TABLE, AUXILLIARY, ROTATE, INSERTION
-	};
-	}
-
-	/*	**********************************************************	*/
 	/*						BlockSortingStrategy					*/
 	/*	**********************************************************	*/
 
 	namespace BlockSort {
 	enum class BlockSortingStrategy {
+		INSERTION,
 		BINARY,
 		HYBRID,
 		RIGHT_TO_LEFT,
@@ -134,6 +105,7 @@ namespace BlockSort {
 	//	is instantiated without the name space
 	namespace std {
 	enum class BlockSortingStrategy {
+		INSERTION,
 		BINARY,
 		HYBRID,
 		RIGHT_TO_LEFT,
@@ -141,6 +113,7 @@ namespace BlockSort {
 	};
 	}
 
+	#define SORTING_STRATEGY_INSERTION_STRING		"INSERTION"
 	#define SORTING_STRATEGY_BINARY_STRING			"BINARY"
 	#define SORTING_STRATEGY_HYBRID_STRING			"HYBRID"
 	#define SORTING_STRATEGY_RIGHT_TO_LEFT_STRING	"RIGHT_TO_LEFT"

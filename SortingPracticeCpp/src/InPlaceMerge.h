@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <string>
 
+#include "BlockOperations.h"
 #include "SortingPracticeDataTypes.h"
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
@@ -52,28 +53,22 @@ namespace InPlaceMerge {
 
 		SortMetrics metrics(0,0);
 
-		BlockSort::MergeStrategy merge_strategy =
-					BlockSort::MergeStrategy::ROTATE;
+		BlockOperations::MergeStrategy merge_strategy =
+					BlockOperations::MergeStrategy::RGT_TO_LFT;
 		_dbg_ln("InPlaceMerge using " << merge_strategy);
 
-
-		array_size_t (*mergeBlocks)(T** array,
-								   array_size_t block_1_start,
-								   array_size_t block_1_end,
-								   array_size_t block_2_start,
-								   array_size_t block_2_end,
-								   SortMetrics &metrics);
+		BlockOperations::MergeFunction<T> mergeBlocks;
 
 		switch(merge_strategy) {
-		case BlockSort::MergeStrategy::INSERTION:
-			mergeBlocks = BlockSort::insertionSortPartial;
+		case BlockOperations::MergeStrategy::INSERTION:
+			mergeBlocks = BlockOperations::insertionSortPartial;
 			break;
-		case BlockSort::MergeStrategy::ROTATE:
-			mergeBlocks = SortingUtilities::mergeTwoAdjacentBlocksByRotation;
+		case BlockOperations::MergeStrategy::RGT_TO_LFT:
+			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_BinarySearch;
 			break;
-		case BlockSort::MergeStrategy::TABLE:
+		case BlockOperations::MergeStrategy::TABLE:
 		default:
-			mergeBlocks = SortingUtilities::mergeTwoBlocksElementsByTable;
+			mergeBlocks = BlockOperations::mergeTwoBlocksElementsByTable;
 			break;
 		}
 

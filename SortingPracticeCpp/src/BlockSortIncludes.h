@@ -16,7 +16,7 @@
 
 #include "BlockSortDataTypes.h"
 #include "BlockSortBlockDescriptors.h"
-#include "BlockSortElementMoving.h"
+#include "BlockOperations.h"
 #include "BlockSortBlockMoving.h"
 #include "BlockSortBlockSortAndMerge.h"
 #include "BlockSortDebugging.h"

@@ -75,6 +75,11 @@ namespace BlockSort {
 	SortMetrics sortBlocksHybrid(		T **array,
 										Descriptors<T> &blocks, int num_blocks);
 
+	/*	sort an array of [A_0..A_m:B_0..B_n] using an insertion sort			*/
+	template <typename T>
+	SortMetrics sortBlocksInsertioin(	T **array,
+										Descriptors<T> &blocks, int num_blocks);
+
 	/*	sort an array of blocks [A_0..A_m:B_0..Bn] starting at right A_m & B_n	*/
 	template <typename T>
 	SortMetrics sortBlocksRightToLeft(	T **array,
@@ -259,7 +264,7 @@ namespace BlockSort {
 						array_size_t mid	= first_b_element;
 						array_size_t end	= previous_blocks_end;
 						ordered_end =
-								SortingUtilities::mergeTwoBlocksElementsByTable(
+								BlockOperations::mergeTwoBlocksElementsByTable(
 									array, start, mid-1, mid, end, metrics);
 					}
 					a_block_seen_previously = true;
@@ -280,7 +285,7 @@ namespace BlockSort {
 				array_size_t start	= ordered_end + 1;
 				array_size_t mid	= first_b_element;
 				array_size_t end	= block_descriptors[num_blocks-1].end_index;
-				SortingUtilities::mergeTwoBlocksElementsByTable(array,
+				BlockOperations::mergeTwoBlocksElementsByTable(array,
 																start, mid-1,
 																mid, end,
 																metrics);
@@ -305,7 +310,7 @@ namespace BlockSort {
 		while (left_block >= 0) {
 			array_size_t left_start 	= block_descriptors[left_block].start_index;
 			array_size_t left_end	= block_descriptors[left_block].end_index;
-			SortingUtilities::mergeTwoBlocksElementsByTable(array,
+			BlockOperations::mergeTwoBlocksElementsByTable(array,
 											left_start, left_end,
 											sorted_span_start, sorted_span_end,
 											metrics);
@@ -893,6 +898,13 @@ namespace BlockSort {
 			return result;
 		}
 
+
+	/*	sort an array of [A_0..A_m:B_0..B_n] using an insertion sort			*/
+	template <typename T>
+	SortMetrics sortBlocksInsertion(T **array, Descriptors<T> &blocks, int num_blocks) {
+		SortMetrics metrics;
+		return metrics;
+	}
 
 	/*
 	 * ComparesAndMoves	sortBlocksRightToLeft(array, size, descriptors, num_descriptors);

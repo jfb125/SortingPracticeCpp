@@ -10,7 +10,7 @@
 
 #include "BlockSortDataTypes.h"
 #include "BlockSortBlockDescriptors.h"
-#include "BlockSortElementMoving.h"
+#include "BlockSortIncludes.h"
 
 /*
  * 	  These move the descriptors and the underlying array elements in the block
@@ -63,14 +63,14 @@ namespace BlockSort {
 													int u, int v);
 
 	template <typename T>
-	SortMetrics swapBlocksOfEqualSize(T** array,
-										   Descriptors<T> &descriptors,
-										   int u, int v);
+	SortMetrics swapBlocksOfEqualSize( T** array,
+									   Descriptors<T> &descriptors,
+									   int u, int v);
 
 	template <typename T>
-	SortMetrics swapBlocksRightSmallerThanLeft(T** array,
-													Descriptors<T> &descriptors,
-													int u, int v);
+	SortMetrics swapBlocksRightSmallerThanLeft( T** array,
+												Descriptors<T> &descriptors,
+												int u, int v);
 
 	/*
 	 * 	This swaps block descriptors, but DOES NOT move the underlying array
@@ -497,7 +497,7 @@ namespace BlockSort {
 
 //		std::cout << __FUNCTION__ << std::endl;
 		SortMetrics metrics(0,0);
-		metrics += swapBlockElementsOfEqualSize(
+		metrics += BlockOperations::swapBlockElementsOfEqualSize(
 									 array,
 									 descriptors[u].start_index,
 									 descriptors[v].start_index,
