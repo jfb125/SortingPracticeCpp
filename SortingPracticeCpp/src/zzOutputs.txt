@@ -1,54 +1,11 @@
-Sorting Performance In C++ built on Oct 17 2025 at 14:18:11
-testBlockSort
-testBlockSortMergeBlocksRandomly
-Merging two blocks 1000 times on an test_array of size   64 divided into two blocks using stategy HYBRID      took on average        139.6 compares and        842.9 moves
-Merging two blocks 1000 times on an test_array of size   64 divided into two blocks using stategy RGT_TO_LFT  took on average        139.6 compares and        842.9 moves
-Merging two blocks 1000 times on an test_array of size   64 divided into two blocks using stategy BINARY      took on average        131.6 compares and        842.6 moves
-Merging two blocks 1000 times on an test_array of size   64 divided into two blocks using stategy INSERTION   took on average        571.6 compares and        571.6 moves
-Merging two blocks 1000 times on an test_array of size   64 divided into two blocks using stategy TABLE       took on average         62.1 compares and        177.7 moves
-Merging two blocks 1000 times on an test_array of size   64 divided into two blocks using stategy AUXILLIARY  took on average         62.1 compares and         92.9 moves
+Sorting Performance In C++ built on Oct 17 2025 at 15:30:06
+Algorithms: 2 Compositions: 1 Orderings: 1 of : 6 different sizes resulting in 12 outcomes over 1000 repetitions
+====================================
+Sort Test Results
+====================================
+                                 Array sizes:             64                        128                        256                        512                       1024                       2048             
+number of repetitions: 1000                       avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov      
+INPLACE_MERGE  ALL_DISCRETE  IN_RANDOM_ORDER:      1179.9 /      1230.5       4542.4 /      4643.8      17519.0 /     17720.9      68295.0 /     68698.6     268455.5 /    269262.2    1063468.8 /   1065085.8  
+BLOCK_SORT     ALL_DISCRETE  IN_RANDOM_ORDER:       433.1 /       924.3       1007.5 /      2516.4       2288.0 /      6456.8       5109.5 /     15904.3      11284.2 /     38041.4      24679.9 /     88768.7  
 
-Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy HYBRID      took on average        283.7 compares and       3234.6 moves
-Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy RGT_TO_LFT  took on average        283.7 compares and       3234.6 moves
-Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy BINARY      took on average        319.4 compares and       3230.9 moves
-Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy INSERTION   took on average       2173.4 compares and       2173.4 moves
-Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy TABLE       took on average        126.1 compares and        367.9 moves
-Merging two blocks 1000 times on an test_array of size  128 divided into two blocks using stategy AUXILLIARY  took on average        126.1 compares and        189.1 moves
-
-Merging two blocks 1000 times on an test_array of size  256 divided into two blocks using stategy HYBRID      took on average        571.6 compares and      12644.6 moves
-Merging two blocks 1000 times on an test_array of size  256 divided into two blocks using stategy RGT_TO_LFT  took on average        571.6 compares and      12644.6 moves
-Merging two blocks 1000 times on an test_array of size  256 divided into two blocks using stategy BINARY      took on average        756.8 compares and      12598.7 moves
-Merging two blocks 1000 times on an test_array of size  256 divided into two blocks using stategy INSERTION   took on average       8459.1 compares and       8459.1 moves
-Merging two blocks 1000 times on an test_array of size  256 divided into two blocks using stategy TABLE       took on average        254.0 compares and        749.3 moves
-Merging two blocks 1000 times on an test_array of size  256 divided into two blocks using stategy AUXILLIARY  took on average        254.0 compares and        381.0 moves
-
-Merging two blocks 1000 times on an test_array of size  512 divided into two blocks using stategy HYBRID      took on average       1148.7 compares and      49934.3 moves
-Merging two blocks 1000 times on an test_array of size  512 divided into two blocks using stategy RGT_TO_LFT  took on average       1148.7 compares and      49934.3 moves
-Merging two blocks 1000 times on an test_array of size  512 divided into two blocks using stategy BINARY      took on average       1761.1 compares and      49961.4 moves
-Merging two blocks 1000 times on an test_array of size  512 divided into two blocks using stategy INSERTION   took on average      33295.0 compares and      33295.0 moves
-Merging two blocks 1000 times on an test_array of size  512 divided into two blocks using stategy TABLE       took on average        509.9 compares and       1515.2 moves
-Merging two blocks 1000 times on an test_array of size  512 divided into two blocks using stategy AUXILLIARY  took on average        509.9 compares and        765.0 moves
-
-Merging two blocks 1000 times on an test_array of size 1024 divided into two blocks using stategy HYBRID      took on average       2299.6 compares and     198121.5 moves
-Merging two blocks 1000 times on an test_array of size 1024 divided into two blocks using stategy RGT_TO_LFT  took on average       2299.6 compares and     198121.5 moves
-Merging two blocks 1000 times on an test_array of size 1024 divided into two blocks using stategy BINARY      took on average       4013.0 compares and     198025.0 moves
-Merging two blocks 1000 times on an test_array of size 1024 divided into two blocks using stategy INSERTION   took on average     132290.3 compares and     132290.3 moves
-Merging two blocks 1000 times on an test_array of size 1024 divided into two blocks using stategy TABLE       took on average       1022.0 compares and       3049.4 moves
-Merging two blocks 1000 times on an test_array of size 1024 divided into two blocks using stategy AUXILLIARY  took on average       1022.0 compares and       1533.0 moves
-
-Merging two blocks 1000 times on an test_array of size 2048 divided into two blocks using stategy HYBRID      took on average       4602.6 compares and     788367.4 moves
-Merging two blocks 1000 times on an test_array of size 2048 divided into two blocks using stategy RGT_TO_LFT  took on average       4602.6 compares and     788367.4 moves
-Merging two blocks 1000 times on an test_array of size 2048 divided into two blocks using stategy BINARY      took on average       9030.3 compares and     789415.0 moves
-Merging two blocks 1000 times on an test_array of size 2048 divided into two blocks using stategy INSERTION   took on average     526805.7 compares and     526805.7 moves
-Merging two blocks 1000 times on an test_array of size 2048 divided into two blocks using stategy TABLE       took on average       2046.0 compares and       6119.2 moves
-Merging two blocks 1000 times on an test_array of size 2048 divided into two blocks using stategy AUXILLIARY  took on average       2046.0 compares and       3069.0 moves
-
-Merging two blocks 1000 times on an test_array of size 4096 divided into two blocks using stategy HYBRID      took on average       9209.1 compares and    3149629.8 moves
-Merging two blocks 1000 times on an test_array of size 4096 divided into two blocks using stategy RGT_TO_LFT  took on average       9209.1 compares and    3149629.8 moves
-Merging two blocks 1000 times on an test_array of size 4096 divided into two blocks using stategy BINARY      took on average      20082.1 compares and    3148057.1 moves
-Merging two blocks 1000 times on an test_array of size 4096 divided into two blocks using stategy INSERTION   took on average    2101844.4 compares and    2101844.3 moves
-Merging two blocks 1000 times on an test_array of size 4096 divided into two blocks using stategy TABLE       took on average       4094.0 compares and      12261.1 moves
-Merging two blocks 1000 times on an test_array of size 4096 divided into two blocks using stategy AUXILLIARY  took on average       4094.0 compares and       6140.8 moves
-
-PASS:  function testBlockSortMergeBlocksRandomly() returns TRUE
-testBlockSort() ran 1 successful tests
+Completed Sorting Performance In C++

@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-	testBlockSort();
-	return EXIT_SUCCESS;
+//	testBlockSort();
+//	return EXIT_SUCCESS;
 
 	int num_repetitions = 1000;
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 //			SortAlgorithms::OPTIMIZED_QUICK_SORT,
 //			SortAlgorithms::DUTCH_FLAG_SORT,
 			SortAlgorithms::INPLACE_MERGE,
-//			SortAlgorithms::BLOCK_SORT,
+			SortAlgorithms::BLOCK_SORT,
 	};
 	int num_sort_algorithms = sizeof(sort_algorithms)/sizeof(SortAlgorithms);
 

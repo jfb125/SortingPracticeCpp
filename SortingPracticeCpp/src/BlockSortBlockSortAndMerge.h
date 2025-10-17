@@ -144,14 +144,14 @@ namespace BlockSort {
 		return result_count;
 	}
 
-	/*	Merge blocks using binary searches to identify spans to rotate	*/
-	template <typename T>
-	SortMetrics mergeTwoAdjacentBlocksByRotation(T** array,
-													  array_size_t block_1_start,
-													  array_size_t block_1_end,
-													  array_size_t block_2_start,
-													  array_size_t block2_end);
-
+//	/*	Merge blocks using binary searches to identify spans to rotate	*/
+//	template <typename T>
+//	SortMetrics mergeTwoAdjacentBlocksByRotation(T** array,
+//													  array_size_t block_1_start,
+//													  array_size_t block_1_end,
+//													  array_size_t block_2_start,
+//													  array_size_t block2_end);
+//
 
 	/*	********************************************************************* */
 	/*	SortMetrics mergeAllBlocksLeftToRight(array, descriptors, num_desc);  */
@@ -219,12 +219,53 @@ namespace BlockSort {
 	SortMetrics mergeAllBlocksLeftToRight(T** array,
 										   Descriptors<T> &block_descriptors,
 										   int num_blocks) {
-		SortMetrics metrics(0,0);
+
+		BlockOperations::MergeStrategy merge_strategy =
+				BlockOperations::MergeStrategy::TABLE;
+
+		array_size_t (*mergeBlocks)(T** array,
+									array_size_t block_1_start,
+									array_size_t block_1_end,
+									array_size_t block_2_start,
+									array_size_t block_2_end,
+									SortMetrics &metrics);
+
+
+		switch(merge_strategy) {
+		case BlockOperations::MergeStrategy::AUXILLIARY:
+			mergeBlocks =
+				BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer;
+			break;
+		case BlockOperations::MergeStrategy::BINARY:
+			mergeBlocks	=
+				BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_BinarySearch;
+			break;
+		case BlockOperations::MergeStrategy::HYBRID:
+			mergeBlocks =
+				BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_Hybrid;
+			break;
+		case BlockOperations::MergeStrategy::INSERTION:
+			mergeBlocks =
+				BlockOperations::insertionSortPartial;
+			break;
+		case BlockOperations::MergeStrategy::RGT_TO_LFT:
+			mergeBlocks =
+				BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_RightToLeft;
+			break;
+		case BlockOperations::MergeStrategy::TABLE:
+		default:
+			mergeBlocks =
+				BlockOperations::mergeTwoBlocksElementsByTable;
+			break;
+		}
+
 
 		enum class ParsingState {
 			A_LOOKING_FOR_B,
 			B_LOOKING_FOR_A
 		};
+
+		SortMetrics metrics(0,0);
 
 		//	ordered_end is the position of the largest b_element in the
 		//	portion of the array to the left of where the search for a B->A
@@ -264,8 +305,7 @@ namespace BlockSort {
 						array_size_t mid	= first_b_element;
 						array_size_t end	= previous_blocks_end;
 						ordered_end =
-								BlockOperations::mergeTwoBlocksElementsByTable(
-									array, start, mid-1, mid, end, metrics);
+							mergeBlocks( array, start, mid-1, mid, end, metrics);
 					}
 					a_block_seen_previously = true;
 					parsing_state 			= ParsingState::A_LOOKING_FOR_B;

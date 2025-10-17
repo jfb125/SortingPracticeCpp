@@ -70,6 +70,7 @@
 
 //#include "BlockSortDataTypes.h"
 #include "BlockSortIncludes.h"
+#include "BlockOperations.h"
 #include "IntegerArithmetic.h"
 #include "SortingUtilities.h"
 #include "SortingDebugOutput.h"
@@ -134,8 +135,9 @@ namespace BlockSort {
 		//	How to sort the blocks
 		//
 
-		BlockSort::BlockSortingStrategy block_sorting_strategy =
-				BlockSort::BlockSortingStrategy::TABLE;
+		constexpr BlockSort::BlockSortingStrategy block_sorting_strategy =
+					BlockSort::BlockSortingStrategy::TABLE;
+
 		SortMetrics (*sortBlocks)(T**array, Descriptors<T> &desc, int num);
 
 		switch(block_sorting_strategy) {
@@ -157,7 +159,6 @@ namespace BlockSort {
 		SortMetrics metrics(0,0);
 
 		u_size		= mid-start;
-		block_size 	= static_cast<array_size_t>(std::sqrt(u_size));
 
 		//	creating block descriptors in either way, symmetric around mid
 		//	  or having all of the fractional block in the last of b,
