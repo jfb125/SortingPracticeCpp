@@ -294,7 +294,7 @@ int getMaxDigitsCompares(OneTestResult** result, int num_tests) {
 	total_compares_t max_compares = 0;
 	for (int i = 0; i != num_tests; i++) {
 		// trying to improve readability
-		total_compares_t this_compares = result[i]->_sort_metrics._compares;
+		total_compares_t this_compares = result[i]->_sort_metrics.compares;
 		if (this_compares > max_compares) {
 			max_compares = this_compares;
 		}
@@ -318,7 +318,7 @@ int getMaxDigitsMoves(OneTestResult** result, int num_tests) {
 	total_moves_t max_moves = 0;
 	for (int i = 0; i != num_tests; i++) {
 		// trying to improve readability
-		total_moves_t this_moves = result[i]->_sort_metrics._moves;
+		total_moves_t this_moves = result[i]->_sort_metrics.assignments;
 		if (this_moves > max_moves) {
 			max_moves = this_moves;
 		}

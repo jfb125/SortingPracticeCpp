@@ -74,9 +74,9 @@ namespace DutchFlagSort {
 
 
 	template <typename T>
-	ComparesAndMoves threeWayPartition(T** array, array_size_t start, array_size_t end) {
+	SortMetrics threeWayPartition(T** array, array_size_t start, array_size_t end) {
 
-		ComparesAndMoves result(0,0);
+		SortMetrics result(0,0);
 
 		array_size_t size = end-start+1;
 
@@ -87,9 +87,9 @@ namespace DutchFlagSort {
 
 		if (size == 2) {
 			if (_verbose)	std::cout << "cutoff partition size 2" << std::endl;
-			result._compares++;
+			result.compares++;
 			if (*array[start] > *array[end]) {
-				result._moves += SortingUtilities::swap(array, start, end);
+				result += SortingUtilities::swap(array, start, end);
 			}
 			return result;
 		}
@@ -131,10 +131,9 @@ namespace DutchFlagSort {
 			//   if so, exchange [i] & [lo] so that the
 			//      the smaller goes to lo & the pivot value goes to i
 			//   then advance i and advance lo
-			result._compares++;
+			result.compares++;
 			if (*array[i] < *array[lo]) {
-				result._moves +=
-					SortingUtilities::swap(array, i, lo);
+				result += SortingUtilities::swap(array, i, lo);
 				lo++;
 				i++;
 				continue;
@@ -142,7 +141,7 @@ namespace DutchFlagSort {
 
 			// if [i] == [lo] which contains the pivot
 			//   then [i] is in the right place, therefore move i along
-			result._compares++;
+			result.compares++;
 			if (*array[i] == *array[lo]) {
 				i++;
 				continue;
@@ -155,11 +154,11 @@ namespace DutchFlagSort {
 			// [i] > pivot which is stored at [lo]
 			// find right-most element <= pivot at [lo]
 			//   which may involve hi moving down past 8
-			result._compares++;
+			result.compares++;
 			while (*array[hi] > *array[lo]) {
 				if (--hi == i)
 					break;
-				result._compares++;
+				result.compares++;
 				if(_verbose) {
 					printThreeWayPartitionLine(array, start, end, lo, i, hi);
 					std::cout << " seeking [hi] <= [pivot]" << std::endl;
@@ -167,8 +166,7 @@ namespace DutchFlagSort {
 			}
 			// if hi has not reached i
 			if (!(hi <= i)) {
-				result._moves +=
-					SortingUtilities::swap(array, i, hi);
+				result += SortingUtilities::swap(array, i, hi);
 			}
 			if(_verbose) {
 						printThreeWayPartitionLine(array, start, end, lo, i, hi);
@@ -194,11 +192,11 @@ namespace DutchFlagSort {
 	}
 
 	template <typename T>
-	ComparesAndMoves sortPointersToObjects(T ** array, array_size_t size) {
+	SortMetrics sortPointersToObjects(T ** array, array_size_t size) {
 
 		global_start = 0;
 		global_end = size-1;
-		ComparesAndMoves result(0,0);
+		SortMetrics result(0,0);
 
 		if (size <= 1)
 			return result;

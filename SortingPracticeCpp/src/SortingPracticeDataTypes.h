@@ -21,12 +21,12 @@ typedef unsigned long long total_moves_t;
 #define TOTAL_MOVES_T_MIN		0
 #define TOTAL_MOVES_T_MAX		ULLONG_MAX
 
-struct ComparesAndMoves {
-	total_compares_t _compares;
-	total_moves_t 	_moves;
-	ComparesAndMoves()	: _compares(0), _moves(0) {}
-	ComparesAndMoves(total_compares_t compares, total_moves_t moves) :
-		_compares(compares), _moves(moves) {}
+struct SortMetrics {
+	total_compares_t 	compares;
+	total_moves_t 		assignments;
+	SortMetrics()	: compares(0), assignments(0) {}
+	SortMetrics(total_compares_t compares, total_moves_t moves) :
+		compares(compares), assignments(moves) {}
 };
 
 //#define NUMBER_OF_MOVES_PER_SWAP 3
@@ -34,8 +34,11 @@ struct ComparesAndMoves {
 #define _DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_I	0
 #define _DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_J	0
 
-std::ostream& operator<<(std::ostream &out, const ComparesAndMoves& object);
-ComparesAndMoves& operator+=(ComparesAndMoves& lhs, const ComparesAndMoves &rhs);
+constexpr int compares_width = 8;
+constexpr int moves_width = 8;
+std::ostream& operator<<(std::ostream &out, const SortMetrics& object);
+SortMetrics& operator+=(SortMetrics& lhs, const SortMetrics &rhs);
+std::string averageMetricsToString(const SortMetrics &metrics, int num_tests, int precision = 1, int width = 8);
 
 class IsSortedResult {
 public:

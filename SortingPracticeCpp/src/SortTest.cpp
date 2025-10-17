@@ -10,10 +10,12 @@
 
 #include "SortTest.h"
 #include "SortingUtilities.h"
+#include "SortingPracticeDataTypes.h"
 
 #include "BlockSort.h"
 #include "BubbleSort.h"
 #include "DutchFlagSort.h"
+#include "InPlaceMerge.h"
 #include "InsertionSort.h"
 #include "SelectionSort.h"
 #include "MergeSort.h"
@@ -22,8 +24,8 @@
 #include "QuickSort.h"
 
 template <typename T>
-ComparesAndMoves bogusSort(T**array, array_size_t size) {
-	ComparesAndMoves result(0,0);
+SortMetrics bogusSort(T**array, array_size_t size) {
+	SortMetrics result(0,0);
 	result += SortingUtilities::randomizeArray(array, size);
 	return result;
 }
@@ -68,8 +70,8 @@ OneTestResult* testOneAlgorithm(SortAlgorithms& algorithm,
 	retval->_failure_log->_diagnostics._is_sorted = true;
 	createDataArray(*reference_data, composition, generator, reset_generator);
 
-	ComparesAndMoves compares_and_moves;
-	ComparesAndMoves (*sort)(StudentData**, array_size_t);
+	SortMetrics compares_and_moves;
+	SortMetrics (*sort)(StudentData**, array_size_t);
 
 	switch (algorithm) {
 	case SortAlgorithms::BUBBLE_SORT:
@@ -99,6 +101,9 @@ OneTestResult* testOneAlgorithm(SortAlgorithms& algorithm,
 	case SortAlgorithms::BLOCK_SORT:
 		sort = BlockSort::sortPointerstoObjects;
 		break;
+	case SortAlgorithms::INPLACE_MERGE:
+		sort = InPlaceMerge::sortPointerstoObjects;
+		break;
 
 	case SortAlgorithms::RADIX_SORT:
 	case SortAlgorithms::COUNTING_SORT:
@@ -116,8 +121,8 @@ OneTestResult* testOneAlgorithm(SortAlgorithms& algorithm,
 //		printSideBySide(*reference_data, *sorted_data);
 //		std::cout << "evaluating success of repetition " << i << std::endl;
 
-		retval->_sort_metrics._compares += compares_and_moves._compares;
-		retval->_sort_metrics._moves += compares_and_moves._moves;
+		retval->_sort_metrics.compares += compares_and_moves.compares;
+		retval->_sort_metrics.assignments += compares_and_moves.assignments;
 		IsSortedResult *result = new IsSortedResult;
 		result->_is_sorted =
 			SortingUtilities::isSorted(sorted_data->_array, size,
@@ -333,15 +338,28 @@ void	printSideBySide(StudentDataArray &a, StudentDataArray &b) {
 	std::cout << std::setw(current_width);
 }
 
-std::ostream& operator<<(std::ostream& out, const ComparesAndMoves& object) {
-
-	out << object._compares << " compares and " << object._moves << " swaps";
+std::ostream& operator<<(std::ostream& out, const SortMetrics& object) {
+	OStreamState ostream_state;
+	out << std::setw(compares_width) << object.compares << " compares and "
+		<< std::setw(moves_width) << object.assignments << " assignments";
 	return out;
 }
 
-ComparesAndMoves& operator+=(ComparesAndMoves& lhs, const ComparesAndMoves &rhs) {
+std::string averageMetricsToString(const SortMetrics &metrics, int num_tests, int precision, int width) {
+	std::stringstream result;
+	OStreamState ostream_state;	// restores ostream flags
+	result << std::fixed << std::setprecision(precision) << std::setw(width)
+		   << static_cast<double>(metrics.compares) / num_tests
+		   << " compares and "
+		   << std::fixed << std::setprecision(precision) << std::setw(width)
+		   << static_cast<double>(metrics.assignments) / num_tests
+		   << " assignments";
+	return result.str();
+}
 
-	lhs._compares += rhs._compares;
-	lhs._moves += rhs._moves;
+SortMetrics& operator+=(SortMetrics& lhs, const SortMetrics &rhs) {
+
+	lhs.compares 	+= rhs.compares;
+	lhs.assignments += rhs.assignments;
 	return lhs;
 }

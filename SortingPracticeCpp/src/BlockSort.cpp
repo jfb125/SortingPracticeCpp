@@ -13,44 +13,80 @@
 
 #include "BlockSort.h"
 
-using namespace BlockSort;
+/*	******************************************************	*/
+/*	******************************************************	*/
+/*					Algorthmic Functions					*/
+/*	******************************************************	*/
+/*	******************************************************	*/
 
 /*	******************************************************	*/
 /*	******************************************************	*/
-/*							functions						*/
+/*					Formatted Output of enums				*/
 /*	******************************************************	*/
 /*	******************************************************	*/
 
-/*
- * 	converts negative rotation counts (rotate left) into
- * 		an equivalent positive (rotate right)
- * 	ensures that the rotate count is [0:span) to avoid
- * 		excessive rotations
- */
-
-index_t blockSortModulo(index_t rotation_count, index_t span) {
-	while (rotation_count < 0) {
-		rotation_count += span;
+namespace std
+{
+	char to_char(BlockSort::BlockType type) {
+		switch(type) {
+		case BlockSort::BlockType::A_BLOCK:
+			return A_BLOCK_CHAR;
+		case BlockSort::BlockType::B_BLOCK:
+			return B_BLOCK_CHAR;
+		case BlockSort::BlockType::UNSPECIFIED:
+			return U_BLOCK_CHAR;
+		default:
+			return '?';
+		}
 	}
-	rotation_count %= span;
-	return rotation_count;
-}
 
-
-char to_char(BlockType type) {
-	switch(type) {
-	case BlockType::A_BLOCK:
-		return A_BLOCK_CHAR;
-	case BlockType::B_BLOCK:
-		return B_BLOCK_CHAR;
-	case BlockType::UNSPECIFIED:
-		return U_BLOCK_CHAR;
-	default:
-		return '?';
+	std::ostream& operator<<(std::ostream& out, BlockSort::BlockType object) {
+		out << to_char(object);
+		return out;
 	}
 }
 
-std::ostream& operator<<(std::ostream& out, BlockType object) {
-	out << to_char(object);
-	return out;
+
+namespace std
+{
+	string to_string(BlockSort::BlockOrganizations organization) {
+		switch(organization) {
+		case BlockSort::BlockOrganizations::FULL_A0_BLOCK:
+			return string(BLOCK_ORGANIZATION_FULL_A0_BLOCK_STRING);
+		case BlockSort::BlockOrganizations::SYMMETRIC:
+			return string(BLOCK_ORGANIZATION_SYMMETRIC_STRING);
+		default:
+			return string(BLOCK_ORGANIZATION_UNKNOWN_STRING);
+		}
+	};
+
+	ostream& operator<<(ostream& out, const BlockSort::BlockOrganizations organization) {
+		out << to_string(organization);
+		return out;
+	}
 }
+
+
+namespace std
+{
+	string to_string(BlockSort::BlockSortingStrategy strategy) {
+		switch(strategy) {
+		case BlockSort::BlockSortingStrategy::BINARY:
+			return string(SORTING_STRATEGY_BINARY_STRING);
+		case BlockSort::BlockSortingStrategy::HYBRID:
+			return string(SORTING_STRATEGY_HYBRID_STRING);
+		case BlockSort::BlockSortingStrategy::RIGHT_TO_LEFT:
+			return string(SORTING_STRATEGY_RIGHT_TO_LEFT_STRING);
+		case BlockSort::BlockSortingStrategy::TABLE:
+			return string(SORTING_STRATEGY_TABLE_STRING);
+		default:
+			return string("UNRECOGNZED_SORTING_STRATEGY");
+		}
+	}
+
+	std::ostream& operator<<(std::ostream& out, BlockSort::BlockSortingStrategy strategy) {
+		out << to_string(strategy);
+		return out;
+	}
+}
+

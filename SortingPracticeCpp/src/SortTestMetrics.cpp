@@ -5,27 +5,27 @@
  *      Author: joe
  */
 
-#include "SortMetrics.h"
+#include "SortTestMetrics.h"
 
-double	SortMetrics::averageCompares(void) const {
+double	SortTestMetrics::averageCompares(void) const {
 
 	if (_num_repetitions) {
-		return static_cast<double>(_compares)/_num_repetitions;
+		return static_cast<double>(compares)/_num_repetitions;
 	} else {
 		return std::numeric_limits<double>::max();
 	}
 }
 
-double	SortMetrics::averageMoves(void) const {
+double	SortTestMetrics::averageMoves(void) const {
 
 	if (_num_repetitions) {
-		return static_cast<double>(_moves)/_num_repetitions;
+		return static_cast<double>(assignments)/_num_repetitions;
 	} else {
 		return std::numeric_limits<double>::max();
 	}
 }
 
-std::string SortMetrics::averagesStr(void) const {
+std::string SortTestMetrics::averagesStr(void) const {
 
 	// ensure that the previously existing value of left vs right is maintained
 	std::ios_base::fmtflags _flags = std::cout.flags();
@@ -51,7 +51,7 @@ std::string SortMetrics::averagesStr(void) const {
 	std::cout.flags(_flags);
 	return retval.str();
 }
-std::string SortMetrics::comparesStr(void) const {
+std::string SortTestMetrics::comparesStr(void) const {
 
 	// ensure that the previously existing value of left vs right is maintained
 	std::ios_base::fmtflags _flags = std::cout.flags();
@@ -74,7 +74,7 @@ std::string SortMetrics::comparesStr(void) const {
 	return retval.str();
 }
 
-std::string SortMetrics::movesStr(void) const {
+std::string SortTestMetrics::movesStr(void) const {
 
 	// ensure that the previously existing value of left vs right is maintained
 	std::ios_base::fmtflags _flags = std::cout.flags();
@@ -97,7 +97,7 @@ std::string SortMetrics::movesStr(void) const {
 	return retval.str();
 }
 
-std::string SortMetrics::totalCounts(void) const {
+std::string SortTestMetrics::totalCounts(void) const {
 
 	std::stringstream retval;
 
@@ -107,29 +107,29 @@ std::string SortMetrics::totalCounts(void) const {
 	retval 	<< "repeats: " 	<< std::setw(ONE_SORT_REPETITIONS_WIDTH) << std::right
 			<< _num_repetitions;
 	retval	<< ", compares: " << std::setw(ONE_SORT_COMPARES_WIDTH) << std::right
-			<< _compares;
+			<< compares;
 	retval	<< ", swaps: " 		<< std::setw(ONE_SORT_SWAPS_WIDTH) << std::right
-			<< _moves;
+			<< assignments;
 
 	// restore flags
 	std::cout.flags(_flags);
 	return retval.str();
 }
 
-SortMetrics::SortMetrics(const SortMetrics &other) {
+SortTestMetrics::SortTestMetrics(const SortTestMetrics &other) {
 
 	if (this != &other) {
-		_compares = other._compares;
-		_moves = other._moves;
+		compares = other.compares;
+		assignments = other.assignments;
 		_num_repetitions = other._num_repetitions;
 	}
 }
 
-SortMetrics& SortMetrics::operator=(const SortMetrics& other) {
+SortTestMetrics& SortTestMetrics::operator=(const SortTestMetrics& other) {
 
 	if (this != &other) {
-		_compares = other._compares;
-		_moves = other._moves;
+		compares = other.compares;
+		assignments = other.assignments;
 		_num_repetitions = other._num_repetitions;
 	}
 	return *this;

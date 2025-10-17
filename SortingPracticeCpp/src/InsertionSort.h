@@ -16,9 +16,9 @@
 namespace InsertionSort {
 
 	template <typename T>
-	ComparesAndMoves sortPointersToObjects(T **array, array_size_t size) {
+	SortMetrics sortPointersToObjects(T **array, array_size_t size) {
 
-		ComparesAndMoves ret_val(0,0);
+		SortMetrics ret_val(0,0);
 
 		for (array_size_t element_in_question = 1;
 						  element_in_question != size;
@@ -26,7 +26,7 @@ namespace InsertionSort {
 		{
 			// if the element to the left is smaller,
 			//	then this element is in the correct place
-			ret_val._compares++;
+			ret_val.compares++;
 			if (*array[element_in_question-1] <= *array[element_in_question])
 				continue;
 
@@ -35,11 +35,11 @@ namespace InsertionSort {
 			//  this reduces the number of swaps that are required, thereby
 			//	reducing the number of moves by a factor of three since
 			//  each swap involves three move
-			ret_val._moves++;
+			ret_val.assignments++;
 			T* tmp = array[element_in_question];
 
 			// move the larger element to the right
-			ret_val._moves++;
+			ret_val.assignments++;
 			array[element_in_question] = array[element_in_question-1];
 			array_size_t look_to_the_left_i = element_in_question-1;
 
@@ -49,9 +49,9 @@ namespace InsertionSort {
 			while(look_to_the_left_i != 0) {
 				// if the element to the left of look_to_the_left_i
 				//  is greater than tmp it needs to move to the right
-				ret_val._compares++;
+				ret_val.compares++;
 				if (*array[look_to_the_left_i-1] > *tmp) {
-					ret_val._moves++;
+					ret_val.assignments++;
 					array[look_to_the_left_i] = array[look_to_the_left_i-1];
 					look_to_the_left_i--;
 				} else {
@@ -59,7 +59,7 @@ namespace InsertionSort {
 				}
 			}
 			array[look_to_the_left_i] = tmp;
-			ret_val._moves++;
+			ret_val.assignments++;
 		}
 		return ret_val;
 	}
