@@ -16,156 +16,118 @@
 
 #include "SortingPracticeDataTypes.h"
 
+/*	MACROS FOR ENABLING / DISABLING ALGORITHMS	*/
+#undef ENABLE_CREATE_BLOCK_DESCIRPTORS_SYMMETRICALLY
+
 using index_t = array_size_t;
 
-enum class BlockType {
-	A_BLOCK,
-	B_BLOCK,
-	UNSPECIFIED
-};
-#define A_BLOCK_CHAR 'A'
-#define B_BLOCK_CHAR 'B'
-#define U_BLOCK_CHAR 'U'
+namespace BlockSort {
+	template <typename T>
+	class BlockDescriptor;
 
-char to_char(BlockType type);
-std::ostream& operator<<(std::ostream& out, BlockType object);
+	template <typename T>
+	using Descriptors = std::unique_ptr<BlockDescriptor<T>[]>;
+}
+
+
+	/*	**********************************************************	*/
+	/*							BlockType							*/
+	/*	**********************************************************	*/
+
+	namespace BlockSort {
+	enum class BlockType {
+		A_BLOCK,
+		B_BLOCK,
+		UNSPECIFIED
+	};
+	}
+	//	I do this to force the compiler to error if the type
+	//	is instantiated without the name space
+	namespace std{
+	enum class BlockType {
+		A_BLOCK,
+		B_BLOCK,
+		UNSPECIFIED
+	};
+	}
+	#define A_BLOCK_CHAR 'A'
+	#define B_BLOCK_CHAR 'B'
+	#define U_BLOCK_CHAR 'U'
+
+	namespace std {
+		char to_char(BlockSort::BlockType type);
+		ostream& operator<<(ostream& out, BlockSort::BlockType object);
+	}
+
+	/*	**********************************************************	*/
+	/*							BlockOrganizations					*/
+	/*	**********************************************************	*/
+
+	namespace BlockSort {
+	enum class BlockOrganizations {
+		FULL_A0_BLOCK,
+		SYMMETRIC
+	};
+	}
+	//	I do this to force the compiler to error if the type
+	//	is instantiated without the name space
+	namespace std {
+	enum class BlockOrganizations {
+		FULL_A0_BLOCK,
+		SYMMETRIC
+	};
+	}
+
+	#define	BLOCK_ORGANIZATION_FULL_A0_BLOCK_STRING	"FULL_A0_BLOCK"
+	#define BLOCK_ORGANIZATION_SYMMETRIC_STRING		"SYMMETRIC"
+	#define	BLOCK_ORGANIZATION_UNKNOWN_STRING		"UNKNOWN"
+	#define	BLOCK_ORGANIZATION_MAX_STRING_LENGTH	13
+
+	namespace std {
+		string to_string(BlockSort::BlockOrganizations organization);
+		ostream& operator<<(ostream& out, const BlockSort::BlockOrganizations organization);
+	}
+
+	/*	**********************************************************	*/
+	/*						BlockSortingStrategy					*/
+	/*	**********************************************************	*/
+
+	namespace BlockSort {
+	enum class BlockSortingStrategy {
+		INSERTION,
+		BINARY,
+		HYBRID,
+		RIGHT_TO_LEFT,
+		TABLE
+	};
+	}
+	//	I do this to force the compiler to error if the type
+	//	is instantiated without the name space
+	namespace std {
+	enum class BlockSortingStrategy {
+		INSERTION,
+		BINARY,
+		HYBRID,
+		RIGHT_TO_LEFT,
+		TABLE
+	};
+	}
+
+	#define SORTING_STRATEGY_INSERTION_STRING		"INSERTION"
+	#define SORTING_STRATEGY_BINARY_STRING			"BINARY"
+	#define SORTING_STRATEGY_HYBRID_STRING			"HYBRID"
+	#define SORTING_STRATEGY_RIGHT_TO_LEFT_STRING	"RIGHT_TO_LEFT"
+	#define SORTING_STRATEGY_TABLE_STRING			"TABLE"
+	#define SORTING_STRATEGY_MAX_STRING_LENGTH		13
+
+	namespace std {
+		string to_string(BlockSort::BlockSortingStrategy strategy);
+		ostream& operator<<(ostream& out, const BlockSort::BlockSortingStrategy organization);
+	}
 
 namespace BlockSort {
-
 	template <typename T>
-	class BlockDescriptor {
-	public:
-		BlockType type;
-		T* key;
-		index_t start_index;
-		index_t end_index;
-
-		index_t	getWidth() const {
-			return end_index - start_index + 1;
-		}
-
-		T* assignKey(T**array) {
-			switch(type) {
-			case BlockType::A_BLOCK:
-				key = array[start_index];
-				break;
-			case BlockType::B_BLOCK:
-				key = array[end_index];
-				break;
-			case BlockType::UNSPECIFIED:
-				//	TODO - throw exception
-				key = nullptr;
-				break;
-			default:
-				key = nullptr;
-				//	TODO - throw exception
-				break;
-			}
-			return key;
-		}
-
-		std::string spanString(int index_width = 1) const {
-			std::stringstream sstring;
-			sstring << "[" << start_index << ":" << end_index << "]";
-			return sstring.str();
-		}
-
-		BlockDescriptor() {
-			type = BlockType::UNSPECIFIED;
-			key = nullptr;
-			start_index = 0;
-			end_index = 0;
-		}
-		BlockDescriptor(BlockType t, T* k, index_t s, index_t e) {
-			type = t;
-			key = k;
-			start_index = s;
-			end_index = e;
-		}
-		BlockDescriptor(const BlockDescriptor &other) {
-			if (this != &other) {
-				type = other.type;
-				key = other.key;
-				start_index = other.start_index;
-				end_index = other.end_index;
-			}
-		}
-		BlockDescriptor& operator=(const BlockDescriptor &other) {
-			if (this != &other) {
-				type = other.type;
-				key = other.key;
-				start_index = other.start_index;
-				end_index = other.end_index;
-			}
-			return *this;
-		}
-
-		bool operator==(const BlockDescriptor &other) const {
-			if (key != nullptr && other.key != nullptr) {
-				return *key == *other.key;
-			}
-			return false;
-		}
-		bool operator<(const BlockDescriptor &other) const {
-			if (key != nullptr && other.key != nullptr) {
-				return *key < *other.key;
-			}
-			return false;
-		}
-		bool operator<=(const BlockDescriptor &other) const {
-			return *this == other || *this < other;
-		}
-		bool operator>(const BlockDescriptor &other) const {
-			return  !(*this == other || *this < other);
-		}
-		bool operator>=(const BlockDescriptor &other) const {
-			return !(*this < other);
-		}
-		bool operator!=(const BlockDescriptor &other) const {
-			return !(*this == other);
-		}
-
-		bool isExactlyEqual(const BlockDescriptor &other) const {
-			if (type != other.type) 				return false;
-			if (key != other.key)					return false;
-			if (start_index != other.start_index)	return false;
-			if (end_index != other.end_index)		return false;
-			return true;
-		}
-
-		std::string to_string(int index_width = 0) const {
-			std::stringstream result;
-			if (type != BlockType::UNSPECIFIED) {
-				result 	<< (type == BlockType::A_BLOCK ? "A block " : "B block ");
-				result 	<< "[" << std::setw(index_width) << start_index << ":"
-						<< std::setw(index_width) << end_index << "] ";
-				if (type == BlockType::A_BLOCK) {
-					result << "[" << std::setw(index_width) << start_index << "] = ";
-					if (key != nullptr) {
-						result << *key;
-					} else {
-						result << "key is nullptr";
-					}
-				} else {
-					result << "[" << std::setw(index_width) << end_index << "] = ";
-					if (key != nullptr) {
-						result << *key;
-					} else {
-						result << "key is nullptr";
-					}
-				}
-			} else {
-				result << "Unintialized block";
-			}
-			return result.str();
-		}
-	};
-
-	template <typename T>
-	std::ostream& operator<<(std::ostream& out, const BlockDescriptor<T> &object) {
-		out << object.to_string();
-		return out;
-	}
+	class BlockDescriptor;
 }
 
 #endif

@@ -29,7 +29,7 @@
 #include "ArrayComposition.h"
 #include "InitialOrdering.h"
 #include "MessageList.h"
-#include "SortMetrics.h"
+#include "SortTestMetrics.h"
 
 enum TestResultMember{
 	ALGORITHM,
@@ -55,7 +55,7 @@ public:
 	ArrayComposition _composition;
 	InitialOrdering _ordering;
 	array_size_t _size;
-	SortMetrics _sort_metrics;
+	SortTestMetrics _sort_metrics;
 	SortFailureLog *_failure_log;
 
 	MessageList *_messages;

@@ -23,10 +23,10 @@
 #define ONE_SORT_AVERAGES_MID_PRECISION 1
 #define ONE_SORT_AVERAGES_LOW_PRECISION 1
 
-class	SortMetrics {
+class	SortTestMetrics {
 public:
-	total_compares_t _compares;	// public so that ++ operator works
-	total_moves_t _moves;		// public so that ++ operator works
+	total_compares_t compares;	// public so that ++ operator works
+	total_moves_t assignments;		// public so that ++ operator works
 	num_repetitions_t _num_repetitions;
 
 	double averageCompares(void) const;
@@ -36,17 +36,17 @@ public:
 	std::string comparesStr(void) const;	// just the number
 	std::string movesStr(void) const;		// just the number
 
-	SortMetrics()	{ _compares = 0; _moves = 0; _num_repetitions = 0; }
-	~SortMetrics() {}
-	SortMetrics(total_compares_t compares,
+	SortTestMetrics()	{ compares = 0; assignments = 0; _num_repetitions = 0; }
+	~SortTestMetrics() {}
+	SortTestMetrics(total_compares_t compares,
 				  total_moves_t moves,
 				  num_repetitions_t num_repetitions) :
-					  _compares(compares),
-					  _moves(moves),
+					  compares(compares),
+					  assignments(moves),
 					  _num_repetitions(num_repetitions) {}
 
-	SortMetrics(const SortMetrics &other);
-	SortMetrics& operator=(const SortMetrics &other);
+	SortTestMetrics(const SortTestMetrics &other);
+	SortTestMetrics& operator=(const SortTestMetrics &other);
 };
 
 #endif /* SORTMETRICS_H_ */

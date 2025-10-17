@@ -13,15 +13,19 @@
 #include "SortTest.h"
 #include "ResultOutput.h"
 
-array_size_t next_power_of_2(array_size_t current_size) {
+array_size_t multiply_by_2(array_size_t current_size) {
 	return current_size * 2;
+}
+
+array_size_t multiply_by_4(array_size_t current_size) {
+	return current_size * 4;
 }
 
 array_size_t next_increment(array_size_t current_size) {
 	return current_size+1;
 }
 
-array_size_t next_power_of_10(array_size_t current_size) {
+array_size_t multiply_by_10(array_size_t current_size) {
 	return current_size * 10;
 }
 
@@ -43,29 +47,31 @@ int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-//	testBlockSort();
-//	return EXIT_SUCCESS;
+	testBlockSort();
+	return EXIT_SUCCESS;
 
-	int num_repetitions = 100;
+	int num_repetitions = 1000;
 
-	constexpr array_size_t min_array_size =   2048;
-	constexpr array_size_t max_array_size =  65536;
+	constexpr array_size_t min_array_size =   64;
+	constexpr array_size_t max_array_size = 2048;
 	//	comment out all but the one used in this test
 //	array_size_t (*next_size)(array_size_t current) = next_increment;
-	array_size_t (*next_size)(array_size_t current) = next_power_of_2;
-//	array_size_t (*next_size)(array_size_t current) = next_power_of_10;
+	array_size_t (*next_size)(array_size_t current) = multiply_by_2;
+//	array_size_t (*next_size)(array_size_t current) = multiply_by_4;
+//	array_size_t (*next_size)(array_size_t current) = multiply_by_10;
 	int num_array_sizes = getNumSizes(min_array_size, max_array_size, next_size);
 
 	SortAlgorithms 	sort_algorithms[] = {
 //			SortAlgorithms::BUBBLE_SORT,
 //			SortAlgorithms::SELECTION_SORT,
 //			SortAlgorithms::INSERTION_SORT,
-			SortAlgorithms::MERGE_SORT,
+//			SortAlgorithms::MERGE_SORT,
 //			SortAlgorithms::HEAP_SORT,
 //			SortAlgorithms::QUICK_SORT,
 //			SortAlgorithms::OPTIMIZED_QUICK_SORT,
 //			SortAlgorithms::DUTCH_FLAG_SORT,
-//			SortAlgorithms::BLOCK_SOR0T,
+			SortAlgorithms::INPLACE_MERGE,
+//			SortAlgorithms::BLOCK_SORT,
 	};
 	int num_sort_algorithms = sizeof(sort_algorithms)/sizeof(SortAlgorithms);
 
