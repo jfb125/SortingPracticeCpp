@@ -37,8 +37,8 @@ using namespace BlockSort;
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 //#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
-//#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
+//#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
 //#define TEST_BLOCK_SORT_SWAP_BLOCKS
@@ -1129,17 +1129,11 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	std::cout << __FUNCTION__ << std::endl;
 
-	//	note that 'echo_result' has no effect when
-	//	'report_avg_only' is true
-	bool debug_verbose 	= false;
-	bool report_avg_only= false;
-	bool echo_result 	= true;
-
 	/*	******************************************************	*/
 	/*						test configuration					*/
 	/*	******************************************************	*/
 
-	using DataType = char;
+	using DataType = char; //std::pair<char, array_size_t>;
 	DataType first_data_value = 'A';
 
 	/*	******************************************************	*/
@@ -1147,7 +1141,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 	/*	******************************************************	*/
 
 	auto next_value = [](DataType current) -> DataType {
-		if(current != 'Z') 	return current+1;
+		if (current != 'Z') return current++;
 		else				return 'A';
 	};
 
@@ -1185,32 +1179,39 @@ bool testBlockSortMergeBlocksExhaustively() {
 	/*						test code							*/
 	/*	******************************************************	*/
 
+	//	note that 'echo_result' has no effect when
+	//	'report_avg_only' is true
+	bool debug_verbose 	= false;
+	bool report_avg_only= true;
+	bool echo_result 	= true;
+
+
 //	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
 	int test_vector_sizes[] 	= { 16, 17 };
 	int num_test_vectors_sizes 	= sizeof(test_vector_sizes) / sizeof(int);
 
 	BlockOperations::MergeStrategy merge_strategies[] =
 	{
-		BlockOperations::MergeStrategy::AUXILLIARY,
-//		BlockOperations::MergeStrategy::RGT_TO_LFT,
 //		BlockOperations::MergeStrategy::HYBRID,
+//		BlockOperations::MergeStrategy::RGT_TO_LFT,
 //		BlockOperations::MergeStrategy::BINARY,
 //		BlockOperations::MergeStrategy::INSERTION,
 //		BlockOperations::MergeStrategy::TABLE,
+		BlockOperations::MergeStrategy::AUXILLIARY,
 	};
 
 	int num_merge_strategies = 	sizeof(merge_strategies) /
 								sizeof(BlockOperations::MergeStrategy);
 
 	auto calc_mid_min = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
-		//	mid can not be 1
-		//	return 1;
-		return nominal_mid;
+		// mid can not be 1
+		return 1;
+//		return nominal_mid;
 	};
 	auto calc_mid_max = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
 		//	mid can be the end of the array
-//		return size-1;
-		return nominal_mid;
+		return size-1;
+//		return nominal_mid;
 	};
 
 	bool test_passed 	= true;
@@ -1278,9 +1279,9 @@ bool testBlockSortMergeBlocksExhaustively() {
 				SortMetrics least_compares	(100000000,100000000);
 				SortMetrics most_moves		(        0,        0);
 				SortMetrics most_compares	(        0,        0);
-				int num_tests_run = 1;
+				int num_tests_run = 0;
 
-				for (int i = num_tests_run; i != 2 + 0*num_test_vectors; i++) {
+				for (int i = num_tests_run; i != num_test_vectors; i++) {
 					std::stringstream test_message;
 					test_message.clear();
 					test_message.str("");
@@ -1301,6 +1302,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 					test_message << " , final b value " << *final_b_value
 								  << " is at " << std::setw(3) << test_vector_size-1
 								  << std::endl;
+
 					SortMetrics metrics(0,0);
 
 					switch(merge_strategy) {
@@ -1400,7 +1402,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 						goto TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN;
 						break;
 					}
-					if (true || debug_verbose) {
+					if (debug_verbose) {
 						std::cout << test_message.str();
 					}
 				}
@@ -1420,22 +1422,25 @@ bool testBlockSortMergeBlocksExhaustively() {
 					std::cout << " took average of  "
 							  << std::fixed
 							  << std::setprecision(1)
-							  << std::setw(8)
+							  << std::setw(10)
 							  << static_cast<double>(total_results.compares) / num_tests_run
 							  << " compares and "
-							  << std::setw(8)
+							  << std::setw(10)
 							  << static_cast<double>(total_results.assignments) / num_tests_run
-							  << " assignments\n";
+							  << " assignments";
+					if (num_merge_strategies > 1 || mid_min != mid_max) {
+						std::cout << std::endl;
+					}
 					if (!report_avg_only) {
 						std::cout
 							  << " worst case assigns  " << std::setw(8) << most_moves.compares << " compares and "
-							  << std::setw(4) << most_moves.assignments << " moves\n"
+							  << std::setw(4) << most_moves.assignments << " assignments\n"
 							  << " worst case compares " << std::setw(8) << most_compares.compares << " compares and "
-							  << std::setw(4) << most_compares.assignments << " moves\n"
+							  << std::setw(4) << most_compares.assignments << " assignments\n"
 							  << "  best case assigns  " << std::setw(8) << least_moves.compares << " compares and "
-							  << std::setw(4) << least_moves.assignments << " moves\n"
+							  << std::setw(4) << least_moves.assignments << " assignments\n"
 							  << "  best case compares " << std::setw(8) << least_compares.compares << " compares and "
-							  << std::setw(4) << least_moves.assignments << " moves\n";
+							  << std::setw(4) << least_moves.assignments << " assignments\n";
 					}
 				}
 			}
@@ -1444,7 +1449,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 			}
 		}
 	}
-
+	std::cout << std::endl;
 	TEST_BLOCK_MERGE_EXHAUSTIVELY_RETURN:
 	return test_passed;
 }
@@ -1490,18 +1495,19 @@ bool testBlockSortMergeBlocksRandomly() {
 		return result;
 	};
 
-//	array_size_t array_sizes[] = { 8, 16, 31, 32, 33, 127, 128, 129, 16, 32, 64, 128};
-	array_size_t array_sizes[] = { 100, 1000 };
+	array_size_t array_sizes[] = { 64, 128, 256, 512, 1024, 2048, 4096 };
+//	array_size_t array_sizes[] = { 100, 1000 };
 
 	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
-	BlockOperations::MergeStrategy merge_strategies[] = {
-//			BlockOperations::MergeStrategy::AUXILLIARY,
-			BlockOperations::MergeStrategy::INSERTION,
-			BlockOperations::MergeStrategy::RGT_TO_LFT,
-			BlockOperations::MergeStrategy::HYBRID,
-			BlockOperations::MergeStrategy::BINARY,
-			BlockOperations::MergeStrategy::TABLE,
+	BlockOperations::MergeStrategy merge_strategies[] =
+	{
+		BlockOperations::MergeStrategy::HYBRID,
+		BlockOperations::MergeStrategy::RGT_TO_LFT,
+		BlockOperations::MergeStrategy::BINARY,
+		BlockOperations::MergeStrategy::INSERTION,
+		BlockOperations::MergeStrategy::TABLE,
+		BlockOperations::MergeStrategy::AUXILLIARY,
 	};
 
 	int num_merge_strategies = sizeof(merge_strategies) /
@@ -1594,11 +1600,12 @@ bool testBlockSortMergeBlocksRandomly() {
 
 				switch(merge_strategy) {
 				case BlockOperations::MergeStrategy::AUXILLIARY:
-					std::cout << __FUNCTION__ << " using strategy "
-							  << std::to_string(merge_strategy)
-							  << " which is not implemented\n";
-					test_passed = false;
-					goto TEST_BLOCK_SORT_MERGE_BLOCKS_RETURN_LABEL;
+					reported_final_b_position =
+							BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer(
+														test_array,
+														left_start, left_end,
+														right_start, right_end,
+														metrics);
 					break;	// unreachable
 				case BlockOperations::MergeStrategy::BINARY:
 					reported_final_b_position =
@@ -1712,7 +1719,7 @@ bool testBlockSortMergeBlocksRandomly() {
 						 << std::left << merge_strategy
 						 << std::right
 						 << " took on average "
-						 << std::fixed << std::setprecision(1) << std::setw(8)
+						 << std::fixed << std::setprecision(1) << std::setw(12)
 						 << static_cast<double>(total_results.compares) / num_test_passes
 						 << " compares and "
 						 << std::fixed << std::setprecision(1) << std::setw(12)

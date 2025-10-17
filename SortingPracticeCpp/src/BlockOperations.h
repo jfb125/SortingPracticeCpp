@@ -227,7 +227,7 @@ namespace BlockOperations
 			int j = i;
 			for ( ; j > begin; j--) {
 				metrics.compares++;
-				//	if the elemet to the left
+				//	if the element to the left
 				//	  is <= temp, temp goes here
 				if (*array[j-1] <= *temp) {
 					array[j] = temp;
@@ -1314,13 +1314,82 @@ namespace BlockOperations
 	}
 
 
-	/*
-	 * 	Merge to blocks using an auxiliary buffer that is the size
-	 * 	of the smaller block
-	 */
+	/*	******************************************************************	*/
+	/*																		*/
+	/*		Merging blocks by allocating an auxiliary buffer that is the	*/
+	/*	size of the smaller buffer.  Elements are only moved into the 		*/
+	/*	auxiliary buffer whenever the element is displaced b/c its location	*/
+	/*	is the destination of the merged (incoming) element					*/
+	/*																		*/
+	/*	Two helper functions exist: one for when the first block is equal	*/
+	/*	  to or smaller than the second block, and one when the second		*/
+	/*	  block is equal to or smaller than the first block.				*/
+	/*	  The buffered block needs to be the smaller one to ensure that the	*/
+	/*	  loop in the merge algorithm goes through ALL of the other larger	*/
+	/*	  block.															*/
+	/*	******************************************************************	*/
+
+	/*	This version treats the lower as being the smaller block	*/
 
 	template <typename T>
-	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer_LOWER (
+	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBufferFor_LOWER (
+												T ** array,
+											 	array_size_t block_1_start,
+												array_size_t block_1_end,
+												array_size_t block_2_start,
+												array_size_t block_2_end,
+												SortMetrics &metrics);
+
+	/*	This version treats the upper as being the smaller block	*/
+
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBufferFor_UPPER (
+												T ** array,
+											 	array_size_t block_1_start,
+												array_size_t block_1_end,
+												array_size_t block_2_start,
+												array_size_t block_2_end,
+												SortMetrics &metrics);
+
+	/*	******************************************************************	*/
+	/*			wrapper function that calls either LOWER or UPPER			*/
+	/*	******************************************************************	*/
+
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer(
+												T ** array,
+											 	array_size_t block_1_start,
+												array_size_t block_1_end,
+												array_size_t block_2_start,
+												array_size_t block_2_end,
+												SortMetrics &metrics)
+	{
+		array_size_t block_1_size = block_1_end - block_1_start + 1;
+		array_size_t block_2_size = block_2_end - block_2_start + 1;
+		if (block_1_size <= block_2_size) {
+			return BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBufferFor_LOWER(
+												array,
+												block_1_start,
+												block_1_end,
+												block_2_start,
+												block_2_end,
+												metrics);
+		} else {
+			return BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBufferFor_UPPER(
+												array,
+												block_1_start,
+												block_1_end,
+												block_2_start,
+												block_2_end,
+												metrics);
+		}
+	}
+
+
+	/*	version that treats the lower as being the smaller block	*/
+
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBufferFor_LOWER (
 												T ** array,
 											 	array_size_t block_1_start,
 												array_size_t block_1_end,
@@ -1328,22 +1397,24 @@ namespace BlockOperations
 												array_size_t block_2_end,
 												SortMetrics &metrics) {
 
-		bool debug_verbose = true;
-		std::cout << "Entering 'byAuxiliary'" << std::endl;
+		bool debug_verbose = false;
+		if (debug_verbose) {
+			std::cout << "Entering 'byAuxiliary_LOWER'" << std::endl;
+		}
+
 		array_size_t block_1_size 		= block_1_end-block_1_start+1;
 		T* auxiliary[block_1_size];
 		array_size_t aux_dst			= 0;
 		array_size_t aux_src			= 0;
 		array_size_t b_2_src			= block_2_start;
-		array_size_t b_2_unmerged_st	= block_2_start;
 		array_size_t dst				= block_1_start;
+		array_size_t b_max_pos			= block_2_end;
+
 
 		auto isAuxEmpty = [&] () -> bool {	return aux_dst == aux_src; 	};
 		auto isDstInB1	= [&] () -> bool {	return dst <= block_1_end;	};
 		auto nextDst	= [&] () -> array_size_t {
 			return dst != block_1_end ? dst + 1 : block_2_start; };
-
-		array_size_t b_max_pos		= block_2_end;
 
 		auto debug = [&] (std::string trailer) -> std::string {
 			array_size_t dbg_sz = block_2_end - block_2_start + 1
@@ -1353,7 +1424,6 @@ namespace BlockOperations
 			msg << " dst = " 		<< std::setw(2) << dst
 				<< " aux_src = " 	<< std::setw(2) << aux_src
 				<< " aux_dst = " 	<< std::setw(2) << aux_dst
-				<< " b_2_st = "		<< std::setw(2) << b_2_unmerged_st
 				<< " b_2_src = "  	<< std::setw(2) << b_2_src
 				<< " aux: ";
 			for (int i = aux_src; i < aux_dst; i++) {
@@ -1362,9 +1432,12 @@ namespace BlockOperations
 			msg << trailer;
 			return msg.str();
 		};
-		//	ensure that all block_1 values have been examined
-		//	and that there are no pending block_1 values in auxiliary
-		while (dst != b_2_unmerged_st || !isAuxEmpty())
+
+		//	while there are still block_1 values unexamined	dst <= block_1_end
+		//	 or   there are still block_1 values unmerged	!isAuxEmpty()
+		//	i.e. - once dst goes past block_1_end, the only remaining
+		//			unmerged block_1 values are in 'auxiliary[]'
+		while (dst <= block_1_end || !isAuxEmpty())
 		{
 			if (debug_verbose) {
 				std::cout << debug(" top of loop") << std::endl;
@@ -1392,13 +1465,12 @@ namespace BlockOperations
 					if (dst != b_2_src) {
 						metrics.assignments++;
 						array[dst] 		= array[b_2_src];
-						b_2_unmerged_st	= b_2_src;
 					}
 					//	final b has been moved into position, b2 is exhausted
 					if (b_2_src == b_max_pos) {
 						b_max_pos 	= dst;
 						dst 		= nextDst();
-						//	copy what remains of block_1 to destination
+						//	copy what remains of block_1 to end of array
 						while (!isAuxEmpty()) {
 							metrics.assignments++;
 							array[dst] 	= auxiliary[aux_src];
@@ -1414,7 +1486,7 @@ namespace BlockOperations
 			} else {
 				//	auxiliary is empty - block_1 value comes from dst
 				metrics.compares++;
-				if (*array[dst] <= *array[b_2_src++]) {
+				if (*array[dst] <= *array[b_2_src]) {
 					dst = nextDst();
 				} else {
 					// block_2 value is taken
@@ -1423,15 +1495,12 @@ namespace BlockOperations
 						auxiliary[aux_dst++] = array[dst];
 					}
 					//	if the b value is moved from further along
-					//	the array, then the next b_2_unmerged will
-					//	be the next b_2_src location
 					if (dst != b_2_src) {
 						metrics.assignments++;
 						array[dst] 		= array[b_2_src];
-						b_2_unmerged_st = b_2_src+1;
 					}
-					//	If final b2 value has been moved into place
-					//	flush the auxiliary into the array
+					//	If final b2 value has been moved into place, copy
+					//	  what remains of block_1 into the end of the array
 					if (b_2_src == b_max_pos) {
 						b_max_pos 	= dst;
 						dst 		= nextDst();
@@ -1449,53 +1518,163 @@ namespace BlockOperations
 			if (debug_verbose) {
 				std::cout << debug(" bottom of loop") << std::endl;
 			}
-//			std::getchar();
 		}
-		std::cout << "Exiting 'byAuxiliary'" << std::endl;
+		if (debug_verbose) {
+			std::cout << "Exiting 'byAuxiliary_LOWER'" << std::endl;
+		}
 		return b_max_pos;
 	}
 
+	/*	version that treats the upper as being the smaller block	*/
+
 	template <typename T>
-	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer_UPPER (
+	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBufferFor_UPPER (
 												T ** array,
 											 	array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics);
+												SortMetrics &metrics) {
 
-	/* 	Blocks do not have to be continuous nor do they have to be the same size */
-	template <typename T>
-	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer(
-												T ** array,
-											 	array_size_t block_1_start,
-												array_size_t block_1_end,
-												array_size_t block_2_start,
-												array_size_t block_2_end,
-												SortMetrics &metrics)
-	{
-		array_size_t block_1_size = block_1_end - block_1_start + 1;
-		array_size_t block_2_size = block_2_end - block_2_start + 1;
-		if (true || block_1_size <= block_2_size) {
-			return BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer_LOWER(
-												array,
-												block_1_start,
-												block_1_end,
-												block_2_start,
-												block_2_end,
-												metrics);
-		} else {
-			return BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer_UPPER(
-												array,
-												block_1_start,
-												block_1_end,
-												block_2_start,
-												block_2_end,
-												metrics);
-
+		bool debug_verbose = false;
+		if (debug_verbose) {
+			std::cout << "Entering 'byAuxiliary_UPPER'" << std::endl;
 		}
-	}
 
+		array_size_t block_2_size		= block_2_end - block_2_start + 1;
+		T* auxiliary[block_2_size];
+		array_size_t aux_dst			= block_2_size-1;
+		array_size_t aux_src			= block_2_size-1;
+		array_size_t b_1_src			= block_1_end;
+		array_size_t dst				= block_2_end;
+		array_size_t b_max_pos			= block_2_end;
+		array_size_t b_max_locked		= false;
+
+		auto debug = [&] (std::string trailer) -> std::string {
+			array_size_t dbg_sz = block_2_end - block_2_start + 1
+								+ block_1_end - block_1_start + 1;
+			std::stringstream msg;
+			msg << SortingUtilities::arrayElementsToString(array, dbg_sz);
+			msg << " dst = " 		<< std::setw(2) << dst
+				<< " aux_src = " 	<< std::setw(2) << aux_src
+				<< " aux_dst = " 	<< std::setw(2) << aux_dst
+				<< " b_1_src = "  	<< std::setw(2) << b_1_src
+				<< " aux: ";
+			for (int i = aux_dst+1; i < block_2_size; i++) {
+				msg << std::setw(2) << *auxiliary[i] << " ";
+			}
+			msg << trailer;
+			return msg.str();
+		};
+
+		auto isAuxEmpty = [&] () -> bool	{ 	return aux_src == aux_dst;	 };
+		auto isDstB2	= [&] () -> bool	{ 	return dst >= block_2_start; };
+		auto nextDst	= [&] () -> array_size_t {
+			return dst != block_2_start ? dst - 1 : block_1_end;
+		};
+
+		while (dst >= block_2_start || !isAuxEmpty()) {
+			if (debug_verbose) {
+				std::cout << debug(" top of loop") << std::endl;
+			}
+			if (!isAuxEmpty()) {
+				//	if block_1 has the higher value
+				metrics.compares++;
+				if (*array[b_1_src] > *auxiliary[aux_src]) {
+					//	if the dst is in block_2, the value at
+					//	dst will be displaced
+					if (isDstB2()) {
+						metrics.assignments++;
+						auxiliary[aux_dst--] = array[dst];
+					}
+					metrics.assignments++;
+					array[dst] = array[b_1_src];
+					b_1_src--;
+					dst = nextDst();
+					// if all of the block_1 values have been placed,
+					//	flush the auxiliary (displaced) buffer
+					if (b_1_src < block_1_start) {
+						//	this flush may be first placed b2
+						if (!b_max_locked) {
+							b_max_pos 	 = dst;
+							b_max_locked = true;
+						}
+						while (!isAuxEmpty()) {
+							metrics.assignments++;
+							array[dst] = auxiliary[aux_src];
+							aux_src--;
+							dst = nextDst();
+						}
+						break;
+					}
+				} else {
+					//	the value in block_2 is greater or equal to block_1
+					//	if this is the first value from block_2 to be
+					//		placed, assign b_max_pos
+					if (!b_max_locked) {
+						b_max_pos = dst;
+						b_max_locked = true;
+					}
+					//	if the destination is in block_2, it will
+					//	be displaced by a greater block_2 value
+					if (isDstB2()) {
+						metrics.assignments++;
+						auxiliary[aux_dst--] = array[dst];
+					}
+					metrics.assignments++;
+					array[dst] = auxiliary[aux_src];
+					aux_src--;
+					dst = nextDst();
+				}
+			} else {
+				//	if block_1 has the higher value,
+				metrics.compares++;
+				if (*array[b_1_src] > *array[dst]) {
+					//	if dst is in block_2, the element at dst will be displaced
+					if (isDstB2()) {
+						metrics.assignments++;
+						auxiliary[aux_dst] = array[dst];
+						aux_dst--;
+					}
+					metrics.assignments++;
+					array[dst] = array[b_1_src];
+					b_1_src--;
+					dst = nextDst();
+					//	if all of b_1 has been merged, flush
+					//	auxiliary into the remaining array positions
+					if (b_1_src < block_1_start) {
+						//	this flush may be first placed b2
+						if (!b_max_locked) {
+							b_max_pos 	 = dst;
+							b_max_locked = true;
+						}
+						while (!isAuxEmpty()) {
+							metrics.assignments++;
+							array[dst] = auxiliary[aux_src];
+							aux_src--;
+							dst = nextDst();
+						}
+						break;
+					}
+				} else {
+					//	the element in block_2 is the larger,
+					//		which is already at dst
+					//	if this is the first time a block_2
+					//	has been placed in its final position,
+					//	store it as the max b postion
+					if (!b_max_locked) {
+						b_max_pos 	 = dst;
+						b_max_locked = true;
+					}
+					dst = nextDst();
+				}
+			}
+			if (debug_verbose) {
+				std::cout << debug(" bottom of loop") << std::endl;
+			}
+		}
+		return b_max_pos;
+	}
 
 	/*
 	 *	ComparesAndMoves swapBlockElements(array, b1_start, b2_start, block_size)
