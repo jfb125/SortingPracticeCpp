@@ -54,17 +54,26 @@ namespace InPlaceMerge {
 		SortMetrics metrics(0,0);
 
 		BlockOperations::MergeStrategy merge_strategy =
-					BlockOperations::MergeStrategy::INSERTION;
+					BlockOperations::MergeStrategy::TABLE;
 		_dbg_ln("InPlaceMerge using " << merge_strategy);
 
 		BlockOperations::MergeFunction<T> mergeBlocks;
 
 		switch(merge_strategy) {
+		case BlockOperations::MergeStrategy::AUXILLIARY:
+			mergeBlocks = BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer;
+			break;
 		case BlockOperations::MergeStrategy::INSERTION:
 			mergeBlocks = BlockOperations::insertionSortPartial;
 			break;
-		case BlockOperations::MergeStrategy::HYBRID:
+		case BlockOperations::MergeStrategy::BINARY:
 			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_BinarySearch;
+			break;
+		case BlockOperations::MergeStrategy::HYBRID:
+			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_Hybrid;
+			break;
+		case BlockOperations::MergeStrategy::RGT_TO_LFT:
+			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_RightToLeft;
 			break;
 		case BlockOperations::MergeStrategy::TABLE:
 		default:
