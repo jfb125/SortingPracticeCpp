@@ -23,7 +23,7 @@
 #include <cstring>
 #include <climits>
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "SortAlgorithm.h"
 #include "SortFailureLog.h"
 #include "ArrayComposition.h"

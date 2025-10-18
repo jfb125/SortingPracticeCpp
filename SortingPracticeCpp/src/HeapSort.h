@@ -11,7 +11,7 @@
 #include <iostream>
 #include <iomanip>
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 
 // used by 'printHeap()'

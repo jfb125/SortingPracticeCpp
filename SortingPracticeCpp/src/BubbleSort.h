@@ -8,7 +8,7 @@
 #ifndef BUBBLESORT_H_
 #define BUBBLESORT_H_
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 
 

@@ -15,7 +15,7 @@
 #include <sstream>
 
 #include "StudentData.h"
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 
 void testStudentDataArray();
 

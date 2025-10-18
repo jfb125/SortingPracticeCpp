@@ -14,7 +14,7 @@
  * 		excessive rotations
  */
 
-array_size_t blockSortModulo(array_size_t rotation_count, array_size_t span) {
+array_size_t calcRotationWithModulo(array_size_t rotation_count, array_size_t span) {
 	while (rotation_count < 0) {
 		rotation_count += span;
 	}

@@ -10,7 +10,7 @@
 
 #include "SortTest.h"
 #include "SortingUtilities.h"
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 
 #include "BlockSort.h"
 #include "BubbleSort.h"
@@ -336,30 +336,4 @@ void	printSideBySide(StudentDataArray &a, StudentDataArray &b) {
 		std::cout << *a[i] << ": " << *b[i] << std::endl;
 	}
 	std::cout << std::setw(current_width);
-}
-
-std::ostream& operator<<(std::ostream& out, const SortMetrics& object) {
-	OStreamState ostream_state;
-	out << std::setw(compares_width) << object.compares << " compares and "
-		<< std::setw(moves_width) << object.assignments << " assignments";
-	return out;
-}
-
-std::string averageMetricsToString(const SortMetrics &metrics, int num_tests, int precision, int width) {
-	std::stringstream result;
-	OStreamState ostream_state;	// restores ostream flags
-	result << std::fixed << std::setprecision(precision) << std::setw(width)
-		   << static_cast<double>(metrics.compares) / num_tests
-		   << " compares and "
-		   << std::fixed << std::setprecision(precision) << std::setw(width)
-		   << static_cast<double>(metrics.assignments) / num_tests
-		   << " assignments";
-	return result.str();
-}
-
-SortMetrics& operator+=(SortMetrics& lhs, const SortMetrics &rhs) {
-
-	lhs.compares 	+= rhs.compares;
-	lhs.assignments += rhs.assignments;
-	return lhs;
 }

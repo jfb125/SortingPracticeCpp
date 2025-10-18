@@ -1742,7 +1742,7 @@ bool testBlockSortModulo() {
 		array_size_t dividend = span+1;
 		array_size_t expected = 1;
 		for (; dividend >= -span-1; dividend--) {
-			array_size_t calculated = blockSortModulo(dividend, span);
+			array_size_t calculated = calcRotationWithModulo(dividend, span);
 			std::cout << std::setw(2) << dividend << " % " << span << " = " << expected
 					<< " vs " << calculated << " | ";
 			if (expected != calculated) {

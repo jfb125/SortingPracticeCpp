@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 
 namespace InsertionSort {

@@ -9,12 +9,10 @@
 #define BLOCKSORTDESCRIPTORS_H_
 
 #include <memory>
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 //#include "BlockSortDataTypes.h"
 
 namespace BlockSort {
-
-	using array_size_t = long;
 
 	template <typename T>
 	class BlockDescriptor;

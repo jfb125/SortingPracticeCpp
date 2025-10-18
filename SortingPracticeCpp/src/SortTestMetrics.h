@@ -13,7 +13,7 @@
 #include <ios>
 #include <limits>
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 
 #define ONE_SORT_REPETITIONS_WIDTH 0
 #define ONE_SORT_COMPARES_WIDTH 0

@@ -1,10 +1,21 @@
-Sorting Performance In C++ built on Oct 17 2025 at 15:42:33
-Algorithms: 1 Compositions: 1 Orderings: 1 of : 3 different sizes resulting in 3 outcomes over 1000 repetitions
-====================================
-Sort Test Results
-====================================
-                                 Array sizes:             64                        128                        256             
-number of repetitions: 1000                       avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov      
-INPLACE_MERGE  ALL_DISCRETE  IN_RANDOM_ORDER:       412.3 /       687.0        953.5 /      1743.0       2159.6 /      4235.1  
-
-Completed Sorting Performance In C++
+Sorting Performance In C++ built on Oct 18 2025 at 16:33:59
+   0: {0, 0}
+   1: {1, 0}
+   2: {2, 0}
+   3: {3, 0}
+   4: {4, 0}
+   5: {5, 0}
+   6: {6, 0}
+   7: {7, 0}
+   8: {8, 0}
+   9: {9, 0}
+  10: {0, 0}
+  11: {1, 0}
+  12: {2, 0}
+  13: {3, 0}
+  14: {4, 0}
+  15: {5, 0}
+  16: {6, 0}
+  17: {7, 0}
+  18: {8, 0}
+  19: {9, 0}

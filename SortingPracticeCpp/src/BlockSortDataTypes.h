@@ -14,7 +14,8 @@
 #include <cmath>
 #include <memory>
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
+
 
 /*	MACROS FOR ENABLING / DISABLING ALGORITHMS	*/
 #undef ENABLE_CREATE_BLOCK_DESCIRPTORS_SYMMETRICALLY

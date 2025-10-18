@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <string>
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "OStreamState.h"
 
 constexpr int 	ELEMENT_WIDTH 		= 5;

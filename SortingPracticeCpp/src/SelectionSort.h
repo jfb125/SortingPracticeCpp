@@ -8,7 +8,7 @@
 #ifndef SELECTIONSORT_H_
 #define SELECTIONSORT_H_
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 
 #include <iostream>

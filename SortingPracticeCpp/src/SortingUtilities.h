@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "IntegerArithmetic.h"
 #include "SimpleRandomizer.h"
 #include "OStreamState.h"
@@ -13,7 +13,7 @@
 //#undef _verbose
 //#define _verbose true
 
-array_size_t blockSortModulo(array_size_t rotation_count, array_size_t span);
+array_size_t calcRotationWithModulo(array_size_t rotation_count, array_size_t span);
 
 namespace SortingUtilities {
 
@@ -223,7 +223,7 @@ namespace SortingUtilities {
 			return result;
 
 		//	converts amounts that are not in [0,span) to in range
-		amount = blockSortModulo(amount, span);
+		amount = calcRotationWithModulo(amount, span);
 
 		if (amount == 0)
 			return result;

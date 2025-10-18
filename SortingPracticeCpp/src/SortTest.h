@@ -24,10 +24,11 @@
 #include "SimpleRandomizer.h"
 #include "SortableObject.h"
 #include "SortAlgorithm.h"
+#include "SortingDataTypes.h"
 #include "StudentData.h"
 #include "StudentDataArray.h"
 #include "StudentDataGenerator.h"
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 
 
 int initializeArraySequential(StudentData ***, int size);

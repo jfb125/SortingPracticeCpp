@@ -14,7 +14,7 @@
 #include <inttypes.h>
 
 //#include "SimpleRandomizer.h"
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 
 /*	**************************************************************************	*/
 /*	**************************************************************************	*/

@@ -10,7 +10,7 @@
 #include <string>
 
 #include "BlockOperations.h"
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
 

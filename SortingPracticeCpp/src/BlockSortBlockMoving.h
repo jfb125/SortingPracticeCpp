@@ -232,7 +232,7 @@ namespace BlockSort {
 
 		//	Convert the rotate_count to a positive (right) number < span
 		int descriptor_span = last - first + 1;
-		block_rotate_count = blockSortModulo(block_rotate_count, descriptor_span);
+		block_rotate_count = calcRotationWithModulo(block_rotate_count, descriptor_span);
 		if (block_rotate_count == 0) {
 			return metrics;
 		}
@@ -301,7 +301,7 @@ namespace BlockSort {
 		SortMetrics metrics(0,0);
 
 		//	convert a negative (left) rotate count into equivalent right count
-		rotate_count = blockSortModulo(rotate_count, end-start+1);
+		rotate_count = calcRotationWithModulo(rotate_count, end-start+1);
 
 		//	{ 0, 1, 2, 3, 4 }	rotate count = 2
 

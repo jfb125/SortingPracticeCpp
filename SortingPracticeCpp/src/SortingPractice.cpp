@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
 
 //	testBlockSort();
 //	return EXIT_SUCCESS;
+	sortingDataTypesTest();
+	return EXIT_SUCCESS;
 
 	int num_repetitions = 1000;
 

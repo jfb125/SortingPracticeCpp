@@ -11,9 +11,9 @@
 #include <iostream>
 #include <iomanip>
 
-#include "SortingPracticeDataTypes.h"
-#include "SimpleRandomizer.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
+#include "SimpleRandomizer.h"
 #include "InsertionSort.h"
 
 #pragma push_macro("MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT")

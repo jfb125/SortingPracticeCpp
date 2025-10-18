@@ -13,7 +13,7 @@
 #include <sstream>
 
 #include "StudentDataArray.h"
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 
 class SortFailureLog {
 
