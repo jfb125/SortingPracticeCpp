@@ -5,6 +5,8 @@
  *      Author: joe
  */
 
+#ifndef INPLACEMERGE_H
+#define INPLACEMERGE_H
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -143,3 +145,4 @@ namespace InPlaceMerge {
 
 #pragma pop_macro("_dbg")
 #pragma pop_macro("_dbg_ln")
+#endif

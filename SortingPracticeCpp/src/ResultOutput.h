@@ -22,7 +22,7 @@ enum ResultOutputPositions {
 	TABLE_TITLE
 };
 
-typedef enum ResultOutputPositions OutputParameterFormatSpecifier;
+typedef enum ResultOutputPositions ResultParameterFormat;
 
 #define DEFAULT_ALGORITHM_FORMAT_SPECIFIER		ResultOutputPositions::DO_NOT_PRINT
 #define DEFAULT_COMPOSITION_FORMAT_SPECIFIER	ResultOutputPositions::DO_NOT_PRINT
@@ -31,37 +31,70 @@ typedef enum ResultOutputPositions OutputParameterFormatSpecifier;
 
 #define ARRAY_SIZE_COLUMN_WIDTH 20
 
-class ResultOutputFormatSpecifiers {
+class ResultFormat {
 private:
-	OutputParameterFormatSpecifier m_algorithm;
-	OutputParameterFormatSpecifier m_composition;
-	OutputParameterFormatSpecifier m_ordering;
-	OutputParameterFormatSpecifier m_sort;
+	ResultParameterFormat m_algorithm;
+	ResultParameterFormat m_composition;
+	ResultParameterFormat m_ordering;
+	ResultParameterFormat m_sort;
 public:
 
-	OutputParameterFormatSpecifier algorithm(void) const;
-	OutputParameterFormatSpecifier& algorithm(OutputParameterFormatSpecifier&);
-	OutputParameterFormatSpecifier composition(void) const;
-	OutputParameterFormatSpecifier& composition(OutputParameterFormatSpecifier&);
-	OutputParameterFormatSpecifier ordering(void) const;
-	OutputParameterFormatSpecifier& ordering(OutputParameterFormatSpecifier&);
-	OutputParameterFormatSpecifier sort(void) const;
-	OutputParameterFormatSpecifier& sort(OutputParameterFormatSpecifier&);
+	ResultParameterFormat algorithm(void) const {
+		return m_algorithm;
+	}
+	ResultParameterFormat& algorithm(const ResultParameterFormat &algo) {
+		m_algorithm = algo;
+		return m_algorithm;
+	}
+	ResultParameterFormat composition(void) const {
+		return m_composition;
+	}
+	ResultParameterFormat& composition(const ResultParameterFormat &comp) {
+		m_composition = comp;
+		return m_composition;
 
-	ResultOutputFormatSpecifiers();
-	ResultOutputFormatSpecifiers(
-			OutputParameterFormatSpecifier alg,
-			OutputParameterFormatSpecifier comp,
-			OutputParameterFormatSpecifier ord,
-			OutputParameterFormatSpecifier sort);
-	ResultOutputFormatSpecifiers(const ResultOutputFormatSpecifiers&);
-	ResultOutputFormatSpecifiers& operator=(const ResultOutputFormatSpecifiers&);
+	}
+	ResultParameterFormat ordering(void) const {
+		return m_ordering;
+	}
+	ResultParameterFormat& ordering(const ResultParameterFormat &ordrng) {
+		m_ordering = ordrng;
+		return m_ordering;
+	}
+	ResultParameterFormat sort(void) const {
+		return m_sort;
+	}
+	ResultParameterFormat& sort(const ResultParameterFormat &srt) {
+		m_sort = srt;
+		return m_sort;
+	}
+
+	ResultFormat();
+	ResultFormat( ResultParameterFormat alg,
+			ResultParameterFormat comp,
+			ResultParameterFormat ord,
+			ResultParameterFormat sort);
+	ResultFormat(const ResultFormat&);
+	ResultFormat& operator=(const ResultFormat&);
 };
 
 #define PRINT_TEST_RESULT_TABLE_HEADER "===================================="
+template <typename T>
+void terseDump(OneTestResult<T> *result, int num_test_results) {
+	std::cout << __FUNCTION__ << " stubbed out\n";
+}
+template <typename T>
+void printTestResults(OneTestResult<T> **results, int num_test_results) {
 
-void printTestResults(  OneTestResult** results, int num_test_runs);
+	std::cout << __FUNCTION__ << " stubbed out\n";
+//	// print the title of the table
+//	std::cout << test_result_table_header << std::endl
+//			  << "Sort Test Results" << std::endl
+//			  << test_result_table_header << std::endl;
+//	bool (*isLess)(OneTestResult* u, OneTestResult*v);
+//	isLess = isLess_CompostionOrderingAlgorithmSize;
+//	printRowsAlgorithm_ColumnsSize_CellsAverages(results, num_test_results, isLess);
+}
 
-void terseDump(OneTestResult** results, int num_test_results);
 
 #endif /* RESULTOUTPUTPARAMETERS_H_ */

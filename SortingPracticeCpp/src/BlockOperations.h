@@ -15,12 +15,6 @@
 #include "BlockSortDataTypes.h"
 #include "SortingUtilities.h"
 
-/*
- * 	TODO - add functionality to table to select whichever block is
- * 		  	smaller to be the block that gets a table
- * 	TODO - add an auxiliary for completeness, even though it will
- * 			never be used
- */
 	/*	**********************************************************	*/
 	/*							MergeStrategy						*/
 	/*	**********************************************************	*/

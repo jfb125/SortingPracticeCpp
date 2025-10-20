@@ -4,13 +4,13 @@
  *      Author: joe
  */
 
-#include "OneTestResult.h"
+//#include "OneTestResult.h"
 
 /* ************************************************	*/
 /*	this is private to prevent a user from creating	*/
 /*	 an object without a size_results array			*/
 /* ************************************************	*/
-
+#if 0
 OneTestResult::OneTestResult() {
 
 	_algorithm = SortAlgorithms::SORT_ALGORITHMS_COUNT;
@@ -25,12 +25,12 @@ OneTestResult::OneTestResult() {
 	_sort_metrics._num_repetitions = 0;
 	_messages = new MessageList();
 }
-
+#endif
 
 /* ************************************************	*/
 /*				public constructors					*/
 /* ************************************************	*/
-
+#if 0
 OneTestResult::OneTestResult(SortAlgorithms algorithm,
 							 ArrayComposition composition,
 							 InitialOrdering ordering,
@@ -47,7 +47,8 @@ OneTestResult::OneTestResult(SortAlgorithms algorithm,
 	_failure_log = new SortFailureLog();
 	_messages = new MessageList();
 }
-
+#endif
+#if 0
 //	need to do a deep copy of both _failure_log & _messages*
 OneTestResult::OneTestResult(OneTestResult &other) {
 
@@ -73,9 +74,9 @@ OneTestResult::OneTestResult(OneTestResult &other) {
 			_messages = new MessageList();
 	}
 }
-
+#endif
+#if 0
 OneTestResult& OneTestResult::operator=(OneTestResult &other) {
-
 	if (this != &other) {
 
 		_algorithm = other._algorithm;
@@ -111,7 +112,8 @@ OneTestResult& OneTestResult::operator=(OneTestResult &other) {
 
 	return *this;
 }
-
+#endif
+#if 0
 OneTestResult::OneTestResult(OneTestResult &&other) noexcept {
 
 	if (this != &other) {
@@ -140,7 +142,8 @@ OneTestResult::OneTestResult(OneTestResult &&other) noexcept {
 		}
 	}
 }
-
+#endif
+#if 0
 OneTestResult::~OneTestResult() {
 
 	if (_failure_log) {
@@ -152,7 +155,8 @@ OneTestResult::~OneTestResult() {
 		_messages = nullptr;
 	}
 }
-
+#endif
+#if 0
 OneTestResult& OneTestResult::operator=(OneTestResult &&other) noexcept {
 
 	if (this != &other) {
@@ -192,23 +196,23 @@ OneTestResult& OneTestResult::operator=(OneTestResult &&other) noexcept {
 	}
 	return *this;
 }
-
+#endif
+#if 0
 OneTestResult& OneTestResult::operator+=(char *char_array) {
 
 	_messages->enqueue(char_array);
 	return *this;
 }
-
 OneTestResult& OneTestResult::operator+=(const std::string &string_to_add) {
 
 	_messages->enqueue(string_to_add);
 	return *this;
 }
-
+#endif
 /*	**********************************************************	*/
 /*					non member functions						*/
 /*	**********************************************************	*/
-
+#if 0
 std::string OneTestResult::str(void) const {
 
 	std::stringstream result;
@@ -257,9 +261,11 @@ std::string OneTestResult::str(void) const {
 	std::cout.flags(_flags);
 	return result.str();
 }
-
+#endif
+#if 0
 std::ostream& operator<<(std::ostream &out, OneTestResult& object) {
 
 	out << object.str();
 	return out;
 }
+#endif

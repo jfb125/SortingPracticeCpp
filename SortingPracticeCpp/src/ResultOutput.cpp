@@ -65,7 +65,7 @@ public:
 /*								forward declaration								*/
 /* ****************************************************************************	*/
 /* ****************************************************************************	*/
-
+#if 0
 bool isValid(TestResultMember object);
 
 TestResultMember& operator++(TestResultMember&);
@@ -538,44 +538,44 @@ bool isSameLine(OneTestResult* result,
 /* ****************************************************************************	*/
 /* ****************************************************************************	*/
 
-	using Format = OutputParameterFormatSpecifier;
-	Format ResultOutputFormatSpecifiers::algorithm(void) const {
+	using Format = ResultParameterFormat;
+	Format ResultFormat::algorithm(void) const {
 		return m_algorithm;
 	}
-	Format& ResultOutputFormatSpecifiers::algorithm(Format &format) {
+	Format& ResultFormat::algorithm(Format &format) {
 		m_algorithm = format;
 		return m_algorithm;
 	}
-	Format ResultOutputFormatSpecifiers::composition(void) const {
+	Format ResultFormat::composition(void) const {
 		return m_composition;
 	}
-	Format& ResultOutputFormatSpecifiers::composition(Format &format) {
+	Format& ResultFormat::composition(Format &format) {
 		m_composition = format;
 		return m_composition;
 	}
-	Format ResultOutputFormatSpecifiers::ordering(void) const {
+	Format ResultFormat::ordering(void) const {
 		return m_ordering;
 	}
-	Format& ResultOutputFormatSpecifiers::ordering(Format &format) {
+	Format& ResultFormat::ordering(Format &format) {
 		m_ordering = format;
 		return m_ordering;
 	}
-	Format ResultOutputFormatSpecifiers::sort(void) const {
+	Format ResultFormat::sort(void) const {
 		return m_sort;
 	}
-	Format& ResultOutputFormatSpecifiers::sort(Format &format) {
+	Format& ResultFormat::sort(Format &format) {
 		m_sort = format;
 		return format;
 	}
 
-	ResultOutputFormatSpecifiers::ResultOutputFormatSpecifiers() {
+	ResultFormat::ResultFormat() {
 		m_algorithm = DEFAULT_ALGORITHM_FORMAT_SPECIFIER;
 		m_composition = DEFAULT_COMPOSITION_FORMAT_SPECIFIER;
 		m_ordering = DEFAULT_ORDERING_FORMAT_SPECIFIER;
 		m_sort = DEFAULT_SORT_FORMAT_SPECIFIER;
 	}
 
-	ResultOutputFormatSpecifiers::ResultOutputFormatSpecifiers(
+	ResultFormat::ResultFormat(
 			Format algorithm,
 			Format composition,
 			Format ordering,
@@ -585,7 +585,7 @@ bool isSameLine(OneTestResult* result,
 					m_ordering(ordering),
 					m_sort(sort) {}
 
-	ResultOutputFormatSpecifiers::ResultOutputFormatSpecifiers(const ResultOutputFormatSpecifiers &other) {
+	ResultFormat::ResultFormat(const ResultFormat &other) {
 
 		m_algorithm = other.m_algorithm;
 		m_composition = other.m_composition;
@@ -593,7 +593,7 @@ bool isSameLine(OneTestResult* result,
 		m_sort = other.m_sort;
 	}
 
-	ResultOutputFormatSpecifiers& ResultOutputFormatSpecifiers::operator=(const ResultOutputFormatSpecifiers &other) {
+	ResultFormat& ResultFormat::operator=(const ResultFormat &other) {
 
 		if (this != &other) {
 			m_algorithm = other.m_algorithm;
@@ -691,3 +691,4 @@ bool operator!=(TestResultMember u, TestResultMember v) {
 	if (!isValid(v))	return false;
 	return !(u == v);
 }
+#endif

@@ -95,7 +95,7 @@ public:
 
 
 /*	******************************************************************	*/
-/*				wrapper around the user's dadta type					*/
+/*				wrapper around the user's data type						*/
 /*	******************************************************************	*/
 
 template <typename T>
@@ -278,5 +278,15 @@ namespace SortingDataTypes {
 }
 
 bool sortingDataTypesTest();
+
+/*	*************************************************************************	*/
+/*						Generating specific data types							*/
+/*	*************************************************************************	*/
+
+std::string next_string(std::string &current, bool upper_then_lower = false);
+array_size_t generateStrings(std::string *dst,
+							 array_size_t size,
+							 std::string &first_string,
+							 std::string (*next_string)(std::string&, bool));
 
 #endif

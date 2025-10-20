@@ -38,7 +38,7 @@ array_size_t multiply_by_10(array_size_t current_size) {
 /*									main()											*/
 /*	*****************************************************************************	*/
 /*	******************************************************************************	*/
-#include "StudentDataGenerator.h"
+
 #include "BlockSort.h"
 
 bool testBlockSort();
@@ -49,10 +49,12 @@ int main(int argc, char *argv[])
 
 //	testBlockSort();
 //	return EXIT_SUCCESS;
-	sortingDataTypesTest();
-	return EXIT_SUCCESS;
+//	sortingDataTypesTest();
+//	return EXIT_SUCCESS;
 
 	int num_repetitions = 1000;
+
+	using DataType = std::string;
 
 	constexpr array_size_t min_array_size =   64;
 	constexpr array_size_t max_array_size =  256;
@@ -97,7 +99,11 @@ int main(int argc, char *argv[])
 	int num_initial_orderings = sizeof(initial_orderings)/sizeof(InitialOrdering);
 
 	int num_results = num_array_sizes * num_sort_algorithms * num_compositions * num_initial_orderings;
-	OneTestResult* results[num_results];
+	OneTestResult<DataType>* results[num_results];
+
+	std::string test_values[max_array_size];
+	std::string first_value("AAAAAA");
+	generateStrings(test_values, max_array_size, first_value, next_string);
 
 	/*
 	 * 	The ranodmizer is used to disorder the input data in sortTest
@@ -117,21 +123,25 @@ int main(int argc, char *argv[])
 
 	int cnt = 0;
 	// run the tests
-	for (int a = 0; a != num_sort_algorithms; a++) {
-		for (int c = 0; c != num_compositions; c++) {
-			for (int o = 0; o != num_initial_orderings; o++) {
+	for (int algorithm_i = 0; algorithm_i != num_sort_algorithms; algorithm_i++) {
+		for (int composition_i = 0; composition_i != num_compositions; composition_i++) {
+			for (int ordering_i = 0; ordering_i != num_initial_orderings; ordering_i++) {
 				randomizer.seed(randomizer_seed);
 				randomizer.restart();
 				for (array_size_t size = min_array_size;
                               size <= max_array_size;
                               size = next_size(size)) {
-                results[cnt] = testOneAlgorithm(sort_algorithms[a],
-                                                array_compositions[c],
-                                                initial_orderings[o],
-                                                randomizer, size, num_repetitions);
+                results[cnt] = testOneAlgorithm<DataType>(
+                		sort_algorithms[algorithm_i],
+                        array_compositions[composition_i],
+                        initial_orderings[ordering_i],
+                        randomizer,
+						test_values,
+						size,
+						num_repetitions);
                 if (!results[cnt]->_failure_log->_diagnostics._is_sorted) {
 						std::cout << "Sort failed: ";
-						terseDump(&results[cnt], 1);
+						terseDump(results[cnt], 1);
 						std::cout << std::endl;
 					}
 					cnt++;

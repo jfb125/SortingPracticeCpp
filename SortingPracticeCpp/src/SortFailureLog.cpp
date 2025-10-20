@@ -6,7 +6,7 @@
  */
 
 #include "SortFailureLog.h"
-
+#if 0
 void SortFailureLog::clear(void) {
 
 	if (_input) {
@@ -25,7 +25,6 @@ void SortFailureLog::clear(void) {
 	_diagnostics._mismatched_index_i = 0;
 	_diagnostics._mismatched_index_j = 0;
 }
-
 std::string SortFailureLog::str(void) const {
 
 	std::stringstream retval;
@@ -64,12 +63,10 @@ std::string SortFailureLog::str(void) const {
 
 	return retval.str();
 }
-
 std::ostream& operator<<(std::ostream &out, const SortFailureLog &log) {
 	out << log.str();
 	return out;
 }
-
 SortFailureLog::SortFailureLog() {
 
 	_diagnostics.clear();
@@ -77,7 +74,6 @@ SortFailureLog::SortFailureLog() {
 	_result = nullptr;
 	_message = nullptr;
 }
-
 SortFailureLog::~SortFailureLog() {
 
 	if (_input) {
@@ -94,7 +90,6 @@ SortFailureLog::~SortFailureLog() {
 	}
 	_diagnostics.clear();
 }
-
 SortFailureLog::SortFailureLog(const IsSortedResult diagnostics,
 							   StudentDataArray *input,
 							   StudentDataArray *result,
@@ -116,7 +111,6 @@ SortFailureLog::SortFailureLog(const IsSortedResult diagnostics,
 		_message = nullptr;
 	}
 }
-
 SortFailureLog::SortFailureLog(const SortFailureLog &other) {
 
 	if (this != &other) {
@@ -171,7 +165,6 @@ SortFailureLog& SortFailureLog::operator=(const SortFailureLog &other) {
 	}
 	return *this;
 }
-
 SortFailureLog::SortFailureLog(SortFailureLog &&other) noexcept {
 
 	_input = other._input;
@@ -212,3 +205,4 @@ SortFailureLog& SortFailureLog::operator=(SortFailureLog &&other) noexcept {
 	}
 	return *this;
 }
+#endif

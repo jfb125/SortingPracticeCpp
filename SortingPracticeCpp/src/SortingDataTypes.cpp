@@ -38,6 +38,50 @@ std::string averageMetricsToString(	const SortMetrics &metrics,
 }
 
 
+std::string next_string(std::string &current, bool upper_then_lower){
+	size_t str_size = current.size();
+	std::string result = current;
+	for (size_t i = str_size-1; i >= 0; i--) {
+		if (upper_then_lower) {
+			if (result[i] == 'z') {
+				result[i] = 'A';
+				continue;
+			}
+			if (result[i] == 'Z') {
+				result[i] = 'a';
+			}
+			result[i] = result[i]+1;
+			break;
+		} else {
+			if (result[i] == 'z') {
+				result[i] = 'a';
+				continue;
+			}
+			if (result[i] == 'Z') {
+				result[i] = 'A';
+				continue;
+			}
+			result[i] = result[i]+1;
+			break;
+		}
+	}
+	return result;
+}
+
+array_size_t generateStrings(std::string *dst,
+							 array_size_t size,
+							 std::string &first_string,
+							 std::string (*next_string)(std::string&, bool)) {
+
+	std::string value = first_string;
+	for (array_size_t i = 0; i != size; i++) {
+		dst[i] = value;
+		value = next_string(value, false);
+	}
+	return size;
+}
+
+
 
 
 
