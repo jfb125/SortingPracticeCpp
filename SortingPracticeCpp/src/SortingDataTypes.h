@@ -213,15 +213,8 @@ public:
 
 namespace SortingDataTypes {
 
-	template <typename T>
-	std::string to_strng(const T &val) {
-		std::stringstream result;
-		result << ".." << val << "..";
-		return result.str();
-	}
-
-
 	constexpr int default_index_width = 5;
+
 	template <typename T>
 	array_size_t assignValues(
 			SortingDataType<T> *dst, array_size_t dst_size,
@@ -245,6 +238,42 @@ namespace SortingDataTypes {
 			}
 		}
 		return dst_size;
+	}
+
+	template <typename T>
+	array_size_t assignSequenceNumbers(	SortingDataType<T> *array,
+										array_size_t size,
+										array_size_t start = 0) {
+		for (array_size_t i = start; i != start+size; i++) {
+			array[i].index = i;
+		}
+
+		return size;
+	}
+
+	template <typename T>
+	bool isSorted(SortingDataType<T> *array, array_size_t size) {
+
+		for (array_size_t i = 1; i != size; i++) {
+			if (array[i-1].value > array[i].value) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	//	This only checks to see if identical elements in the array
+	//	have sequentially ascending 'index' numbers
+	template <typename T>
+	bool isStable(SortingDataType<T> *array, array_size_t size) {
+
+		for (array_size_t i = 1; i != size; i++) {
+			if (array[i-1].value == array[i].value &&
+			    array[i-1].index >= array[i].index) {
+					return false;
+			}
+		}
+		return true;
 	}
 }
 
