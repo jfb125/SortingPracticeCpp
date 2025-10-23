@@ -16,49 +16,46 @@
 namespace InsertionSort {
 
 	template <typename T>
-	SortMetrics sortPointersToObjects(T **array, array_size_t size) {
+	SortMetrics sort(T *array, array_size_t size) {
 
 		SortMetrics ret_val(0,0);
 
-		for (array_size_t element_in_question = 1;
-						  element_in_question != size;
-						  element_in_question ++)
+		for (array_size_t i = 1;
+						  i != size;
+						  i ++)
 		{
-			// if the element to the left is smaller,
-			//	then this element is in the correct place
+			// if the element to the left of element_in_question is equal to
+			//	of smaller,	then element_in_question is in the correct place
 			ret_val.compares++;
-			if (*array[element_in_question-1] <= *array[element_in_question])
+			if (array[i-1] <= array[i])
 				continue;
 
-			// make a copy of this element, which will be stored
+			// make a copy of the element_in_question, which will be stored
 			//  in the correct location once the correct location is found
-			//  this reduces the number of swaps that are required, thereby
-			//	reducing the number of moves by a factor of three since
-			//  each swap involves three move
 			ret_val.assignments++;
-			T* tmp = array[element_in_question];
+			T current_value = array[i];
 
 			// move the larger element to the right
 			ret_val.assignments++;
-			array[element_in_question] = array[element_in_question-1];
-			array_size_t look_to_the_left_i = element_in_question-1;
+			array[i] = array[i-1];
+			array_size_t prev_i = i-1;
 
 			// continue looking at elements to the left until either
-			//  a value is found that is less or equal to temp
+			//  a value is found that is less or equal to current_value
 			//  or the start of the array has been found
-			while(look_to_the_left_i != 0) {
-				// if the element to the left of look_to_the_left_i
-				//  is greater than tmp it needs to move to the right
+			while(prev_i != 0) {
+				// if the element to the left of current
+				//  is greater than current_value it needs to move to the right
 				ret_val.compares++;
-				if (*array[look_to_the_left_i-1] > *tmp) {
+				if (array[prev_i-1] > current_value) {
 					ret_val.assignments++;
-					array[look_to_the_left_i] = array[look_to_the_left_i-1];
-					look_to_the_left_i--;
+					array[prev_i] = array[prev_i-1];
+					prev_i--;
 				} else {
 					break;
 				}
 			}
-			array[look_to_the_left_i] = tmp;
+			array[prev_i] = current_value;
 			ret_val.assignments++;
 		}
 		return ret_val;

@@ -20,8 +20,8 @@ class SortFailureLog {
 
 public:
 	IsSortedResult _diagnostics;
-	T* _input;
-	T* _result;
+	T* input_array;
+	T* result_array;
 	std::string *_message;
 
 
@@ -32,17 +32,17 @@ public:
 			retval << "    no failure occurred" << std::endl;
 		} else {
 			retval << "!!!!!!!!!! **** failure occurred **** !!!!!!!!!!" << std::endl;
-			if ( _result) {
+			if ( result_array) {
 				retval	<< "  result: " << std::endl
-						<< "  " << _result->dump() << std::endl;
+						<< "  " << result_array->dump() << std::endl;
 				retval 	<< "  elements out-of-place were " << std::endl
 						<< "  [" << _diagnostics._mismatched_index_i<< "] "
-						<< *(*_result)[_diagnostics._mismatched_index_i]
+						<< (*result_array)[_diagnostics._mismatched_index_i]
 						<< std::endl
 						<< "   vs "
 						<< std::endl
 						<< "  [" << _diagnostics._mismatched_index_j<< "] "
-						<< *(*_result)[_diagnostics._mismatched_index_j]
+						<< (*result_array)[_diagnostics._mismatched_index_j]
 					    << std::endl;
 			} else {
 				retval 	<< "  result: <nullptr>" << std::endl;
@@ -66,13 +66,13 @@ public:
 	void clear(void)
 	{
 
-		if (_input) {
-			delete _input;
-			_input = nullptr;
+		if (input_array) {
+			delete input_array;
+			input_array = nullptr;
 		}
-		if (_result) {
-			delete _result;
-			_result = nullptr;
+		if (result_array) {
+			delete result_array;
+			result_array = nullptr;
 		}
 		if (_message) {
 			delete _message;
@@ -86,18 +86,18 @@ public:
 
 	SortFailureLog() {
 		_diagnostics.clear();
-		_input = nullptr;
-		_result = nullptr;
-		_message = nullptr;
+		input_array 	= nullptr;
+		result_array 	= nullptr;
+		_message 		= nullptr;
 	}
 	virtual ~SortFailureLog() {
-		if (_input) {
-			delete _input;
-			_input = nullptr;
+		if (input_array) {
+			delete input_array;
+			input_array = nullptr;
 		}
-		if (_result) {
-			delete _result;
-			_result = nullptr;
+		if (result_array) {
+			delete result_array;
+			result_array = nullptr;
 		}
 		if (_message) {
 			delete _message;
@@ -113,14 +113,14 @@ public:
 	{
 		_diagnostics = diagnostics;
 		if (input) {
-			_input = input;
+			input_array = input;
 		} else {
-			_input = nullptr;
+			input_array = nullptr;
 		}
 		if (result) {
-			_result = nullptr;
+			result_array = nullptr;
 		} else {
-			_result = nullptr;
+			result_array = nullptr;
 		}
 		if (message) {
 			_message = new std::string(*message);
@@ -131,15 +131,15 @@ public:
 
 	SortFailureLog(const SortFailureLog &other)
 	{
-		if (other._input) {
-			_input = nullptr;
+		if (other.input_array) {
+			input_array = nullptr;
 		} else {
-			_input = nullptr;
+			input_array = nullptr;
 		}
-		if (other._result) {
-			_result = nullptr;
+		if (other.result_array) {
+			result_array = nullptr;
 		} else {
-			_result = nullptr;
+			result_array = nullptr;
 		}
 		if (other._message) {
 			_message = new std::string(*other._message);
@@ -152,15 +152,15 @@ public:
 	SortFailureLog& operator=(const SortFailureLog &other) {
 
 		if (this != &other) {
-			if (other._input) {
-				_input = nullptr;
+			if (other.input_array) {
+				input_array = nullptr;
 			} else {
-				_input = nullptr;
+				input_array = nullptr;
 			}
-			if (other._result) {
-				_result = nullptr;
+			if (other.result_array) {
+				result_array = nullptr;
 			} else {
-				_result = nullptr;
+				result_array = nullptr;
 			}
 			if (other._message) {
 				_message = new std::string(*other._message);
@@ -173,24 +173,24 @@ public:
 
 	SortFailureLog(SortFailureLog &&other) noexcept
 	{
-		_input = other._input;
-		other._input = nullptr;
-		_result = other._result;
-		other._result = nullptr;
+		input_array 		= other.input_array;
+		other.input_array 	= nullptr;
+		result_array 		= other.result_array;
+		other.result_array 	= nullptr;
 		_message = other._message;
-		other._message = nullptr;
-		_diagnostics = other._diagnostics;
+		other._message 		= nullptr;
+		_diagnostics 		= other._diagnostics;
 	}
 
 	SortFailureLog& operator=(SortFailureLog &&other) noexcept {
 		if (this != &other) {
-			_input = other._input;
-			other._input = nullptr;
-			_result = other._result;
-			other._result = nullptr;
-			_message = other._message;
-			other._message = nullptr;
-			_diagnostics = other._diagnostics;
+			input_array 		= other.input_array;
+			other.input_array 	= nullptr;
+			result_array 		= other.result_array;
+			other.result_array 	= nullptr;
+			_message 			= other._message;
+			other._message 		= nullptr;
+			_diagnostics 		= other._diagnostics;
 		}
 		return *this;
 	}

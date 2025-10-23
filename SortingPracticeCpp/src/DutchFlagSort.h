@@ -74,7 +74,7 @@ namespace DutchFlagSort {
 
 
 	template <typename T>
-	SortMetrics threeWayPartition(T** array, array_size_t start, array_size_t end) {
+	SortMetrics threeWayPartition(T* array, array_size_t start, array_size_t end) {
 
 		SortMetrics result(0,0);
 
@@ -96,7 +96,7 @@ namespace DutchFlagSort {
 
 		if (size < MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT) {
 			if (_verbose)	std::cout << "cutoff to insertion sort" << std::endl;
-			return InsertionSort::sortPointersToObjects(&array[start], size);
+			return InsertionSort::sort(&array[start], size);
 		}
 
 		result += SortingUtilities::selectAndPositionPivot(array, start, end);
@@ -192,7 +192,7 @@ namespace DutchFlagSort {
 	}
 
 	template <typename T>
-	SortMetrics sortPointersToObjects(T ** array, array_size_t size) {
+	SortMetrics sort(T* array, array_size_t size) {
 
 		global_start = 0;
 		global_end = size-1;

@@ -49,7 +49,7 @@ namespace InPlaceMerge {
 
 
 	template <typename T>
-	SortMetrics sortPointerstoObjects(T **array, array_size_t size) {
+	SortMetrics sort(T *array, array_size_t size) {
 
 		bool debug_verbose = false;
 
@@ -85,7 +85,7 @@ namespace InPlaceMerge {
 
 		//	Small arrays can just be InsertionSorted and done
 		if (size < 2*initial_block_size) {
-			metrics = InsertionSort::sortPointersToObjects(array, size);
+			metrics = InsertionSort::sort(array, size);
 			return metrics;
 		}
 
@@ -98,7 +98,7 @@ namespace InPlaceMerge {
 			if (block_start + num_elements > size)
 				num_elements = size - block_start;
 			metrics +=
-				InsertionSort::sortPointersToObjects(&array[block_start],
+				InsertionSort::sort(&array[block_start],
 													 num_elements);
 			block_start += block_size;
 		}

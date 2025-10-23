@@ -43,8 +43,8 @@
 
 
 template <typename T>
-void	printSideBySide(SortingDataType<T> &a, array_size_t a_size,
-						SortingDataType<T> &b, array_size_t b_size) {
+void	printSideBySide(SortingDataType<T> *a, array_size_t a_size,
+						SortingDataType<T> *b, array_size_t b_size) {
 
 	array_size_t a_i = 0;
 	array_size_t b_i = 0;
@@ -67,7 +67,7 @@ void	printSideBySide(SortingDataType<T> &a, array_size_t a_size,
 /*	**************************************************************************	*/
 
 template <typename T>
-SortMetrics bogusSort(T**array, array_size_t size) {
+SortMetrics bogusSort(T* array, array_size_t size) {
 	SortMetrics result(0,0);
 	result += SortingUtilities::randomizeArray(array, size);
 	return result;
@@ -98,38 +98,38 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 	SortingDataTypes::assignValues(reference_data, size, values, size);
 
 	SortMetrics compares_and_moves;
-	SortMetrics (*sort)(SortingDataType<T>**, array_size_t);
+	SortMetrics (*sort)(SortingDataType<T>*, array_size_t);
 
 	switch (algorithm) {
 	case SortAlgorithms::BUBBLE_SORT:
-		sort = BubbleSort::sortPointersToObjects;
+		sort = BubbleSort::sort;
 		break;
 	case SortAlgorithms::DUTCH_FLAG_SORT:
-		sort = DutchFlagSort::sortPointersToObjects;
+		sort = DutchFlagSort::sort;
 		break;
 	case SortAlgorithms::HEAP_SORT:
-		sort = HeapSort::sortPointersToObjects;
+		sort = HeapSort::sort;
 		break;
 	case SortAlgorithms::INSERTION_SORT:
-		sort = InsertionSort::sortPointersToObjects;
+		sort = InsertionSort::sort;
 		break;
 	case SortAlgorithms::MERGE_SORT:
-		sort = MergeSort::sortPointersToObjects;
+		sort = MergeSort::sort;
 		break;
 	case SortAlgorithms::OPTIMIZED_QUICK_SORT:
-		sort = OptimizedQuickSort::sortPointerstoObjects;
+		sort = OptimizedQuickSort::sort;
 		break;
 	case SortAlgorithms::QUICK_SORT:
-		sort = QuickSort::sortPointerstoObjects;
+		sort = QuickSort::sort;
 		break;
 	case SortAlgorithms::SELECTION_SORT:
-		sort = SelectionSort::sortPointerstoObjects;
+		sort = SelectionSort::sort;
 		break;
 	case SortAlgorithms::BLOCK_SORT:
-		sort = BlockSort::sortPointerstoObjects;
+		sort = BlockSort::sort;
 		break;
 	case SortAlgorithms::INPLACE_MERGE:
-		sort = InPlaceMerge::sortPointerstoObjects;
+		sort = InPlaceMerge::sort;
 		break;
 
 	case SortAlgorithms::RADIX_SORT:

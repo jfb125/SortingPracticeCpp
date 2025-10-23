@@ -15,7 +15,7 @@
 namespace BubbleSort {
 
 	template <typename T>
-	SortMetrics sortPointersToObjects(T **array_of_pointers, array_size_t size) {
+	SortMetrics sort(T* array_of_pointers, array_size_t size) {
 
 		SortMetrics result(0,0);
 
@@ -26,7 +26,7 @@ namespace BubbleSort {
 				// if the element before you is larger than you,
 				//   swap it - bubble your element up one position
 				result.compares++;
-				if (*array_of_pointers[i-1] > *array_of_pointers[i]) {
+				if (array_of_pointers[i-1] > array_of_pointers[i]) {
 					result += SortingUtilities::swap(array_of_pointers, i-1, i);
 					was_swap = true;
 				}

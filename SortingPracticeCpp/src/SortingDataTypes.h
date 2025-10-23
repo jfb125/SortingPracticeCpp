@@ -25,6 +25,8 @@ constexpr total_moves_t	TOTAL_MOVES_T_MIN = 0;
 constexpr total_moves_t TOTAL_MOVES_T_MAX = LONG_LONG_MAX;
 
 
+constexpr total_moves_t num_assignments_per_swap = 3;
+
 /*	******************************************************************	*/
 /*	class for storing the metrics that evaluate a sorting algorithm		*/
 /*	******************************************************************	*/

@@ -54,7 +54,7 @@
 namespace BlockOperations
 {
 	template <typename T>
-	using MergeFunction = array_size_t (*)(	T** array,
+	using MergeFunction = array_size_t (*)(	T* array,
 								 	 	 	 array_size_t block_1_begin,
 											 array_size_t block_1_end,
 											 array_size_t block_2_begin,
@@ -62,7 +62,7 @@ namespace BlockOperations
 											 SortMetrics &metrics);
 
 	template <typename T>
-	array_size_t insertionSortPartial(T** array,
+	array_size_t insertionSortPartial(T* array,
 									  array_size_t begin,
 									  array_size_t ignored,
 									  array_size_t mid,
@@ -71,7 +71,7 @@ namespace BlockOperations
 
 	/* 	Blocks do not have to be continuous nor do they have to be the same size */
 	template <typename T>
-	array_size_t mergeTwoBlocksElementsByTable(	T ** array,
+	array_size_t mergeTwoBlocksElementsByTable(	T* array,
 											 	array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -82,7 +82,7 @@ namespace BlockOperations
 	 * rotated into the midst of the block_2 */
 	template <typename T>
 	array_size_t mergeTwoAdjacentBlocksBy_Rotation_BinarySearch(
-												T** array,
+												T* array,
 												array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -94,7 +94,7 @@ namespace BlockOperations
 	 * right_to_left is more efficient since blocks may be interleaved */
 	template <typename T>
 	array_size_t mergeTwoAdjacentBlocksBy_Rotation_Hybrid(
-												T** array,
+												T* array,
 												array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -106,7 +106,7 @@ namespace BlockOperations
 	 * rotated into the midst of the block_1 */
 	template <typename T>
 	array_size_t mergeTwoAdjacentBlocksBy_Rotation_RightToLeft(
-												T** array,
+												T* array,
 												array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -116,7 +116,7 @@ namespace BlockOperations
 	/* 	Blocks do not have to be continuous nor do they have to be the same size */
 	template <typename T>
 	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer(
-												T ** array,
+												T * array,
 											 	array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -124,7 +124,7 @@ namespace BlockOperations
 												SortMetrics &metrics);
 
 	template <typename T>
-	SortMetrics swapBlockElementsOfEqualSize( T** array,
+	SortMetrics swapBlockElementsOfEqualSize(T* array,
 											 array_size_t block1_start,
 											 array_size_t block_2_start,
 											 array_size_t block_size);
@@ -192,7 +192,7 @@ namespace BlockOperations
 	//	mergeTwoBlocksElementsByTable()
 
 	template <typename T>
-	array_size_t insertionSortPartial(T** array,
+	array_size_t insertionSortPartial(T* 		   array,
 									  array_size_t begin,
 									  array_size_t ignored,
 									  array_size_t mid,
@@ -214,16 +214,16 @@ namespace BlockOperations
 			//	which are in order b/c they came from the same
 			//	B_Block, are sorted.  Abort the loop
 			metrics.compares++;
-			if (*array[i-1] <= *array[i])
+			if (array[i-1] <= array[i])
 				break;
-			T* temp = array[i];
+			T temp = array[i];
 			metrics.assignments++;
 			int j = i;
 			for ( ; j > begin; j--) {
 				metrics.compares++;
 				//	if the element to the left
 				//	  is <= temp, temp goes here
-				if (*array[j-1] <= *temp) {
+				if (array[j-1] <= temp) {
 					array[j] = temp;
 					metrics.assignments++;
 					highest_b_position = j;
@@ -298,12 +298,13 @@ namespace BlockOperations
 	 */
 
 	template <typename T>
-	array_size_t mergeTwoAdjacentBlocksBy_Rotation_BinarySearch(T** array,
-												  array_size_t block_1_start,
-												  array_size_t block_1_end,
-												  array_size_t block_2_start,
-												  array_size_t block_2_end,
-												  SortMetrics &metrics) {
+	array_size_t mergeTwoAdjacentBlocksBy_Rotation_BinarySearch(
+													T* 			 array,
+													array_size_t block_1_start,
+													array_size_t block_1_end,
+													array_size_t block_2_start,
+													array_size_t block_2_end,
+													SortMetrics &metrics) {
 		constexpr bool debug_verbose= false;
 		bool announce_initial_array = true;
 		bool a_rotation_occurred	= false;
@@ -424,7 +425,7 @@ namespace BlockOperations
 
 	template <typename T>
 	array_size_t mergeTwoAdjacentBlocksBy_Rotation_Hybrid(
-												T** array,
+												T* 			 array,
 												array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -566,7 +567,7 @@ namespace BlockOperations
 
 			//	Case 1: array[b_end] >= (to the right of) array[a_end]
 			metrics.compares++;
-			if (*array[b_unmerged_end] >= *array[a_unmerged_end]) {
+			if (array[b_unmerged_end] >= array[a_unmerged_end]) {
 				if (!b_max_locked) {
 					b_max_pos = b_unmerged_end;
 					b_max_locked = true;
@@ -577,7 +578,7 @@ namespace BlockOperations
 			// array[b_end] is less than a[end] - determine how many
 			//	other a elements are greater than b
 			metrics.compares++;
-			while (a_i >= a_unmerged_start && *array[a_i] > *array[b_unmerged_end]) {
+			while (a_i >= a_unmerged_start && array[a_i] > array[b_unmerged_end]) {
 				a_i--;
 				metrics.compares++;
 			}
@@ -609,7 +610,7 @@ namespace BlockOperations
 			// 	find the first value in b that is less than array[a_i]
 			//	(a_i is the element immediately to the left of the span)
 			metrics.compares++;
-			while (*array[b_i] > *array[a_i] && b_i > a_unmerged_end) {
+			while (array[b_i] > array[a_i] && b_i > a_unmerged_end) {
 				b_i--;
 				metrics.compares++;
 			}
@@ -727,7 +728,7 @@ namespace BlockOperations
 
 	template <typename T>
 	array_size_t mergeTwoAdjacentBlocksBy_Rotation_RightToLeft(
-												T** array,
+												T* 			 array,
 												array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -788,7 +789,7 @@ namespace BlockOperations
 
 			//	Case 1: array[b_end] >= (to the right of) array[a_end]
 			metrics.compares++;
-			if (*array[b_unmerged_end] >= *array[a_unmerged_end]) {
+			if (array[b_unmerged_end] >= array[a_unmerged_end]) {
 				if (!b_max_frozen) {
 					b_max_pos = b_unmerged_end;
 					b_max_frozen = true;
@@ -799,7 +800,7 @@ namespace BlockOperations
 			// array[b_end] is less than a[end] - determine how many
 			//	other a elements are greater than b
 			metrics.compares++;
-			while (a_i >= a_unmerged_start && *array[a_i] > *array[b_unmerged_end]) {
+			while (a_i >= a_unmerged_start && array[a_i] > array[b_unmerged_end]) {
 				a_i--;
 				metrics.compares++;
 			}
@@ -831,7 +832,7 @@ namespace BlockOperations
 			// 	find the first value in b that is less than array[a_i]
 			//	(a_i is the element immediately to the left of the span)
 			metrics.compares++;
-			while (*array[b_i] > *array[a_i] && b_i > a_unmerged_end) {
+			while (array[b_i] > array[a_i] && b_i > a_unmerged_end) {
 				b_i--;
 				metrics.compares++;
 			}
@@ -1053,7 +1054,7 @@ namespace BlockOperations
 	 */
 
 	template <typename T>
-	array_size_t mergeTwoBlocksElementsByTableUpperSmallest(T ** array,
+	array_size_t mergeTwoBlocksElementsByTableUpperSmallest(T * array,
 											 array_size_t block_1_start,
 											 array_size_t block_1_end,
 											 array_size_t block_2_start,
@@ -1061,7 +1062,7 @@ namespace BlockOperations
 											 SortMetrics &metrics);
 
 	template <typename T>
-	array_size_t mergeTwoBlocksElementsByTableLowerSmallest(T ** array,
+	array_size_t mergeTwoBlocksElementsByTableLowerSmallest(T * array,
 											 array_size_t block_1_start,
 											 array_size_t block_1_end,
 											 array_size_t block_2_start,
@@ -1087,12 +1088,16 @@ namespace BlockOperations
 			if (debug_verbose)	{	std::cout << msg;	}\
 		} while(false)
 
+		//	The lambda 'debug_string' cannot be defined until after many
+		//	function variables have been declared. This is typed in here
+		//	so that it doesn't intrude upon the regular code after
+		//	the variables 'array', etc, are defined
 #pragma push_macro("define_debug_string")
 #define define_debug_string\
 		auto debug_string = [&] () -> std::string {\
 			std::stringstream result;\
 			for (array_size_t i = block_1_start; i <= block_2_end; ) {\
-				result << std::setw(3) << *array[i] << " ";\
+				result << std::setw(3) << array[i] << " ";\
 				i++;\
 				if (i-1 == block_1_end) {\
 					i = block_2_start;\
@@ -1170,6 +1175,8 @@ namespace BlockOperations
 		array_size_t block_2_index				  	= block_2_start;
 		array_size_t destination_index  			= block_1_start;
 
+		//	define the lambda 'debug_string() after the above variables
+		//	have been declared
 		define_debug_string;
 
 		/*	******************************************************	*/
@@ -1185,10 +1192,10 @@ namespace BlockOperations
 			array_size_t block_1_index = block_1_locations_table[block_1_locations_table_index];
 
 			metrics.compares++;
-			if (*array[block_1_index] <= *array[block_2_index]) {
+			if (array[block_1_index] <= array[block_2_index]) {
 				// the value from the left block goes into destination
 				if (destination_index != block_1_index) {
-					T* tmp 					 = array[destination_index];
+					T tmp 					 = array[destination_index];
 					array[destination_index] = array[block_1_index];
 					array[block_1_index] 	 = tmp;
 					metrics.assignments += 3;
@@ -1213,7 +1220,7 @@ namespace BlockOperations
 			else
 			{
 				// value from the right block is < value from the left block
-				T* tmp 					 = array[destination_index];
+				T tmp 					 = array[destination_index];
 				array[destination_index] = array[block_2_index];
 				array[block_2_index] 	 = tmp;
 				metrics.assignments += 3;
@@ -1249,9 +1256,9 @@ namespace BlockOperations
 			if (debug_verbose) message << "flush: " << debug_string() << std::endl;
 
 			array_size_t block_1_index	= block_1_locations_table[block_1_locations_table_index];
-			T* temp 				= array[destination_index];
+			T tmp 					= array[destination_index];
 			array[destination_index]= array[block_1_index];
-			array[block_1_index]	= temp;
+			array[block_1_index]	= tmp;
 			metrics.assignments += 3;
 			//	update the table's contents from AFTER the element that was just stored
 			update_locations_table(block_1_locations_table,
@@ -1277,7 +1284,7 @@ namespace BlockOperations
 	 */
 
 	template <typename T>
-	array_size_t mergeTwoBlocksElementsByTable(T ** array,
+	array_size_t mergeTwoBlocksElementsByTable(T * array,
 											 array_size_t block_1_start,
 											 array_size_t block_1_end,
 											 array_size_t block_2_start,
@@ -1327,7 +1334,7 @@ namespace BlockOperations
 
 	template <typename T>
 	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBufferFor_LOWER (
-												T ** array,
+												T * array,
 											 	array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -1338,7 +1345,7 @@ namespace BlockOperations
 
 	template <typename T>
 	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBufferFor_UPPER (
-												T ** array,
+												T * array,
 											 	array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -1351,7 +1358,7 @@ namespace BlockOperations
 
 	template <typename T>
 	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBuffer(
-												T ** array,
+												T * array,
 											 	array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -1384,7 +1391,7 @@ namespace BlockOperations
 
 	template <typename T>
 	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBufferFor_LOWER (
-												T ** array,
+												T * array,
 											 	array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -1397,7 +1404,7 @@ namespace BlockOperations
 		}
 
 		array_size_t block_1_size 		= block_1_end-block_1_start+1;
-		T* auxiliary[block_1_size];
+		T auxiliary[block_1_size];
 		array_size_t aux_dst			= 0;
 		array_size_t aux_src			= 0;
 		array_size_t b_2_src			= block_2_start;
@@ -1421,7 +1428,7 @@ namespace BlockOperations
 				<< " b_2_src = "  	<< std::setw(2) << b_2_src
 				<< " aux: ";
 			for (int i = aux_src; i < aux_dst; i++) {
-				msg << std::setw(2) << *auxiliary[i] << " ";
+				msg << std::setw(2) << auxiliary[i] << " ";
 			}
 			msg << trailer;
 			return msg.str();
@@ -1441,7 +1448,7 @@ namespace BlockOperations
 				// block_1 element has previously been moved to auxiliary
 				//	  prefer block_1 over block_2 to preserve stability
 				metrics.compares++;
-				if (*auxiliary[aux_src] <= *array[b_2_src]) {
+				if (auxiliary[aux_src] <= array[b_2_src]) {
 					//	if the destination is a b1 value, move it to aux
 					if (isDstInB1()) {
 						metrics.assignments++;
@@ -1480,7 +1487,7 @@ namespace BlockOperations
 			} else {
 				//	auxiliary is empty - block_1 value comes from dst
 				metrics.compares++;
-				if (*array[dst] <= *array[b_2_src]) {
+				if (array[dst] <= array[b_2_src]) {
 					dst = nextDst();
 				} else {
 					// block_2 value is taken
@@ -1523,7 +1530,7 @@ namespace BlockOperations
 
 	template <typename T>
 	array_size_t mergeTwoBlocksElementsUsingAuxiliaryBufferFor_UPPER (
-												T ** array,
+												T * array,
 											 	array_size_t block_1_start,
 												array_size_t block_1_end,
 												array_size_t block_2_start,
@@ -1536,7 +1543,7 @@ namespace BlockOperations
 		}
 
 		array_size_t block_2_size		= block_2_end - block_2_start + 1;
-		T* auxiliary[block_2_size];
+		T auxiliary[block_2_size];
 		array_size_t aux_dst			= block_2_size-1;
 		array_size_t aux_src			= block_2_size-1;
 		array_size_t b_1_src			= block_1_end;
@@ -1555,7 +1562,7 @@ namespace BlockOperations
 				<< " b_1_src = "  	<< std::setw(2) << b_1_src
 				<< " aux: ";
 			for (int i = aux_dst+1; i < block_2_size; i++) {
-				msg << std::setw(2) << *auxiliary[i] << " ";
+				msg << std::setw(2) << auxiliary[i] << " ";
 			}
 			msg << trailer;
 			return msg.str();
@@ -1574,7 +1581,7 @@ namespace BlockOperations
 			if (!isAuxEmpty()) {
 				//	if block_1 has the higher value
 				metrics.compares++;
-				if (*array[b_1_src] > *auxiliary[aux_src]) {
+				if (array[b_1_src] > auxiliary[aux_src]) {
 					//	if the dst is in block_2, the value at
 					//	dst will be displaced
 					if (isDstB2()) {
@@ -1623,7 +1630,7 @@ namespace BlockOperations
 			} else {
 				//	if block_1 has the higher value,
 				metrics.compares++;
-				if (*array[b_1_src] > *array[dst]) {
+				if (array[b_1_src] > array[dst]) {
 					//	if dst is in block_2, the element at dst will be displaced
 					if (isDstB2()) {
 						metrics.assignments++;
@@ -1679,7 +1686,7 @@ namespace BlockOperations
 	 */
 
 	template <typename T>
-	SortMetrics swapBlockElementsOfEqualSize(T** array,
+	SortMetrics swapBlockElementsOfEqualSize(T* array,
 											 array_size_t block1_start,
 											 array_size_t block2_start,
 											 array_size_t block_size)
@@ -1695,12 +1702,8 @@ namespace BlockOperations
 			return result;
 		}
 
-		T* temp;
 		for (array_size_t i = 0; i != block_size; i++) {
-			result.assignments += 3;
-			temp = array[block1_start];
-			array[block1_start] = array[block2_start];
-			array[block2_start] = temp;
+			result += SortingUtilities::swap(array, block1_start, block2_start);
 			block1_start++;
 			block2_start++;
 		}

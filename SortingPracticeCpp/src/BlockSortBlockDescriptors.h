@@ -21,7 +21,9 @@ namespace BlockSort {
 	 * has been sorted, such as initially sorting element within blocks. */
 
 	template <typename T>
-	SortMetrics assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors);
+	SortMetrics assignBlockKeys(T* array,
+								std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
+								int num_descriptors);
 
 	/*	Creates an array of block descriptors of types A & B {A[0]A[1]..A[m]B[0]..B[n]}
 	 * 	  where A[0] is a full block but B[n] may not be a full block in the case where
@@ -31,7 +33,7 @@ namespace BlockSort {
 	 * 	  of block_size from start. 	*/
 
 	template <typename T>
-	int createBlockDescriptors_A0_Full( 	T** array,
+	int createBlockDescriptors_A0_Full( 	T* array,
 											array_size_t start,
 											array_size_t mid,
 											array_size_t end,
@@ -46,7 +48,7 @@ namespace BlockSort {
 	 * 	There is no restriction on the value of mid from start	*/
 
 	template <typename T>
-	int createBlockDescriptorsSymmetrically(T** array,
+	int createBlockDescriptorsSymmetrically(T* array,
 											array_size_t start,
 											array_size_t mid,
 											array_size_t end,
@@ -58,7 +60,10 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	void assignBlockData(BlockDescriptor<T> &block, T**array, BlockType type, array_size_t start, array_size_t block_size);
+	void assignBlockData(BlockDescriptor<T> &block,
+						 T*array, BlockType type,
+						 array_size_t start,
+						 array_size_t block_size);
 
 
 	/*	***********************************************************************************	*/
@@ -142,7 +147,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	int createBlockDescriptors_A0_Full( T** array,
+	int createBlockDescriptors_A0_Full( T* 			 array,
 										array_size_t start,
 										array_size_t mid,
 										array_size_t end,
@@ -174,8 +179,8 @@ namespace BlockSort {
 		blocks = Descriptors<T>(new BlockDescriptor<T>[num_blocks]);
 
 		//	assign values to the blocks
-		int block_number 		= 0;
-		array_size_t start_of_block 	= start;
+		int block_number 			= 0;
+		array_size_t start_of_block	= start;
 
 		//	the full A_Blocks where .end_index = (.start_index+block_size-1)
 		while (start_of_block < mid) {
@@ -242,7 +247,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	int  createBlockDescriptorsSymmetrically(	T** array,
+	int  createBlockDescriptorsSymmetrically(	T* 			 array,
 												array_size_t start,
 												array_size_t mid,
 												array_size_t end,
@@ -274,8 +279,8 @@ namespace BlockSort {
 		}
 
 		//	assign values to the blocks
-		int block_number 		= 0;
-		array_size_t start_of_block 	= start;
+		int block_number 			= 0;
+		array_size_t start_of_block	= start;
 
 		//	do the A_Blocks first
 		//	if the first A_Block is a partial, it's .end_index != (.start_index+block_size-1)
@@ -318,7 +323,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	void assignBlockData(BlockDescriptor<T> &block, T**array, BlockType type, array_size_t start, array_size_t block_size) {
+	void assignBlockData(BlockDescriptor<T> &block, T* array, BlockType type, array_size_t start, array_size_t block_size) {
 		block.type 			= type;
 		block.start_index 	= start;
 		block.end_index		= start + block_size-1;
@@ -336,8 +341,8 @@ namespace BlockSort
 	template <typename T>
 	class BlockDescriptor {
 	public:
-		BlockType type;
-		T* key;
+		BlockType 	 type;
+		T 			 key;
 		array_size_t start_index;
 		array_size_t end_index;
 
@@ -345,7 +350,7 @@ namespace BlockSort
 			return end_index - start_index + 1;
 		}
 
-		T* assignKey(T**array) {
+		T& assignKey(T* array) {
 			switch(type) {
 			case BlockType::A_BLOCK:
 				key = array[start_index];
@@ -355,10 +360,10 @@ namespace BlockSort
 				break;
 			case BlockType::UNSPECIFIED:
 				//	TODO - throw exception
-				key = nullptr;
+				key = T();
 				break;
 			default:
-				key = nullptr;
+				key = T();
 				//	TODO - throw exception
 				break;
 			}
@@ -372,47 +377,43 @@ namespace BlockSort
 		}
 
 		BlockDescriptor() {
-			type = BlockType::UNSPECIFIED;
-			key = nullptr;
+			type 		= BlockType::UNSPECIFIED;
+			key 		= T();
 			start_index = 0;
-			end_index = 0;
+			end_index 	= 0;
 		}
-		BlockDescriptor(BlockType t, T* k, array_size_t s, array_size_t e) {
-			type = t;
-			key = k;
+		BlockDescriptor(BlockType t, T k, array_size_t s, array_size_t e) {
+			type 		= t;
+			key 		= k;
 			start_index = s;
-			end_index = e;
+			end_index 	= e;
 		}
 		BlockDescriptor(const BlockDescriptor &other) {
 			if (this != &other) {
-				type = other.type;
-				key = other.key;
+				type 		= other.type;
+				key 		= other.key;
 				start_index = other.start_index;
-				end_index = other.end_index;
+				end_index 	= other.end_index;
 			}
 		}
 		BlockDescriptor& operator=(const BlockDescriptor &other) {
 			if (this != &other) {
-				type = other.type;
-				key = other.key;
+				type 		= other.type;
+				key 		= other.key;
 				start_index = other.start_index;
-				end_index = other.end_index;
+				end_index 	= other.end_index;
 			}
 			return *this;
 		}
 
+		//	Fundamental operators
 		bool operator==(const BlockDescriptor &other) const {
-			if (key != nullptr && other.key != nullptr) {
-				return *key == *other.key;
-			}
-			return false;
+			return key == other.key;
 		}
 		bool operator<(const BlockDescriptor &other) const {
-			if (key != nullptr && other.key != nullptr) {
-				return *key < *other.key;
-			}
-			return false;
+			return key < other.key;
 		}
+		//	Derived operators
 		bool operator<=(const BlockDescriptor &other) const {
 			return *this == other || *this < other;
 		}
@@ -427,10 +428,10 @@ namespace BlockSort
 		}
 
 		bool isExactlyEqual(const BlockDescriptor &other) const {
-			if (type != other.type) 				return false;
-			if (key != other.key)					return false;
+			if (type 		!= other.type) 			return false;
+			if (key 		!= other.key)			return false;
 			if (start_index != other.start_index)	return false;
-			if (end_index != other.end_index)		return false;
+			if (end_index 	!= other.end_index)		return false;
 			return true;
 		}
 
@@ -442,18 +443,10 @@ namespace BlockSort
 						<< std::setw(index_width) << end_index << "] ";
 				if (type == BlockType::A_BLOCK) {
 					result << "[" << std::setw(index_width) << start_index << "] = ";
-					if (key != nullptr) {
-						result << *key;
-					} else {
-						result << "key is nullptr";
-					}
+					result << key;
 				} else {
 					result << "[" << std::setw(index_width) << end_index << "] = ";
-					if (key != nullptr) {
-						result << *key;
-					} else {
-						result << "key is nullptr";
-					}
+					result << key;
 				}
 			} else {
 				result << "Unintialized block";

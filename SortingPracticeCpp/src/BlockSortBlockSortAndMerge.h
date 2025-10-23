@@ -18,20 +18,20 @@ namespace BlockSort {
 	 * the descriptors each time the block size is doubled in a bottom up merge
 	 */
 	template <typename T>
-	int mergeAdajacentPairsOfDescriptors(T** array,
+	int mergeAdajacentPairsOfDescriptors(T* array,
 										 Descriptors<T> &descriptors,
 										 int num_descriptors);
 
 	/*	Starting with the leftmost A_Block, merge blocks
 	 * expects a set of descriptors that is in order by key	*/
 	template <typename T>
-	SortMetrics mergeAllBlocksLeftToRight(T** array,
+	SortMetrics mergeAllBlocksLeftToRight(T* array,
 										   Descriptors<T> &block_descriptors,
 										   int num_blocks);
 
 	/*	Starting with the rightmost B_Block, merge blocks to the left	*/
 	template <typename T>
-	SortMetrics mergeAllBlocksRightToLeft(T** array,
+	SortMetrics mergeAllBlocksRightToLeft(T* array,
 										  Descriptors<T> &block_descriptors,
 										  int num_blocks);
 
@@ -39,7 +39,7 @@ namespace BlockSort {
 	 * Although not strictly necessary, 'block_1_end' is passed to be consistent
 	 * with the other block merging functions	*/
 //	template <typename T>
-//	SortMetrics mergeTwoAdjacentBlocksByRotation(T** array,
+//	SortMetrics mergeTwoAdjacentBlocksByRotation(T* array,
 //													  array_size_t block_1_start,
 //													  array_size_t block_1_end,
 //													  array_size_t block_2_start,
@@ -48,41 +48,41 @@ namespace BlockSort {
 	/*	Merge a pair of blocks by using a table to keep track of where displaced
 	 * elements in block_1 are moved to in block_2 during the merge. */
 //	template <typename T>
-//	SortMetrics mergeTwoBlocksByTable(T ** array,
+//	SortMetrics mergeTwoBlocksByTable(T* array,
 //									  array_size_t block_1_start, array_size_t block_1_end,
 //									  array_size_t block_2_start, array_size_t block_2_end);
 
 	/*	sort an array of [start:end] by key, ignoring block type	*/
 	template <typename T>
-	SortMetrics sortBlocksByKey(T** array, array_size_t size, Descriptors<T>&,
+	SortMetrics sortBlocksByKey(T* array, array_size_t size, Descriptors<T>&,
 												int start, int end);
 
 	/*	sort an array of [A_0..A_m:B_0..B_n] using a binary search to find the
 	 * 	location where each of the blocks should go 							*/
 	template <typename T>
-	SortMetrics sortBlocksBinarySearch( T **array,
+	SortMetrics sortBlocksBinarySearch( T *array,
 										Descriptors<T> &descriptors, int num_blocks);
 
 	/*	sort an array of [A_0..A_m:B_0..B_n] using a table to keep track of where
 	 * 	the displaced A_Blocks go in the upper portion (B_Block) of the array	*/
 	template <typename T>
-	SortMetrics sortBlocksByTable(		T** array,
+	SortMetrics sortBlocksByTable(		T* array,
 										Descriptors<T> &descriptors, int num_blocks);
 
 	/*	sort an array of [A_0..A_m:B_0..B_n] using a binary search to find the
 	 * 	location where each of the blocks should go 							*/
 	template <typename T>
-	SortMetrics sortBlocksHybrid(		T **array,
+	SortMetrics sortBlocksHybrid(		T* array,
 										Descriptors<T> &blocks, int num_blocks);
 
 	/*	sort an array of [A_0..A_m:B_0..B_n] using an insertion sort			*/
 	template <typename T>
-	SortMetrics sortBlocksInsertioin(	T **array,
+	SortMetrics sortBlocksInsertioin(	T* array,
 										Descriptors<T> &blocks, int num_blocks);
 
 	/*	sort an array of blocks [A_0..A_m:B_0..Bn] starting at right A_m & B_n	*/
 	template <typename T>
-	SortMetrics sortBlocksRightToLeft(	T **array,
+	SortMetrics sortBlocksRightToLeft(	T* array,
 									   	Descriptors<T> &blocks, int num_blocks);
 
 
@@ -109,7 +109,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	int mergeAdajacentPairsOfDescriptors(T** array,
+	int mergeAdajacentPairsOfDescriptors(T* array,
 										Descriptors<T> &descriptors, int num_descriptors)
 	{
 		int result_count = 0;
@@ -146,11 +146,11 @@ namespace BlockSort {
 
 	/*	Merge blocks using binary searches to identify spans to rotate	*/
 	template <typename T>
-	SortMetrics mergeTwoAdjacentBlocksByRotation(T** array,
-													  array_size_t block_1_start,
-													  array_size_t block_1_end,
-													  array_size_t block_2_start,
-													  array_size_t block2_end);
+	SortMetrics mergeTwoAdjacentBlocksByRotation( T* array,
+												  array_size_t block_1_start,
+												  array_size_t block_1_end,
+												  array_size_t block_2_start,
+												  array_size_t block2_end);
 
 
 	/*	********************************************************************* */
@@ -216,7 +216,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	SortMetrics mergeAllBlocksLeftToRight(T** array,
+	SortMetrics mergeAllBlocksLeftToRight(T* array,
 										   Descriptors<T> &block_descriptors,
 										   int num_blocks) {
 		SortMetrics metrics(0,0);
@@ -298,17 +298,17 @@ namespace BlockSort {
 	//	starting at the right-most block, merge the previous (left) block into
 	//	  the elements to the right
 	template <typename T>
-	SortMetrics mergeAllBlocksRightToLeft(T** array,
-									std::unique_ptr<BlockDescriptor<T>[]> &block_descriptors,
-									int num_blocks) {
+	SortMetrics mergeAllBlocksRightToLeft(	T* array,
+											Descriptors<T> &block_descriptors,
+											int num_blocks) {
 
 		SortMetrics metrics;
 		array_size_t sorted_span_start 	= block_descriptors[num_blocks-1].start_index;
-		array_size_t sorted_span_end		= block_descriptors[num_blocks-1].end_index;
-		int left_block = num_blocks-2;
+		array_size_t sorted_span_end	= block_descriptors[num_blocks-1].end_index;
+		int left_block 					= num_blocks-2;
 
 		while (left_block >= 0) {
-			array_size_t left_start 	= block_descriptors[left_block].start_index;
+			array_size_t left_start = block_descriptors[left_block].start_index;
 			array_size_t left_end	= block_descriptors[left_block].end_index;
 			BlockOperations::mergeTwoBlocksElementsByTable(array,
 											left_start, left_end,
@@ -343,7 +343,7 @@ namespace BlockSort {
 
 
 	template <typename T>
-	SortMetrics sortBlocksBinarySearch(	T **array,
+	SortMetrics sortBlocksBinarySearch(	T* array,
 										Descriptors<T> &blocks,
 										int num_blocks) {
 
@@ -454,8 +454,8 @@ namespace BlockSort {
 			// the rightmost b_block [lm_b-1] that is going to be rotated left
 			array_size_t lm_a;
 			result += binarySearchLastBlock(blocks, 0, a_block_index,
-											 blocks[lm_b-1].key,
-											 lm_a);
+											blocks[lm_b-1].key,
+											lm_a);
 
 			//			A4, A6, A6, B5, B5, B7, B7, B8
 			//			0    1    2    3    4    5    6    7
@@ -546,9 +546,9 @@ namespace BlockSort {
 	//	     a   b   c   d   e    3
 
 	template <typename T>
-	SortMetrics sortBlocksByKey(T** array, array_size_t size,
-									 Descriptors<T> &blocks,
-									 int start, int end)
+	SortMetrics sortBlocksByKey(T* array, array_size_t size,
+								Descriptors<T> &blocks,
+								int start, int end)
 	{
 		SortMetrics metrics;
 
@@ -556,7 +556,7 @@ namespace BlockSort {
 		for (int i = start+1; i <= end; i++) {
 			for (int j = i; j > 0; j--) {
 				metrics.compares++;
-				if (*blocks[j].key >= *blocks[j-1].key) {
+				if (blocks[j].key >= blocks[j-1].key) {
 					break;
 				}
 				metrics += rotateBlocksRight(array, blocks, j-1, j, 1);
@@ -599,7 +599,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	SortMetrics sortBlocksByTable(T** array,
+	SortMetrics sortBlocksByTable(T* array,
 								  Descriptors<T> &descriptors,
 								  int num_blocks) {
 
@@ -634,8 +634,8 @@ namespace BlockSort {
 
 		array_size_t table_i 	= 0;
 		array_size_t b_source 	= num_A_blocks;
-		array_size_t dst			= 0;
-		array_size_t src			= 0;
+		array_size_t dst		= 0;
+		array_size_t src		= 0;
 
 		while (table_i != num_A_blocks && b_source != num_blocks) {
 
@@ -643,7 +643,7 @@ namespace BlockSort {
 			//	determine the smaller block, with deference given to the
 			//	  block on the left (A_Block) if the two blocks have equal
 			//	  keys in order to preserve stability
-			if (*descriptors[a_positions[table_i]].key <= *descriptors[b_source].key) {
+			if (descriptors[a_positions[table_i]].key <= descriptors[b_source].key) {
 				src = a_positions[table_i];
 				table_i++;
 			} else {
@@ -702,7 +702,7 @@ namespace BlockSort {
 		 *    the previous B_Block was.
 		 */
 		template <typename T>
-		SortMetrics sortBlocksHybrid(T **array,
+		SortMetrics sortBlocksHybrid(T* array,
 									 Descriptors<T> &blocks, int num_blocks)
 		{
 			constexpr bool debug_verbose = false;
@@ -763,13 +763,13 @@ namespace BlockSort {
 
 				if (debug_verbose) {
 					std::cout << "BEGINNING LOOP TO USE "
-							<< (use_binary_search ? "BINARY_SEARCH\n" : "RIGHT_TO_LEFT\n");
+							  << (use_binary_search ? "BINARY_SEARCH\n" : "RIGHT_TO_LEFT\n");
 				}
 				if (!use_binary_search) {
 					//	Find the rightmost B_Block that is less than this A_Block
 					while (b_block_index > a_block_index) {
 						result.compares++;
-						if (*blocks[b_block_index].key < *blocks[a_block_index].key) {
+						if (blocks[b_block_index].key < blocks[a_block_index].key) {
 							break;
 						}
 						b_block_index--;
@@ -838,7 +838,7 @@ namespace BlockSort {
 
 				while (a_block_index >= 0) {
 					result.compares++;
-					if (*blocks[a_block_index].key <= *blocks[b_block_index].key)
+					if (blocks[a_block_index].key <= blocks[b_block_index].key)
 						break;
 					a_block_index--;
 					tag_rotate_count--;
@@ -901,7 +901,7 @@ namespace BlockSort {
 
 	/*	sort an array of [A_0..A_m:B_0..B_n] using an insertion sort			*/
 	template <typename T>
-	SortMetrics sortBlocksInsertion(T **array, Descriptors<T> &blocks, int num_blocks) {
+	SortMetrics sortBlocksInsertion(T *array, Descriptors<T> &blocks, int num_blocks) {
 		SortMetrics metrics;
 		return metrics;
 	}
@@ -925,7 +925,7 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	SortMetrics sortBlocksRightToLeft(T **array,
+	SortMetrics sortBlocksRightToLeft(T *array,
 									  Descriptors<T> &blocks, int num_blocks) {
 		constexpr bool debug_verbose = false;
 
@@ -992,7 +992,7 @@ namespace BlockSort {
 			//	There may not be a B_Block that is greater than this A_Block
 			while (b_block_index > a_block_index) {
 				result.compares++;
-				if (*blocks[b_block_index].key < *blocks[a_block_index].key) {
+				if (blocks[b_block_index].key < blocks[a_block_index].key) {
 					break;
 				}
 				b_block_index--;
@@ -1017,7 +1017,7 @@ namespace BlockSort {
 			//	con
 			while (a_block_index >= 0) {
 				result.compares++;
-				if (*blocks[a_block_index].key <= *blocks[b_block_index].key)
+				if (blocks[a_block_index].key <= blocks[b_block_index].key)
 					break;
 				a_block_index--;
 				tag_rotate_count--;

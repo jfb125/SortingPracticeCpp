@@ -21,7 +21,7 @@ namespace QuickSort {
 
 	/*	requires that the caller ensure that end >= start	*/
 	template <typename T>
-	SortMetrics partitionArray(T** array, array_size_t start, array_size_t end) {
+	SortMetrics partitionArray(T* array, array_size_t start, array_size_t end) {
 
 		SortMetrics ret_val(0,0);
 
@@ -50,7 +50,7 @@ namespace QuickSort {
 		while (1) {
 			ret_val.compares++;
 			// find an array value that is <= pivot
-			while (*array[upper] > *array[pivot]) {
+			while (array[upper] > array[pivot]) {
 				upper--;
 				ret_val.compares++;
 			}
@@ -59,7 +59,7 @@ namespace QuickSort {
 			//	 which means no value < pivot was found
 			while (lower < upper) {
 				ret_val.compares++;
-				if (*array[lower] > *array[pivot])
+				if (array[lower] > array[pivot])
 					break;
 				lower++;
 			}
@@ -94,7 +94,7 @@ namespace QuickSort {
 	}
 
 	template <typename T>
-	SortMetrics sortPointerstoObjects(T** array, array_size_t size) {
+	SortMetrics sort(T* array, array_size_t size) {
 
 		SortMetrics retval(0,0);
 

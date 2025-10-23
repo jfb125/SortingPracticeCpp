@@ -9,25 +9,10 @@
 #include <iostream>
 #include <iomanip>
 #include <memory>
+#include <string>
 
 #include "SortTest.h"
 #include "ResultOutput.h"
-
-array_size_t multiply_by_2(array_size_t current_size) {
-	return current_size * 2;
-}
-
-array_size_t multiply_by_4(array_size_t current_size) {
-	return current_size * 4;
-}
-
-array_size_t next_increment(array_size_t current_size) {
-	return current_size+1;
-}
-
-array_size_t multiply_by_10(array_size_t current_size) {
-	return current_size * 10;
-}
 
 #pragma push_macro("to_i")
 #define to_i(e_num)	static_cast<int>(e_num)
@@ -39,9 +24,9 @@ array_size_t multiply_by_10(array_size_t current_size) {
 /*	*****************************************************************************	*/
 /*	******************************************************************************	*/
 
-#include "BlockSort.h"
+//#include "BlockSort.h"
 
-bool testBlockSort();
+//bool testBlockSort();
 
 int main(int argc, char *argv[])
 {
@@ -55,15 +40,10 @@ int main(int argc, char *argv[])
 	int num_repetitions = 1000;
 
 	using DataType = std::string;
+	DataType first_value = std::string("AAAAAAAA");
 
-	constexpr array_size_t min_array_size =   64;
-	constexpr array_size_t max_array_size =  256;
-	//	comment out all but the one used in this test
-//	array_size_t (*next_size)(array_size_t current) = next_increment;
-	array_size_t (*next_size)(array_size_t current) = multiply_by_2;
-//	array_size_t (*next_size)(array_size_t current) = multiply_by_4;
-//	array_size_t (*next_size)(array_size_t current) = multiply_by_10;
-	int num_array_sizes = getNumSizes(min_array_size, max_array_size, next_size);
+	array_size_t array_sizes = { 64, 128, 256 };
+	int num_array_sizes 	 = sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
 //			SortAlgorithms::BUBBLE_SORT,
@@ -101,10 +81,6 @@ int main(int argc, char *argv[])
 	int num_results = num_array_sizes * num_sort_algorithms * num_compositions * num_initial_orderings;
 	OneTestResult<DataType>* results[num_results];
 
-	std::string test_values[max_array_size];
-	std::string first_value("AAAAAA");
-	generateStrings(test_values, max_array_size, first_value, next_string);
-
 	/*
 	 * 	The ranodmizer is used to disorder the input data in sortTest
 	 * 		Use the default value if a repeatable result is desired
@@ -128,21 +104,24 @@ int main(int argc, char *argv[])
 			for (int ordering_i = 0; ordering_i != num_initial_orderings; ordering_i++) {
 				randomizer.seed(randomizer_seed);
 				randomizer.restart();
-				for (array_size_t size = min_array_size;
-                              size <= max_array_size;
-                              size = next_size(size)) {
-                results[cnt] = testOneAlgorithm<DataType>(
-                		sort_algorithms[algorithm_i],
-                        array_compositions[composition_i],
-                        initial_orderings[ordering_i],
-                        randomizer,
-						test_values,
-						size,
-						num_repetitions);
-                if (!results[cnt]->_failure_log->_diagnostics._is_sorted) {
-						std::cout << "Sort failed: ";
-						terseDump(results[cnt], 1);
-						std::cout << std::endl;
+				for (int size_i = 0; size_i < num_array_sizes; size_i++) {
+					array_size_t array_size = array_size[size_i];
+					DataType test_values[array_size];
+
+					generateStrings(test_values, array_size,
+									first_value, next_string);
+					results[cnt] = testOneAlgorithm<DataType>(
+							sort_algorithms[algorithm_i],
+							array_compositions[composition_i],
+							initial_orderings[ordering_i],
+							randomizer,
+							test_values,
+							array_size,
+							num_repetitions);
+					if (!results[cnt]->_failure_log->_diagnostics._is_sorted) {
+							std::cout << "Sort failed: ";
+							terseDump(results[cnt], 1);
+							std::cout << std::endl;
 					}
 					cnt++;
 				}

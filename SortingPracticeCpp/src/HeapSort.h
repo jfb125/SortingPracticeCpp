@@ -21,13 +21,13 @@
 namespace HeapSort {
 
 	template <typename T>
-	SortMetrics sinkNode(array_size_t this_node, T**array, array_size_t size);
+	SortMetrics sinkNode(array_size_t this_node, T*array, array_size_t size);
 
 	template <typename T>
-	bool isMaxHeap(T**array, array_size_t size);
+	bool isMaxHeap(T*array, array_size_t size);
 
 	template <typename T>
-	SortMetrics heapify(T**array, array_size_t size);
+	SortMetrics heapify(T*array, array_size_t size);
 
 	/* ****************************************	*/
 	/*			indices management				*/
@@ -50,7 +50,7 @@ namespace HeapSort {
 	}
 
 	template <typename T>
-	bool isMaxHeap(T**array, array_size_t size) {
+	bool isMaxHeap(T*array, array_size_t size) {
 
 		if (size <= 1)
 			return true;
@@ -68,7 +68,7 @@ namespace HeapSort {
 			if (left_child <= final_leaf) {
 				// if there are two children, find the largest
 				if (right_child <= final_leaf) {
-					if (*array[left_child] > *array[right_child]) {
+					if (array[left_child] > array[right_child]) {
 						largest_child = left_child;
 					} else {
 						largest_child = right_child;
@@ -77,7 +77,7 @@ namespace HeapSort {
 					// there is only the left child
 					largest_child = left_child;
 				}
-				if (*array[node] < *array[largest_child])
+				if (array[node] < array[largest_child])
 					return false;
 			}
 		} while (node != 0);
@@ -90,7 +90,7 @@ namespace HeapSort {
 	/* ****************************************	*/
 
 	template <typename T>
-	SortMetrics heapify(T**array, array_size_t size) {
+	SortMetrics heapify(T*array, array_size_t size) {
 
 		SortMetrics retval(0,0);
 
@@ -106,7 +106,7 @@ namespace HeapSort {
 	}
 
 	template <typename T>
-	SortMetrics sinkNode(array_size_t this_node, T**array, array_size_t size) {
+	SortMetrics sinkNode(array_size_t this_node, T*array, array_size_t size) {
 
 		SortMetrics retval(0,0);
 
@@ -131,7 +131,7 @@ namespace HeapSort {
 			} else {
 				// there is both a left & right child
 				retval.compares++;
-				if (*array[left_child] > *array[right_child]) {
+				if (array[left_child] > array[right_child]) {
 					largest_child = left_child;
 				} else {
 					largest_child = right_child;
@@ -140,7 +140,7 @@ namespace HeapSort {
 
 			// compare the larger of the two children to this_node
 			retval.compares++;
-			if (*array[this_node] < *array[largest_child]) {
+			if (array[this_node] < array[largest_child]) {
 				// swap the nodes
 				retval += SortingUtilities::swap(array, this_node, largest_child);
 				// move down to the lower node
@@ -156,7 +156,7 @@ namespace HeapSort {
 	}
 
 	template <typename T>
-	SortMetrics sortPointersToObjects(T** array, array_size_t size) {
+	SortMetrics sort(T* array, array_size_t size) {
 
 		SortMetrics retval(0,0);
 		if (size <= 1)	return retval;
@@ -177,16 +177,16 @@ namespace HeapSort {
 	}
 
 	template <typename T>
-	void printHeap(T**array, array_size_t size) {
+	void printHeap(T*array, array_size_t size) {
 
-		std::ios_base::fmtflags print_heap_flags = std::cout.flags();
+		OStreamState ostream_state;	// restores ostream state in destructor
 		int width = MAX_LINE_SIZE / 2;
 		int nodes_per_line = 1;
 		int line_node_count = 1;
 
 		for (array_size_t i = 0; i != size; i++) {
 			std::cout << std::setw(width) << std::right
-					  << array[i]->last_name;
+					  << array[i];
 			line_node_count--;
 			// determine whether a line feed or tab stop goes next
 			if (line_node_count == 0) {
@@ -202,7 +202,6 @@ namespace HeapSort {
 			std::cout << std::endl;
 		}
 		std::cout << std::endl;
-		std::cout.flags(print_heap_flags);
 	}
 }
 
