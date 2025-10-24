@@ -163,21 +163,7 @@ namespace SortingUtilities {
 						  << array[i]->last_name << std::endl;
 			}
 	}
-#if 0
-	template <typename T>
-	void printElements(std::string trailer, T** array, array_size_t size, int value_width, int element_width) {
-		OStreamState current_state;
 
-		int spacer_width = element_width - value_width;
-		for (int i = 0; i != size; i++) {
-			if (spacer_width) {
-				std::cout << std::setw(spacer_width) << ' ';
-			std::cout << std::setw(value_width) << *array[i];
-			}
-		}
-		std::cout << trailer;
-	}
-#endif
 	template <typename T>
 	void printArrayAndPivot(T*array, array_size_t start, array_size_t end, array_size_t pivot, std::string header) {
 			std::cout << header <<  " [" << start << ":" << end << "]"
@@ -188,7 +174,7 @@ namespace SortingUtilities {
 				} else {
 					std::cout << std::setw(2) << " " << i << "  : ";
 				}
-				std::cout  << array[i] << std::endl;
+				std::cout  << " array element not printed " /*array[i]*/ << std::endl;
 			}
 	}
 }

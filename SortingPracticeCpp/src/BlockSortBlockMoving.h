@@ -119,9 +119,11 @@ namespace BlockSort {
 				msg << "start = " 		<< std::setw(2) << start
 					<< " end = " 		<< std::setw(2) << end
 					<< " evaluating [" 	<< std::setw(2) << mid
-					<< "] = " 			<< std::setw(2) << blocks[mid].key
+//					<< "] = " 			<< std::setw(2) << blocks[mid].key
+					<< "] = " 			<< std::setw(2) << " key not printed "
 					<< (blocks[mid].key > key ? " is    " : " is NOT")
-					<< " greater than " << key;
+//					<< " greater than " << key;
+					<< " greater than " << " key not printed ";
 			}
 
 			result.compares++;
@@ -147,18 +149,22 @@ namespace BlockSort {
 			msg << "start = " 				<< std::setw(2) << start
 				<< " end = " 				<< std::setw(2) << end
 				<< " evaluating [" 			<< std::setw(2) << start
-				<< "] = " << std::setw(2) 	<< blocks[start].key
+//				<< "] = " << std::setw(2) 	<< blocks[start].key
+				<< "] = " << std::setw(2) 	<< " key value not printed "
 				<< (blocks[start].key > key ? " is    " : " is NOT")
-				<< " greater than " << key
+//				<< " greater than " << key
+				<< " greater than " << " key value not printed "
 				<< " therefore returning 'end+1'\n";
 			start = start+1;
 		} else {
 			msg << "start = " 				<< std::setw(2) << start
 				<< " end = " 				<< std::setw(2) << end
 				<< " evaluating [" 			<< std::setw(2) << start
-				<< "] = " << std::setw(2) 	<< blocks[start].key
+//				<< "] = " << std::setw(2) 	<< blocks[start].key
+				<< "] = " << std::setw(2) 	<< " key value not printed "
 				<< (blocks[start].key > key ? " is    " : " is NOT")
-				<< " greater than " << key
+//				<< " greater than " << key
+				<< " greater than " << " key value not printed "
 				<< " therefore returning 'end'\n";
 		}
 

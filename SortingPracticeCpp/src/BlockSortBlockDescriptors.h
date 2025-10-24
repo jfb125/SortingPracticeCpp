@@ -443,10 +443,10 @@ namespace BlockSort
 						<< std::setw(index_width) << end_index << "] ";
 				if (type == BlockType::A_BLOCK) {
 					result << "[" << std::setw(index_width) << start_index << "] = ";
-					result << key;
+//					result << key;
 				} else {
 					result << "[" << std::setw(index_width) << end_index << "] = ";
-					result << key;
+//					result << key;
 				}
 			} else {
 				result << "Unintialized block";

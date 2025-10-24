@@ -106,6 +106,7 @@ public:
 	T 			value;
 	long long 	index;
 	int 		index_width;
+//	static std::ostream operator<<(const SortingDataType<T> &object);
 	std::string	(*to_string)(const T&);
 
 	/*	constructors and copy / move operators	*/
@@ -159,7 +160,7 @@ public:
 
 	~SortingDataType() {}
 
-	/*	individual assignment operators	*/
+	/*	individual object assignment operators	*/
 
 	SortingDataType &operator=(const T val) {
 		value = val;
@@ -174,6 +175,8 @@ public:
 	SortingDataType &operator=(std::string (*to_str)(const T&)) {
 		to_string = to_str;
 	}
+
+	/*		individual setter methods	*/
 
 	SortingDataType &set(const T val) {
 		value = val;
@@ -190,18 +193,49 @@ public:
 		return *this;
 	}
 
-	/*	output	*/
-	std::ostream &operator<<(std::ostream &out) {
-		if (to_string) {
-			out << "value = " 	<< to_string(value)
-				<< ", index = " << std::setw(index_width) << index;
-		} else {
-			out << "value = " 	<< value
-				<< ", index = " << std::setw(index_width) << index;
-		}
-		return out;
+	/*	comparing the underlying element	*/
+
+		/*	fundamental operations	*/
+
+	bool operator==(const SortingDataType &other) const {
+		return value == other.value;
 	}
+
+	bool operator<(const SortingDataType &other) const {
+		return value < other.value;
+	}
+
+		/*	derived operations	*/
+
+	bool operator<=(const SortingDataType &other) const {
+		return *this < other || *this == other;
+	}
+
+	bool operator>(const SortingDataType &other) const {
+		return !(*this < other || *this == other);
+	}
+
+	bool operator>=(const SortingDataType &other) const {
+		return !(*this < other);
+	}
+
+	bool operator!=(const SortingDataType &other) const {
+		return !(*this == other);
+	}
+	std::ostream& operator<<(std::ostream&out);
+	/*	output	*/
 };
+
+template <typename T>
+std::ostream& SortingDataType<T>::operator<<(
+			std::ostream &out) {
+	out << value;
+	return out;
+}
+
+std::ostream& operator<<(std::ostream &out, const SortingDataType<int> &object);
+std::ostream& operator<<(std::ostream &out, const SortingDataType<char> &object);
+std::ostream& operator<<(std::ostream &out, const SortingDataType<std::string> &object);
 
 //	assigns the values in 'values' to the .value member in each dst
 //	until all 'dst_size' members have been initialized.  .index = 0

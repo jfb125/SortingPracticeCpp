@@ -12,6 +12,21 @@
 #include "SortingDataTypes.h"
 #include "OStreamState.h"
 
+std::ostream& operator<<(std::ostream &out, const SortingDataType<int> &object) {
+	out << object.value;
+	return out;
+}
+
+std::ostream& operator<<(std::ostream &out, const SortingDataType<char> &object) {
+	out << object.value;
+	return out;
+}
+
+std::ostream& operator<<(std::ostream &out, const SortingDataType<std::string> &object) {
+	out << object.value;
+	return out;
+}
+
 std::ostream& operator<<(std::ostream &out, const SortMetrics& object) {
 	out << std::setw(compares_width) << object.compares << compares_str << ", "
 		<< std::setw(assignments_width) << object.assignments << assignments_str;

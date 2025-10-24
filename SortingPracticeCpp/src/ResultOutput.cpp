@@ -10,23 +10,6 @@
 // TestResultMember is defined in the header file that contains
 //	the class OneTestResult, which has the members
 
-#define MIN_TEST_RESULT_INTEGER static_cast<int>(MIN_TEST_RESULT_MEMBER)
-#define MAX_TEST_RESULT_INTEGER static_cast<int>(MAX_TEST_RESULT_MEMBER)
-
-constexpr char test_result_table_header[] = PRINT_TEST_RESULT_TABLE_HEADER;
-constexpr char average_compares_string[] = "avg cmp";
-constexpr char average_moves_string[] = "avg mov";
-constexpr char colon_separator[] =  ": ";
-constexpr char space_separator[] = "  ";
-constexpr char slash_separator[] = " / ";
-constexpr int compare_moves_fudge_factor = 4;
-constexpr int average_compares_strlen = 7 + compare_moves_fudge_factor;
-constexpr int average_moves_strlen = 7 + compare_moves_fudge_factor;
-constexpr int comma_separator_strlen = 2;
-constexpr int colon_separator_strlen = 2;
-constexpr int space_separator_strlen = 2;
-constexpr int slash_separator_strlen = 3;
-
 class ArraySizeData {
 public:
 	int num_sizes;
@@ -65,7 +48,7 @@ public:
 /*								forward declaration								*/
 /* ****************************************************************************	*/
 /* ****************************************************************************	*/
-#if 0
+
 bool isValid(TestResultMember object);
 
 TestResultMember& operator++(TestResultMember&);
@@ -93,9 +76,6 @@ int getMaxDigitsCompares(OneTestResult** result, int num_tests);
 int getMaxDigitsMoves(OneTestResult** result, int num_tests);
 int getMaxDigitsArraySize(OneTestResult** result, int num_tests);
 void getArraySizeData(ArraySizeData &dst, OneTestResult** results, int num_test_results);
-
-bool isLess_AlgorithmCompostionOrderingSize(OneTestResult* u, OneTestResult* v);
-bool isLess_CompostionOrderingAlgorithmSize(OneTestResult* u, OneTestResult* v);
 void sortResultsArray(OneTestResult** results, int num_tests,
 					  bool (*isULessThanV)(OneTestResult* u, OneTestResult* v));
 
@@ -105,35 +85,6 @@ void sortResultsArray(OneTestResult** results, int num_tests,
 /*						different table output functions						*/
 /* ****************************************************************************	*/
 /* ****************************************************************************	*/
-
-void printTestResults(OneTestResult** results, int num_test_results) {
-
-	// print the title of the table
-	std::cout << test_result_table_header << std::endl
-			  << "Sort Test Results" << std::endl
-			  << test_result_table_header << std::endl;
-	bool (*isLess)(OneTestResult* u, OneTestResult*v);
-	isLess = isLess_CompostionOrderingAlgorithmSize;
-	printRowsAlgorithm_ColumnsSize_CellsAverages(results, num_test_results, isLess);
-}
-
-void terseDump(OneTestResult** results, int num_test_results) {
-
-	for (int i = 0; i != num_test_results-1; i++) {
-		std::cout << std::setw(2) << i << ": "
-				  << results[i]->_algorithm << ", "
-				  << results[i]->_composition << ", "
-				  << results[i]->_ordering << ", "
-				  << results[i]->_size
-				  << std::endl;
-	}
-	int i = num_test_results-1;
-	std::cout << std::setw(2) << i << ": "
-			  << results[i]->_algorithm << ", "
-			  << results[i]->_composition << ", "
-			  << results[i]->_ordering << ", "
-			  << results[i]->_size;
-}
 
 /* ****************************************************************************	*/
 /* ****************************************************************************	*/
@@ -460,76 +411,11 @@ void getArraySizeData(ArraySizeData &dst,
 /* ****************************************************************************	*/
 /* ****************************************************************************	*/
 
-bool isLess_AlgorithmCompostionOrderingSize(OneTestResult* u, OneTestResult* v) {
-
-	if (u->_algorithm < v->_algorithm)		return true;
-	if (u->_algorithm > v->_algorithm)		return false;
-	if (u->_composition < v->_composition)	return true;
-	if (u->_composition > v->_composition)	return false;
-	if (u->_ordering < v->_ordering)		return true;
-	if (u->_ordering > v->_ordering)		return false;
-	if (u->_size < v->_size)				return true;
-											return false;
-}
-
-bool isLess_CompostionOrderingAlgorithmSize(OneTestResult* u, OneTestResult* v) {
-
-	if (u->_composition < v->_composition)	return true;
-	if (u->_composition > v->_composition)	return false;
-	if (u->_ordering < v->_ordering)		return true;
-	if (u->_ordering > v->_ordering)		return false;
-	if (u->_algorithm < v->_algorithm)		return true;
-	if (u->_algorithm > v->_algorithm)		return false;
-	if (u->_size < v->_size)				return true;
-											return false;
-}
-/*
- *	bubble sort with  !was_swap  optimization
- */
-void sortResultsArray(OneTestResult** results, int num_tests,
-					  bool (*isULessThanV)(OneTestResult* u, OneTestResult* v)) {
-
-	if (results == nullptr)
-		return;
-	if (num_tests <= 1)
-		return;
-
-	for (int closest_unordered = 0;
-		 closest_unordered != num_tests;
-		 closest_unordered++) {
-		bool was_swap = false;
-		for (int bubble_up = num_tests-1;
-			 bubble_up > closest_unordered; bubble_up--) {
-			// if the element earlier in the array is not less than this element
-			if (!isULessThanV(results[bubble_up-1], results[bubble_up])) {
-				OneTestResult *tmp = results[bubble_up];
-				results[bubble_up] = results[bubble_up-1];
-				results[bubble_up-1] = tmp;
-				was_swap = true;
-			}
-		}
-		if (!was_swap)
-			break;
-	}
-}
-
-
 /* ****************************************************************************	*/
 /* ****************************************************************************	*/
 /*							enum TestResultMember operators						*/
 /* ****************************************************************************	*/
 /* ****************************************************************************	*/
-
-bool isSameLine(OneTestResult* result,
-				SortAlgorithms &algorithm,
-				ArrayComposition &composition,
-				InitialOrdering &ordering) {
-
-		if (result->_algorithm != algorithm)		return false;
-		if (result->_composition != composition) 	return false;
-		if (result->_ordering != ordering)			return false;
-		return true;
-}
 
 
 /* ****************************************************************************	*/
@@ -691,4 +577,3 @@ bool operator!=(TestResultMember u, TestResultMember v) {
 	if (!isValid(v))	return false;
 	return !(u == v);
 }
-#endif

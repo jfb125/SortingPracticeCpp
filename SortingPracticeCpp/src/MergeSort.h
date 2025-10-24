@@ -111,7 +111,6 @@ namespace MergeSort {
 			}
 		}
 
-		delete[] aux;
 		return ret_val;
 	}
 

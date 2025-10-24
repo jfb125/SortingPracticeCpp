@@ -26,7 +26,7 @@
 
 //#include "BlockSort.h"
 
-//bool testBlockSort();
+bool testBlockSort();
 
 int main(int argc, char *argv[])
 {
@@ -39,11 +39,11 @@ int main(int argc, char *argv[])
 
 	int num_repetitions = 1000;
 
-	using DataType = std::string;
-	DataType first_value = std::string("AAAAAAAA");
+	using DataType = int;
+	DataType first_value = 0;
 
-	array_size_t array_sizes = { 64, 128, 256 };
-	int num_array_sizes 	 = sizeof(array_sizes) / sizeof(array_size_t);
+	array_size_t array_sizes[]	= { 64, 128, 256 };
+	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
 //			SortAlgorithms::BUBBLE_SORT,
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	int num_initial_orderings = sizeof(initial_orderings)/sizeof(InitialOrdering);
 
 	int num_results = num_array_sizes * num_sort_algorithms * num_compositions * num_initial_orderings;
-	OneTestResult<DataType>* results[num_results];
+	OneTestResult<SortingDataType<DataType>>* results[num_results];
 
 	/*
 	 * 	The ranodmizer is used to disorder the input data in sortTest
@@ -105,12 +105,13 @@ int main(int argc, char *argv[])
 				randomizer.seed(randomizer_seed);
 				randomizer.restart();
 				for (int size_i = 0; size_i < num_array_sizes; size_i++) {
-					array_size_t array_size = array_size[size_i];
-					DataType test_values[array_size];
-
-					generateStrings(test_values, array_size,
-									first_value, next_string);
-					results[cnt] = testOneAlgorithm<DataType>(
+					array_size_t array_size = array_sizes[size_i];
+					SortingDataType<DataType> test_values[array_size];
+					DataType value = first_value;
+					for (int i = 0; i != array_size; i++) {
+						test_values[i].value = value++;
+					}
+					results[cnt] = testOneAlgorithm<SortingDataType<DataType>>(
 							sort_algorithms[algorithm_i],
 							array_compositions[composition_i],
 							initial_orderings[ordering_i],

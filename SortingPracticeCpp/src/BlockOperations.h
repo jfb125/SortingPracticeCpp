@@ -1097,7 +1097,7 @@ namespace BlockOperations
 		auto debug_string = [&] () -> std::string {\
 			std::stringstream result;\
 			for (array_size_t i = block_1_start; i <= block_2_end; ) {\
-				result << std::setw(3) << array[i] << " ";\
+				result << std::setw(3) << /*array[i].key.str() */ " key value not printed " << " ";\
 				i++;\
 				if (i-1 == block_1_end) {\
 					i = block_2_start;\
@@ -1428,7 +1428,7 @@ namespace BlockOperations
 				<< " b_2_src = "  	<< std::setw(2) << b_2_src
 				<< " aux: ";
 			for (int i = aux_src; i < aux_dst; i++) {
-				msg << std::setw(2) << auxiliary[i] << " ";
+				msg << std::setw(2) << " auxiliary value not printed " /*auxiliary[i]*/ << " ";
 			}
 			msg << trailer;
 			return msg.str();
@@ -1562,7 +1562,7 @@ namespace BlockOperations
 				<< " b_1_src = "  	<< std::setw(2) << b_1_src
 				<< " aux: ";
 			for (int i = aux_dst+1; i < block_2_size; i++) {
-				msg << std::setw(2) << auxiliary[i] << " ";
+				msg << std::setw(2) << "auxiliary[i] not printed" /* auxiliary[i]*/ << " ";
 			}
 			msg << trailer;
 			return msg.str();

@@ -59,6 +59,12 @@ void	printSideBySide(SortingDataType<T> *a, array_size_t a_size,
 	}
 }
 
+template <typename T>
+void disorganizeDataArray(T* array,
+						  array_size_t,
+						  InitialOrdering& ordering,
+						  SimpleRandomizer& randomizer,
+						  bool restart);
 
 /*	**************************************************************************	*/
 /*	**************************************************************************	*/
@@ -83,22 +89,22 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 									InitialOrdering& ordering,
 									SimpleRandomizer& randomizer,
 									T *values,
-									array_size_t size,
+									array_size_t array_size,
 									num_repetitions_t num_repetitions)
 {
-	bool reset_generator = true;
-	OneTestResult<T> *retval = new OneTestResult<T>(algorithm, composition, ordering, size, num_repetitions);
+//	bool reset_generator = true;
+	OneTestResult<T> *retval =
+		new OneTestResult<T>(algorithm, composition, ordering, array_size, num_repetitions);
 
-	SortingDataType<T> reference_data[size];
-	SortingDataType<T> sorted_data[size];
+	T reference_data[array_size];
+	T sorted_data[array_size];
 	std::stringstream msg;
 
 	//	_is_sorted will only get cleared the first time a sort fails
 	retval->_failure_log->_diagnostics._is_sorted = true;
-	SortingDataTypes::assignValues(reference_data, size, values, size);
 
 	SortMetrics compares_and_moves;
-	SortMetrics (*sort)(SortingDataType<T>*, array_size_t);
+	SortMetrics (*sort)(T*, array_size_t);
 
 	switch (algorithm) {
 	case SortAlgorithms::BUBBLE_SORT:
@@ -140,10 +146,12 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 	}
 
 	for (num_repetitions_t i = 0; i != num_repetitions; i++) {
-		*sorted_data = *reference_data;
-		disorganizeDataArray(*sorted_data, ordering, randomizer, false);
+		for (int i =0; i != array_size; i++) {
+			sorted_data[i] = reference_data[i];
+		}
+		disorganizeDataArray(sorted_data, array_size, ordering, randomizer, false);
 //		printSideBySide(*reference_data, *sorted_data);
-		compares_and_moves = sort(sorted_data->_array, sorted_data->size());
+		compares_and_moves = sort(sorted_data, array_size);
 
 //		printSideBySide(*reference_data, *sorted_data);
 //		std::cout << "evaluating success of repetition " << i << std::endl;
@@ -152,21 +160,23 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 		retval->_sort_metrics.assignments += compares_and_moves.assignments;
 		IsSortedResult *result = new IsSortedResult;
 		result->_is_sorted =
-			SortingUtilities::isSorted(sorted_data->_array, size,
+			SortingUtilities::isSorted(sorted_data, array_size,
 									   compares_and_moves,
 									   result->_mismatched_index_i,
 									   result->_mismatched_index_j);
 
 		if (!result->_is_sorted) {
 			msg << "****************** FAILURE ON REPETITION #" << i << std::endl;
-			msg << "[" << result->_mismatched_index_i << "] = " << *sorted_data->_array[result->_mismatched_index_i]
-                << " is not less than [" << result->_mismatched_index_j << "] = " << *sorted_data->_array[result->_mismatched_index_j]
+			msg << "[" << result->_mismatched_index_i << "] = "
+//				<< sorted_data[result->_mismatched_index_i]
+                << " is not less than [" << result->_mismatched_index_j << "] = "
+//				<< *sorted_data[result->_mismatched_index_j]
                 << std::endl;
 			std::cout << msg.str() << std::endl;
 			retval->_failure_log = new SortFailureLog<T>();
 			retval->_failure_log->_diagnostics = *result;
-			retval->_failure_log->_input = reference_data;
-			retval->_failure_log->_result = sorted_data;
+			retval->_failure_log->set_input(reference_data, array_size);
+			retval->_failure_log->set_result(sorted_data, array_size);
 			retval->_failure_log->_message = new std::string("Elements out of order");;
 			retval->_messages->enqueue(msg.str());
 			delete result;
@@ -176,11 +186,6 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 		}
 		delete result;
 	}
-
-	delete sorted_data;
-	sorted_data = nullptr;
-	delete reference_data;
-	reference_data = nullptr;
 	return retval;
 }
 
@@ -199,11 +204,70 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 /*	**************************************************************************	*/
 
 template <typename T>
-void reverseArray(SortingDataType<T> *test_datay, array_size_t size);
+void reverseArray(T *test_datay, array_size_t size);
 template <typename T>
-void minimallyRandomizeArray(SortingDataType<T> *test_data,
+void minimallyRandomizeArray(T *test_data,
 							 array_size_t num_outof_place);
 
 int getNumSizes(array_size_t min, array_size_t max, array_size_t (*next)(array_size_t));
+
+template <typename T>
+void	disorganizeDataArray(T *array,
+							 array_size_t size,
+							 InitialOrdering& ordering,
+							 SimpleRandomizer &randomizer,
+							 bool restart) {
+	if (restart) {
+		randomizer.restart();
+	}
+	if (!isValid(ordering.order())) {
+		std::cout << "disorganizeDataArray(array, ordering, randomiser, restart) passed invalid ordering";
+		return;
+	}
+
+	switch(ordering.order()) {
+	case InitialOrderings::IN_RANDOM_ORDER:
+		{
+			T tmp;
+			array_size_t r;
+			for (array_size_t i  = 0; i != size; i++) {
+				r = randomizer.rand(i, size);
+				tmp = array[i];
+				array[i] = array[r];
+				array[r] = tmp;
+			}
+		}
+		break;
+	case InitialOrderings::IN_REVERSE_ORDER:
+		{
+			array_size_t i = 0;
+			array_size_t j = size-1;
+			T tmp;
+			while (i < j) {
+				tmp = array[i];
+				array[i] = array[j];
+				array[j] = tmp;
+				i++;
+				j--;
+			}
+		}
+		break;
+	case InitialOrderings::FEW_CHANGES:
+		if (ordering.num_out_of_place_is_initialized()) {
+			array_size_t y = 0;
+			T tmp;
+			for (array_size_t i = 0; i != ordering.num_out_of_place(); i++) {
+				y = randomizer.rand(i, size);
+				tmp = array[i];
+				array[i] = array[y];
+				array[y] = tmp;
+			}
+		}
+		break;
+	case InitialOrderings::NO_CHANGES:
+	default:
+		break;
+	}
+}
 
 #endif /* SORTTEST_H_ */

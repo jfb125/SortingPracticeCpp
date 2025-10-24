@@ -1,21 +1,4 @@
-Sorting Performance In C++ built on Oct 20 2025 at 13:36:29
-   0: {0, 0}
-   1: {1, 0}
-   2: {2, 0}
-   3: {3, 0}
-   4: {4, 0}
-   5: {5, 0}
-   6: {6, 0}
-   7: {7, 0}
-   8: {8, 0}
-   9: {9, 0}
-  10: {0, 0}
-  11: {1, 0}
-  12: {2, 0}
-  13: {3, 0}
-  14: {4, 0}
-  15: {5, 0}
-  16: {6, 0}
-  17: {7, 0}
-  18: {8, 0}
-  19: {9, 0}
+Sorting Performance In C++ built on Oct 24 2025 at 16:23:05
+Algorithms: 1 Compositions: 1 Orderings: 1 of : 3 different sizes resulting in 3 outcomes over 1000 repetitions
+printTestResults stubbed out
+Completed Sorting Performance In C++

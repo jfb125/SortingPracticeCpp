@@ -58,14 +58,15 @@ private:
 	// don't allow a constructor that does not
 	//	allocate the array size_results
 	OneTestResult() {
-		_algorithm = SortAlgorithms::SORT_ALGORITHMS_COUNT;
-		_composition._composition = DEFAULT_ARRAY_COMPOSITION;
+		_algorithm 					= SortAlgorithms::SORT_ALGORITHMS_COUNT;
+		_composition._composition 	= DEFAULT_ARRAY_COMPOSITION;
 		_composition._num_different = 0;
 		_composition._num_discrete_values = 0;
-		_ordering = InitialOrderings::INITIAL_ORDERINGS_COUNT;
-		_failure_log = new SortFailureLog<T>();
-		_size = 0; _sort_metrics.compares = 0;
-		_sort_metrics.assignments = 0;
+		_ordering 					= InitialOrderings::INITIAL_ORDERINGS_COUNT;
+		_failure_log 				= new SortFailureLog<T>();
+		_size 						= 0;
+		_sort_metrics.compares 		= 0;
+		_sort_metrics.assignments 	= 0;
 		_sort_metrics._num_repetitions = 0;
 		_messages = new MessageList();
 	}

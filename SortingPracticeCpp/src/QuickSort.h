@@ -34,7 +34,7 @@ namespace QuickSort {
 		// an array with only two elements can be sorted simply
 		if (span == 2) {
 			ret_val.compares++;
-			if (*array[start] > *array[end]) {
+			if (array[start] > array[end]) {
 				ret_val += SortingUtilities::swap(array, start, end);
 			}
 			return ret_val;

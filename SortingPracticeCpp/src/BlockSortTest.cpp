@@ -31,21 +31,21 @@ using namespace BlockSort;
 
 #define TEST_MODULO
 #define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_ELEMENT
-#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
-#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
-#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
-#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
-#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
-#define TEST_BLOCK_SORT_FLOOR_LOG_2
-#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
-#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
-#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
-#define TEST_BLOCK_SORT_ROTATE_BLOCKS
-#define TEST_BLOCK_SORT_SWAP_BLOCKS
-#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
-#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
-#define TEST_BLOCK_SORT_SORT_BLOCKS
-#define TEST_BLOCK_SORT_SORT
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
+//#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
+//#define TEST_BLOCK_SORT_FLOOR_LOG_2
+//#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+//#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
+//#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
+//#define TEST_BLOCK_SORT_ROTATE_BLOCKS
+//#define TEST_BLOCK_SORT_SWAP_BLOCKS
+//#define TEST_BLOCK_SORT_SWAP_DESCRIPTORS
+//#define TEST_BLOCK_SORT_SWAP_BLOCK_ELEMENTS
+//#define TEST_BLOCK_SORT_SORT_BLOCKS
+//#define TEST_BLOCK_SORT_SORT
 
 bool testBlockSortBinarySearchFirstBlock();
 bool testBlockSortBinarySearchLastBlock();
@@ -244,16 +244,50 @@ bool testBlockSortBinarySearchFirstElement()
 	bool test_passed = true;
 	SortMetrics dummy_metrics(0,0);
 
-	int unique_values[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-	int num_unique_values	= sizeof(unique_values)/sizeof(int);
-	int minimum_unique_value= unique_values[0];
-//	int maximum_unique_value= unique_values[num_unique_values-1];
+	using DataType = char;
+	DataType first_value 		= 'B';
+	DataType value_to_the_left	= 'A';	// 'B' - 1
+	auto next_value = [&first_value] (DataType current) -> DataType
+	{
+		if (current != 'Z') return current+1;
+		else 				return first_value;
+	};
 
-	int num_times_repeated = 3;
-	int triple_repeated_values[] = { 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3 };
-	int num_triple_repeated_values = sizeof(triple_repeated_values)/sizeof(int);
-	int minimum_repeated_value = triple_repeated_values[0];
-	int maximum_repeated_value = triple_repeated_values[num_triple_repeated_values-1];
+	auto correct_answer = [] (const DataType *array, int size,
+							  const DataType &value) -> int {
+		if (value <= array[0])
+			return 0;
+
+		int result = 0;
+		while (value != array[result] && result < size) {
+			result++;
+		}
+		return result;
+	};
+
+	int num_unique_values = 8;	// majik number
+	DataType unique_values[num_unique_values];
+	DataType unique_value = first_value;
+	for (int i = 0; i != num_unique_values; i++) {
+		unique_values[i] = unique_value;
+		unique_value = next_value(unique_value);
+	}
+	DataType minimum_unique_value = value_to_the_left;
+
+	int num_distinct_repeated_values= 4;
+	int num_times_repeated 			= 3;
+	int num_triple_repeated_values 	= num_distinct_repeated_values *
+									  num_times_repeated;
+	DataType triple_repeated_values[num_triple_repeated_values];
+	DataType minimum_repeated_value = value_to_the_left;
+	DataType repeated_value = first_value;
+	for (int i = 0, repeat_count = 0; i != num_triple_repeated_values; i++) {
+		triple_repeated_values[i] = repeated_value;
+		if (repeat_count++ == num_times_repeated) {
+			repeated_value = next_value(repeated_value);
+			repeat_count = 0;
+		}
+	}
 
 	//	test both an even sized array and also an odd sized array
 	for (int array_end = num_unique_values-2; array_end < num_unique_values; array_end++) {
@@ -262,17 +296,22 @@ bool testBlockSortBinarySearchFirstElement()
 				  << " number of unique elements\n";
 		//	print out the array indices are the start of the table of results
 		std::cout << arrayIndicesToString(array_end+1) << std::endl;
-		for (int i = minimum_unique_value-1; i <= array_end+1; i++) {
+		DataType maximum_unique_value 	= unique_values[array_end-1];
+		for (DataType i = minimum_unique_value; i <= maximum_unique_value+2; i++) {
 			//	print out the elements each time through the test
 			std::cout << SortingUtilities::arrayElementsToString(
 											unique_values, array_end+1);
 			array_size_t result =
 				SortingUtilities::binarySearchFirstElement(
 					unique_values, 0, array_end, i, dummy_metrics);
-			std::cout << " insert " << std::setw(2) << i << " before " << result;
-			if ((i <= minimum_unique_value && result != minimum_unique_value) ||
-				(i > minimum_unique_value && result != i)) {
-				std::cout << " WHICH IS AN ERROR\n";
+			int expected =
+					correct_answer(unique_values, array_end+1, i);
+			std::cout << "     binarySearchFirst("
+					  << std::setw(2) << i << ") returns "
+					  << std::setw(2) << result << " vs expected "
+					  << std::setw(2) << expected;
+			if (result != expected) {
+				std::cout << " WHICH IS \n";
 				test_passed = false;
 				goto TEST_BINARY_SEARCH_FIRST_RETURN_LABEL;
 			}
@@ -280,7 +319,7 @@ bool testBlockSortBinarySearchFirstElement()
 		}
 	}
 
-	for (int array_end = num_triple_repeated_values-1;
+	for (int array_end = num_triple_repeated_values-num_times_repeated-1;
 			 array_end < num_triple_repeated_values; array_end++) {
 		std::cout << "\nTesting binaryFirst() with an array with an "
 				  << ((array_end+1) & 1 ? "odd" : "even")
@@ -288,33 +327,23 @@ bool testBlockSortBinarySearchFirstElement()
 				  << num_times_repeated << "\n";
 		//	print out the array indices are the start of the table of results
 		std::cout << arrayIndicesToString(array_end+1) << std::endl;
-		for (int i = minimum_repeated_value-1; i <= maximum_repeated_value+1; i++) {
+		DataType maximum_repeated_value = triple_repeated_values[array_end-1];
+		for (DataType i = minimum_repeated_value; i <= maximum_repeated_value+2; i++) {
 			std::cout << SortingUtilities::arrayElementsToString(
 											triple_repeated_values, array_end+1);
 			array_size_t result =
 				SortingUtilities::binarySearchFirstElement(
 					triple_repeated_values, 0, array_end, i, dummy_metrics);
-			std::cout << " insert " << std::setw(2) << i << " before " << result;
-			if (i <= minimum_repeated_value) {
-				if (result != 0) {
-					std::cout << " WHICH IS AN ERROR\n";
-					test_passed = false;
-					goto TEST_BINARY_SEARCH_FIRST_RETURN_LABEL;
-				}
-			} else {
-				if (i <= maximum_repeated_value) {
-					if (result != num_times_repeated * i) {
-						std::cout << " WHICH IS AN ERROR\n";
-						test_passed = false;
-						goto TEST_BINARY_SEARCH_FIRST_RETURN_LABEL;
-					}
-				} else {
-					if (result != array_end+1) {
-						std::cout << " WHICH IS AN ERROR\n";
-						test_passed = false;
-						goto TEST_BINARY_SEARCH_FIRST_RETURN_LABEL;
-					}
-				}
+			int expected =
+					correct_answer(triple_repeated_values, array_end+1, i);
+			std::cout << "     binarySearchFirst("
+					  << std::setw(2) << i << ") returns "
+					  << std::setw(2) << result << " vs expected "
+					  << std::setw(2) << expected;
+			if (result != expected) {
+				std::cout << " WHICH IS AN ERROR\n";
+				test_passed = false;
+				goto TEST_BINARY_SEARCH_FIRST_RETURN_LABEL;
 			}
 			std::cout << std::endl;
 		}
@@ -2496,9 +2525,9 @@ bool testBlockSortSortBlocks() {
 					//	using however many strategies desired
 					for (int test_num = 0; test_num != num_tests; test_num++)
 					{
-						randomizeArray(reference_array, array_size);
-						randomizeArray(reference_array, array_size);
-						randomizeArray(reference_array, array_size);
+						SortingUtilities::randomizeArray(reference_array, array_size);
+						SortingUtilities::randomizeArray(reference_array, array_size);
+						SortingUtilities::randomizeArray(reference_array, array_size);
 
 						for (int strategy_i = 0; strategy_i < num_sorting_strategies; strategy_i++)
 						{

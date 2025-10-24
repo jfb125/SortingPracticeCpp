@@ -29,25 +29,25 @@ namespace DutchFlagSort {
 	static array_size_t global_end;
 
 	template <typename T>
-	void printThreeWayPartitionLine(T**array, array_size_t start, array_size_t end, array_size_t lo, array_size_t i, array_size_t hi) {
+	void printThreeWayPartitionLine(T*array, array_size_t start, array_size_t end, array_size_t lo, array_size_t i, array_size_t hi) {
 
-		int last_name_length = array[start]->last_name.size();
+		constexpr int lngth = 10;
 		std::cout << lo << ", " << i << ", " << hi << " ";
 		for (array_size_t q = global_start; q <= global_end; q++) {
 			if (q < start or q > end) {
-				std::cout 			<< "    " << std::setw(last_name_length) << std::right << " "	<< " ";
+				std::cout 			<< "    " << std::setw(lngth) << std::right << " "	<< " ";
 				continue;
 			}
 			if(q == lo) {
-				std::cout 			<< " lo>" << std::setw(last_name_length) << array[q]->last_name << "<";
+				std::cout 			<< " lo>" << std::setw(lngth) << " " /*array[q]*/ << "<";
 			} else {
 				if (q == i) {
-					std::cout 		<< "  i>" << std::setw(last_name_length) << array[q]->last_name << "<";
+					std::cout 		<< "  i>" << std::setw(lngth) << " " /*array[q]*/ << "<";
 				} else {
 					if (q == hi) {
-						std::cout 	<< " hi>" << std::setw(last_name_length) << array[q]->last_name << "<";
+						std::cout 	<< " hi>" << std::setw(lngth) << " " /*array[q]*/ << "<";
 					} else {
-						std::cout 	<< "    " << std::setw(last_name_length) << array[q]->last_name << " ";
+						std::cout 	<< "    " << std::setw(lngth) << " " /*array[q]*/ << " ";
 					}
 				}
 			}
@@ -55,19 +55,19 @@ namespace DutchFlagSort {
 	}
 
 	template <typename T>
-	void printArrayPivotPossibilities(T**array, array_size_t start, array_size_t end, array_size_t lo, array_size_t mid, array_size_t hi) {
+	void printArrayPivotPossibilities(T*array, array_size_t start, array_size_t end, array_size_t lo, array_size_t mid, array_size_t hi) {
 
-		int last_name_length = array[start]->last_name.size();
+		int lngth = array[start]->last_name.size();
 		std::cout << "          ";
 		for (array_size_t q = global_start; q <= global_end; q++) {
 			if (q < start or q > end) {
-				std::cout << "  " << std::setw(last_name_length) << std::right << " " 	<< "   ";
+				std::cout << "  " << std::setw(lngth) << std::right << " " 	<< "   ";
 				continue;
 			}
 			if (q == lo || q == mid || q == hi) {
-				std::cout << " [" << std::setw(last_name_length) << array[q]->last_name << "]  ";
+				std::cout << " [" << std::setw(lngth) << array[q]->last_name << "]  ";
 			} else {
-				std::cout << "  " << std::setw(last_name_length) << array[q]->last_name << "   ";
+				std::cout << "  " << std::setw(lngth) << array[q]->last_name << "   ";
 			}
 		}
 	}
@@ -88,7 +88,7 @@ namespace DutchFlagSort {
 		if (size == 2) {
 			if (_verbose)	std::cout << "cutoff partition size 2" << std::endl;
 			result.compares++;
-			if (*array[start] > *array[end]) {
+			if (array[start] > array[end]) {
 				result += SortingUtilities::swap(array, start, end);
 			}
 			return result;
@@ -132,7 +132,7 @@ namespace DutchFlagSort {
 			//      the smaller goes to lo & the pivot value goes to i
 			//   then advance i and advance lo
 			result.compares++;
-			if (*array[i] < *array[lo]) {
+			if (array[i] < array[lo]) {
 				result += SortingUtilities::swap(array, i, lo);
 				lo++;
 				i++;
@@ -142,7 +142,7 @@ namespace DutchFlagSort {
 			// if [i] == [lo] which contains the pivot
 			//   then [i] is in the right place, therefore move i along
 			result.compares++;
-			if (*array[i] == *array[lo]) {
+			if (array[i] == array[lo]) {
 				i++;
 				continue;
 			}
@@ -155,7 +155,7 @@ namespace DutchFlagSort {
 			// find right-most element <= pivot at [lo]
 			//   which may involve hi moving down past 8
 			result.compares++;
-			while (*array[hi] > *array[lo]) {
+			while (array[hi] > array[lo]) {
 				if (--hi == i)
 					break;
 				result.compares++;
