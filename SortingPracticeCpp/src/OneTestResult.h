@@ -176,6 +176,10 @@ public:
 			m_size 			= other.m_size;
 			m_sort_metrics 	= other.m_sort_metrics;
 
+			if (m_failure_log) {
+				delete m_failure_log;
+				m_failure_log = nullptr;
+			}
 			if (other.m_failure_log) {
 				// take ownership of other's object
 				m_failure_log 		= other.m_failure_log;
@@ -185,6 +189,10 @@ public:
 				m_failure_log 		= new SortFailureLog<T>();
 			}
 
+			if (m_messages) {
+				delete m_messages;
+				m_messages = nullptr;
+			}
 			if (other.m_messages) {
 				// take ownership of other's object
 				m_messages 		= other.m_messages;

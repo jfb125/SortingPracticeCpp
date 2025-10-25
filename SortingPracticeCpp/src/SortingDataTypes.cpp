@@ -28,8 +28,10 @@ std::ostream& operator<<(std::ostream &out, const SortingDataType<std::string> &
 }
 
 std::ostream& operator<<(std::ostream &out, const SortMetrics& object) {
-	out << std::setw(compares_width) << object.compares << compares_str << ", "
-		<< std::setw(assignments_width) << object.assignments << assignments_str;
+	out << std::setw(compares_width) 	<< object.compares
+		<< " " << compares_str << ", "
+		<< std::setw(assignments_width) << object.assignments
+		<< " " << assignments_str;
 	return out;
 }
 

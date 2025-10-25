@@ -29,15 +29,15 @@ using namespace BlockSort;
 /*	**********************************************	*/
 /*	**********************************************	*/
 
-#define TEST_MODULO
-#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_ELEMENT
+//#define TEST_MODULO
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_ELEMENT
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_ELEMENT
+//#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_FIRST_BLOCK
 //#define TEST_BLOCK_SORT_BINARY_SEARCH_LAST_BLOCK
-//#define TEST_BLOCK_SORT_BINARY_SEARCH_DESCRIPTOR_SEARCH
 //#define TEST_BLOCK_SORT_CREATE_DESCRIPTORS
 //#define TEST_BLOCK_SORT_FLOOR_LOG_2
-//#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
+#define TEST_BLOCK_SORT_MERGE_BLOCKS_EXHAUSTIVELY
 //#define TEST_BLOCK_SORT_MERGE_BLOCKS_RANDOMLY
 //#define TEST_BLOCK_SORT_ROTATE_ELEMENTS
 //#define TEST_BLOCK_SORT_ROTATE_BLOCKS
@@ -356,37 +356,71 @@ bool testBlockSortBinarySearchLastElement() {
 
 	bool test_passed = true;
 	SortMetrics metrics;
+	using DataType = char;
+	DataType first_value 			= 'B';
+	DataType less_than_first_value 	= 'A';
+	auto next_value = [] (DataType current) -> DataType {
+		if (current != 'Z')	return current+1;
+		else				return 'A';
+	};
 
-	int unique_values[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-	int num_unique_values	= sizeof(unique_values)/sizeof(int);
-	int minimum_unique_value= unique_values[0];
-	int maximum_unique_value= unique_values[num_unique_values-1];
+	auto calc_expected = [] (DataType *array, int size, DataType &value) -> int {
+		if (value < array[0])
+			return 0;
 
-	int num_times_repeated = 3;
-	int triple_repeated_values[] = { 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3 };
-	int num_triple_repeated_values = sizeof(triple_repeated_values)/sizeof(int);
-	int minimum_repeated_value = triple_repeated_values[0];
-	int maximum_repeated_value = triple_repeated_values[num_triple_repeated_values-1];
+		int result = 0;
+		do {
+			if (value < array[result])
+				break;
+		} while (++result < size);
+
+		return result;
+	};
+
+	int num_unique_values	= 8;
+	DataType unique_values[num_unique_values];
+	DataType unq_value = first_value;
+	for (array_size_t i = 0; i != num_unique_values; i++) {
+		unique_values[i] = unq_value;
+		unq_value = next_value(unq_value);
+	}
+
+	int num_distinct_values = 4;
+	int num_times_repeated	= 3;
+	int num_repeated_values = num_distinct_values * num_times_repeated;
+	DataType repeated_values[num_repeated_values];
+	DataType rpt_value = first_value;
+	for (int i = 0, repeat_count = 0; i < num_repeated_values; i++) {
+		repeated_values[i] = rpt_value;
+		if (++repeat_count == num_times_repeated) {
+			rpt_value = next_value(rpt_value);
+			repeat_count = 0;
+		}
+	}
 
 	for (int array_end = num_unique_values-1;
 			  array_end < num_unique_values; array_end++) {
 		std::cout << "\nTesting binaryLast() with an array with "
 				  << ((array_end+1) & 1 ? "odd" : "even")
 				  << " number of unique elements\n";
-		//	print out the array indices are the start of the table of results
+		//	print out the array indices at the top of the table of results
 		std::cout << arrayIndicesToString(array_end+1) << std::endl;
-		for (int i = minimum_unique_value-1; i <= array_end+1; i++) {
+		DataType maximum_unique_value= unique_values[num_unique_values-1];
+		for (DataType value  = less_than_first_value;
+				      value <= maximum_unique_value;
+				      value  = next_value(value)) {
 			//	print out the elements each time through the test
 			std::cout << SortingUtilities::arrayElementsToString(
 											unique_values, array_end+1);
-
 			array_size_t result =
 				SortingUtilities::binarySearchLastElement(
-									unique_values, 0, array_end, i, metrics);
-			std::cout << " insert " << std::setw(2) << i << " before " << result;
-			if ((i <  minimum_unique_value && result != minimum_unique_value) ||
-				(i >= minimum_unique_value && i < maximum_unique_value && result != i) ||
-				(i >=  maximum_unique_value && result != array_end+1)) {
+									unique_values, 0, array_end, value, metrics);
+			int expected_value = calc_expected(unique_values, array_end+1, value);
+			std::cout << " binarySearchLastElement("
+					  << std::setw(2) << value
+					  << ") returns " << result
+					  << " vs expected " << expected_value;
+			if (result != expected_value) {
 				std::cout << " WHICH IS AN ERROR\n";
 				test_passed = false;
 				goto TEST_BINARY_SEARCH_LAST_RETURN_LABEL;
@@ -395,42 +429,33 @@ bool testBlockSortBinarySearchLastElement() {
 		}
 	}
 
-	for (int array_end = num_triple_repeated_values-2;
-			 array_end < num_triple_repeated_values; array_end++) {
+	for (int array_end = num_repeated_values-num_times_repeated;
+			 array_end < num_repeated_values; array_end++) {
 		std::cout << "\nTesting binaryLast() with an array with an "
 				  << ((array_end+1) & 1 ? "odd" : "even")
 				  << " elements each repeated "
 				  << num_times_repeated << "\n";
-		//	print out the array indices are the start of the table of results
+		//	print out the array indices at the top of the table of results
 		std::cout << arrayIndicesToString(array_end+1) << std::endl;
-		for (int i = minimum_repeated_value-1; i <= maximum_repeated_value+1; i++) {
-			//	print out the elements each time through the test
+		DataType maximum_repeated_value = repeated_values[array_end-1] + 1;
+		for (DataType value = less_than_first_value;
+				 	  value <= maximum_repeated_value;
+				 	  value  = next_value(value)) {
 			std::cout << SortingUtilities::arrayElementsToString(
-											triple_repeated_values, array_end+1);
+											repeated_values, array_end+1);
 			array_size_t result =
 				SortingUtilities::binarySearchLastElement (
-					triple_repeated_values, 0, array_end, i, metrics);
-			std::cout << " insert " << std::setw(2) << i << " before " << result;
-			if (i < minimum_repeated_value) {
-				if (result != 0) {
+					repeated_values, 0, array_end, value, metrics);
+			array_size_t expected_value =
+					calc_expected(repeated_values, array_end+1, value);
+			std::cout << " binarySearchLastElement("
+					  << std::setw(2) << value << ") returns "
+					  << std::setw(2) << result << " vs expected "
+					  << std::setw(2) << expected_value;
+			if (result != expected_value) {
 					std::cout << " WHICH IS AN ERROR\n";
 					test_passed = false;
 					goto TEST_BINARY_SEARCH_LAST_RETURN_LABEL;
-				}
-			}
-			if (i >= minimum_repeated_value && i < maximum_repeated_value) {
-				if (result != 3*(i+1)) {
-					std::cout << " WHICH IS AN ERROR\n";
-					test_passed = false;
-					goto TEST_BINARY_SEARCH_LAST_RETURN_LABEL;
-				}
-			}
-			if (i >= maximum_repeated_value) {
-				if (result != array_end+1) {
-					std::cout << " WHICH IS AN ERROR\n";
-					test_passed = false;
-					goto TEST_BINARY_SEARCH_LAST_RETURN_LABEL;
-				}
 			}
 			std::cout << std::endl;
 		}
@@ -734,10 +759,10 @@ VALIDATE_CREATE_BLOCK_DESCRIPTORS_SYMMETRICALLY_RETURN_POINT:
 
 bool testBlockSortCreateDescriptors() {
 
-	constexpr bool verbose_output 	= false;
-	constexpr int array_size_width 	= 3;
-	constexpr int block_size_width 	= 3;
-	constexpr int num_blocks_width 	= 3;
+	constexpr bool verbose_output 			= false;
+	constexpr int array_size_string_width 	= 3;
+	constexpr int block_size_string_width 	= 3;
+	constexpr int num_blocks_string_width 	= 3;
 	std::stringstream test_result_msg;
 	std::stringstream validation_msg;
 
@@ -757,6 +782,8 @@ bool testBlockSortCreateDescriptors() {
 	int maximum_block_size = 3;
 	int nominal_array_size = 16;
 
+	//	perform the test both on createBlockDescriptors_A0_Full()
+	//	  					 and createBlocKDescriptorsSymmetrically()
 	BlockOrganizations block_organizations[] = {
 		BlockOrganizations::FULL_A0_BLOCK,
 		BlockOrganizations::SYMMETRIC
@@ -764,8 +791,6 @@ bool testBlockSortCreateDescriptors() {
 
 	int num_block_organizations = sizeof(block_organizations) / sizeof(BlockOrganizations);
 
-	//	perform the test both on createBlockDescriptors_A0_Full()
-	//	  					 and createBlocKDescriptorsSymmetrically()
 	for (int block_organization_i = 0;
 			 block_organization_i != num_block_organizations;
 			 block_organization_i++)
@@ -779,21 +804,22 @@ bool testBlockSortCreateDescriptors() {
 			//	possible sizes of the first and last block are tested
 			int num_blocks_possible = nominal_array_size / block_size;
 			int num_complete_blocks = num_blocks_possible;
-			int minimum_array_size = num_complete_blocks * block_size;
+			int minimum_array_size 	= num_complete_blocks * block_size;
 			//	guarantee that all possible combinations of symmetric descriptors
 			//	that have partial B_Blocks, and possibly A_Bloks, are tested
 			int maximum_array_size = minimum_array_size+2*block_size-1;
-			for (int array_size = minimum_array_size;
-				 array_size <= maximum_array_size; array_size++) {
+			for (int array_size  = minimum_array_size;
+					 array_size <= maximum_array_size;
+					 array_size++) {
 				// calculate how many full blocks there will be
 				int minimum_num_blocks = array_size / block_size;
 				// the mid, which is where the first B_Block starts
 				//	is the the left of all the A_Blocks
-				array_size_t start = 0;
-				array_size_t end = array_size-1;
+				array_size_t start 	= 0;
+				array_size_t end 	= array_size-1;
 				std::unique_ptr<BlockDescriptor<char>[]> descriptors;
-				array_size_t mid = array_size/2;
-				int num_blocks = 0;
+				array_size_t mid 	= array_size/2;
+				int num_blocks 		= 0;
 
 				switch (block_organization) {
 				case BlockOrganizations::FULL_A0_BLOCK:
@@ -837,11 +863,11 @@ bool testBlockSortCreateDescriptors() {
 								<< std::setw(BLOCK_ORGANIZATION_MAX_STRING_LENGTH)
 								<< std::left << std::to_string(block_organization)
 								<< " on an array size "
-								<< std::setw(array_size_width) << array_size
+								<< std::setw(array_size_string_width) << array_size
 						  	  	<< " block size "
-								<< std::setw(block_size_width) << block_size
+								<< std::setw(block_size_string_width) << block_size
 								<< " yields "
-								<< std::setw(num_blocks_width) << num_blocks
+								<< std::setw(num_blocks_string_width) << num_blocks
 								<< " blocks\n"
 								<< arrayIndicesToString(array_size, mid) << std::endl
 								<< SortingUtilities::arrayElementsToString(test_vector, array_size) << std::endl
@@ -981,7 +1007,7 @@ bool testBlockSortBinarySearchFirstBlock() {
 bool testBlockSortBinarySearchLastBlock() {
 
 	constexpr bool debug_verbose 				= false;
-	constexpr bool announce_each_test_result 	= false;
+	constexpr bool announce_each_test_result 	= true;
 	constexpr bool announce_total_test_result	= false;
 	constexpr int  element_width 				= ELEMENT_WIDTH;
 
@@ -991,6 +1017,9 @@ bool testBlockSortBinarySearchLastBlock() {
 	bool test_passed = true;
 
 	using DataType = int;
+	auto next_value = [] (DataType current) -> DataType {
+		return current+1;
+	};
 
 	struct TestVector {
 		DataType *array;
@@ -1051,25 +1080,26 @@ bool testBlockSortBinarySearchLastBlock() {
 		 * underlying array. Force 'key' in each block to point to a new int 	*/
 		array_size_t haystack_size = test_vectors[test_array_i]->size_of_array;
 		auto haystack =
-		std::unique_ptr<BlockDescriptor<int>[]>(new BlockDescriptor<int>[haystack_size]);
+		std::unique_ptr<BlockDescriptor<DataType>[]>(new BlockDescriptor<DataType>[haystack_size]);
 
+		int fake_block_size = 4;
 		for (int i = 0; i != haystack_size; i++) {
 			haystack[i].type 		= BlockType::A_BLOCK;
-			haystack[i].start_index = i * 4;
-			haystack[i].end_index 	= haystack[i].start_index + 3;
+			haystack[i].start_index = i * fake_block_size;
+			haystack[i].end_index 	= haystack[i].start_index + fake_block_size-1;
 			haystack[i].key 		= test_vectors[test_array_i]->array[i];
 		}
 
 		//	  Search each array for key values from the first block's key -1
 		//	to the last block's key+1
-		for (array_size_t needle = test_vectors[test_array_i]->array[0]-1;
-					 needle <= test_vectors[test_array_i]->array[haystack_size-1]+1;
-					 needle++) {
+		for (DataType needle  = test_vectors[test_array_i]->array[0]-1;
+					  needle <= test_vectors[test_array_i]->array[haystack_size-1]+1;
+					  needle  = next_value(needle)) {
 			msg.str("");
 			test_number++;
 			//	test input parameters
 			array_size_t haystack_start = 0;
-			array_size_t haystack_end = haystack_size-1;
+			array_size_t haystack_end 	= haystack_size-1;
 			DataType key = needle;
 
 			//	determine the expected output
@@ -1089,7 +1119,7 @@ bool testBlockSortBinarySearchLastBlock() {
 										  	key, result_index);
 
 			msg << std::setw(3) << test_number
-				<< " binarySearchLastBlock() on array: " << std::endl;
+				<< " binarySearchLastBlock(" << needle << ") on array: " << std::endl;
 			msg << "Blocks " << arrayIndicesToString(haystack_size, -1) << std::endl;
 			msg << "Keys   ";
 			for (int i = 0; i != haystack_size; i++) {
@@ -1150,7 +1180,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 	/*	******************************************************	*/
 
 	using DataType = std::string; //std::pair<char, array_size_t>;
-	DataType first_data_value = "AAAAAA";
+	DataType first_data_value = "AAA";
 
 	/*	******************************************************	*/
 	/*						lambdas								*/
@@ -1158,7 +1188,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	auto next_value = [](DataType current) -> DataType {
 		DataType result = current;
-		for (int i = current.size(); i <= 0; i++) {
+		for (int i = current.size()-1; i >= 0; i--) {
 			if (result.at(i) == 'Z') {
 				result.at(i) = 'A';
 				continue;
@@ -1229,10 +1259,10 @@ bool testBlockSortMergeBlocksExhaustively() {
 	{
 //		BlockOperations::MergeStrategy::HYBRID,
 //		BlockOperations::MergeStrategy::RGT_TO_LFT,
-//		BlockOperations::MergeStrategy::BINARY,
-//		BlockOperations::MergeStrategy::INSERTION,
-//		BlockOperations::MergeStrategy::TABLE,
-		BlockOperations::MergeStrategy::AUXILLIARY,
+		BlockOperations::MergeStrategy::BINARY,
+		BlockOperations::MergeStrategy::INSERTION,
+		BlockOperations::MergeStrategy::TABLE,
+//		BlockOperations::MergeStrategy::AUXILLIARY,
 	};
 
 	int num_merge_strategies = 	sizeof(merge_strategies) /
@@ -1251,7 +1281,9 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	bool test_passed 	= true;
 
-	for (int test_vector_i = 0; test_vector_i < num_test_vectors_sizes; test_vector_i++) {
+	for (int test_vector_i = 0;
+			 test_vector_i < num_test_vectors_sizes;
+			 test_vector_i++) {
 		array_size_t test_vector_size = test_vector_sizes[test_vector_i];
 
 		if (debug_verbose) {
@@ -1276,11 +1308,16 @@ bool testBlockSortMergeBlocksExhaustively() {
 			array_size_t right_end 		= test_vector_size-1;
 
 			for (int merge_strategy_i = 0;
-			     merge_strategy_i != num_merge_strategies; merge_strategy_i++) {
+					 merge_strategy_i != num_merge_strategies;
+					 merge_strategy_i++) {
 
 				BlockOperations::MergeStrategy merge_strategy =
 						merge_strategies[merge_strategy_i];
 
+				//	Calculate how many test vectors will be generated
+				//	to ensure that it is less than INT_MAX.  In practice
+				//	the amount of time to run the test becomes too long
+				//	before INT_MAX number of test vectors are generated
 				long long long_long_num_test_vectors;
 				long_long_num_test_vectors =
 					calc_n_chose_k(test_vector_size, mid);
@@ -1295,10 +1332,12 @@ bool testBlockSortMergeBlocksExhaustively() {
 				int num_test_vectors =
 						static_cast<int>(long_long_num_test_vectors);
 
+				//	Create the storage for all the permutations of values
 				DataType **test_vectors = new DataType*[num_test_vectors];
 				for (int i = 0; i != num_test_vectors; i++)
 					test_vectors[i] = new DataType[test_vector_size];
 
+				//	generate all of the test vectors
 				if (debug_verbose) {
 					std::cout << "Generating " << num_test_vectors << " vectors ... " << std::endl;
 				}
@@ -1310,6 +1349,12 @@ bool testBlockSortMergeBlocksExhaustively() {
 				}
 				if (debug_verbose) {
 					std::cout << " generated " << num_test_vectors << " vectors" << std::endl;
+					for (int i = 0; i != num_test_vectors; i++) {
+						std::cout 	<< std::setw(3) << i
+									<< SortingUtilities::arrayElementsToString(
+											test_vectors[i], test_vector_size)
+									<< std::endl;
+					}
 				}
 
 				SortMetrics total_results(0,0);
@@ -1329,6 +1374,10 @@ bool testBlockSortMergeBlocksExhaustively() {
 					array_size_t u_size = mid;
 					array_size_t v_size = test_vector_size - mid;
 					DataType final_b_value = test_vectors[i][test_vector_size-1];
+					//	In the BlockSort algorithm, it is important to keep track
+					//	of where the right-most element in the B_Block (right block)
+					//	went.  Further merges only need to start the left block
+					//	from the location**AFTER** where the final b element ended up
 					array_size_t reported_final_b_location;
 
 					num_tests_run++;
@@ -3625,7 +3674,7 @@ bool generateAllCombinationsOfValues(T** test_vectors,
 		for ( ; elem_num != combo.size(); ++elem_num) {
 			test_vectors[vector_num][elem_num] = combo.at(elem_num);
 		}
-		//	Append values not aready in the test vector to the test vector
+		//	Append values not already in the test vector to the test vector
 		finishBuildingTestVector(test_vectors[vector_num],
 								 test_vector_size,
 								 elem_num,
