@@ -7,151 +7,99 @@
 
 #include "ArrayComposition.h"
 
-//	string representations
-
-#undef _ARRAY_COMPOSITION
-#define _ARRAY_COMPOSITION(composition)	#composition,
-
-std::string array_composition_strings[] = { _ARRAY_COMPOSITIONS };
-#undef _ARRAY_COMPOSITION
-#undef _ARRAY_COMPOSITIONS
-
-/* ************************************************************	*/
-/*							safety								*/
-/* ************************************************************	*/
-
-bool isValid(ArrayCompositions in_question) {
-	// cast to int in order to bypass the relational operator overloads
-	if (static_cast<int>(in_question) < static_cast<int>(MIN_ARRAY_COMPOSITION))
+bool isValid(ArrayCompositions composition) {
+	switch (composition) {
+	case ArrayCompositions::ALL_DISCRETE:
+	case ArrayCompositions::ALL_PERMUTATIONS:
+	case ArrayCompositions::ALL_SAME:
+	case ArrayCompositions::FEW_DIFFERENT:
+	case ArrayCompositions::FEW_DISTINCT:
+		return true;
+	default:
 		return false;
-	if (static_cast<int>(in_question) > static_cast<int>(MAX_ARRAY_COMPOSITION))
-		return false;
-	return true;
-}
-
-static bool areValid(ArrayCompositions u, ArrayCompositions v) {
-	return isValid(u) && isValid(v);
-}
-
-/* ************************************************************	*/
-/*							incr								*/
-/* ************************************************************	*/
-
-ArrayCompositions& operator++(ArrayCompositions& composition) {
-
-	if (!isValid(composition)) {
-		std::cout << "ArrayCompositions& operator++(ArrayCompositions&) passed invalid parameter" << std::endl;
-		composition = ArrayCompositions::ARRAY_COMPOSITIONS_COUNT;
-	} else {
-		int new_composition = static_cast<int>(composition);
-		composition = static_cast<ArrayCompositions>(++new_composition);
 	}
-	return composition;
 }
 
-ArrayCompositions operator++(ArrayCompositions& composition, int unused) {
-
-	// copy the existing state to pass back to the caller
-	ArrayCompositions retval = composition;
-
-	if (!isValid(composition)) {
-		std::cout << "ArrayCompositions operator++(ArrayCompositions&, int) passed invalid parameter" << std::endl;
-		composition = ArrayCompositions::ARRAY_COMPOSITIONS_COUNT;
-	} else {
-		++composition;
+ArrayCompositions& operator++(ArrayCompositions& current_composition) {
+	switch(current_composition) {
+	case ArrayCompositions::ALL_DISCRETE:
+		current_composition = ArrayCompositions::ALL_PERMUTATIONS;
+		break;
+	case ArrayCompositions::ALL_PERMUTATIONS:
+		current_composition = ArrayCompositions::ALL_SAME;
+		break;
+	case ArrayCompositions::ALL_SAME:
+		current_composition = ArrayCompositions::FEW_DIFFERENT;
+		break;
+	case ArrayCompositions::FEW_DIFFERENT:
+		current_composition = ArrayCompositions::FEW_DISTINCT;
+		break;
+	case ArrayCompositions::FEW_DISTINCT:
+	default:
+		current_composition = ArrayCompositions::INVALID;
+		break;
 	}
-	return retval;
+	return current_composition;
 }
 
-int operator-(ArrayCompositions u, ArrayCompositions v) {
+ArrayCompositions operator++(ArrayCompositions& current_composition, int) {
 
-	if (!areValid(u,v))
-		return 0;
-	else
-		return static_cast<int>(u) - static_cast<int>(v);
+	ArrayCompositions was = current_composition;
+	++current_composition;
+	return was;
 }
-
-/* ************************************************************	*/
-/*						relational operators					*/
-/* ************************************************************	*/
-
-//	required
-
+//	fundamental
 bool operator==(ArrayCompositions u, ArrayCompositions v) {
-	if (!areValid(u,v))
-		return false;
-	else
-		return static_cast<int>(u) == static_cast<int>(v);
+	return static_cast<int>(u) == static_cast<int>(v);
 }
-
 bool operator<(ArrayCompositions u, ArrayCompositions v) {
-	if (!areValid(u,v))
-		return false;
-	else
-		return static_cast<int>(u) - static_cast<int>(v) < 0;
+	return static_cast<int>(u) < static_cast<int>(v);
 }
-
 //	derived
-
-bool operator!=(ArrayCompositions u, ArrayCompositions v) {
-	if (!areValid(u,v))
-		return false;
-	else
-		return !(u == v);
-}
-
 bool operator<=(ArrayCompositions u, ArrayCompositions v) {
-	if (!areValid(u,v))
-		return false;
-	else
-		return (u < v) || (u == v);
+	return (u == v) || (u < v);
 }
-
-bool operator>=(ArrayCompositions u, ArrayCompositions v) {
-	if (!areValid(u,v))
-		return false;
-	else
-		return  !(u < v);
-}
-
 bool operator>(ArrayCompositions u, ArrayCompositions v) {
-	if (!areValid(u,v))
-		return false;
-	else
-		return !(u < v) && !(u == v);
+	return !(u == v) && !(u < v);
+}
+bool operator>=(ArrayCompositions u, ArrayCompositions v) {
+	return !(u < v);
+}
+bool operator!=(ArrayCompositions u, ArrayCompositions v) {
+	return !(u == v);
 }
 
-/* ************************************************************	*/
-/*							formatted output					*/
-/* ************************************************************	*/
-
-std::string toInvalidString(ArrayCompositions composition) {
-
-	std::stringstream ret;
-	ret << "ERROR: static_cast<int>(ArrayCompositions composition) == " << static_cast<int>(composition);
-	ret << " is not in range [" << static_cast<int>(MIN_ARRAY_COMPOSITION);
-	ret << ":";
-	ret << static_cast<int>(MAX_ARRAY_COMPOSITION);
-	ret << "]";
-	return ret.str();
+std::string std::to_string(ArrayCompositions composition) {
+	std::stringstream result;
+	switch(composition) {
+	case ArrayCompositions::ALL_DISCRETE:
+		result << "ALL_DISCRETE";
+		break;
+	case ArrayCompositions::ALL_PERMUTATIONS:
+		result << "ALL_PERMUTATIONS";
+		break;
+	case ArrayCompositions::ALL_SAME:
+		result << "ALL_SAME";
+		break;
+	case ArrayCompositions::FEW_DIFFERENT:
+		result << "FEW_DIFFERENT";
+		break;
+	case ArrayCompositions::FEW_DISTINCT:
+		result << "FEW_DISTINCT";
+		break;
+	default:
+		result << "INVALID_ARRAY_COMPOSITION";
+		break;
+	}
+	return result.str();
 }
 
-std::ostream& operator<<(std::ostream &out, ArrayCompositions composition) {
-
-	out << toString(composition);
+std::ostream& operator<<(std::ostream& out, ArrayCompositions composition) {
+	out << std::to_string(composition);
 	return out;
 }
 
-std::string toString(ArrayCompositions composition)
-{
-	if (!isValid(composition)) {
-		return toInvalidString(composition);
-	} else {
-		return array_composition_strings[static_cast<int>(composition)];
-	}
-}
-
-std::ostream& operator<<(std::ostream &out, const ArrayComposition &other) {
-	out << other.str();
+std::ostream& operator<<(std::ostream &out, const ArrayComposition &object) {
+	out << object.to_string();
 	return out;
 }

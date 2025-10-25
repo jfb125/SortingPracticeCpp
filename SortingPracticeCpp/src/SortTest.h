@@ -152,7 +152,6 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 		break;
 	}
 
-
 	T previous[array_size];
 	for (num_repetitions_t i = 0; i != num_repetitions; i++) {
 		copy_array(sorted_data, reference_data);
@@ -170,8 +169,8 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 			}
 		}
 		copy_array(previous, sorted_data);
-//		std::cout << SortingUtilities::arrayElementsToString(sorted_data, array_size)
-//				  << std::endl;
+		std::cout << SortingUtilities::arrayElementsToString(sorted_data, array_size)
+				  << std::endl;
 //		printSideBySide(*reference_data, *sorted_data);
 		compares_and_moves = sort(sorted_data, array_size);
 

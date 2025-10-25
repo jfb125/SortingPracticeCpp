@@ -70,7 +70,7 @@ private:
 		m_algorithm 					= SortAlgorithms::SORT_ALGORITHMS_COUNT;
 		m_composition.composition 		= DEFAULT_ARRAY_COMPOSITION;
 		m_composition.num_different 	= 0;
-		m_composition.num_discrete_values = 0;
+		m_composition.num_distinct_values = 0;
 		m_ordering 						= InitialOrderings::INITIAL_ORDERINGS_COUNT;
 		m_failure_log 					= new SortFailureLog<T>();
 		m_size 							= 0;

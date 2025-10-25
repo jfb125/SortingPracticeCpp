@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include "SortingDataTypes.h"
+#include "GenerateTestVectors.h"
 #include "IntegerArithmetic.h"
 #include "SimpleRandomizer.h"
 #include "OStreamState.h"

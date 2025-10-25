@@ -13,44 +13,38 @@
 #include <sstream>
 #include <string>
 
-#undef _ARRAY_COMPOSITION
-#define _ARRAY_COMPOSITIONS\
-	_ARRAY_COMPOSITION(ALL_DISCRETE)\
-	_ARRAY_COMPOSITION(ALL_SAME)\
-	_ARRAY_COMPOSITION(FEW_DISCRETE)\
-	_ARRAY_COMPOSITION(FEW_DIFFERENT)\
-	_ARRAY_COMPOSITION(ARRAY_COMPOSITIONS_COUNT)
+enum class ArrayCompositions {
+		ALL_DISCRETE,
+		ALL_PERMUTATIONS,
+		ALL_SAME,
+		FEW_DIFFERENT,
+		FEW_DISTINCT,
+		INVALID
+	};
 
-#define MIN_ARRAY_COMPOSITION 		ArrayCompositions::ALL_DISCRETE
-#define MAX_ARRAY_COMPOSITION 		ArrayCompositions::FEW_DIFFERENT
-#define INVALID_ARRAY_COMPOSITION 	ArrayCompositions::ARRAY_COMPOSITIONS_COUNT
-
-#define _ARRAY_COMPOSITION(composition)	composition,
-enum ArrayCompositions {
-	_ARRAY_COMPOSITIONS
-};
-
-bool isValid(ArrayCompositions);
-
+bool isValid(ArrayCompositions composition);
 ArrayCompositions& operator++(ArrayCompositions& current_composition);
 ArrayCompositions operator++(ArrayCompositions& current_composition, int);
-
-int operator-(ArrayCompositions u, ArrayCompositions v);
-
+//	fundamental
 bool operator==(ArrayCompositions u, ArrayCompositions v);
-bool operator<(ArrayCompositions u, ArrayCompositions v);
-
-bool operator!=(ArrayCompositions u, ArrayCompositions v);
+bool operator< (ArrayCompositions u, ArrayCompositions v);
+//	derived
 bool operator<=(ArrayCompositions u, ArrayCompositions v);
-bool operator>(ArrayCompositions u, ArrayCompositions v);
+bool operator> (ArrayCompositions u, ArrayCompositions v);
 bool operator>=(ArrayCompositions u, ArrayCompositions v);
+bool operator!=(ArrayCompositions u, ArrayCompositions v);
 
-std::string toString(ArrayCompositions);
-std::ostream& operator<<(std::ostream&, ArrayCompositions);
+constexpr int array_composition_string_length = 16;
 
-#define DEFAULT_ARRAY_COMPOSITION ArrayCompositions::ALL_SAME
-#define DEFAULT_NUM_DISCRETE_VALUES	1	/* creates all same values	*/
-#define DEFAULT_NUM_DIFFERENT_VALUES 0	/* creates all same values	*/
+namespace std {
+	std::string to_string(ArrayCompositions composition);
+}
+
+std::ostream& operator<<(std::ostream& out, ArrayCompositions composition);
+
+#define DEFAULT_ARRAY_COMPOSITION		ArrayCompositions::INVALID
+#define DEFAULT_NUM_DIFFERENT_VALUES	1
+#define DEFAULT_NUM_DISTINCT_VALUES 	1
 
 class ArrayComposition {
 public:
@@ -58,7 +52,7 @@ public:
 	// number of discrete values in an array of FEW_DISCRETE
 	//	i.e. in an array of size 12 with num_discrete = 4
 	//	[] = { A, A, A, A, B, B, B, B, C, C, C, C, D, D, D, D }
-	int num_discrete_values;
+	int num_distinct_values;
 	// number of values that differ from common value with FEW_DIFFERENT
 	//	i.e. in an array of size 12 with num_different = 4
 	//	[] = { A, A, A, A, A, A, A, A, A, A, A, A, B, C, D, E }
@@ -68,21 +62,21 @@ public:
 
 	ArrayComposition() {
 		composition 		= DEFAULT_ARRAY_COMPOSITION;
-		num_discrete_values = DEFAULT_NUM_DISCRETE_VALUES;
+		num_distinct_values = DEFAULT_NUM_DISTINCT_VALUES;
 		num_different 		= DEFAULT_NUM_DIFFERENT_VALUES;
 	}
 
 	ArrayComposition(ArrayCompositions comp,
-					 int x_discrete = DEFAULT_NUM_DISCRETE_VALUES,
-					 int x_diff 	= DEFAULT_NUM_DIFFERENT_VALUES) :
+					 int x_num_distinct = DEFAULT_NUM_DISTINCT_VALUES,
+					 int x_diff 		= DEFAULT_NUM_DIFFERENT_VALUES) :
 		composition(comp),
-		num_discrete_values(x_discrete),
+		num_distinct_values(x_num_distinct),
 		num_different(x_diff) {}
 
 	ArrayComposition& operator=(const ArrayComposition& other) {
 		if (this != &other) {
 			composition 		= other.composition;
-			num_discrete_values = other.num_discrete_values;
+			num_distinct_values = other.num_distinct_values;
 			num_different 		= other.num_different;
 		}
 		return *this;
@@ -105,12 +99,6 @@ public:
 		ArrayComposition retval(*this);
 		++composition;
 		return retval;
-	}
-
-	//	arithmetic operators
-
-	int operator-(const ArrayComposition &other) const {
-		return composition - other.composition;
 	}
 
 	// relational operators
@@ -138,7 +126,7 @@ public:
 
 	//	formatted output
 
-	std::string str(void) const {
+	std::string to_string(void) const {
 
 		std::stringstream retval;
 		retval << composition;
@@ -146,8 +134,8 @@ public:
 		case ArrayCompositions::FEW_DIFFERENT:
 			retval << " with " << num_different << " changed elements";
 			break;
-		case ArrayCompositions::FEW_DISCRETE:
-			retval << " with " << this->num_discrete_values << " possible values";
+		case ArrayCompositions::FEW_DISTINCT:
+			retval << " with " << this->num_distinct_values << " possible values";
 			break;
 		case ArrayCompositions::ALL_DISCRETE:
 		case ArrayCompositions::ALL_SAME:
@@ -158,6 +146,6 @@ public:
 	}
 };
 
-std::ostream& operator<<(std::ostream &out, const ArrayComposition &other);
+std::ostream& operator<<(std::ostream &out, const ArrayComposition &object);
 
 #endif /* ARRAYCOMPOSITION_H_ */

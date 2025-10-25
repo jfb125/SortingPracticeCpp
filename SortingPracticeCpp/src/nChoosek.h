@@ -23,16 +23,16 @@ enum class nChoosekMode {
 };
 #endif
 
-enum nChoosekStatus {
+enum nChoosekStatusFlags {
 	NO_ERROR 							= 0x00,
 	ERROR_NUM_COMBINATIONS_TOO_LARGE 	= 0x01,
 	WARNING_k_TRUNCATED_TO_n 			= 0x02,
 	WARNING_n_TRUNCATED_TO_NUM_VALUES	= 0x04
 };
 
-using nCk_index_t 					= uint32_t;
-using nCk_status_t					= unsigned;
-using nCk_num_combos_t				= uint32_t;
+using nCk_index_t 		= uint32_t;
+using nCk_status_t		= unsigned;
+using nCk_num_combos_t	= uint32_t;
 
 template <typename T>
 class nChoosek {
@@ -70,8 +70,10 @@ public:
 	nChoosek() = delete;
 
 	nChoosek(nCk_index_t n, nCk_index_t k, std::vector<T> &values) {
-
-		initialize(n, k, values);
+		m_status = nChoosekStatusFlags::NO_ERROR;
+		validateAndStoreUserVariables(n, k, values);	// updates status
+		m_num_combinations = calcNumCombinations(n, k);	// updates status
+		initializeState();
 	}
 
 	virtual ~nChoosek() {}
@@ -107,7 +109,7 @@ public:
 
 	nCk_status_t initialize(nCk_index_t n, nCk_index_t k, std::vector<T> &values) {
 
-		m_status = nChoosekStatus::NO_ERROR;
+		m_status = nChoosekStatusFlags::NO_ERROR;
 		validateAndStoreUserVariables(n, k, values);	// updates status
 		m_num_combinations = calcNumCombinations(n, k);	// updates status
 		initializeState();
@@ -220,7 +222,7 @@ private:
 			res = res * (n - i + 1) / i;
 		}
 		if (res > m_max_num_combinations) {
-			m_status |= nChoosekStatus::ERROR_NUM_COMBINATIONS_TOO_LARGE;
+			m_status |= nChoosekStatusFlags::ERROR_NUM_COMBINATIONS_TOO_LARGE;
 			m_num_combinations = 1;
 		} else {
 			m_num_combinations = res;
@@ -307,14 +309,14 @@ private:
 	nCk_status_t validateAndStoreUserVariables(nCk_index_t n, nCk_index_t k,
 											   std::vector<T> &values) {
 
-		nCk_status_t result = nChoosekStatus::NO_ERROR;
+		nCk_status_t result = nChoosekStatusFlags::NO_ERROR;
 		if (values.size() < n) {
-			result |= nChoosekStatus::WARNING_n_TRUNCATED_TO_NUM_VALUES;
+			result |= nChoosekStatusFlags::WARNING_n_TRUNCATED_TO_NUM_VALUES;
 			n = values.size();
 		}
 
 		if (k > n) {
-			result |= nChoosekStatus::WARNING_k_TRUNCATED_TO_n;
+			result |= nChoosekStatusFlags::WARNING_k_TRUNCATED_TO_n;
 			k = n;
 		}
 		m_k 	= k;

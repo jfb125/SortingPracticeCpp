@@ -5,6 +5,10 @@
  *      Author: joe
  */
 
+#include <iostream>
+#include <iomanip>
+#include <string>
+
 #include "SortingUtilities.h"
 
 /*
@@ -127,3 +131,73 @@ const uint16_t ccitt_hash[] = {
     0x6e17,0x7e36,0x4e55,0x5e74,0x2e93,0x3eb2,0x0ed1,0x1ef0,
 };
 
+
+bool displayGenerateAllPermutations() {
+
+	using DataType = char;
+	DataType first_value = 'A';
+	auto next_value = [] (DataType current) -> DataType {
+		if (current == 'Z')	return 'A';
+		else				return current + 1;
+	};
+
+	auto are_equal = [] (DataType *u, DataType *v, int size) -> bool {
+		for (int i = 0; i != size; i++) {
+			if (u[i] != v[i]) {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	int test_vector_size = 4;
+	DataType test_values[test_vector_size];
+	DataType value = first_value;
+	for (int i = 0; i != test_vector_size; i++) {
+		test_values[i] = value;
+		value = next_value(value);
+	}
+	int num_test_vectors = 1;
+	for (int i = test_vector_size; i > 1; i--) {
+		num_test_vectors *= i;
+	}
+	DataType** test_vectors;
+	test_vectors = new DataType*[num_test_vectors];
+	for (int i = 0; i != num_test_vectors; i++) {
+		test_vectors[i] = new DataType(test_vector_size);
+	}
+
+	std::cout << "Generating all " << num_test_vectors
+			  << " permutations of { ";
+	for (int i = 0; i != test_vector_size; i++) {
+		std::cout << test_values[i] << " ";
+	}
+	std::cout << "}\n";
+
+
+	SortingUtilities::generateAllPermutationsOfValues(
+			test_vectors, test_values, num_test_vectors, test_vector_size);
+
+	for (int i = 0; i != num_test_vectors; i++) {
+		std::cout << std::setw(2) << i << " "
+				  << SortingUtilities::arrayElementsToString(
+						  test_vectors[i], test_vector_size)
+				  << std::endl;
+	}
+
+	for (int i = 0; i != num_test_vectors-2; i++) {
+		for (int j = i+1; j != num_test_vectors; j++) {
+			if (are_equal(test_vectors[i], test_vectors[j], test_vector_size)) {
+				std::cout << "ERROR two vectors found that are equal:\n";
+				std::cout << std::setw(2) << i << " "
+						  << SortingUtilities::arrayElementsToString(test_vectors[i], test_vector_size)
+						  << std::endl;
+				std::cout << std::setw(2) << j << " "
+						  << SortingUtilities::arrayElementsToString(test_vectors[i], test_vector_size)
+						  << std::endl;
+				break;
+			}
+		}
+	}
+	return true;
+}

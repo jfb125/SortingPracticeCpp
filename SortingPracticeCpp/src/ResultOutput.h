@@ -186,7 +186,7 @@ int getstrlenComposition(OneTestResult<T>** result, int num_tests) {
 	int max_len = 0;
 
 	for (int i = 0; i != num_tests; i++) {
-		int len = result[i]->m_composition.str().length();
+		int len = result[i]->m_composition.to_string().length();
 		if (len > max_len) {
 			max_len = len;
 		}
@@ -481,9 +481,9 @@ void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 		moves_strlen = average_moves_strlen;
 	}
 
-	SortAlgorithms current_sort 		= SortAlgorithms::SORT_ALGORITHMS_COUNT;
-	ArrayComposition current_composition= ArrayCompositions::ARRAY_COMPOSITIONS_COUNT;
-	InitialOrdering current_ordering 	= InitialOrderings::INITIAL_ORDERINGS_COUNT;
+	SortAlgorithms current_sort; // 		= SortAlgorithms::SORT_ALGORITHMS_COUNT;
+	ArrayComposition current_composition; //= ArrayCompositions::INVALID;
+	InitialOrdering current_ordering; // 	= InitialOrderings::INITIAL_ORDERINGS_COUNT;
 
 	int array_size_header_width =
 			max_algorithm_strlen + max_composition_strlen + max_ordering_strlen +
