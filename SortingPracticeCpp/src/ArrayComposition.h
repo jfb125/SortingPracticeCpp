@@ -54,86 +54,86 @@ std::ostream& operator<<(std::ostream&, ArrayCompositions);
 
 class ArrayComposition {
 public:
-	ArrayCompositions _composition;
+	ArrayCompositions composition;
 	// number of discrete values in an array of FEW_DISCRETE
 	//	i.e. in an array of size 12 with num_discrete = 4
 	//	[] = { A, A, A, A, B, B, B, B, C, C, C, C, D, D, D, D }
-	int _num_discrete_values;
+	int num_discrete_values;
 	// number of values that differ from common value with FEW_DIFFERENT
 	//	i.e. in an array of size 12 with num_different = 4
 	//	[] = { A, A, A, A, A, A, A, A, A, A, A, A, B, C, D, E }
-	int _num_different;
+	int num_different;
 
 	// ctors, dtor & assignment operators, std::move() not implemented intentionally
 
 	ArrayComposition() {
-		_composition = DEFAULT_ARRAY_COMPOSITION;
-		_num_discrete_values = DEFAULT_NUM_DISCRETE_VALUES;
-		_num_different = DEFAULT_NUM_DIFFERENT_VALUES;
+		composition 		= DEFAULT_ARRAY_COMPOSITION;
+		num_discrete_values = DEFAULT_NUM_DISCRETE_VALUES;
+		num_different 		= DEFAULT_NUM_DIFFERENT_VALUES;
 	}
 
 	ArrayComposition(ArrayCompositions comp,
-					 int _discrete = DEFAULT_NUM_DISCRETE_VALUES,
-					 int _diff = DEFAULT_NUM_DIFFERENT_VALUES) :
-		_composition(comp),
-		_num_discrete_values(_discrete),
-		_num_different(_diff) {}
+					 int x_discrete = DEFAULT_NUM_DISCRETE_VALUES,
+					 int x_diff 	= DEFAULT_NUM_DIFFERENT_VALUES) :
+		composition(comp),
+		num_discrete_values(x_discrete),
+		num_different(x_diff) {}
 
 	ArrayComposition& operator=(const ArrayComposition& other) {
 		if (this != &other) {
-			_composition = other._composition;
-			_num_discrete_values = other._num_discrete_values;
-			_num_different = other._num_different;
+			composition 		= other.composition;
+			num_discrete_values = other.num_discrete_values;
+			num_different 		= other.num_different;
 		}
 		return *this;
 	}
 
 	// this does not change the values of _num_discrete & _num_different
-	ArrayComposition& operator=(ArrayCompositions composition) {
-		_composition = composition;
+	ArrayComposition& operator=(ArrayCompositions x_composition) {
+		composition = x_composition;
 		return *this;
 	}
 
 	//	increment operators
 
 	ArrayComposition& operator++() {
-		++_composition;
+		++composition;
 		return *this;
 	}
 
 	ArrayComposition operator++(int unused) {
 		ArrayComposition retval(*this);
-		++_composition;
+		++composition;
 		return retval;
 	}
 
 	//	arithmetic operators
 
 	int operator-(const ArrayComposition &other) const {
-		return _composition - other._composition;
+		return composition - other.composition;
 	}
 
 	// relational operators
 
 	bool operator==(const ArrayComposition &other) const {
-		return _composition == other._composition;
+		return composition == other.composition;
 	}
 	bool operator<(const ArrayComposition &other) const {
-		return _composition < other._composition;
+		return composition < other.composition;
 	}
 	bool operator!=(const ArrayComposition &other) const {
-		return !(_composition == other._composition);
+		return !(composition == other.composition);
 	}
 	bool operator<=(const ArrayComposition &other) const {
-		return _composition == other._composition ||
-				_composition < other._composition;
+		return composition == other.composition ||
+				composition < other.composition;
 	}
 	bool operator>=(const ArrayComposition & other) const {
-		return !(_composition < other._composition);
+		return !(composition < other.composition);
 	}
 	bool operator>(const ArrayComposition & other) const {
-		return !(_composition == other._composition ||
-				 _composition < other._composition);
+		return !(composition == other.composition ||
+				 composition < other.composition);
 	}
 
 	//	formatted output
@@ -141,13 +141,13 @@ public:
 	std::string str(void) const {
 
 		std::stringstream retval;
-		retval << _composition;
-		switch(_composition) {
+		retval << composition;
+		switch(composition) {
 		case ArrayCompositions::FEW_DIFFERENT:
-			retval << " with " << _num_different << " changed elements";
+			retval << " with " << num_different << " changed elements";
 			break;
 		case ArrayCompositions::FEW_DISCRETE:
-			retval << " with " << this->_num_discrete_values << " possible values";
+			retval << " with " << this->num_discrete_values << " possible values";
 			break;
 		case ArrayCompositions::ALL_DISCRETE:
 		case ArrayCompositions::ALL_SAME:

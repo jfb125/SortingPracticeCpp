@@ -88,20 +88,27 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 									ArrayComposition& composition,
 									InitialOrdering& ordering,
 									SimpleRandomizer& randomizer,
-									T *values,
+									T *reference_data,
 									array_size_t array_size,
 									num_repetitions_t num_repetitions)
 {
+	OStreamState ostream_state;
+
+	auto copy_array = [&array_size] (T *dst, T* src) {
+		for (array_size_t i = 0; i != array_size; i++) {
+			dst[i] = src[i];
+		}
+	};
+
 //	bool reset_generator = true;
 	OneTestResult<T> *retval =
 		new OneTestResult<T>(algorithm, composition, ordering, array_size, num_repetitions);
 
-	T reference_data[array_size];
 	T sorted_data[array_size];
 	std::stringstream msg;
 
 	//	_is_sorted will only get cleared the first time a sort fails
-	retval->_failure_log->_diagnostics._is_sorted = true;
+	retval->m_failure_log->_diagnostics._is_sorted = true;
 
 	SortMetrics compares_and_moves;
 	SortMetrics (*sort)(T*, array_size_t);
@@ -145,19 +152,34 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 		break;
 	}
 
+
+	T previous[array_size];
 	for (num_repetitions_t i = 0; i != num_repetitions; i++) {
-		for (int i =0; i != array_size; i++) {
-			sorted_data[i] = reference_data[i];
-		}
+		copy_array(sorted_data, reference_data);
 		disorganizeDataArray(sorted_data, array_size, ordering, randomizer, false);
+		if (i != 0) {
+			array_size_t first_difference = 0;
+			while (first_difference != array_size) {
+				if (previous[first_difference] != sorted_data[first_difference]) {
+					break;
+				}
+				first_difference++;
+			}
+			if (first_difference == array_size) {
+				std::cout << "MAJOR ERROR: TWO RUNS IN A ROW HAVE SAME DISORGANIZED ORDER\n";
+			}
+		}
+		copy_array(previous, sorted_data);
+//		std::cout << SortingUtilities::arrayElementsToString(sorted_data, array_size)
+//				  << std::endl;
 //		printSideBySide(*reference_data, *sorted_data);
 		compares_and_moves = sort(sorted_data, array_size);
 
 //		printSideBySide(*reference_data, *sorted_data);
 //		std::cout << "evaluating success of repetition " << i << std::endl;
 
-		retval->_sort_metrics.compares += compares_and_moves.compares;
-		retval->_sort_metrics.assignments += compares_and_moves.assignments;
+		retval->m_sort_metrics.compares += compares_and_moves.compares;
+		retval->m_sort_metrics.assignments += compares_and_moves.assignments;
 		IsSortedResult *result = new IsSortedResult;
 		result->_is_sorted =
 			SortingUtilities::isSorted(sorted_data, array_size,
@@ -173,12 +195,12 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 //				<< *sorted_data[result->_mismatched_index_j]
                 << std::endl;
 			std::cout << msg.str() << std::endl;
-			retval->_failure_log = new SortFailureLog<T>();
-			retval->_failure_log->_diagnostics = *result;
-			retval->_failure_log->set_input(reference_data, array_size);
-			retval->_failure_log->set_result(sorted_data, array_size);
-			retval->_failure_log->_message = new std::string("Elements out of order");;
-			retval->_messages->enqueue(msg.str());
+			retval->m_failure_log = new SortFailureLog<T>();
+			retval->m_failure_log->_diagnostics = *result;
+			retval->m_failure_log->set_input(reference_data, array_size);
+			retval->m_failure_log->set_result(sorted_data, array_size);
+			retval->m_failure_log->_message = new std::string("Elements out of order");;
+			retval->m_messages->enqueue(msg.str());
 			delete result;
 			return retval;
 		} else {
@@ -221,7 +243,7 @@ void	disorganizeDataArray(T *array,
 		randomizer.restart();
 	}
 	if (!isValid(ordering.order())) {
-		std::cout << "disorganizeDataArray(array, ordering, randomiser, restart) passed invalid ordering";
+		std::cout << "disorganizeDataArray(array, ordering, randomizer, restart) passed invalid ordering";
 		return;
 	}
 

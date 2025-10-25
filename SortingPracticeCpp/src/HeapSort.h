@@ -19,10 +19,6 @@
 #define TAB_STOP " "
 
 namespace HeapSort {
-#pragma push_macro("farthestNode")
-#pragma push_macro("parent")
-#pragma push_macro("leftChild")
-#pragma push_macro("rightChild")
 
 	template <typename T>
 	SortMetrics sinkNode(array_size_t this_node, T*array, array_size_t size);
@@ -37,25 +33,15 @@ namespace HeapSort {
 	/*			indices management				*/
 	/* ****************************************	*/
 
-//	array_size_t farthestNode(array_size_t size) {
-//		return size/2 - 1;
-//	}
-#define farthestNode(i) ((i)/2 - 1)
+#pragma push_macro("farthestNode")
+#pragma push_macro("parent")
+#pragma push_macro("leftChild")
+#pragma push_macro("rightChild")
 
-//	array_size_t parent(array_size_t child_i) {
-//		return (child_i-1)/2;
-//	}
-#define parent(i) 		(((i)-1)/2)
-
-//	array_size_t leftChild(array_size_t parent_i) {
-//		return parent_i * 2 + 1;
-//	}
-#define leftChild(i) 	(((i)*2)+1)
-//	array_size_t rightChild(array_size_t parent_i) {
-//		return parent_i * 2 + 2;
-//	}
-
-#define rightChild(i) 	((i)*2 + 2)
+	#define farthestNode(i) ((i)/2 - 1)
+	#define parent(i) 		(((i)-1)/2)
+	#define leftChild(i) 	((i)*2 + 1)
+	#define rightChild(i) 	((i)*2 + 2)
 
 	template <typename T>
 	bool isMaxHeap(T*array, array_size_t size) {

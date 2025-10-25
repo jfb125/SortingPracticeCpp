@@ -1195,10 +1195,10 @@ namespace BlockOperations
 			if (array[block_1_index] <= array[block_2_index]) {
 				// the value from the left block goes into destination
 				if (destination_index != block_1_index) {
-					T tmp 					 = array[destination_index];
-					array[destination_index] = array[block_1_index];
-					array[block_1_index] 	 = tmp;
-					metrics.assignments += 3;
+					metrics +=
+						SortingUtilities::swap( array,
+												destination_index,
+												block_1_index);
 
 					// Update the table location of the entry that was just displaced,
 					//	which will be somewhere in the table after the current entry

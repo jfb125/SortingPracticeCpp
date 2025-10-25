@@ -34,8 +34,8 @@ std::ostream& operator<<(std::ostream &out, const SortMetrics& object) {
 }
 
 SortMetrics& operator+=(SortMetrics& lhs, const SortMetrics &rhs) {
-	lhs.compares 	= rhs.compares;
-	lhs.assignments	= rhs.assignments;
+	lhs.compares 	+= rhs.compares;
+	lhs.assignments	+= rhs.assignments;
 	return lhs;
 }
 

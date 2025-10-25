@@ -39,23 +39,23 @@ int main(int argc, char *argv[])
 
 	int num_repetitions = 1000;
 
-	using DataType = int;
-	DataType first_value = 0;
+	using DataType = char;
+	DataType first_value = 'A';
 
 	array_size_t array_sizes[]	= { 64, 128, 256 };
 	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
-//			SortAlgorithms::BUBBLE_SORT,
-//			SortAlgorithms::SELECTION_SORT,
-//			SortAlgorithms::INSERTION_SORT,
-//			SortAlgorithms::MERGE_SORT,
-//			SortAlgorithms::HEAP_SORT,
-//			SortAlgorithms::QUICK_SORT,
-//			SortAlgorithms::OPTIMIZED_QUICK_SORT,
-//			SortAlgorithms::DUTCH_FLAG_SORT,
+			SortAlgorithms::BUBBLE_SORT,
+			SortAlgorithms::SELECTION_SORT,
+			SortAlgorithms::INSERTION_SORT,
+			SortAlgorithms::DUTCH_FLAG_SORT,
+			SortAlgorithms::HEAP_SORT,
+			SortAlgorithms::QUICK_SORT,
+			SortAlgorithms::OPTIMIZED_QUICK_SORT,
+			SortAlgorithms::MERGE_SORT,
 			SortAlgorithms::INPLACE_MERGE,
-//			SortAlgorithms::BLOCK_SORT,
+			SortAlgorithms::BLOCK_SORT,
 	};
 	int num_sort_algorithms = sizeof(sort_algorithms)/sizeof(SortAlgorithms);
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 							test_values,
 							array_size,
 							num_repetitions);
-					if (!results[cnt]->_failure_log->_diagnostics._is_sorted) {
+					if (!results[cnt]->m_failure_log->_diagnostics._is_sorted) {
 							std::cout << "Sort failed: ";
 							terseDump(results[cnt], 1);
 							std::cout << std::endl;
