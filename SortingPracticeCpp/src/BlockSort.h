@@ -104,7 +104,7 @@ namespace BlockSort {
 	 * The blocks are then sorted.  The blocks are then merged
 	 */
 	template <typename T>
-	SortMetrics sort(T**array, array_size_t start, array_size_t mid, array_size_t end)
+	SortMetrics sort(T* array, array_size_t start, array_size_t mid, array_size_t end)
 	{
 		array_size_t u_size		= mid-start;
 		array_size_t block_size = static_cast<array_size_t>(std::sqrt(u_size));
@@ -118,7 +118,7 @@ namespace BlockSort {
 		constexpr BlockSort::BlockOrganizations block_organization =
 					BlockSort::BlockOrganizations::SYMMETRIC;
 
-		int (*createDescriptors)(T** array,
+		int (*createDescriptors)(T* array,
 								 array_size_t st, array_size_t mid, array_size_t end,
 								 array_size_t block_size, Descriptors<T>&);
 
@@ -135,10 +135,9 @@ namespace BlockSort {
 		//	How to sort the blocks
 		//
 
-		constexpr BlockSort::BlockSortingStrategy block_sorting_strategy =
-					BlockSort::BlockSortingStrategy::TABLE;
-
-		SortMetrics (*sortBlocks)(T**array, Descriptors<T> &desc, int num);
+		BlockSort::BlockSortingStrategy block_sorting_strategy =
+				BlockSort::BlockSortingStrategy::TABLE;
+		SortMetrics (*sortBlocks)(T* array, Descriptors<T> &desc, int num);
 
 		switch(block_sorting_strategy) {
 		case BlockSort::BlockSortingStrategy::BINARY:
@@ -183,13 +182,13 @@ namespace BlockSort {
 	constexpr array_size_t initial_block_size = 16;
 
 	template <typename T>
-	SortMetrics sortPointerstoObjects(T **array, array_size_t size) {
+	SortMetrics sort(T *array, array_size_t size) {
 
 		constexpr bool debug_verbose = false;
 		SortMetrics metrics(0,0);
 
 		if (size < 2*initial_block_size) {
-			metrics = InsertionSort::sortPointersToObjects(array, size);
+			metrics = InsertionSort::sort(array, size);
 			return metrics;
 		}
 
@@ -202,8 +201,7 @@ namespace BlockSort {
 			if (block_start + initial_block_size > size) {
 				sub_array_size = size - block_start;
 			}
-			metrics += InsertionSort::sortPointersToObjects(&array[block_start],
-												 	 	 	 sub_array_size);
+			metrics += InsertionSort::sort(&array[block_start], sub_array_size);
 		}
 		_dbg_ln("  Made it through sorting initial blocks");
 

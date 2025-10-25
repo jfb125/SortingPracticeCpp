@@ -77,7 +77,7 @@ namespace BlockSort {
 	 * 	create a string that prints the whole array, including the blockDescriptors
 	 */
 	template <typename T>
-	std::string blockSortToString(T** array, index_t size, index_t v,
+	std::string blockSortToString(T* array, index_t size, index_t v,
 								  std::unique_ptr<BlockDescriptor<T>[]> &tags, int num_tags,
 								  const char * line_prefix = nullptr,
 								  int value_width = VALUE_WIDTH,

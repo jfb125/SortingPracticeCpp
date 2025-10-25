@@ -11,9 +11,9 @@
 #include <iostream>
 #include <iomanip>
 
-#include "SortingPracticeDataTypes.h"
-#include "SimpleRandomizer.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
+#include "SimpleRandomizer.h"
 #include "InsertionSort.h"
 
 #pragma push_macro("MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT")
@@ -23,7 +23,7 @@ namespace OptimizedQuickSort {
 
 	/*	requires that the caller ensure that end > start	*/
 	template <typename T>
-	SortMetrics partitionArray(T** array, array_size_t start, array_size_t end) {
+	SortMetrics partitionArray(T* array, array_size_t start, array_size_t end) {
 
 		SortMetrics ret_val(0,0);
 
@@ -36,7 +36,7 @@ namespace OptimizedQuickSort {
 		// an array with only two elements can be sorted simply
 		if (span == 2) {
 			ret_val.compares++;
-			if (*array[start] > *array[end]) {
+			if (array[start] > array[end]) {
 				ret_val += SortingUtilities::swap(array, start, end);
 			}
 			return ret_val;
@@ -44,7 +44,7 @@ namespace OptimizedQuickSort {
 
 		// if array is small enough try insertion sort
 		if (span <= MAX_SIZE_TO_CUTOFF_TO_INSERTION_SORT) {
-			ret_val += InsertionSort::sortPointersToObjects(&array[start], span);
+			ret_val += InsertionSort::sort(&array[start], span);
 			return ret_val;
 		}
 
@@ -57,13 +57,13 @@ namespace OptimizedQuickSort {
 
 		while (1) {
 			ret_val.compares++;
-			while (*array[upper] > *array[pivot]) {
+			while (array[upper] > array[pivot]) {
 				upper--;
 				ret_val.compares++;
 			}
 			while (lower < upper) {
 				ret_val.compares++;
-				if (*array[lower] > *array[pivot])
+				if (array[lower] > array[pivot])
 					break;
 				lower++;
 			}
@@ -86,7 +86,7 @@ namespace OptimizedQuickSort {
 	}
 
 	template <typename T>
-	SortMetrics sortPointerstoObjects(T** array, array_size_t size) {
+	SortMetrics sort(T* array, array_size_t size) {
 
 		SortMetrics retval(0,0);
 

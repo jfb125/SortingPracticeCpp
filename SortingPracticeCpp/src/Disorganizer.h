@@ -17,13 +17,13 @@
 
 class Disorganizer {
 private:
-	InitialOrdering  _ordering;
-	SimpleRandomizer& _randomizer;
+	InitialOrdering  	m_ordering;
+	SimpleRandomizer& 	m_randomizer;
 
 public:
 
-	Disorganizer& randomizer(SimpleRandomizer *rdmizer);
-	SimpleRandomizer& randomizer(void) const;
+	Disorganizer& 		randomizer(SimpleRandomizer& rdmizer);
+	SimpleRandomizer& 	randomizer(void) const;
 
 	Disorganizer& ordering(InitialOrderings ordr);
 	InitialOrdering ordering(void) const;
@@ -34,7 +34,9 @@ public:
 	uint64_t	recent(void) const;
 
 	Disorganizer() = delete;
-	Disorganizer(InitialOrdering ord, SimpleRandomizer& rndmzr) : _ordering(ord), _randomizer(rndmzr) {}
+	Disorganizer(InitialOrdering ord, SimpleRandomizer& rndmzr) :
+					m_ordering(ord),
+					m_randomizer(rndmzr) {}
 	Disorganizer& operator=(const Disorganizer&);
 };
 

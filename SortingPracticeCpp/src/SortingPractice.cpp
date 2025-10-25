@@ -9,25 +9,10 @@
 #include <iostream>
 #include <iomanip>
 #include <memory>
+#include <string>
 
 #include "SortTest.h"
 #include "ResultOutput.h"
-
-array_size_t multiply_by_2(array_size_t current_size) {
-	return current_size * 2;
-}
-
-array_size_t multiply_by_4(array_size_t current_size) {
-	return current_size * 4;
-}
-
-array_size_t next_increment(array_size_t current_size) {
-	return current_size+1;
-}
-
-array_size_t multiply_by_10(array_size_t current_size) {
-	return current_size * 10;
-}
 
 #pragma push_macro("to_i")
 #define to_i(e_num)	static_cast<int>(e_num)
@@ -38,8 +23,8 @@ array_size_t multiply_by_10(array_size_t current_size) {
 /*									main()											*/
 /*	*****************************************************************************	*/
 /*	******************************************************************************	*/
-#include "StudentDataGenerator.h"
-#include "BlockSort.h"
+
+//#include "BlockSort.h"
 
 bool testBlockSort();
 
@@ -47,29 +32,28 @@ int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-//	testBlockSort();
+	testBlockSort();
+	return EXIT_SUCCESS;
+//	sortingDataTypesTest();
 //	return EXIT_SUCCESS;
 
 	int num_repetitions = 1000;
 
-	constexpr array_size_t min_array_size =   64;
-	constexpr array_size_t max_array_size = 2048;
-	//	comment out all but the one used in this test
-//	array_size_t (*next_size)(array_size_t current) = next_increment;
-	array_size_t (*next_size)(array_size_t current) = multiply_by_2;
-//	array_size_t (*next_size)(array_size_t current) = multiply_by_4;
-//	array_size_t (*next_size)(array_size_t current) = multiply_by_10;
-	int num_array_sizes = getNumSizes(min_array_size, max_array_size, next_size);
+	using DataType = char;
+	DataType first_value = 'A';
+
+	array_size_t array_sizes[]	= { 64, 128, 256, 512, 1024, 2048, 4096 };
+	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
 //			SortAlgorithms::BUBBLE_SORT,
 //			SortAlgorithms::SELECTION_SORT,
 //			SortAlgorithms::INSERTION_SORT,
-//			SortAlgorithms::MERGE_SORT,
+//			SortAlgorithms::DUTCH_FLAG_SORT,
 //			SortAlgorithms::HEAP_SORT,
 //			SortAlgorithms::QUICK_SORT,
 //			SortAlgorithms::OPTIMIZED_QUICK_SORT,
-//			SortAlgorithms::DUTCH_FLAG_SORT,
+//			SortAlgorithms::MERGE_SORT,
 			SortAlgorithms::INPLACE_MERGE,
 			SortAlgorithms::BLOCK_SORT,
 	};
@@ -95,7 +79,7 @@ int main(int argc, char *argv[])
 	int num_initial_orderings = sizeof(initial_orderings)/sizeof(InitialOrdering);
 
 	int num_results = num_array_sizes * num_sort_algorithms * num_compositions * num_initial_orderings;
-	OneTestResult* results[num_results];
+	OneTestResult<SortingDataType<DataType>>* results[num_results];
 
 	/*
 	 * 	The ranodmizer is used to disorder the input data in sortTest
@@ -115,22 +99,30 @@ int main(int argc, char *argv[])
 
 	int cnt = 0;
 	// run the tests
-	for (int a = 0; a != num_sort_algorithms; a++) {
-		for (int c = 0; c != num_compositions; c++) {
-			for (int o = 0; o != num_initial_orderings; o++) {
+	for (int algorithm_i = 0; algorithm_i != num_sort_algorithms; algorithm_i++) {
+		for (int composition_i = 0; composition_i != num_compositions; composition_i++) {
+			for (int ordering_i = 0; ordering_i != num_initial_orderings; ordering_i++) {
 				randomizer.seed(randomizer_seed);
 				randomizer.restart();
-				for (array_size_t size = min_array_size;
-                              size <= max_array_size;
-                              size = next_size(size)) {
-                results[cnt] = testOneAlgorithm(sort_algorithms[a],
-                                                array_compositions[c],
-                                                initial_orderings[o],
-                                                randomizer, size, num_repetitions);
-                if (!results[cnt]->_failure_log->_diagnostics._is_sorted) {
-						std::cout << "Sort failed: ";
-						terseDump(&results[cnt], 1);
-						std::cout << std::endl;
+				for (int size_i = 0; size_i < num_array_sizes; size_i++) {
+					array_size_t array_size = array_sizes[size_i];
+					SortingDataType<DataType> test_values[array_size];
+					DataType value = first_value;
+					for (int i = 0; i != array_size; i++) {
+						test_values[i].value = value++;
+					}
+					results[cnt] = testOneAlgorithm<SortingDataType<DataType>>(
+							sort_algorithms[algorithm_i],
+							array_compositions[composition_i],
+							initial_orderings[ordering_i],
+							randomizer,
+							test_values,
+							array_size,
+							num_repetitions);
+					if (!results[cnt]->m_failure_log->_diagnostics._is_sorted) {
+							std::cout << "Sort failed: ";
+							terseDump(results[cnt], 1);
+							std::cout << std::endl;
 					}
 					cnt++;
 				}

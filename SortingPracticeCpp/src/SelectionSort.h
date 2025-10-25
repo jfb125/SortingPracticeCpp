@@ -8,7 +8,7 @@
 #ifndef SELECTIONSORT_H_
 #define SELECTIONSORT_H_
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 
 #include <iostream>
@@ -17,7 +17,7 @@
 namespace SelectionSort {
 
 	template <typename T>
-	SortMetrics sortPointerstoObjects(T **array, array_size_t array_size) {
+	SortMetrics sort(T *array, array_size_t array_size) {
 
 		SortMetrics result(0,0);
 
@@ -35,7 +35,7 @@ namespace SelectionSort {
 								  searching_index < array_size;
 								  searching_index++) {
 					result.compares++;
-					if (*array[searching_index] < *array[index_of_smallest_value]) {
+					if (array[searching_index] < array[index_of_smallest_value]) {
 						index_of_smallest_value = searching_index;
 					}
 				}

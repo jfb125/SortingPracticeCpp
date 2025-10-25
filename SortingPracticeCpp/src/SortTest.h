@@ -13,6 +13,8 @@
 #include <sstream>
 #include <string>
 #include <cstddef>
+#include <cstdlib>
+#include <ctime>
 
 #include "ArrayComposition.h"
 #include "Disorganizer.h"
@@ -24,35 +26,197 @@
 #include "SimpleRandomizer.h"
 #include "SortableObject.h"
 #include "SortAlgorithm.h"
-#include "StudentData.h"
-#include "StudentDataArray.h"
-#include "StudentDataGenerator.h"
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
+
+#include "SortingUtilities.h"
+
+#include "BlockSort.h"
+#include "BubbleSort.h"
+#include "DutchFlagSort.h"
+#include "InPlaceMerge.h"
+#include "InsertionSort.h"
+#include "SelectionSort.h"
+#include "MergeSort.h"
+#include "HeapSort.h"
+#include "OptimizedQuickSort.h"
+#include "QuickSort.h"
 
 
-int initializeArraySequential(StudentData ***, int size);
-int initializeArrayFewDistinct(StudentData ***, int size, int num_distinct);
-int initializeArray(StudentData ***, StudentData*, int size);
+template <typename T>
+void	printSideBySide(SortingDataType<T> *a, array_size_t a_size,
+						SortingDataType<T> *b, array_size_t b_size) {
 
-void	printSideBySide(StudentDataArray &a, StudentDataArray &b);
+	array_size_t a_i = 0;
+	array_size_t b_i = 0;
+	for (; a_i < a_size && b_i < b_size; a_i++, b_i++) {
+		std::cout << a[a_i] << " vs " << b[b_i] << std::endl;
+	}
+	for (; a_i < a_size; a_i++) {
+		std::cout << a[a_i] << " vs (none) " << std::endl;
+	}
+	for (; b_i < b_size; b_i++) {
+		std::cout << "(none) vs " << b[b_i] << std::endl;
+	}
+}
 
+template <typename T>
+void disorganizeDataArray(T* array,
+						  array_size_t,
+						  InitialOrdering& ordering,
+						  SimpleRandomizer& randomizer,
+						  bool restart);
 
 /*	**************************************************************************	*/
 /*	**************************************************************************	*/
 /*							data types - input & outputs						*/
 /*	**************************************************************************	*/
 /*	**************************************************************************	*/
+
+template <typename T>
+SortMetrics bogusSort(T* array, array_size_t size) {
+	SortMetrics result(0,0);
+	result += SortingUtilities::randomizeArray(array, size);
+	return result;
+}
+
 /*
  * given an algorithm & an ordering
  *	for each size min ... max	returns OneTestResult
  */
+template <typename T>
+OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
+									ArrayComposition& composition,
+									InitialOrdering& ordering,
+									SimpleRandomizer& randomizer,
+									T *reference_data,
+									array_size_t array_size,
+									num_repetitions_t num_repetitions)
+{
+	OStreamState ostream_state;
 
-OneTestResult* testOneAlgorithm(SortAlgorithms&,
-								ArrayComposition&,
-								InitialOrdering&,
-								SimpleRandomizer&,
-								array_size_t size,
-								num_repetitions_t num_repetitions);
+	auto copy_array = [&array_size] (T *dst, T* src) {
+		for (array_size_t i = 0; i != array_size; i++) {
+			dst[i] = src[i];
+		}
+	};
+
+//	bool reset_generator = true;
+	OneTestResult<T> *retval =
+		new OneTestResult<T>(algorithm, composition, ordering, array_size, num_repetitions);
+
+	T sorted_data[array_size];
+	std::stringstream msg;
+
+	//	_is_sorted will only get cleared the first time a sort fails
+	retval->m_failure_log->_diagnostics._is_sorted = true;
+
+	SortMetrics compares_and_moves;
+	SortMetrics (*sort)(T*, array_size_t);
+
+	switch (algorithm) {
+	case SortAlgorithms::BUBBLE_SORT:
+		sort = BubbleSort::sort;
+		break;
+	case SortAlgorithms::DUTCH_FLAG_SORT:
+		sort = DutchFlagSort::sort;
+		break;
+	case SortAlgorithms::HEAP_SORT:
+		sort = HeapSort::sort;
+		break;
+	case SortAlgorithms::INSERTION_SORT:
+		sort = InsertionSort::sort;
+		break;
+	case SortAlgorithms::MERGE_SORT:
+		sort = MergeSort::sort;
+		break;
+	case SortAlgorithms::OPTIMIZED_QUICK_SORT:
+		sort = OptimizedQuickSort::sort;
+		break;
+	case SortAlgorithms::QUICK_SORT:
+		sort = QuickSort::sort;
+		break;
+	case SortAlgorithms::SELECTION_SORT:
+		sort = SelectionSort::sort;
+		break;
+	case SortAlgorithms::BLOCK_SORT:
+		sort = BlockSort::sort;
+		break;
+	case SortAlgorithms::INPLACE_MERGE:
+		sort = InPlaceMerge::sort;
+		break;
+
+	case SortAlgorithms::RADIX_SORT:
+	case SortAlgorithms::COUNTING_SORT:
+	default:
+		sort = bogusSort;
+		break;
+	}
+
+
+	T previous[array_size];
+	for (num_repetitions_t i = 0; i != num_repetitions; i++) {
+		copy_array(sorted_data, reference_data);
+		disorganizeDataArray(sorted_data, array_size, ordering, randomizer, false);
+		if (i != 0) {
+			array_size_t first_difference = 0;
+			while (first_difference != array_size) {
+				if (previous[first_difference] != sorted_data[first_difference]) {
+					break;
+				}
+				first_difference++;
+			}
+			if (first_difference == array_size) {
+				std::cout << "MAJOR ERROR: TWO RUNS IN A ROW HAVE SAME DISORGANIZED ORDER\n";
+			}
+		}
+		copy_array(previous, sorted_data);
+//		std::cout << SortingUtilities::arrayElementsToString(sorted_data, array_size)
+//				  << std::endl;
+//		printSideBySide(*reference_data, *sorted_data);
+		compares_and_moves = sort(sorted_data, array_size);
+
+//		printSideBySide(*reference_data, *sorted_data);
+//		std::cout << "evaluating success of repetition " << i << std::endl;
+
+		retval->m_sort_metrics.compares += compares_and_moves.compares;
+		retval->m_sort_metrics.assignments += compares_and_moves.assignments;
+		IsSortedResult *result = new IsSortedResult;
+		result->_is_sorted =
+			SortingUtilities::isSorted(sorted_data, array_size,
+									   compares_and_moves,
+									   result->_mismatched_index_i,
+									   result->_mismatched_index_j);
+
+		if (!result->_is_sorted) {
+			msg << "****************** FAILURE ON REPETITION #" << i << std::endl;
+			msg << "[" << result->_mismatched_index_i << "] = "
+//				<< sorted_data[result->_mismatched_index_i]
+                << " is not less than [" << result->_mismatched_index_j << "] = "
+//				<< *sorted_data[result->_mismatched_index_j]
+                << std::endl;
+			std::cout << msg.str() << std::endl;
+			retval->m_failure_log = new SortFailureLog<T>();
+			retval->m_failure_log->_diagnostics = *result;
+			retval->m_failure_log->set_input(reference_data, array_size);
+			retval->m_failure_log->set_result(sorted_data, array_size);
+			retval->m_failure_log->_message = new std::string("Elements out of order");;
+			retval->m_messages->enqueue(msg.str());
+			delete result;
+			return retval;
+		} else {
+//			std::cout << "completed repetition " << i << std::endl;
+		}
+		delete result;
+	}
+	return retval;
+}
+
+//
+//	OneTestResult<T> *result =
+//		new OneTestResult<T>(algorithm, composition, ordering,
+//							 size, num_repetitions);
+//	return result;
+//}
 
 
 /*	**************************************************************************	*/
@@ -61,10 +225,71 @@ OneTestResult* testOneAlgorithm(SortAlgorithms&,
 /*	**************************************************************************	*/
 /*	**************************************************************************	*/
 
-void reverseArray(SortableObject *);
-void minimallyRandomizeArray(SortableObject *, array_size_t num_outof_place);
-bool isSorted(SortableObject *);
+template <typename T>
+void reverseArray(T *test_datay, array_size_t size);
+template <typename T>
+void minimallyRandomizeArray(T *test_data,
+							 array_size_t num_outof_place);
 
 int getNumSizes(array_size_t min, array_size_t max, array_size_t (*next)(array_size_t));
+
+template <typename T>
+void	disorganizeDataArray(T *array,
+							 array_size_t size,
+							 InitialOrdering& ordering,
+							 SimpleRandomizer &randomizer,
+							 bool restart) {
+	if (restart) {
+		randomizer.restart();
+	}
+	if (!isValid(ordering.order())) {
+		std::cout << "disorganizeDataArray(array, ordering, randomizer, restart) passed invalid ordering";
+		return;
+	}
+
+	switch(ordering.order()) {
+	case InitialOrderings::IN_RANDOM_ORDER:
+		{
+			T tmp;
+			array_size_t r;
+			for (array_size_t i  = 0; i != size; i++) {
+				r = randomizer.rand(i, size);
+				tmp = array[i];
+				array[i] = array[r];
+				array[r] = tmp;
+			}
+		}
+		break;
+	case InitialOrderings::IN_REVERSE_ORDER:
+		{
+			array_size_t i = 0;
+			array_size_t j = size-1;
+			T tmp;
+			while (i < j) {
+				tmp = array[i];
+				array[i] = array[j];
+				array[j] = tmp;
+				i++;
+				j--;
+			}
+		}
+		break;
+	case InitialOrderings::FEW_CHANGES:
+		if (ordering.num_out_of_place_is_initialized()) {
+			array_size_t y = 0;
+			T tmp;
+			for (array_size_t i = 0; i != ordering.num_out_of_place(); i++) {
+				y = randomizer.rand(i, size);
+				tmp = array[i];
+				array[i] = array[y];
+				array[y] = tmp;
+			}
+		}
+		break;
+	case InitialOrderings::NO_CHANGES:
+	default:
+		break;
+	}
+}
 
 #endif /* SORTTEST_H_ */

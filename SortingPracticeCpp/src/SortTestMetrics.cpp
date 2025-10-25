@@ -9,8 +9,8 @@
 
 double	SortTestMetrics::averageCompares(void) const {
 
-	if (_num_repetitions) {
-		return static_cast<double>(compares)/_num_repetitions;
+	if (num_repetitions) {
+		return static_cast<double>(compares)/num_repetitions;
 	} else {
 		return std::numeric_limits<double>::max();
 	}
@@ -18,8 +18,8 @@ double	SortTestMetrics::averageCompares(void) const {
 
 double	SortTestMetrics::averageMoves(void) const {
 
-	if (_num_repetitions) {
-		return static_cast<double>(assignments)/_num_repetitions;
+	if (num_repetitions) {
+		return static_cast<double>(assignments)/num_repetitions;
 	} else {
 		return std::numeric_limits<double>::max();
 	}
@@ -105,7 +105,7 @@ std::string SortTestMetrics::totalCounts(void) const {
 	std::ios_base::fmtflags _flags = std::cout.flags();
 
 	retval 	<< "repeats: " 	<< std::setw(ONE_SORT_REPETITIONS_WIDTH) << std::right
-			<< _num_repetitions;
+			<< num_repetitions;
 	retval	<< ", compares: " << std::setw(ONE_SORT_COMPARES_WIDTH) << std::right
 			<< compares;
 	retval	<< ", swaps: " 		<< std::setw(ONE_SORT_SWAPS_WIDTH) << std::right
@@ -121,7 +121,7 @@ SortTestMetrics::SortTestMetrics(const SortTestMetrics &other) {
 	if (this != &other) {
 		compares = other.compares;
 		assignments = other.assignments;
-		_num_repetitions = other._num_repetitions;
+		num_repetitions = other.num_repetitions;
 	}
 }
 
@@ -130,7 +130,7 @@ SortTestMetrics& SortTestMetrics::operator=(const SortTestMetrics& other) {
 	if (this != &other) {
 		compares = other.compares;
 		assignments = other.assignments;
-		_num_repetitions = other._num_repetitions;
+		num_repetitions = other.num_repetitions;
 	}
 	return *this;
 }

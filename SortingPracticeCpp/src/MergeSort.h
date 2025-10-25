@@ -13,13 +13,13 @@
 #include <iostream>
 #include <iomanip>
 
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 
 namespace MergeSort {
 
 	template <typename T>
-	SortMetrics sortPointersToObjectsBottomUp(T**array, array_size_t size) {
+	SortMetrics sortObjectsBottomUp(T*array, array_size_t size) {
 
 		SortMetrics ret_val(0,0);
 
@@ -31,10 +31,10 @@ namespace MergeSort {
 			return ret_val;
 		}
 
-		T**aux = new T*[size];
+		T aux[size];
 		// this will be swapped before first use
-		T**src_array = aux;
-		T**dst_array = array;
+		T* src_array = aux;
+		T* dst_array = array;
 
 		array_size_t dst;
 		array_size_t left;
@@ -44,10 +44,11 @@ namespace MergeSort {
 //		std::cout << "Array size = " << size << std::endl;
 		// for each successive size of sub-array
 		for (array_size_t half = 1; half < size; half *= 2) {
-
-			T** tmp = src_array;
-			src_array = dst_array;
-			dst_array = tmp;
+			// ping-pong
+			//	make the new dst_array the address of the previous src_array
+			T* 		tmp = src_array;
+			src_array 	= dst_array;
+			dst_array 	= tmp;
 
 //			std::cout << "  src: " << src_array << " dst: " << dst_array << std::endl;
 			// work across the array in chunks that are of width 2*half
@@ -66,9 +67,9 @@ namespace MergeSort {
 					// terminate the right copy at end of array
 					right_stop = size;
 				}
-				dst = start;
-				left = start;
-				right = left_stop;
+				dst 	= start;
+				left 	= start;
+				right 	= left_stop;
 
 //				std::cout << "(" << start << "," << left_stop << "," << right_stop << ") ";
 //				while (dst != right_stop) {
@@ -77,7 +78,7 @@ namespace MergeSort {
 					//	given precedence to the left value if they are equal
 					//	which guarantees stability
 					ret_val.compares++;
-					if (*src_array[left] <= *src_array[right]) {
+					if (src_array[left] <= src_array[right]) {
 						ret_val.assignments++;
 						dst_array[dst++] = src_array[left++];
 					} else {
@@ -110,14 +111,13 @@ namespace MergeSort {
 			}
 		}
 
-		delete[] aux;
 		return ret_val;
 	}
 
 	template <typename T>
-	SortMetrics sortPointersToObjects(T** array, array_size_t size) {
+	SortMetrics sort(T* array, array_size_t size) {
 
-		return sortPointersToObjectsBottomUp(array, size);
+		return sortObjectsBottomUp(array, size);
 	}
 };
 

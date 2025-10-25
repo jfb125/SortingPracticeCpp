@@ -1,11 +1,17 @@
-Sorting Performance In C++ built on Oct 17 2025 at 15:30:06
-Algorithms: 2 Compositions: 1 Orderings: 1 of : 6 different sizes resulting in 12 outcomes over 1000 repetitions
-====================================
-Sort Test Results
-====================================
-                                 Array sizes:             64                        128                        256                        512                       1024                       2048             
-number of repetitions: 1000                       avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov          avg cmp / avg mov      
-INPLACE_MERGE  ALL_DISCRETE  IN_RANDOM_ORDER:      1179.9 /      1230.5       4542.4 /      4643.8      17519.0 /     17720.9      68295.0 /     68698.6     268455.5 /    269262.2    1063468.8 /   1065085.8  
-BLOCK_SORT     ALL_DISCRETE  IN_RANDOM_ORDER:       433.1 /       924.3       1007.5 /      2516.4       2288.0 /      6456.8       5109.5 /     15904.3      11284.2 /     38041.4      24679.9 /     88768.7  
+Sorting Performance In C++ built on Oct 25 2025 at 11:36:53
+testBlockSort
+testBlockSortMergeBlocksExhaustively
 
-Completed Sorting Performance In C++
+Merging all        12870 pairs of unique arrays of size 16 where mid =     8 using strategy BINARY      took average of        21.6 compares and       65.3 assignments
+Merging all        12870 pairs of unique arrays of size 16 where mid =     8 using strategy INSERTION   took average of        46.2 compares and       46.2 assignments
+Merging all        12870 pairs of unique arrays of size 16 where mid =     8 using strategy TABLE       took average of        14.2 compares and       38.2 assignments
+
+
+Merging all        24310 pairs of unique arrays of size 17 where mid =     8 using strategy BINARY      took average of        23.5 compares and       70.6 assignments
+Merging all        24310 pairs of unique arrays of size 17 where mid =     8 using strategy INSERTION   took average of        52.0 compares and       52.0 assignments
+Merging all        24310 pairs of unique arrays of size 17 where mid =     8 using strategy TABLE       took average of        15.2 compares and       40.8 assignments
+
+
+PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
+
+testBlockSort() ran 1 successful tests

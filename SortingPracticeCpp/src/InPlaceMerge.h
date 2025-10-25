@@ -5,12 +5,14 @@
  *      Author: joe
  */
 
+#ifndef INPLACEMERGE_H
+#define INPLACEMERGE_H
 #include <iostream>
 #include <iomanip>
 #include <string>
 
 #include "BlockOperations.h"
-#include "SortingPracticeDataTypes.h"
+#include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
 
@@ -47,24 +49,33 @@ namespace InPlaceMerge {
 
 
 	template <typename T>
-	SortMetrics sortPointerstoObjects(T **array, array_size_t size) {
+	SortMetrics sort(T *array, array_size_t array_size) {
 
 		bool debug_verbose = false;
 
 		SortMetrics metrics(0,0);
 
 		BlockOperations::MergeStrategy merge_strategy =
-					BlockOperations::MergeStrategy::INSERTION;
+					BlockOperations::MergeStrategy::TABLE;
 		_dbg_ln("InPlaceMerge using " << merge_strategy);
 
 		BlockOperations::MergeFunction<T> mergeBlocks;
 
 		switch(merge_strategy) {
+		case BlockOperations::MergeStrategy::AUXILLIARY:
+			mergeBlocks = BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer;
+			break;
 		case BlockOperations::MergeStrategy::INSERTION:
 			mergeBlocks = BlockOperations::insertionSortPartial;
 			break;
-		case BlockOperations::MergeStrategy::HYBRID:
+		case BlockOperations::MergeStrategy::BINARY:
 			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_BinarySearch;
+			break;
+		case BlockOperations::MergeStrategy::HYBRID:
+			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_Hybrid;
+			break;
+		case BlockOperations::MergeStrategy::RGT_TO_LFT:
+			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_RightToLeft;
 			break;
 		case BlockOperations::MergeStrategy::TABLE:
 		default:
@@ -73,8 +84,8 @@ namespace InPlaceMerge {
 		}
 
 		//	Small arrays can just be InsertionSorted and done
-		if (size < 2*initial_block_size) {
-			metrics = InsertionSort::sortPointersToObjects(array, size);
+		if (array_size < 2*initial_block_size) {
+			metrics = InsertionSort::sort(array, array_size);
 			return metrics;
 		}
 
@@ -82,20 +93,23 @@ namespace InPlaceMerge {
 		array_size_t block_start = 0;
 
 		//	Ensure that each block's elements are sorted
-		while (block_start < size) {
+		while (block_start < array_size) {
 			array_size_t num_elements = block_size;
-			if (block_start + num_elements > size)
-				num_elements = size - block_start;
+			//	handle the final block not being a full block
+			if (block_start + num_elements > array_size)
+				num_elements = array_size - block_start;
+			//	sort each block using a (simple) insertion sort
 			metrics +=
-				InsertionSort::sortPointersToObjects(&array[block_start],
-													 num_elements);
+				InsertionSort::sort(&array[block_start],
+									 num_elements);
+			//	move over to the next block
 			block_start += block_size;
 		}
 
 		_dbg_ln("  Made it through sorting initial blocks");
 
-		//	continuously merge pairs of adjoining blocks of ever larger sizes
-		while (block_size < size)
+		//	continuously merge pairs of blocks of ever larger sizes
+		while (block_size < array_size)
 		{
 			//	assign the block boundaries to the first pair of blocks
 			array_size_t block_1_start	= 0;
@@ -104,27 +118,28 @@ namespace InPlaceMerge {
 			array_size_t block_2_end	= block_2_start + block_size - 1;
 			//	It is possible that block size is greater than half the array
 			//	  when size is not an integer multiple of a power of 2
-			if (block_2_end > size-1) 	  block_2_end = size-1;
+			if (block_2_end > array_size-1) 	  block_2_end = array_size-1;
 
 			//	move through each pair of blocks left to right merging them
-			while (block_2_start < size) {
+			while (block_2_start < array_size) {
 				mergeBlocks(array, 	block_1_start, block_1_end,
 									block_2_start, block_2_end,
 									metrics);
 				//	move the indices to the next pair of blocks
-				block_1_start = block_2_end+1;
+				block_1_start = block_2_end + 1;
 				block_1_end	  = block_1_start + block_size - 1;
 				//	if block 1 extends to or past the end of the array
 				//	then there is not a block_2 and no need to merge
-				if (block_1_end >= size-1)
+				if (block_1_end >= array_size-1)
 					break;
 				block_2_start = block_1_end + 1;
 				block_2_end	  = block_2_start + block_size - 1;
-				//	if bloc_2 is not full size, adjust end to the array's end
-				if (block_2_end > size-1)
-					block_2_end = size-1;
+				//	if block_2 is not full size, block_2_end is the array's end
+				if (block_2_end > array_size-1)
+					block_2_end = array_size-1;
 			}
 			_dbg_ln("  Made it through merging blocks of size "<<block_size);
+			//	double the block size since each pair of blocks is now merged
 			block_size *= 2;
 		}
 		_dbg_ln("InPlaceMerge sort is returning");
@@ -134,3 +149,4 @@ namespace InPlaceMerge {
 
 #pragma pop_macro("_dbg")
 #pragma pop_macro("_dbg_ln")
+#endif
