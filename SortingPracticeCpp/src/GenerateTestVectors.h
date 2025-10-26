@@ -12,8 +12,262 @@
 #include <iomanip>
 #include <string>
 #include <vector>
+#include <limits>
 
+#include "SortingDataTypes.h"
+#include "ArrayComposition.h"
 #include "nChoosek.h"
+
+/*	Generates all permutations of a vector of values	*/
+//	TODO - m_reload count is just the position,
+//	TODO - make a copy of the initial values
+//		   compare each new state to the initial to detect 'm_done'
+//	       This will be more reliable in situations with repeated values
+template <typename T>
+class PermutationGenerator {
+private:
+	using StateDigit = int;
+	bool 		m_done;				// set when the last value is returned,
+									// stays set until user calls init()
+	int	 		m_width;			// size of the vector of values
+	T*	 		m_values;			// the vector of values
+	StateDigit	*m_reload_counts;	// values of StateDigits that cause a carry
+	StateDigit	*m_rotate_counters;	// the state as a sequence of StateDigits
+	bool 		m_initialized;		// all pointers are valid
+
+	void clear() {
+		m_done 				= false;
+		m_width 			= 0;
+		m_values			= nullptr;
+		m_reload_counts 	= nullptr;
+		m_rotate_counters 	= nullptr;
+		m_initialized		= false;
+	}
+
+	void erase_and_clear() {
+		if (m_values) 			delete[] m_values;
+		if (m_reload_counts) 	delete[] m_reload_counts;
+		if (m_rotate_counters)	delete[] m_rotate_counters;
+		clear();
+	}
+
+	void reset_state() {
+		if (m_initialized) {
+			m_done = false;
+			for (int i = 0; i < m_width; i++) {
+				m_reload_counts[i]		= (m_width-1)-i;
+				m_rotate_counters[i]	= (m_width-1)-i;
+			}
+		}
+	}
+
+	void translate_state(T*dst) {
+		for (int i = 0; i <= m_width; i++) {
+			dst[i] = m_values[i];
+		}
+	}
+
+	//	0 1 2 3
+	//	A B C D  rotate_left_b_1(values, 1, 3) -> A C D B
+	void rotate_left_by_1(T* values, int left_boundary, int right_boundary) {
+		if (left_boundary > right_boundary) {
+			int tmp 		= left_boundary;
+			left_boundary 	= right_boundary;
+			right_boundary	= tmp;
+		}
+		T leftmost_value = values[left_boundary];
+		for (int i = left_boundary; i < right_boundary ; i++) {
+			values[i] = values[i+1];
+		}
+		values[right_boundary] = leftmost_value;
+	}
+
+	//	generating vectors is done by rotating digits left
+	//					rotate_counters	 { A, B, C, D }
+	//	{ A, B, C, D }	3 2 1 x	 becomes { A, B, D, C }  3 2 0 x DONE
+	//	{ A, B, D, C }	3 2 0 x  becomes { A, B, C, D }  3 2 1 x BORROW
+	//	{ A, B, C, D }  3 2 1 x  becomes { A, C, D, B }  3 1 1 x BORROW DONE
+	//	{ A, C, D, B }  3 1 1 x  becomes { A, C, B, D }  3 1 0 x DONE
+	//	{ A, C, D, B }  3 1 0 x  becomes { A, C, D, B }  3 1 1 x BORROW
+	//	{ A, C, D, B }  3 1 1 x  becomes { A, D, B, C }  3 0 1 x BORROW DONE
+	//  { A, D, B, C }  3 0 1 x  becomes { A, D, C, B }  3 0 0 x DONE
+	//	{ A, D, C, B }  3 0 0 x  becomes { A, B, C, D }  3 2 1 x BORROW
+	//	{ A, B, C, D }  3 2 1 x  becomes { D, A, B, C }  2 2 1 x BORROW DONE
+	//	Rule: always rotate values 1 to the right
+	//		  if you are at zero, reload, and move position to the left
+	//		  keep doing this until a position is reached where count != 0
+	//		  or all positions are examined
+	//
+	//	position = 1;
+	//	do {
+	//		rotate right [position:0] by 1
+	//		if (rotate_counters[position] != 0
+	//	  		rotate_counters[position]--;
+	//	  		break;
+	//		else
+	//	  		rotate_counters[position] = reload_counts[position]
+	//	  		position++;
+	//	} while (position < m_width)
+	//	if (position == m_width)
+	//		done = true;_
+	bool advance_state() {
+		// 	start one digit to the left of the least significant digit,
+		//	where the lsdigit is the end of the array, m_width-1
+		int right_boundary 	= m_width-1;
+		int left_boundary	= right_boundary-1;
+		do {
+			rotate_left_by_1(m_values, left_boundary, right_boundary);
+			if (m_rotate_counters[left_boundary] != 0) {
+				--m_rotate_counters[left_boundary];
+				break;
+			} else {
+				m_rotate_counters[left_boundary] = m_reload_counts[left_boundary];
+				left_boundary--;
+			}
+		} while (left_boundary >= 0);
+		if (left_boundary < 0) {
+			m_done = true;
+		}
+		return m_done;
+	}
+
+public:
+
+	PermutationGenerator() {
+		clear();
+	}
+
+	PermutationGenerator(T* values, int num_values) {
+		clear();
+		if (num_values && values) {
+			m_width	 = num_values;
+			m_values = new T[m_width];
+			for (int i = 0; i != m_width; i++) {
+				m_values[i] = values[i];
+			}
+			m_reload_counts 	= new StateDigit[m_width];
+			m_rotate_counters 	= new StateDigit[m_width];
+			m_initialized 		= true;
+			reset_state();
+		}
+	}
+
+	PermutationGenerator(const PermutationGenerator & other) {
+		clear();
+		if (other.m_initialized) {
+			m_initialized 		= true;
+			m_done				= other.m_done;
+			m_width				= other.m_width;
+			//	deep copy other's values
+			m_values			= new T[m_width];
+			for (int i = 0; i != m_width; i++) {
+				m_values[i] = other.m_values[i];
+			}
+			//	deep copy other's state variables
+			m_reload_counts		= new StateDigit[m_width];
+			m_rotate_counters	= new StateDigit[m_width];
+			for (int i = 0; i != m_width; i++) {
+				m_reload_counts[i]	= other.m_reload_counts[i];
+				m_rotate_counters[i]= other.m_rotate_counters[i];
+			}
+		}
+	}
+
+	PermutationGenerator& operator=(const PermutationGenerator& other) {
+		if (this != &other) {
+			erase_and_clear();
+			if (other.m_initialized) {
+				m_initialized			= true;
+				m_done				= other.m_done;
+				m_width				= other.m_width;
+				//	deep copy other's values
+				m_values			= new T[m_width];
+				for (int i = 0; i != m_width; i++) {
+					m_values[i] = other.m_values[i];
+				}
+				//	deep copy other's state
+				m_reload_counts		= new StateDigit[m_width];
+				m_rotate_counters	= new StateDigit[m_width];
+				for (int i = 0; i != m_width; i++) {
+					m_reload_counts[i]	= other.m_reload_counts[i];
+					m_rotate_counters[i]= other.m_rotate_counters[i];
+				}
+			}
+		}
+		return *this;
+	}
+
+	PermutationGenerator(const PermutationGenerator&& other) noexcept {
+		clear();
+		if (other.m_initialized) {
+			m_initialized			= true;
+			m_done					= other.m_done;
+			m_width					= other.m_width;
+			m_values				= other.m_values;
+			m_reload_counts			= other.m_reload_counts;
+			m_rotate_counters		= other.m_rotate_counters;
+			other.m_values			= nullptr;
+			other.m_reload_counts	= nullptr;
+			other.m_rotate_counters	= nullptr;
+		}
+	}
+
+	PermutationGenerator& operator=(const PermutationGenerator&& other) noexcept {
+		if (this != &other) {
+			erase_and_clear();
+			if (other.m_initialized) {
+				m_initialized 			= true;
+				m_done					= other.m_done;
+				m_width					= other.m_width;
+				m_values				= other.m_values;
+				other.m_values			= nullptr;
+				m_reload_counts			= other.m_reload_counts;
+				other.m_reload_counts	= nullptr;
+				m_rotate_counters		= other.m_rotate_counters;
+				other.m_rotate_counters	= nullptr;
+			}
+		}
+		return *this;
+	}
+
+	~PermutationGenerator() {
+		erase_and_clear();
+	}
+
+	bool is_initialized(void) const {	return m_initialized;	}
+	bool is_done(void) const 		{	return m_done;	}
+
+	long long num_vectors(void) const {
+		long long result 	= 1;
+		long long was		= result;
+		for (int i = m_width; i > 1; i--) {
+			result *= i;
+			// if an overflow occurred, return max
+			if (result < was) {
+				return std::numeric_limits<long long>::max();
+			}
+			was = result;
+		}
+		return result;
+	}
+
+	void reset() {
+		if (m_initialized) {
+			reset_state();
+		}
+	}
+
+	//	returns the state of m_done **AFTER** state variables are advanced
+	bool next(T*dst) {
+		translate_state(dst);
+		if (m_width > 1) {
+			return advance_state();
+		} else {
+			m_done = true;
+		}
+		return m_done;
+	}
+};
 
 namespace SortingUtilities{
 
@@ -281,6 +535,69 @@ namespace SortingUtilities{
 			std::cout << __FUNCTION__ << " returns " << result << std::endl;
 		}
 		return result;
+	}
+
+	template <typename WRAPPER, typename DATA_TYPE>
+	array_size_t generateReferenceTestVector(WRAPPER *dst, array_size_t size,
+											 ArrayComposition& composition,
+											 DATA_TYPE &first_value,
+											 DATA_TYPE &last_value,
+											 void (*next_value)( DATA_TYPE& crnt,
+													 	 	 	 DATA_TYPE& frst,
+																 DATA_TYPE& last))
+	{
+		DATA_TYPE value = first_value;
+		switch (composition.composition) {
+		case ArrayCompositions::ALL_DISCRETE:
+		case ArrayCompositions::ALL_PERMUTATIONS:
+			{
+				for (array_size_t i = 0; i != size; i++) {
+					dst[i] = value;
+					next_value(value, first_value, last_value);
+				}
+			}
+			break;
+		case ArrayCompositions::FEW_DISTINCT:
+			{
+				array_size_t counts_per_value =
+						size / composition.num_distinct_values;
+				if (size % composition.num_distinct_values)
+					counts_per_value++;
+				for (array_size_t i = 0, value_counter = counts_per_value;
+								  i < size; i++) {
+					dst[i] = value;
+					if (--value_counter == 0) {
+						value_counter = counts_per_value;
+						next_value(value, first_value, last_value);
+					}
+				}
+			}
+			break;
+		case ArrayCompositions::FEW_DIFFERENT:
+			{
+				array_size_t same_counter = size - composition.num_different;
+				same_counter--;	// because the counter is NOT a predecrement
+
+				for (array_size_t i = 0; i != size; i++) {
+					dst[i] = value;
+					if (same_counter) {
+						same_counter--;
+					} else {
+						next_value(value, first_value, last_value);
+					}
+				}
+			}
+			break;
+		case ArrayCompositions::ALL_SAME:
+			for (array_size_t i = 0; i != size; i++) {
+				dst[i] = first_value;
+			}
+			break;
+		case ArrayCompositions::INVALID:
+		default:
+			break;
+		}
+		return size;
 	}
 
 }	// namespace GenerateTestVectors

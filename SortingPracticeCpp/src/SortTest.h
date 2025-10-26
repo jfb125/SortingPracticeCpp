@@ -20,6 +20,7 @@
 #include "Disorganizer.h"
 #include "SortFailureLog.h"
 #include "InitialOrdering.h"
+#include "GenerateTestVectors.h"
 #include "MessageList.h"
 #include "OneTestResult.h"		// results of running n tests of a given array length
 #include "ResultOutput.h"
@@ -88,7 +89,7 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 									ArrayComposition& composition,
 									InitialOrdering& ordering,
 									SimpleRandomizer& randomizer,
-									T *reference_data,
+									T *values,
 									array_size_t array_size,
 									num_repetitions_t num_repetitions)
 {
@@ -104,7 +105,20 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 	OneTestResult<T> *retval =
 		new OneTestResult<T>(algorithm, composition, ordering, array_size, num_repetitions);
 
+	T reference_data[array_size];
+	copy_array(reference_data, values);
+
+	PermutationGenerator<T> *permutation_generator = nullptr;
+	switch(composition.composition) {
+	case ArrayCompositions::ALL_PERMUTATIONS:
+		permutation_generator = new PermutationGenerator<T>(reference_data, array_size);
+		break;
+	default:
+		break;
+	}
+
 	T sorted_data[array_size];
+
 	std::stringstream msg;
 
 	//	_is_sorted will only get cleared the first time a sort fails
@@ -153,9 +167,20 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 	}
 
 	T previous[array_size];
-	for (num_repetitions_t i = 0; i != num_repetitions; i++) {
-		copy_array(sorted_data, reference_data);
-		disorganizeDataArray(sorted_data, array_size, ordering, randomizer, false);
+	for (num_repetitions_t i = 0; i < num_repetitions; i++) {
+		//	Generate a test vector
+		if (!permutation_generator) {
+			copy_array(sorted_data, reference_data);
+			disorganizeDataArray(sorted_data, array_size, ordering, randomizer, false);
+		} else {
+			//	When testing all permutations, the reference_data vector
+			//	changes each time (vs just getting disorganized each time)
+			permutation_generator->next(reference_data);
+			copy_array(sorted_data, reference_data);
+			if (permutation_generator->is_done()) {
+				num_repetitions = i;
+			}
+		}
 		if (i != 0) {
 			array_size_t first_difference = 0;
 			while (first_difference != array_size) {

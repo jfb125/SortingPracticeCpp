@@ -3,9 +3,11 @@
 
 #include <iostream>
 #include <iomanip>
+#include <limits>
 #include "SortingDataTypes.h"
 #include "GenerateTestVectors.h"
 #include "IntegerArithmetic.h"
+#include <limits>
 #include "SimpleRandomizer.h"
 #include "OStreamState.h"
 #include "SortingDebugOutput.h"
@@ -13,6 +15,8 @@
 #pragma push_macro("_verbose")
 //#undef _verbose
 //#define _verbose true
+using FactorialType = long long;
+const FactorialType sorting_utilities_max_factorial = std::numeric_limits<long long>::max();
 
 array_size_t calcRotationWithModulo(array_size_t rotation_count, array_size_t span);
 
@@ -42,6 +46,9 @@ namespace SortingUtilities {
 
 	template <typename T>
 	SortMetrics swap(T*array, array_size_t i, array_size_t j);
+
+	// 'hide' this in the namespace to try to prevent collisions with function name
+	FactorialType factorial(array_size_t);
 
 	/*	******************************************************************	*/
 	/*					Functions used by some algorithms					*/

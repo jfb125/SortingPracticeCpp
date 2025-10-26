@@ -13,6 +13,7 @@
 
 #include "SortTest.h"
 #include "ResultOutput.h"
+#include "TestFixtures.h"
 
 #pragma push_macro("to_i")
 #define to_i(e_num)	static_cast<int>(e_num)
@@ -28,12 +29,14 @@
 
 bool testBlockSort();
 
+//	next_value has to be a standalone function to pass to generateReferenceVector
+
 int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
 //	testBlockSort();
-	return EXIT_SUCCESS;
+//	return EXIT_SUCCESS;
 //	sortingDataTypesTest();
 //	return EXIT_SUCCESS;
 
@@ -41,9 +44,14 @@ int main(int argc, char *argv[])
 
 	using DataType = char;
 	DataType first_value = 'A';
+	DataType last_value = 'Z';
+	auto next_value = [] (DataType& current, DataType& first, DataType& last) {
+		if (current == last) current = first;
+		else				 current = current+1;
+	};
 
 //	array_size_t array_sizes[]	= { 64, 128, 256, 512, 1024, 2048, 4096 };
-	array_size_t array_sizes[]	= { 8 };
+	array_size_t array_sizes[]	= { 8, 9, 10, 11, 12 };
 	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
@@ -73,10 +81,10 @@ int main(int argc, char *argv[])
 
 	constexpr array_size_t num_elements_out_of_order = 3;
 	InitialOrdering	initial_orderings[] = {
-			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
+//			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
 //			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
 //			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
-//			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
+			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
 	};
 	int num_initial_orderings = sizeof(initial_orderings)/sizeof(InitialOrdering);
 
@@ -97,7 +105,7 @@ int main(int argc, char *argv[])
 				<< " Orderings: " << num_initial_orderings
 				<< " of : " << num_array_sizes << " different sizes resulting in "
 				<< num_sort_algorithms * num_compositions * num_initial_orderings * num_array_sizes
-				<< " outcomes over " << num_repetitions << " repetitions" << std::endl;
+				<< " outcomes " << std::endl;
 
 	int cnt = 0;
 	// run the tests
@@ -107,12 +115,14 @@ int main(int argc, char *argv[])
 				randomizer.seed(randomizer_seed);
 				randomizer.restart();
 				for (int size_i = 0; size_i < num_array_sizes; size_i++) {
+
 					array_size_t array_size = array_sizes[size_i];
 					SortingDataType<DataType> test_values[array_size];
-					DataType value = first_value;
-					for (int i = 0; i != array_size; i++) {
-						test_values[i].value = value++;
-					}
+					SortingUtilities::generateReferenceTestVector<SortingDataType<DataType>, DataType>(
+							test_values, array_size,
+							array_compositions[composition_i],
+							first_value, last_value,
+							next_value);
 					results[cnt] = testOneAlgorithm<SortingDataType<DataType>>(
 							sort_algorithms[algorithm_i],
 							array_compositions[composition_i],

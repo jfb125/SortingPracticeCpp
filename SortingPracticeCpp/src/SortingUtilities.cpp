@@ -201,3 +201,21 @@ bool displayGenerateAllPermutations() {
 	}
 	return true;
 }
+
+FactorialType SortingUtilities::factorial(array_size_t vector_size) {
+
+	if (vector_size <= 0) return 1;
+
+	FactorialType result = 1;
+	FactorialType prior_value = 0;
+	do {
+		result *= vector_size;
+		if (result < prior_value) {
+			result = sorting_utilities_max_factorial;
+			break;
+		}
+		prior_value = result;
+	} while (vector_size-- > 1);
+
+	return result;
+}

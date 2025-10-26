@@ -1,26 +1,80 @@
-Sorting Performance In C++ built on Oct 25 2025 at 14:55:45
-Generating all 24 permutations of { A B C D }
- 0    A    B    C    D
- 1    B    A    C    D
- 2    C    A    B    D
- 3    A    C    B    D
- 4    B    C    A    D
- 5    C    B    A    D
- 6    D    A    B    C
- 7    A    D    B    C
- 8    B    D    A    C
- 9    D    B    A    C
-10    A    B    D    C
-11    B    A    D    C
-12    C    D    A    B
-13    D    C    A    B
-14    A    C    D    B
-15    C    A    D    B
-16    D    A    C    B
-17    A    D    C    B
-18    B    C    D    A
-19    C    B    D    A
-20    D    B    C    A
-21    B    D    C    A
-22    C    D    B    A
-23    D    C    B    A
+Sorting Performance In C++ built on Oct 26 2025 at 16:35:16
+Algorithms: 1 Compositions: 5 Orderings: 1 of : 5 different sizes resulting in 25 outcomes 
+ALL_DISCRETE
+   0    1    2    3    4    5    6    7
+   A    B    C    D    E    F    G    H
+ALL_DISCRETE
+   0    1    2    3    4    5    6    7    8
+   A    B    C    D    E    F    G    H    I
+ALL_DISCRETE
+   0    1    2    3    4    5    6    7    8    9
+   A    B    C    D    E    F    G    H    I    J
+ALL_DISCRETE
+   0    1    2    3    4    5    6    7    8    9   10
+   A    B    C    D    E    F    G    H    I    J    K
+ALL_DISCRETE
+   0    1    2    3    4    5    6    7    8    9   10   11
+   A    B    C    D    E    F    G    H    I    J    K    L
+ALL_SAME
+   0    1    2    3    4    5    6    7
+   A    A    A    A    A    A    A    A
+ALL_SAME
+   0    1    2    3    4    5    6    7    8
+   A    A    A    A    A    A    A    A    A
+ALL_SAME
+   0    1    2    3    4    5    6    7    8    9
+   A    A    A    A    A    A    A    A    A    A
+ALL_SAME
+   0    1    2    3    4    5    6    7    8    9   10
+   A    A    A    A    A    A    A    A    A    A    A
+ALL_SAME
+   0    1    2    3    4    5    6    7    8    9   10   11
+   A    A    A    A    A    A    A    A    A    A    A    A
+ALL_PERMUTATIONS
+   0    1    2    3    4    5    6    7
+   A    B    C    D    E    F    G    H
+ALL_PERMUTATIONS
+   0    1    2    3    4    5    6    7    8
+   A    B    C    D    E    F    G    H    I
+ALL_PERMUTATIONS
+   0    1    2    3    4    5    6    7    8    9
+   A    B    C    D    E    F    G    H    I    J
+ALL_PERMUTATIONS
+   0    1    2    3    4    5    6    7    8    9   10
+   A    B    C    D    E    F    G    H    I    J    K
+ALL_PERMUTATIONS
+   0    1    2    3    4    5    6    7    8    9   10   11
+   A    B    C    D    E    F    G    H    I    J    K    L
+FEW_DISTINCT with 3 possible values
+   0    1    2    3    4    5    6    7
+   A    A    A    B    B    B    C    C
+FEW_DISTINCT with 3 possible values
+   0    1    2    3    4    5    6    7    8
+   A    A    A    B    B    B    C    C    C
+FEW_DISTINCT with 3 possible values
+   0    1    2    3    4    5    6    7    8    9
+   A    A    A    A    B    B    B    B    C    C
+FEW_DISTINCT with 3 possible values
+   0    1    2    3    4    5    6    7    8    9   10
+   A    A    A    A    B    B    B    B    C    C    C
+FEW_DISTINCT with 3 possible values
+   0    1    2    3    4    5    6    7    8    9   10   11
+   A    A    A    A    B    B    B    B    C    C    C    C
+FEW_DIFFERENT with 2 changed elements
+   0    1    2    3    4    5    6    7
+   A    A    A    A    A    A    B    C
+FEW_DIFFERENT with 2 changed elements
+   0    1    2    3    4    5    6    7    8
+   A    A    A    A    A    A    A    B    C
+FEW_DIFFERENT with 2 changed elements
+   0    1    2    3    4    5    6    7    8    9
+   A    A    A    A    A    A    A    A    B    C
+FEW_DIFFERENT with 2 changed elements
+   0    1    2    3    4    5    6    7    8    9   10
+   A    A    A    A    A    A    A    A    A    B    C
+FEW_DIFFERENT with 2 changed elements
+   0    1    2    3    4    5    6    7    8    9   10   11
+   A    A    A    A    A    A    A    A    A    A    B    C
+====================================
+Sort Test Results
+====================================
