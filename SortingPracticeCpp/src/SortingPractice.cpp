@@ -40,18 +40,40 @@ int main(int argc, char *argv[])
 //	sortingDataTypesTest();
 //	return EXIT_SUCCESS;
 
-	int num_repetitions = 10;
+	//	Ensure that if the user selects 'All_PERMUTATIONS', they are
+	//	asked to confirm a very large test run.
+	constexpr FactorialType max_repetitions_without_confirmation= 10000;
+	constexpr bool skip_confirm_permutation_size_confirmation 	= true;
+	auto confirm_permutation_size =
+		[&] (ArrayCompositions composition, array_size_t size) -> bool {
+		if (skip_confirm_permutation_size_confirmation ||
+			composition != ArrayCompositions::ALL_PERMUTATIONS) {
+			return true;
+		}
+		FactorialType num_reps = SortingUtilities::factorial(size);
+		if (num_reps > max_repetitions_without_confirmation) {
+			std::cout << "With an array of size " << size
+					  << " there will be " << num_reps
+					  << " permutations."
+					  << " Do you wish to proceed? (y/N)";
+			char answer = 'n';
+			std::cin >> answer;
+			return answer == 'y' || answer == 'Y';
+		} else {
+			return true;
+		}
+	};
 
 	using DataType = char;
-	DataType first_value = 'A';
-	DataType last_value = 'Z';
+	DataType first_value 	= 'A';
+	DataType last_value 	= 'Z';
 	auto next_value = [] (DataType& current, DataType& first, DataType& last) {
 		if (current == last) current = first;
 		else				 current = current+1;
 	};
 
 //	array_size_t array_sizes[]	= { 64, 128, 256, 512, 1024, 2048, 4096 };
-	array_size_t array_sizes[]	= { 8, 9, 10, 11, 12 };
+	array_size_t array_sizes[] 	= { 8 };
 	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
@@ -72,19 +94,20 @@ int main(int argc, char *argv[])
 	constexpr int num_different = 2;	// number of non-normal values in FEW_DIFFERENT
 	ArrayComposition array_compositions[] = {
 			{ArrayCompositions::ALL_DISCRETE},
-			{ArrayCompositions::ALL_SAME},
-			{ArrayCompositions::ALL_PERMUTATIONS},
-			{ArrayCompositions::FEW_DISTINCT, num_discrete, num_different},
-			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different},
+//			{ArrayCompositions::ALL_SAME},
+//			{ArrayCompositions::FEW_DISTINCT, num_discrete, num_different},
+//			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different},
+			{ArrayCompositions::ALL_PERMUTATIONS, num_discrete, num_different},
 	};
 	int num_compositions = sizeof(array_compositions)/sizeof(ArrayComposition);
 
+	//	NOTE: InitialOrdering is ignored when ALL_PERMUTATIONS
 	constexpr array_size_t num_elements_out_of_order = 3;
 	InitialOrdering	initial_orderings[] = {
-//			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
+			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
 //			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
 //			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
-			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
+//			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
 	};
 	int num_initial_orderings = sizeof(initial_orderings)/sizeof(InitialOrdering);
 
@@ -100,6 +123,8 @@ int main(int argc, char *argv[])
 //	randomizer_seed = getChronoSeed();	// override default to get some variety
 	SimpleRandomizer randomizer(randomizer_seed);
 
+	int num_repetitions = 100000;
+
 	std::cout 	<< "Algorithms: " << num_sort_algorithms
 				<< " Compositions: " << num_compositions
 				<< " Orderings: " << num_initial_orderings
@@ -111,26 +136,31 @@ int main(int argc, char *argv[])
 	// run the tests
 	for (int algorithm_i = 0; algorithm_i != num_sort_algorithms; algorithm_i++) {
 		for (int composition_i = 0; composition_i != num_compositions; composition_i++) {
+			ArrayComposition composition = array_compositions[composition_i];
 			for (int ordering_i = 0; ordering_i != num_initial_orderings; ordering_i++) {
 				randomizer.seed(randomizer_seed);
 				randomizer.restart();
 				for (int size_i = 0; size_i < num_array_sizes; size_i++) {
-
 					array_size_t array_size = array_sizes[size_i];
+					if (!confirm_permutation_size(composition.composition, array_size)) {
+						continue;
+					}
 					SortingDataType<DataType> test_values[array_size];
 					SortingUtilities::generateReferenceTestVector<SortingDataType<DataType>, DataType>(
 							test_values, array_size,
-							array_compositions[composition_i],
+							composition,
 							first_value, last_value,
 							next_value);
+
 					results[cnt] = testOneAlgorithm<SortingDataType<DataType>>(
 							sort_algorithms[algorithm_i],
-							array_compositions[composition_i],
+							composition,
 							initial_orderings[ordering_i],
 							randomizer,
 							test_values,
 							array_size,
 							num_repetitions);
+
 					if (!results[cnt]->m_failure_log->_diagnostics._is_sorted) {
 							std::cout << "Sort failed: ";
 							terseDump(results[cnt], 1);

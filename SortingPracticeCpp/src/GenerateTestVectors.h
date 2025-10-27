@@ -62,7 +62,7 @@ private:
 	}
 
 	void translate_state(T*dst) {
-		for (int i = 0; i <= m_width; i++) {
+		for (int i = 0; i != m_width; i++) {
 			dst[i] = m_values[i];
 		}
 	}

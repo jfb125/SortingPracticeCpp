@@ -17,19 +17,19 @@
 
 #define PRINT_TEST_RESULT_TABLE_HEADER "===================================="
 
-constexpr char test_result_table_header[] = PRINT_TEST_RESULT_TABLE_HEADER;
-constexpr char average_compares_string[] = "avg cmp";
-constexpr char average_moves_string[] = "avg mov";
-constexpr char colon_separator[] =  ": ";
-constexpr char space_separator[] = "  ";
-constexpr char slash_separator[] = " / ";
-constexpr int compare_moves_fudge_factor = 4;
-constexpr int average_compares_strlen = 7 + compare_moves_fudge_factor;
-constexpr int average_moves_strlen = 7 + compare_moves_fudge_factor;
-constexpr int comma_separator_strlen = 2;
-constexpr int colon_separator_strlen = 2;
-constexpr int space_separator_strlen = 2;
-constexpr int slash_separator_strlen = 3;
+constexpr char test_result_table_header[] 	= PRINT_TEST_RESULT_TABLE_HEADER;
+constexpr char average_compares_string[]  	= "avg cmp";	// seven chars long
+constexpr char average_assignments_string[] = "avg asgn";	// eight chars long
+constexpr char colon_separator[] 			= ": ";
+constexpr char comma_separator[]			= ", ";
+constexpr char space_separator[] 			= "  ";
+constexpr char slash_separator[] 			= " / ";
+constexpr int comma_separator_strlen 		= 2;
+constexpr int colon_separator_strlen 		= 2;
+constexpr int space_separator_strlen 		= 2;
+constexpr int slash_separator_strlen 		= 3;
+constexpr int average_compares_strlen 	 	= 7;
+constexpr int average_assignments_strlen 	= 8;
 
 
 /*	**************************************************************	*/
@@ -73,8 +73,12 @@ public:
 /*								forward declarations						*/
 /*	**********************************************************************	*/
 
-void printRowStart(SortAlgorithms &algorithm, ArrayComposition &composition, InitialOrdering &ordering,
-					int algorithm_strlen, int composition_strlen, int ordering_strlen);
+std::string rowStartToString(SortAlgorithms &algorithm,
+							 ArrayComposition &composition,
+							 InitialOrdering &ordering,
+							 int algorithm_strlen,
+							 int composition_strlen,
+							 int ordering_strlen);
 
 
 /*	**********************************************************************	*/
@@ -203,12 +207,41 @@ int getstrlenOrdering(OneTestResult<T>** result, int num_tests) {
 	int max_len = 0;
 
 	for (int i = 0; i != num_tests; i++) {
-		int len = result[i]->m_ordering.str().length();
+		int len = result[i]->m_ordering.to_string().length();
 		if (len > max_len) {
 			max_len = len;
 		}
 	}
 	return max_len;
+}
+
+
+/*				getMaxDigitsRepetitions()			*/
+
+template <typename T>
+int getMaxDigitsRepetitions(OneTestResult<T>** result, int num_tests) {
+
+	int max_digits = 0;	// there will be at least one digit
+
+	// determine the largest number of compares
+	num_repetitions_t max_repetitions = 0;
+	for (int i = 0; i != num_tests; i++) {
+		// trying to improve readability
+		num_repetitions_t this_repetitions =
+				result[i]->m_sort_metrics.num_repetitions;
+		if (this_repetitions > max_repetitions) {
+			max_repetitions = this_repetitions;
+		}
+	}
+
+	// determine the number of decimal digits
+	//	in the largest number of compares
+	while (max_repetitions != 0) {
+		max_digits++;
+		max_repetitions /= 10;
+	}
+
+	return max_digits;
 }
 
 
@@ -424,8 +457,8 @@ bool isLess_CompostionOrderingAlgorithmSize(OneTestResult<T>* u, OneTestResult<T
 	if (u->m_composition < v->m_composition) return true;
 	if (u->m_composition > v->m_composition) return false;
 	//	compare orderings
-	if (u->m_ordering < v->m_ordering)	return true;
-	if (u->m_ordering > v->m_ordering)	return false;
+	if (u < v)	return true;
+	if (u > v)	return false;
 	//	compare algorithm
 	if (u->m_algorithm < v->m_algorithm)	return true;
 	if (u->m_algorithm > v->m_algorithm)	return false;
@@ -445,9 +478,9 @@ bool isSameLine(OneTestResult<T>* result,
 				ArrayComposition &composition,
 				InitialOrdering &ordering)
 {
-	if (result->m_algorithm != algorithm)		return false;
-	if (result->m_composition != composition) 	return false;
-	if (result->m_ordering != ordering)			return false;
+	if (result->m_algorithm 	!= algorithm)		return false;
+	if (result->m_composition 	!= composition) 	return false;
+	if (!(result->m_ordering  	== ordering))		return false;
 	return true;
 }
 
@@ -461,6 +494,9 @@ void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 
 	OStreamState ostream_state;	// restores ostream state in destructor
 
+	std::string array_sizes_str = "Array sizes";
+	std::string repetitions_str = "Repetitions";
+
 	sortResultsArray(results, num_test_results, isLess);
 
 	ArraySizeData size_data;
@@ -471,14 +507,18 @@ void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 	int max_ordering_strlen 	= getstrlenOrdering(results, num_test_results);
 	int max_digits_compares 	= getMaxDigitsCompares(results, num_test_results);
 	int max_digits_moves 		= getMaxDigitsAssignments(results, num_test_results);
-	int compares_strlen	= max_digits_compares;
-	int moves_strlen	= max_digits_moves;
+	int max_digits_repetitions	= getMaxDigitsRepetitions(results, num_test_results);
+	int compares_strlen		= max_digits_compares;
+	int assignments_strlen	= max_digits_moves;
+	int repetitions_strlen	= max_digits_repetitions;
 
+	//	Ensure compares occupy at least the width of the "avg cmp" string
 	if (compares_strlen < average_compares_strlen) {
 		compares_strlen = average_compares_strlen;
 	}
-	if (moves_strlen < average_moves_strlen) {
-		moves_strlen = average_moves_strlen;
+	//	Ensure assignments occupy at least the width of the "avg asgn" string
+	if (assignments_strlen < average_assignments_strlen) {
+		assignments_strlen = average_assignments_strlen;
 	}
 
 	SortAlgorithms current_sort; // 		= SortAlgorithms::SORT_ALGORITHMS_COUNT;
@@ -486,49 +526,59 @@ void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 	InitialOrdering current_ordering; // 	= InitialOrderings::INITIAL_ORDERINGS_COUNT;
 
 	int array_size_header_width =
-			max_algorithm_strlen + max_composition_strlen + max_ordering_strlen +
-			comma_separator_strlen + comma_separator_strlen + colon_separator_strlen;
+			max_algorithm_strlen 	+ space_separator_strlen +
+			max_composition_strlen 	+ space_separator_strlen +
+			max_ordering_strlen		+ space_separator_strlen +
+			repetitions_strlen 		+ colon_separator_strlen;
 
-	std::cout << std::setw(array_size_header_width) << std::right << "Array sizes: ";
+	//	header row:  " Array_sizes:    8      16      32   16384  "
+	std::cout 	<< std::setw(array_size_header_width) << std::right
+				<< array_sizes_str;
 	for (int i = 0; i != size_data.num_sizes; i++) {
-		std::cout << std::setw(compares_strlen + slash_separator_strlen) << size_data.sizes[i];
-		std::cout << std::setw(moves_strlen) << "" << space_separator;
+		std::cout << std::setw(compares_strlen + slash_separator_strlen)
+				  << size_data.sizes[i];
+		std::cout << std::setw(assignments_strlen) << "" << space_separator;
 	}
 	std::cout << std::endl;
 
-	std::stringstream rep_str;
-	rep_str << "number of repetitions: " << results[0]->m_sort_metrics.num_repetitions;
-	std::cout << std::setw(array_size_header_width) << std::left << rep_str.str();
+	//	second row:  "   repetitions  avg cmp / avg asgn     avg cmp / avg asgn "
+	int cmp_vs_asgn_extra_space = 0;
+	std::cout 	<< std::setw(array_size_header_width) << std::right
+				<< repetitions_str;
 	for (int i = 0; i != size_data.num_sizes; i++) {
 		std::cout << std::setw(compares_strlen) << std::right << average_compares_string
-				  << std::setw(0) << slash_separator
-				  << std::setw(moves_strlen) << std::left << average_moves_string
+				  << std::setw(cmp_vs_asgn_extra_space) << slash_separator
+				  << std::setw(assignments_strlen) << std::left << average_assignments_string
 				  << space_separator;
 	}
 	std::cout << std::endl;
 
 	SortAlgorithms	first_sort_in_group = results[0]->m_algorithm;
 	for (int i = 0; i != num_test_results; i++) {
+		//	if new grouping, print the row pre-ampble
 		if(!isSameLine(results[i], current_sort, current_composition, current_ordering)) {
-			current_sort = results[i]->m_algorithm;
+			current_sort 		= results[i]->m_algorithm;
 			current_composition = results[i]->m_composition;
-			current_ordering = results[i]->m_ordering;
+			current_ordering 	= results[i]->m_ordering;
 			if (i != 0) {
 				std::cout << std::endl;
 				if (current_sort == first_sort_in_group) {
 					std::cout << std::endl;
 				}
 			}
-			printRowStart(current_sort, current_composition, current_ordering,
-						  max_algorithm_strlen, max_composition_strlen, max_ordering_strlen);
+			std::cout << rowStartToString(
+							current_sort, current_composition, current_ordering,
+							max_algorithm_strlen, max_composition_strlen, max_ordering_strlen);
+			std::cout << std::setw(repetitions_strlen) << std::right
+					  <<  results[i]->m_sort_metrics.num_repetitions
+					  << space_separator;
 		}
 		std::cout << std::setw(compares_strlen) << std::right
 				  << results[i]->m_sort_metrics.comparesStr()
 				  << std::setw(0) << slash_separator
-				  << std::setw(moves_strlen) << std::right
+				  << std::setw(assignments_strlen) << std::right
 				  << results[i]->m_sort_metrics.movesStr()
 				  << space_separator;
-		// HACK - get rid of '-2' and "  "
 	}
 	std::cout << std::endl << std::endl;
 

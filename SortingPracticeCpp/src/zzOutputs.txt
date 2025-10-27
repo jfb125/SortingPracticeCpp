@@ -1,80 +1,12 @@
-Sorting Performance In C++ built on Oct 26 2025 at 16:35:16
-Algorithms: 1 Compositions: 5 Orderings: 1 of : 5 different sizes resulting in 25 outcomes 
-ALL_DISCRETE
-   0    1    2    3    4    5    6    7
-   A    B    C    D    E    F    G    H
-ALL_DISCRETE
-   0    1    2    3    4    5    6    7    8
-   A    B    C    D    E    F    G    H    I
-ALL_DISCRETE
-   0    1    2    3    4    5    6    7    8    9
-   A    B    C    D    E    F    G    H    I    J
-ALL_DISCRETE
-   0    1    2    3    4    5    6    7    8    9   10
-   A    B    C    D    E    F    G    H    I    J    K
-ALL_DISCRETE
-   0    1    2    3    4    5    6    7    8    9   10   11
-   A    B    C    D    E    F    G    H    I    J    K    L
-ALL_SAME
-   0    1    2    3    4    5    6    7
-   A    A    A    A    A    A    A    A
-ALL_SAME
-   0    1    2    3    4    5    6    7    8
-   A    A    A    A    A    A    A    A    A
-ALL_SAME
-   0    1    2    3    4    5    6    7    8    9
-   A    A    A    A    A    A    A    A    A    A
-ALL_SAME
-   0    1    2    3    4    5    6    7    8    9   10
-   A    A    A    A    A    A    A    A    A    A    A
-ALL_SAME
-   0    1    2    3    4    5    6    7    8    9   10   11
-   A    A    A    A    A    A    A    A    A    A    A    A
-ALL_PERMUTATIONS
-   0    1    2    3    4    5    6    7
-   A    B    C    D    E    F    G    H
-ALL_PERMUTATIONS
-   0    1    2    3    4    5    6    7    8
-   A    B    C    D    E    F    G    H    I
-ALL_PERMUTATIONS
-   0    1    2    3    4    5    6    7    8    9
-   A    B    C    D    E    F    G    H    I    J
-ALL_PERMUTATIONS
-   0    1    2    3    4    5    6    7    8    9   10
-   A    B    C    D    E    F    G    H    I    J    K
-ALL_PERMUTATIONS
-   0    1    2    3    4    5    6    7    8    9   10   11
-   A    B    C    D    E    F    G    H    I    J    K    L
-FEW_DISTINCT with 3 possible values
-   0    1    2    3    4    5    6    7
-   A    A    A    B    B    B    C    C
-FEW_DISTINCT with 3 possible values
-   0    1    2    3    4    5    6    7    8
-   A    A    A    B    B    B    C    C    C
-FEW_DISTINCT with 3 possible values
-   0    1    2    3    4    5    6    7    8    9
-   A    A    A    A    B    B    B    B    C    C
-FEW_DISTINCT with 3 possible values
-   0    1    2    3    4    5    6    7    8    9   10
-   A    A    A    A    B    B    B    B    C    C    C
-FEW_DISTINCT with 3 possible values
-   0    1    2    3    4    5    6    7    8    9   10   11
-   A    A    A    A    B    B    B    B    C    C    C    C
-FEW_DIFFERENT with 2 changed elements
-   0    1    2    3    4    5    6    7
-   A    A    A    A    A    A    B    C
-FEW_DIFFERENT with 2 changed elements
-   0    1    2    3    4    5    6    7    8
-   A    A    A    A    A    A    A    B    C
-FEW_DIFFERENT with 2 changed elements
-   0    1    2    3    4    5    6    7    8    9
-   A    A    A    A    A    A    A    A    B    C
-FEW_DIFFERENT with 2 changed elements
-   0    1    2    3    4    5    6    7    8    9   10
-   A    A    A    A    A    A    A    A    A    B    C
-FEW_DIFFERENT with 2 changed elements
-   0    1    2    3    4    5    6    7    8    9   10   11
-   A    A    A    A    A    A    A    A    A    A    B    C
+Sorting Performance In C++ built on Oct 27 2025 at 13:30:17
+Algorithms: 1 Compositions: 2 Orderings: 1 of : 1 different sizes resulting in 2 outcomes 
 ====================================
 Sort Test Results
 ====================================
+                                                Array sizes          8          
+                                                Repetitions avg cmp / avg asgn  
+INSERTION_SORT  ALL_DISCRETE      IN_RANDOM_ORDER  100000      19.3 /     24.5  
+
+INSERTION_SORT  ALL_PERMUTATIONS  IN_RANDOM_ORDER   40320      19.3 /     24.6  
+
+Completed Sorting Performance In C++

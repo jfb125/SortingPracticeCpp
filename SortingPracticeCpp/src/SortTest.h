@@ -94,6 +94,7 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 									num_repetitions_t num_repetitions)
 {
 	OStreamState ostream_state;
+	bool debug_verbose = false;
 
 	auto copy_array = [&array_size] (T *dst, T* src) {
 		for (array_size_t i = 0; i != array_size; i++) {
@@ -109,12 +110,14 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 	copy_array(reference_data, values);
 
 	PermutationGenerator<T> *permutation_generator = nullptr;
-	switch(composition.composition) {
-	case ArrayCompositions::ALL_PERMUTATIONS:
+	if (composition.composition == ArrayCompositions::ALL_PERMUTATIONS) {
 		permutation_generator = new PermutationGenerator<T>(reference_data, array_size);
-		break;
-	default:
-		break;
+		FactorialType num_permutations = SortingUtilities::factorial(array_size);
+		if (num_permutations > num_repetitions) {
+			std::cout << "Test will not cover all " << num_permutations
+					  << " permutations because it is greater than " << num_repetitions
+					  << " number of repetitions allowed " << std::endl;
+		}
 	}
 
 	T sorted_data[array_size];
@@ -167,35 +170,30 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 	}
 
 	T previous[array_size];
-	for (num_repetitions_t i = 0; i < num_repetitions; i++) {
+	bool permutations_done = false;
+	for (num_repetitions_t i = 0;
+						   i < num_repetitions && !permutations_done;
+						   i++) {
 		//	Generate a test vector
-		if (!permutation_generator) {
+		if (composition.composition != ArrayCompositions::ALL_PERMUTATIONS) {
 			copy_array(sorted_data, reference_data);
-			disorganizeDataArray(sorted_data, array_size, ordering, randomizer, false);
+			disorganizeDataArray(sorted_data, array_size,
+								 ordering, randomizer, false);
 		} else {
 			//	When testing all permutations, the reference_data vector
 			//	changes each time (vs just getting disorganized each time)
 			permutation_generator->next(reference_data);
 			copy_array(sorted_data, reference_data);
-			if (permutation_generator->is_done()) {
-				num_repetitions = i;
-			}
-		}
-		if (i != 0) {
-			array_size_t first_difference = 0;
-			while (first_difference != array_size) {
-				if (previous[first_difference] != sorted_data[first_difference]) {
-					break;
-				}
-				first_difference++;
-			}
-			if (first_difference == array_size) {
-				std::cout << "MAJOR ERROR: TWO RUNS IN A ROW HAVE SAME DISORGANIZED ORDER\n";
-			}
+			permutations_done = permutation_generator->is_done();
+			if (permutations_done)
+				retval->m_sort_metrics.num_repetitions = i+1;
 		}
 		copy_array(previous, sorted_data);
-		std::cout << SortingUtilities::arrayElementsToString(sorted_data, array_size)
-				  << std::endl;
+		if (debug_verbose) {
+			std::cout << std::setw(6) << i << ": "
+					  << SortingUtilities::arrayElementsToString(sorted_data, array_size)
+					  << std::endl;
+		}
 //		printSideBySide(*reference_data, *sorted_data);
 		compares_and_moves = sort(sorted_data, array_size);
 
@@ -226,11 +224,17 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 			retval->m_failure_log->_message = new std::string("Elements out of order");;
 			retval->m_messages->enqueue(msg.str());
 			delete result;
+			goto SORT_TEST_ONE_ALGORITHM_RETURN_LABEL;
 			return retval;
 		} else {
 //			std::cout << "completed repetition " << i << std::endl;
 		}
 		delete result;
+	}
+SORT_TEST_ONE_ALGORITHM_RETURN_LABEL:
+	if (permutation_generator) {
+		delete permutation_generator;
+		permutation_generator = nullptr;
 	}
 	return retval;
 }
@@ -266,12 +270,8 @@ void	disorganizeDataArray(T *array,
 	if (restart) {
 		randomizer.restart();
 	}
-	if (!isValid(ordering.order())) {
-		std::cout << "disorganizeDataArray(array, ordering, randomizer, restart) passed invalid ordering";
-		return;
-	}
 
-	switch(ordering.order()) {
+	switch(ordering.ordering()) {
 	case InitialOrderings::IN_RANDOM_ORDER:
 		{
 			T tmp;
@@ -299,7 +299,7 @@ void	disorganizeDataArray(T *array,
 		}
 		break;
 	case InitialOrderings::FEW_CHANGES:
-		if (ordering.num_out_of_place_is_initialized()) {
+		{
 			array_size_t y = 0;
 			T tmp;
 			for (array_size_t i = 0; i != ordering.num_out_of_place(); i++) {

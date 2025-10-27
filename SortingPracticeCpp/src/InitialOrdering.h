@@ -22,89 +22,125 @@
 /*	**************************************************************************	*/
 /*	**************************************************************************	*/
 
-#undef _INITIAL_ORDERING
-#define _INITIAL_ORDERINGS\
-	_INITIAL_ORDERING(NO_CHANGES)\
-	_INITIAL_ORDERING(IN_REVERSE_ORDER)\
-	_INITIAL_ORDERING(IN_RANDOM_ORDER)\
-	_INITIAL_ORDERING(FEW_CHANGES)\
-	_INITIAL_ORDERING(INITIAL_ORDERINGS_COUNT)
+enum class InitialOrderings {
+	NO_CHANGES,
+	IN_REVERSE_ORDER,	// 16 chars width
+	IN_RANDOM_ORDER,
+	FEW_CHANGES
+};
+TODO - fix const correctness form const UserDataType& to UserDataType const&
+const int max_initial_orderings_strlen = 16;
+namespace std {
+	std::string to_string(InitialOrderings const&);
+}
+int	strlen(const InitialOrderings&);
+std::ostream& operator<<(std::ostream& out, const InitialOrderings&);
 
-#define _INITIAL_ORDERING(order)	order,
-enum InitialOrderings : uint8_t {	_INITIAL_ORDERINGS 	};
+bool requiresNumOutOfPlace(InitialOrderings const&);
+bool requiresSeed(const InitialOrderings&);
 
-#define MIN_INITIAL_ORDERING	InitialOrderings::NO_CHANGES
-#define MAX_INITIAL_ORDERING	InitialOrderings::FEW_CHANGES
-#define NUM_INITIAL_ORDERINGS	InitialOrderings::INITIAL_ORDERINGS_COUNT
-
-std::ostream& operator<<(std::ostream&, InitialOrderings);
-std::string toString(InitialOrderings);
-
-bool isValid(InitialOrderings);
-bool requiresSeed(InitialOrderings);
-
-InitialOrderings& operator++(InitialOrderings& current_ordering);
-InitialOrderings operator++(InitialOrderings& current_ordering, int unused);
-int operator-(InitialOrderings, InitialOrderings);
-
-bool operator==(InitialOrderings, InitialOrderings);
-bool operator<(InitialOrderings, InitialOrderings);
-bool operator!=(InitialOrderings, InitialOrderings);
-bool operator<=(InitialOrderings, InitialOrderings);
-bool operator>(InitialOrderings, InitialOrderings);
-bool operator>=(InitialOrderings, InitialOrderings);
-
-#define DEFAULT_INITIAL_ORDERING_INITIAL_ORDERINGS\
-				InitialOrderings::NO_CHANGES
-#define DEFAULT_INITIAL_ORDERING_NUM_OUT_OF_PLACE ULONG_MAX
-#define DEFAULT_NUM_OUT_OF_PLACE_IS_INITIALIZED false
+constexpr int initial_ordering_default_num_out_of_place = 0;
 
 class InitialOrdering {
 private:
-	InitialOrderings _ordering;
+	InitialOrderings m_ordering;
 	// these are private to manage initialization state
-	//	when user is accessing '_num_out_of_place'
-	bool _num_out_of_place_is_initialized;
-	array_size_t _num_out_of_place;
+	//	when user is accessing 'num_out_of_place'
+	bool 			m_num_out_of_place_is_initialized;
+	array_size_t 	m_num_out_of_place;
 
 public:
 
-	InitialOrderings order(void) const;
-	InitialOrdering& order(InitialOrderings);
+	InitialOrderings ordering(void) const {
+		return m_ordering;
+	}
+	InitialOrdering& ordering(InitialOrderings& order) {
+		m_ordering = order;
+		return *this;
+	}
 
-	array_size_t num_out_of_place(void) const;
-	InitialOrdering& num_out_of_place(array_size_t);
+	array_size_t 		num_out_of_place(void) const {
+		return m_num_out_of_place;
+	}
+	InitialOrdering& 	num_out_of_place(array_size_t oop) {
+		m_num_out_of_place = oop;
+		m_num_out_of_place_is_initialized = true;
+		return *this;
+	}
 
-	bool num_out_of_place_is_initialized(void) const;
+	bool num_out_of_place_is_initialized(void) const {
+		return m_num_out_of_place_is_initialized;
+	}
 
-	//	only check _ordering; _num_out_of_place is not compared
-	bool operator==(const InitialOrdering&) const;
-	bool operator<(const InitialOrdering&) const;
-	bool operator!=(const InitialOrdering&) const;
-	bool operator <=(const InitialOrdering&) const;
-	bool operator>(const InitialOrdering&) const;
-	bool operator>=(const InitialOrdering&) const;
+	InitialOrdering() {
+		m_ordering 							= InitialOrderings::NO_CHANGES;
+		m_num_out_of_place 					= initial_ordering_default_num_out_of_place;
+		m_num_out_of_place_is_initialized	= false;
+	}
+	InitialOrdering(InitialOrderings ordering, array_size_t num_out_of_place)
+		: m_ordering(ordering), m_num_out_of_place(num_out_of_place) {
+		m_num_out_of_place_is_initialized = true;
+	}
+	InitialOrdering(InitialOrderings ordering) : m_ordering(ordering) {
+		m_num_out_of_place = initial_ordering_default_num_out_of_place;
+		m_num_out_of_place_is_initialized = false;
+	}
+	InitialOrdering(const InitialOrdering &other) {
+		m_ordering 							= other.m_ordering;
+		m_num_out_of_place					= other.m_num_out_of_place;
+		m_num_out_of_place_is_initialized	= other.m_num_out_of_place_is_initialized;
+	}
 
+	InitialOrdering& operator=(const InitialOrderings& ordering) {
+		m_ordering	= ordering;
+		return *this;
+	}
 
-	InitialOrdering& operator++();
-	InitialOrdering operator++(int unused);
-	int operator-(const InitialOrdering&) const;
+	std::string to_string() {
+		std::stringstream result;
+		result << std::to_string(m_ordering);
+		if (m_ordering == InitialOrderings::FEW_CHANGES) {
+			result << m_num_out_of_place;
+		}
+		return result.str();
+	}
 
-	std::string str(void) const;
-
-	InitialOrdering();
-	~InitialOrdering();
-	InitialOrdering(InitialOrderings ordering, array_size_t num_out_of_place);
-	InitialOrdering(InitialOrderings ordering);
-	InitialOrdering(const InitialOrdering& other);
-	InitialOrdering& operator=(const InitialOrdering& other);
-	//	this does not change the value of '_num_out_of_place'
-	InitialOrdering& operator=(InitialOrderings ordering);
+	//	These are needed to sort the table of outputs
+	bool operator==(InitialOrdering v) {
+		if (!(m_ordering == v.ordering())) {
+			return false;
+		}
+		if (m_num_out_of_place_is_initialized ||
+			!v.num_out_of_place_is_initialized()) {
+			return true;
+		}
+		return m_num_out_of_place == v.num_out_of_place();
+	}
+	bool operator< (InitialOrdering v) {
+		if (m_ordering < v.ordering()) {
+			return true;
+		}
+		if (!m_num_out_of_place_is_initialized ||
+			!v.num_out_of_place_is_initialized()) {
+			return true;
+		}
+		return m_num_out_of_place < v.num_out_of_place();
+	}
+	bool operator<=(InitialOrderings v) {
+		return *this < v || *this == v;
+	}
+	bool operator> (InitialOrderings v) {
+		return !(*this<v) && !(*this==v);
+	}
+	bool operator>=(InitialOrderings v) {
+		return !(*this < v);
+	}
+	bool operator!=(InitialOrderings v) {
+		return !(*this==v);
+	}
 };
 
-bool requiresNumOutOfPlace(InitialOrderings);
-bool isValid(InitialOrderings);
-
-std::ostream& operator<<(std::ostream&, const InitialOrdering&);
+bool requiresNumOutOfPlace(InitialOrdering);
+std::ostream& operator<<(std::ostream&, InitialOrdering&);
 
 #endif /* INITIALORDERING_H_ */
