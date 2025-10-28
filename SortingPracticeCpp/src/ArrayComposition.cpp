@@ -20,52 +20,24 @@ bool isValid(ArrayCompositions composition) {
 	}
 }
 
-ArrayCompositions& operator++(ArrayCompositions& current_composition) {
-	switch(current_composition) {
-	case ArrayCompositions::ALL_DISCRETE:
-		current_composition = ArrayCompositions::ALL_PERMUTATIONS;
-		break;
-	case ArrayCompositions::ALL_PERMUTATIONS:
-		current_composition = ArrayCompositions::ALL_SAME;
-		break;
-	case ArrayCompositions::ALL_SAME:
-		current_composition = ArrayCompositions::FEW_DIFFERENT;
-		break;
-	case ArrayCompositions::FEW_DIFFERENT:
-		current_composition = ArrayCompositions::FEW_DISTINCT;
-		break;
-	case ArrayCompositions::FEW_DISTINCT:
-	default:
-		current_composition = ArrayCompositions::INVALID;
-		break;
-	}
-	return current_composition;
-}
-
-ArrayCompositions operator++(ArrayCompositions& current_composition, int) {
-
-	ArrayCompositions was = current_composition;
-	++current_composition;
-	return was;
-}
 //	fundamental
-bool operator==(ArrayCompositions u, ArrayCompositions v) {
+bool operator==(const ArrayCompositions u, const ArrayCompositions v) {
 	return static_cast<int>(u) == static_cast<int>(v);
 }
-bool operator<(ArrayCompositions u, ArrayCompositions v) {
+bool operator<(const ArrayCompositions u, const ArrayCompositions v) {
 	return static_cast<int>(u) < static_cast<int>(v);
 }
 //	derived
-bool operator<=(ArrayCompositions u, ArrayCompositions v) {
+bool operator<=(const ArrayCompositions u, const ArrayCompositions v) {
 	return (u == v) || (u < v);
 }
-bool operator>(ArrayCompositions u, ArrayCompositions v) {
+bool operator>(const ArrayCompositions u, const ArrayCompositions v) {
 	return !(u == v) && !(u < v);
 }
-bool operator>=(ArrayCompositions u, ArrayCompositions v) {
+bool operator>=(const ArrayCompositions u, const ArrayCompositions v) {
 	return !(u < v);
 }
-bool operator!=(ArrayCompositions u, ArrayCompositions v) {
+bool operator!=(const ArrayCompositions u, const ArrayCompositions v) {
 	return !(u == v);
 }
 

@@ -54,6 +54,27 @@ std::ostream& operator<<(std::ostream &out, InitialOrderings ordering) {
 	return out;
 }
 
+//	fundamental
+bool operator==(const InitialOrderings u, const InitialOrderings v) {
+	return static_cast<int>(u) == static_cast<int>(v);
+}
+bool operator< (const InitialOrderings u, const InitialOrderings  v) {
+	return static_cast<int>(u) <  static_cast<int>(v);
+}
+//	derived
+bool operator<=(const InitialOrderings u, const InitialOrderings  v) {
+	return  (u == v) ||  (u < v);
+}
+bool operator> (const InitialOrderings u, const InitialOrderings v) {
+	return !(u == v) && !(u < v);
+}
+bool operator>=(const InitialOrderings u, const InitialOrderings v) {
+	return !(u <  v);
+}
+bool operator!=(const InitialOrderings u, const InitialOrderings v) {
+	return !(u == v);
+}
+
 /*
  * 	class InitialOrdering
  */

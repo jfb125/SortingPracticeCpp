@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
 	//	Ensure that if the user selects 'All_PERMUTATIONS', they are
 	//	asked to confirm a very large test run.
-	constexpr FactorialType max_repetitions_without_confirmation= 10000;
+	constexpr FactorialType max_repetitions_without_confirmation= 100000;
 	constexpr bool skip_confirm_permutation_size_confirmation 	= true;
 	auto confirm_permutation_size =
 		[&] (ArrayCompositions composition, array_size_t size) -> bool {
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 		else				 current = current+1;
 	};
 
-//	array_size_t array_sizes[]	= { 64, 128, 256, 512, 1024, 2048, 4096 };
+//	array_size_t array_sizes[]	= { 64, 128, 256, 512, 1024 }; //, 2048, 4096 };
 	array_size_t array_sizes[] 	= { 8 };
 	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 //			SortAlgorithms::HEAP_SORT,
 //			SortAlgorithms::QUICK_SORT,
 //			SortAlgorithms::OPTIMIZED_QUICK_SORT,
-//			SortAlgorithms::MERGE_SORT,
+			SortAlgorithms::MERGE_SORT,
 //			SortAlgorithms::INPLACE_MERGE,
 //			SortAlgorithms::BLOCK_SORT,
 	};
@@ -92,12 +92,19 @@ int main(int argc, char *argv[])
 
 	constexpr int num_discrete  = 3;	// number of distince values in FEW_DISCRETE
 	constexpr int num_different = 2;	// number of non-normal values in FEW_DIFFERENT
+
+#pragma push_macro("UNUSED_VAR")
+#define UNUSED_VAR(expr) do { (void)(expr); }while(false)
+	UNUSED_VAR(num_discrete);
+	UNUSED_VAR(num_different);
+#pragma pop_macro("UNUSED_VAR")
+
 	ArrayComposition array_compositions[] = {
 			{ArrayCompositions::ALL_DISCRETE},
-//			{ArrayCompositions::ALL_SAME},
+			{ArrayCompositions::ALL_SAME},
 //			{ArrayCompositions::FEW_DISTINCT, num_discrete, num_different},
 //			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different},
-			{ArrayCompositions::ALL_PERMUTATIONS, num_discrete, num_different},
+//			{ArrayCompositions::ALL_PERMUTATIONS},
 	};
 	int num_compositions = sizeof(array_compositions)/sizeof(ArrayComposition);
 
@@ -105,7 +112,7 @@ int main(int argc, char *argv[])
 	constexpr array_size_t num_elements_out_of_order = 3;
 	InitialOrdering	initial_orderings[] = {
 			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
-//			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
+			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
 //			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
 //			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
 	};
@@ -123,7 +130,7 @@ int main(int argc, char *argv[])
 //	randomizer_seed = getChronoSeed();	// override default to get some variety
 	SimpleRandomizer randomizer(randomizer_seed);
 
-	int num_repetitions = 100000;
+	int num_repetitions = 1000;
 
 	std::cout 	<< "Algorithms: " << num_sort_algorithms
 				<< " Compositions: " << num_compositions
@@ -171,8 +178,13 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+	ResultTableOrdering table_structure(
+			ResultTableElements::COMPOSITION,
+			ResultTableElements::ORDERING,
+			ResultTableElements::ALGORITHM,
+			ResultTableElements::COMPOSITION);
 
-	printTestResults(results, cnt);
+	printTestResults(results, cnt, table_structure);
 
 	std::cout << "Completed Sorting Performance In C++" << std::endl;
 

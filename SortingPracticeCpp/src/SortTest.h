@@ -102,23 +102,27 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 		}
 	};
 
-//	bool reset_generator = true;
 	OneTestResult<T> *retval =
 		new OneTestResult<T>(algorithm, composition, ordering, array_size, num_repetitions);
 
-	T reference_data[array_size];
-	copy_array(reference_data, values);
-
 	PermutationGenerator<T> *permutation_generator = nullptr;
 	if (composition.composition == ArrayCompositions::ALL_PERMUTATIONS) {
-		permutation_generator = new PermutationGenerator<T>(reference_data, array_size);
 		FactorialType num_permutations = SortingUtilities::factorial(array_size);
 		if (num_permutations > num_repetitions) {
-			std::cout << "Test will not cover all " << num_permutations
-					  << " permutations because it is greater than " << num_repetitions
+			std::cout << "Test over all " << num_permutations
+					  << " not performed because num_permutations is less than "
+					  << num_repetitions
 					  << " number of repetitions allowed " << std::endl;
+			retval->m_ignore = true;
+			//	avoid triggering an abort of successive tests
+			retval->m_failure_log->_diagnostics._is_sorted = true;
+			return retval;
 		}
+		permutation_generator = new PermutationGenerator<T>(values, array_size);
 	}
+
+	T reference_data[array_size];
+	copy_array(reference_data, values);
 
 	T sorted_data[array_size];
 

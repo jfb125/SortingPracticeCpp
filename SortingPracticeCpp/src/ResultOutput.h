@@ -31,6 +31,57 @@ constexpr int slash_separator_strlen 		= 3;
 constexpr int average_compares_strlen 	 	= 7;
 constexpr int average_assignments_strlen 	= 8;
 
+/*	**************************************************************************	*/
+/*			Information about how the output table should be structured			*/
+/*	**************************************************************************	*/
+
+enum class ResultTableElements {
+	ALGORITHM,
+	COMPOSITION,
+	ORDERING,
+	SIZE
+};
+
+#define DEFAULT_RESULT_TABLE_FIRST 			ResultTableElements::ALGORITHM
+#define DEFAULT_RESULT_TABLE_SECOND			ResultTableElements::COMPOSITION
+#define DEFAULT_RESULT_TABLE_THIRD			ResultTableElements::ORDERING
+#define	DEFAULT_RESULT_TABLE_END_OF_BLOCK	ResultTableElements::ORDERING
+
+class ResultTableOrdering {
+	ResultTableElements line_preamble_first;
+	ResultTableElements line_preamble_second;
+	ResultTableElements line_preamble_third;
+	ResultTableElements m_end_of_block;
+
+public:
+	ResultTableOrdering(ResultTableElements _first		= DEFAULT_RESULT_TABLE_FIRST,
+						ResultTableElements _second		= DEFAULT_RESULT_TABLE_SECOND,
+						ResultTableElements _third		= DEFAULT_RESULT_TABLE_THIRD,
+						ResultTableElements _linefeed	= DEFAULT_RESULT_TABLE_END_OF_BLOCK)
+		:	line_preamble_first(_first),
+			line_preamble_second(_second),
+			line_preamble_third(_third),
+			m_end_of_block(_linefeed) {}
+	~ResultTableOrdering() {}
+
+	ResultTableElements first(void) const 	{ return line_preamble_first;	}
+	ResultTableElements second(void) const	{ return line_preamble_second;	}
+	ResultTableElements third(void) const	{ return line_preamble_third;	}
+	ResultTableElements block_end(void) const	{ return m_end_of_block;	}
+
+	ResultTableOrdering& first(ResultTableElements arg) {
+		line_preamble_first = arg;
+		return *this;	}
+	ResultTableOrdering& second(ResultTableElements arg) {
+		line_preamble_second = arg;
+		return *this;	}
+	ResultTableOrdering& third(ResultTableElements arg)	{
+		line_preamble_third = arg;
+		return *this;	}
+	ResultTableOrdering& block_end(ResultTableElements arg)	{
+		m_end_of_block = arg;
+		return *this;	}
+};
 
 /*	**************************************************************	*/
 /*		class that contains all of the array size's data for table	*/
@@ -68,22 +119,14 @@ public:
 	}
 };
 
-
 /*	**********************************************************************	*/
 /*								forward declarations						*/
 /*	**********************************************************************	*/
+template <typename T>
+using CompareFunction = bool (*)(OneTestResult<T>*u, OneTestResult<T>*v);
 
-std::string rowStartToString(SortAlgorithms &algorithm,
-							 ArrayComposition &composition,
-							 InitialOrdering &ordering,
-							 int algorithm_strlen,
-							 int composition_strlen,
-							 int ordering_strlen);
-
-
-/*	**********************************************************************	*/
-/*							templated function declarations					*/
-/*	**********************************************************************	*/
+template <typename T>
+CompareFunction<T> assignCompareFunction(ResultTableOrdering& structure);
 
 //	gets the ArraySizeData from 'results'  This is used as the table header
 template <typename T>
@@ -117,12 +160,32 @@ int getstrlenOrdering(OneTestResult<T>** result, int num_tests);
 //	Is used to aid in sortResultArray() into the order they will go in
 //	the output table.  The order of priority is alg->comp->order->size
 template <typename T>
-bool isLess_AlgorithmCompostionOrderingSize(OneTestResult<T>* u, OneTestResult<T>* v);
+bool isLess_AlgorithmCompositionOrderingSize(OneTestResult<T>* u, OneTestResult<T>* v);
+
+//	Is used to aid in sortResultArray() into the order they will go in
+//	the output table.  The order of priority is alg->comp->order->size
+template <typename T>
+bool isLess_AlgorithmOrderingCompositionSize(OneTestResult<T>* u, OneTestResult<T>* v);
+
+//	Is used to aid in sortResultArray() into the order they will go in
+//	the output table.  The order of priority is alg->order->comp->size
+template <typename T>
+bool isLess_CompositionOrderingAlgorithmSize(OneTestResult<T>* u, OneTestResult<T>* v);
 
 //	Is used to aid in sortResultArray() into the order they will go in
 //	the output table.  The order of priority is comp->order->alg->size
 template <typename T>
-bool isLess_CompostionOrderingAlgorithmSize(OneTestResult<T>* u, OneTestResult<T>* v);
+bool isLess_CompositionAlgorithmOrderingSize(OneTestResult<T>* u, OneTestResult<T>* v);
+
+//	Is used to aid in sortResultArray() into the order they will go in
+//	the output table.  The order of priority is order->alg->comp->size
+template <typename T>
+bool isLess_OrderingAlgorithmCompositionSize(OneTestResult<T>* u, OneTestResult<T>* v);
+
+//	Is used to aid in sortResultArray() into the order they will go in
+//	the output table.  The order of priority is order->comp->alg->size
+template <typename T>
+bool isLess_OrderingCompositionAlgorithmSize(OneTestResult<T>* u, OneTestResult<T>* v);
 
 //	verifies that this OneTestResult matches algorithm & composition & ordering
 //	this is used to determine when to go to a new line in the result table
@@ -135,19 +198,28 @@ bool isSameLine(OneTestResult<T>* result,
 //	Prints the results into a table with the column headers being array sizes,
 //	each row represents an algorithm, and the table's contents are the metrics
 template <typename T>
-void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
+void printRowPreamble_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 												  int num_test_results,
-												  bool (*isLess)(OneTestResult<T>*, OneTestResult<T>*));
+												  ResultTableOrdering &structure);
 
 //	The function to call to get a table of test results outputted to the screen
 template <typename T>
 void printTestResults(OneTestResult<T> **results, int num_test_results);
 
+//	Prints out the start of the line
+std::string rowPreambleToString(SortAlgorithms &algorithm,
+							 	ArrayComposition &composition,
+								InitialOrdering &ordering,
+								int algorithm_strlen,
+								int composition_strlen,
+								int ordering_strlen,
+								ResultTableOrdering& structure);
+
 //	This sorts the array of pointers to individual results using 'isULessThanV
 //	into the order the results will appear on the screen
 template <typename T>
 void sortResultsArray(OneTestResult<T>** results, int num_tests,
-					  bool (*isULessThanV)(OneTestResult<T>* u, OneTestResult<T>* v));
+					  CompareFunction<T> isULessThanV);
 
 //	Dumps the parameters of one result without dumping the sort_metrics
 //	'i', if >= 0, is printed at the start of the line
@@ -163,6 +235,34 @@ void terseDump(OneTestResult<T>** results, int num_test_results);
 /*							templated function definitions					*/
 /*	**********************************************************************	*/
 
+template <typename T>
+CompareFunction<T> assignCompareFunction(ResultTableOrdering& structure)
+{
+	switch (structure.first()) {
+	case ResultTableElements::ALGORITHM:
+	default:
+		if (structure.second() == ResultTableElements::COMPOSITION) {
+			return isLess_AlgorithmCompositionOrderingSize<T>;
+		} else {
+			return isLess_AlgorithmOrderingCompositionSize<T>;
+		}
+		break;
+	case ResultTableElements::COMPOSITION:
+		if (structure.second() == ResultTableElements::ALGORITHM) {
+			return isLess_CompositionAlgorithmOrderingSize<T>;
+		} else {
+			return isLess_CompositionOrderingAlgorithmSize<T>;
+		}
+		break;
+	case ResultTableElements::ORDERING:
+		if (structure.second() == ResultTableElements::COMPOSITION) {
+			return isLess_OrderingCompositionAlgorithmSize<T>;
+		} else {
+			return isLess_OrderingAlgorithmCompositionSize<T>;
+		}
+		break;
+	}
+}
 
 /*				getstrlenAlgorithm()				*/
 
@@ -427,11 +527,8 @@ void getArraySizeData(ArraySizeData &dst,
 	tail = nullptr;
 }
 
-
-/*			isLess_AlgorithmCompostionOrderingSize()		*/
-
 template <typename T>
-bool isLess_AlgorithmCompostionOrderingSize(OneTestResult<T>* u, OneTestResult<T>* v) {
+bool isLess_AlgorithmCompositionOrderingSize(OneTestResult<T>* u, OneTestResult<T>* v) {
 	//	compare algorithm
 	if (u->m_algorithm < v->m_algorithm)	return true;
 	if (u->m_algorithm > v->m_algorithm)	return false;
@@ -439,36 +536,99 @@ bool isLess_AlgorithmCompostionOrderingSize(OneTestResult<T>* u, OneTestResult<T
 	if (u->m_composition < v->m_composition) return true;
 	if (u->m_composition > v->m_composition) return false;
 	//	compare orderings
-	if (u->m_ordering < v->m_ordering)	return true;
-	if (u->m_ordering > v->m_ordering)	return false;
+	if (u->m_ordering < v->m_ordering)		return true;
+	if (u->m_ordering > v->m_ordering)		return false;
 	//	compares sizes
-	if (u->m_size < v->m_size)	return true;
-	if (u->m_size > v->m_size)	return false;
+	if (u->m_size < v->m_size)				return true;
+	if (u->m_size > v->m_size)				return false;
 	//	the test result parameters are identical
 	return false;
 }
 
-
-/*				isLess_CompostionOrderingAlgorithmSize()		*/
+template <typename T>
+bool isLess_AlgorithmOrderingCompositionSize(OneTestResult<T>* u, OneTestResult<T>* v) {
+	//	compare algorithm
+	if (u->m_algorithm < v->m_algorithm)	return true;
+	if (u->m_algorithm > v->m_algorithm)	return false;
+	//	compare orderings
+	if (u->m_ordering < v->m_ordering)		return true;
+	if (u->m_ordering > v->m_ordering)		return false;
+	//	compare composition
+	if (u->m_composition < v->m_composition) return true;
+	if (u->m_composition > v->m_composition) return false;
+	//	compares sizes
+	if (u->m_size < v->m_size)				return true;
+	if (u->m_size > v->m_size)				return false;
+	return false;
+}
 
 template <typename T>
-bool isLess_CompostionOrderingAlgorithmSize(OneTestResult<T>* u, OneTestResult<T>* v) {
+bool isLess_CompositionAlgorithmOrderingSize(OneTestResult<T>* u, OneTestResult<T>* v) {
+	//	compare composition
+	if (u->m_composition < v->m_composition) return true;
+	if (u->m_composition > v->m_composition) return false;
+	//	compare algorithm
+	if (u->m_algorithm < v->m_algorithm)	return true;
+	if (u->m_algorithm > v->m_algorithm)	return false;
+	//	compare orderings
+	if (u->m_ordering < v->m_ordering)		return true;
+	if (u->m_ordering > v->m_ordering)		return false;
+	//	compares sizes
+	if (u->m_size < v->m_size)				return true;
+	if (u->m_size > v->m_size)				return false;
+	return false;
+}
+
+template <typename T>
+bool isLess_CompositionOrderingAlgorithmSize(OneTestResult<T>* u, OneTestResult<T>* v) {
 	//	compare composition
 	if (u->m_composition < v->m_composition) return true;
 	if (u->m_composition > v->m_composition) return false;
 	//	compare orderings
-	if (u < v)	return true;
-	if (u > v)	return false;
+	if (u->m_ordering < v->m_ordering)		return true;
+	if (u->m_ordering > v->m_ordering)		return false;
 	//	compare algorithm
 	if (u->m_algorithm < v->m_algorithm)	return true;
 	if (u->m_algorithm > v->m_algorithm)	return false;
 	//	compares sizes
-	if (u->m_size < v->m_size)	return true;
-	if (u->m_size > v->m_size)	return false;
-	//	the test result parameters are identical
+	if (u->m_size < v->m_size)				return true;
+	if (u->m_size > v->m_size)				return false;
 	return false;
 }
 
+template <typename T>
+bool isLess_OrderingAlgorithmCompositionSize(OneTestResult<T>* u, OneTestResult<T>* v) {
+	//	compare orderings
+	if (u->m_ordering < v->m_ordering)		return true;
+	if (u->m_ordering > v->m_ordering)		return false;
+	//	compare algorithm
+	if (u->m_algorithm < v->m_algorithm)	return true;
+	if (u->m_algorithm > v->m_algorithm)	return false;
+	//	compare composition
+	if (u->m_composition < v->m_composition) return true;
+	if (u->m_composition > v->m_composition) return false;
+	//	compares sizes
+	if (u->m_size < v->m_size)				return true;
+	if (u->m_size > v->m_size)				return false;
+	return false;
+}
+
+template <typename T>
+bool isLess_OrderingCompositionAlgorithmSize(OneTestResult<T>* u, OneTestResult<T>* v) {
+	//	compare orderings
+	if (u->m_ordering < v->m_ordering)		return true;
+	if (u->m_ordering > v->m_ordering)		return false;
+	//	compare composition
+	if (u->m_composition < v->m_composition) return true;
+	if (u->m_composition > v->m_composition) return false;
+	//	compare algorithm
+	if (u->m_algorithm < v->m_algorithm)	return true;
+	if (u->m_algorithm > v->m_algorithm)	return false;
+	//	compares sizes
+	if (u->m_size < v->m_size)				return true;
+	if (u->m_size > v->m_size)				return false;
+	return false;
+}
 
 /*				isSameLine()					*/
 
@@ -484,20 +644,17 @@ bool isSameLine(OneTestResult<T>* result,
 	return true;
 }
 
-
 /*				printRowsAlgorithm_ColumnsSize_CellsAverages()		*/
 
 template <typename T>
-void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
+void printRowPreamble_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 												  int num_test_results,
-												  bool (*isLess)(OneTestResult<T>*, OneTestResult<T>*)) {
+												  ResultTableOrdering& structure) {
 
 	OStreamState ostream_state;	// restores ostream state in destructor
 
 	std::string array_sizes_str = "Array sizes";
 	std::string repetitions_str = "Repetitions";
-
-	sortResultsArray(results, num_test_results, isLess);
 
 	ArraySizeData size_data;
 	getArraySizeData(size_data, results, num_test_results);
@@ -521,10 +678,6 @@ void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 		assignments_strlen = average_assignments_strlen;
 	}
 
-	SortAlgorithms current_sort; // 		= SortAlgorithms::SORT_ALGORITHMS_COUNT;
-	ArrayComposition current_composition; //= ArrayCompositions::INVALID;
-	InitialOrdering current_ordering; // 	= InitialOrderings::INITIAL_ORDERINGS_COUNT;
-
 	int array_size_header_width =
 			max_algorithm_strlen 	+ space_separator_strlen +
 			max_composition_strlen 	+ space_separator_strlen +
@@ -533,7 +686,8 @@ void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 
 	//	header row:  " Array_sizes:    8      16      32   16384  "
 	std::cout 	<< std::setw(array_size_header_width) << std::right
-				<< array_sizes_str;
+				<< array_sizes_str
+				<< space_separator;
 	for (int i = 0; i != size_data.num_sizes; i++) {
 		std::cout << std::setw(compares_strlen + slash_separator_strlen)
 				  << size_data.sizes[i];
@@ -544,7 +698,8 @@ void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 	//	second row:  "   repetitions  avg cmp / avg asgn     avg cmp / avg asgn "
 	int cmp_vs_asgn_extra_space = 0;
 	std::cout 	<< std::setw(array_size_header_width) << std::right
-				<< repetitions_str;
+				<< repetitions_str
+				<< space_separator;
 	for (int i = 0; i != size_data.num_sizes; i++) {
 		std::cout << std::setw(compares_strlen) << std::right << average_compares_string
 				  << std::setw(cmp_vs_asgn_extra_space) << slash_separator
@@ -553,26 +708,69 @@ void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 	}
 	std::cout << std::endl;
 
-	SortAlgorithms	first_sort_in_group = results[0]->m_algorithm;
+	SortAlgorithms 		current_algorithm;
+	ArrayComposition 	current_composition;
+	InitialOrdering 	current_ordering;
+	SortAlgorithms		previous_algorithm;
+	ArrayComposition	previous_composition;
+	InitialOrdering		previous_ordering;
+
+	bool m_ignore_was_announced = false;
+
 	for (int i = 0; i != num_test_results; i++) {
-		//	if new grouping, print the row pre-ampble
-		if(!isSameLine(results[i], current_sort, current_composition, current_ordering)) {
-			current_sort 		= results[i]->m_algorithm;
+		//	if new grouping, print the row preamble
+		if(i == 0 || !isSameLine(results[i],
+								 current_algorithm,
+								 current_composition,
+								 current_ordering)) {
+			current_algorithm 	= results[i]->m_algorithm;
 			current_composition = results[i]->m_composition;
 			current_ordering 	= results[i]->m_ordering;
+			//	if previous_? have previously been set
 			if (i != 0) {
+				//	put the line feed at the end of the previous line
 				std::cout << std::endl;
-				if (current_sort == first_sort_in_group) {
-					std::cout << std::endl;
+				//	if this line is also the end of a block,
+				//	line feed a blank line
+				switch(structure.block_end()) {
+				default:
+				case ResultTableElements::ALGORITHM:
+					if (current_algorithm != previous_algorithm)
+						std::cout << std::endl;
+					break;
+				case ResultTableElements::COMPOSITION:
+					if (current_composition != previous_composition)
+						std::cout << std::endl;
+					break;
+				case ResultTableElements::ORDERING:
+					if (current_ordering != previous_ordering)
+						std::cout << std::endl;
+					break;
 				}
+				m_ignore_was_announced 	= false;
 			}
-			std::cout << rowStartToString(
-							current_sort, current_composition, current_ordering,
-							max_algorithm_strlen, max_composition_strlen, max_ordering_strlen);
+			//	Print the row preamble including algorithm, comp & ordering
+			std::cout << rowPreambleToString(
+							current_algorithm, current_composition, current_ordering,
+							max_algorithm_strlen, max_composition_strlen, max_ordering_strlen,
+							structure)
+					  << space_separator;
+			//	Print the number of repetitions of this test result
 			std::cout << std::setw(repetitions_strlen) << std::right
 					  <<  results[i]->m_sort_metrics.num_repetitions
 					  << space_separator;
+			previous_algorithm		= current_algorithm;
+			previous_composition	= current_composition;
+			previous_ordering		= current_ordering;
 		}
+		if (results[i]->m_ignore) {
+			if (!m_ignore_was_announced) {
+				std::cout << " result[i].m_ignore is true, no result reported";
+				m_ignore_was_announced = true;
+			}
+			continue;
+		}
+		//	print out the next set of test metrics
 		std::cout << std::setw(compares_strlen) << std::right
 				  << results[i]->m_sort_metrics.comparesStr()
 				  << std::setw(0) << slash_separator
@@ -591,24 +789,25 @@ void printRowsAlgorithm_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 
 /*				printTestResults()					*/
 
+
 template <typename T>
-void printTestResults(OneTestResult<T> **results, int num_test_results) {
+void printTestResults(OneTestResult<T> **results, int num_test_results,
+					  ResultTableOrdering& structure) {
 
 	std::cout << test_result_table_header << std::endl
 			  << "Sort Test Results" << std::endl
 			  << test_result_table_header << std::endl;
-	bool (*isLess)(OneTestResult<T>* u, OneTestResult<T>*v);
-	isLess = isLess_CompostionOrderingAlgorithmSize;
-	printRowsAlgorithm_ColumnsSize_CellsAverages(results, num_test_results, isLess);
+	CompareFunction<T> isLess = assignCompareFunction<T>(structure);
+	sortResultsArray(results, num_test_results, isLess);
+	printRowPreamble_ColumnsSize_CellsAverages(results, num_test_results, structure);
 }
-
 
 /*
  *	bubble sort with  !was_swap  optimization
  */
 template <typename T>
 void sortResultsArray(OneTestResult<T>** results, int num_tests,
-					  bool (*isULessThanV)(OneTestResult<T>* u, OneTestResult<T>* v)) {
+					  CompareFunction<T> isULessThanV) {
 
 	if (results == nullptr)
 		return;

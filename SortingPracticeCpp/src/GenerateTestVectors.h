@@ -593,7 +593,6 @@ namespace SortingUtilities{
 				dst[i] = first_value;
 			}
 			break;
-		case ArrayCompositions::INVALID:
 		default:
 			break;
 		}

@@ -76,8 +76,9 @@ private:
 		m_size 							= 0;
 		m_sort_metrics.compares 		= 0;
 		m_sort_metrics.assignments 		= 0;
-		m_sort_metrics.num_repetitions = 0;
-		m_messages = new MessageList();
+		m_sort_metrics.num_repetitions 	= 0;
+		m_messages 						= new MessageList();
+		m_ignore						= true;
 	}
 
 public:
@@ -87,7 +88,7 @@ public:
 	array_size_t 		m_size;
 	SortTestMetrics 	m_sort_metrics;
 	SortFailureLog<T> 	*m_failure_log;
-
+	bool				m_ignore;	// sortTest may not run a test if too big
 	MessageList 		*m_messages;
 
 	std::string str(void) const;
@@ -104,9 +105,10 @@ public:
 		m_size 							= x_size;
 		m_sort_metrics.compares 		= 0;
 		m_sort_metrics.assignments 		= 0;
-		m_sort_metrics.num_repetitions = x_num_repetitions;
-		m_failure_log 	= new SortFailureLog<T>();
-		m_messages 		= new MessageList();
+		m_sort_metrics.num_repetitions 	= x_num_repetitions;
+		m_failure_log 					= new SortFailureLog<T>();
+		m_messages 						= new MessageList();
+		m_ignore						= false;
 	}
 
 	OneTestResult(OneTestResult &other) {
@@ -116,6 +118,7 @@ public:
 			m_ordering 		= other.m_ordering;
 			m_size 			= other.m_size;
 			m_sort_metrics 	= other.m_sort_metrics;
+			m_ignore		= other.m_ignore;
 
 			if (other.m_failure_log)
 				// if other has an object copy it
@@ -140,6 +143,7 @@ public:
 			m_ordering 		= other.m_ordering;
 			m_size 			= other.m_size;
 			m_sort_metrics 	= other.m_sort_metrics;
+			m_ignore		= other.m_ignore;
 
 			// delete existing object
 			if (m_failure_log) {
@@ -175,6 +179,7 @@ public:
 			m_ordering 		= other.m_ordering;
 			m_size 			= other.m_size;
 			m_sort_metrics 	= other.m_sort_metrics;
+			m_ignore		= other.m_ignore;
 
 			if (m_failure_log) {
 				delete m_failure_log;
@@ -212,6 +217,7 @@ public:
 			m_composition 		= other.m_composition;
 			m_ordering 			= other.m_ordering;
 			m_sort_metrics 		= other.m_sort_metrics;
+			m_ignore			= other.m_ignore;
 
 			// delete *this object
 			if (m_failure_log) {

@@ -1,12 +1,18 @@
-Sorting Performance In C++ built on Oct 27 2025 at 13:30:17
-Algorithms: 1 Compositions: 2 Orderings: 1 of : 1 different sizes resulting in 2 outcomes 
+Sorting Performance In C++ built on Oct 28 2025 at 16:00:41
+Algorithms: 2 Compositions: 2 Orderings: 2 of : 1 different sizes resulting in 8 outcomes 
 ====================================
 Sort Test Results
 ====================================
-                                                Array sizes          8          
-                                                Repetitions avg cmp / avg asgn  
-INSERTION_SORT  ALL_DISCRETE      IN_RANDOM_ORDER  100000      19.3 /     24.5  
+                                           Array sizes           8          
+                                           Repetitions  avg cmp / avg asgn  
+ALL_DISCRETE  IN_REVERSE_ORDER  INSERTION_SORT    1000     28.0 /     42.0  
+ALL_DISCRETE  IN_REVERSE_ORDER  MERGE_SORT        1000     13.0 /     32.0  
+ALL_DISCRETE  IN_RANDOM_ORDER   INSERTION_SORT    1000     19.4 /     24.8  
+ALL_DISCRETE  IN_RANDOM_ORDER   MERGE_SORT        1000     17.4 /     32.0  
 
-INSERTION_SORT  ALL_PERMUTATIONS  IN_RANDOM_ORDER   40320      19.3 /     24.6  
+ALL_SAME      IN_REVERSE_ORDER  INSERTION_SORT    1000      7.0 /      0.0  
+ALL_SAME      IN_REVERSE_ORDER  MERGE_SORT        1000      7.0 /      0.0  
+ALL_SAME      IN_RANDOM_ORDER   INSERTION_SORT    1000      7.0 /      0.0  
+ALL_SAME      IN_RANDOM_ORDER   MERGE_SORT        1000      7.0 /      0.0  
 
 Completed Sorting Performance In C++

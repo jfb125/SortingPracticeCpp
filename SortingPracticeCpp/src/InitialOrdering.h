@@ -28,16 +28,25 @@ enum class InitialOrderings {
 	IN_RANDOM_ORDER,
 	FEW_CHANGES
 };
-TODO - fix const correctness form const UserDataType& to UserDataType const&
 const int max_initial_orderings_strlen = 16;
 namespace std {
 	std::string to_string(InitialOrderings const&);
 }
-int	strlen(const InitialOrderings&);
-std::ostream& operator<<(std::ostream& out, const InitialOrderings&);
+int	strlen(InitialOrderings const&);
+std::ostream& operator<<(std::ostream& out, InitialOrderings const &);
 
 bool requiresNumOutOfPlace(InitialOrderings const&);
-bool requiresSeed(const InitialOrderings&);
+bool requiresSeed(InitialOrderings const&);
+
+/*
+ * 	These are necessary for ResultOutput.h to sort the table of results
+ */
+bool operator==(const InitialOrderings u, const InitialOrderings v);
+bool operator< (const InitialOrderings u, const InitialOrderings v);
+bool operator<=(const InitialOrderings u, const InitialOrderings v);
+bool operator> (const InitialOrderings u, const InitialOrderings v);
+bool operator>=(const InitialOrderings u, const InitialOrderings v);
+bool operator!=(const InitialOrderings u, const InitialOrderings v);
 
 constexpr int initial_ordering_default_num_out_of_place = 0;
 
@@ -106,6 +115,7 @@ public:
 	}
 
 	//	These are needed to sort the table of outputs
+	//	Fundamental operators
 	bool operator==(InitialOrdering v) {
 		if (!(m_ordering == v.ordering())) {
 			return false;
@@ -126,18 +136,20 @@ public:
 		}
 		return m_num_out_of_place < v.num_out_of_place();
 	}
-	bool operator<=(InitialOrderings v) {
-		return *this < v || *this == v;
+	//	Derived operators
+	bool operator<=(InitialOrdering v) {
+		return (*this < v) || (*this == v);
 	}
-	bool operator> (InitialOrderings v) {
-		return !(*this<v) && !(*this==v);
-	}
-	bool operator>=(InitialOrderings v) {
+	bool operator>=(InitialOrdering v) {
 		return !(*this < v);
 	}
-	bool operator!=(InitialOrderings v) {
-		return !(*this==v);
+	bool operator> (InitialOrdering v) {
+		return !(*this < v) && !(*this == v);
 	}
+	bool operator!=(InitialOrdering v) {
+		return !(*this == v);
+	}
+
 };
 
 bool requiresNumOutOfPlace(InitialOrdering);

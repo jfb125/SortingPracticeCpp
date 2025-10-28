@@ -13,26 +13,23 @@
 #include <sstream>
 #include <string>
 
+//	ALL_PERMUTATIONS being lowest improves look of ResultOutput table
 enum class ArrayCompositions {
 		ALL_DISCRETE,
-		ALL_PERMUTATIONS,
 		ALL_SAME,
 		FEW_DIFFERENT,
 		FEW_DISTINCT,
-		INVALID
+		ALL_PERMUTATIONS,
 	};
 
-bool isValid(ArrayCompositions composition);
-ArrayCompositions& operator++(ArrayCompositions& current_composition);
-ArrayCompositions operator++(ArrayCompositions& current_composition, int);
 //	fundamental
-bool operator==(ArrayCompositions u, ArrayCompositions v);
-bool operator< (ArrayCompositions u, ArrayCompositions v);
+bool operator==(const ArrayCompositions u, const ArrayCompositions v);
+bool operator< (const ArrayCompositions u, const ArrayCompositions v);
 //	derived
-bool operator<=(ArrayCompositions u, ArrayCompositions v);
-bool operator> (ArrayCompositions u, ArrayCompositions v);
-bool operator>=(ArrayCompositions u, ArrayCompositions v);
-bool operator!=(ArrayCompositions u, ArrayCompositions v);
+bool operator<=(const ArrayCompositions u, const ArrayCompositions v);
+bool operator> (const ArrayCompositions u, const ArrayCompositions v);
+bool operator>=(const ArrayCompositions u, const ArrayCompositions v);
+bool operator!=(const ArrayCompositions u, const ArrayCompositions v);
 
 constexpr int array_composition_string_length = 16;
 
@@ -42,7 +39,7 @@ namespace std {
 
 std::ostream& operator<<(std::ostream& out, ArrayCompositions composition);
 
-#define DEFAULT_ARRAY_COMPOSITION		ArrayCompositions::INVALID
+#define DEFAULT_ARRAY_COMPOSITION		ArrayCompositions::ALL_DISCRETE
 #define DEFAULT_NUM_DIFFERENT_VALUES	1
 #define DEFAULT_NUM_DISTINCT_VALUES 	1
 
@@ -88,19 +85,6 @@ public:
 		return *this;
 	}
 
-	//	increment operators
-
-	ArrayComposition& operator++() {
-		++composition;
-		return *this;
-	}
-
-	ArrayComposition operator++(int unused) {
-		ArrayComposition retval(*this);
-		++composition;
-		return retval;
-	}
-
 	// relational operators
 
 	bool operator==(const ArrayComposition &other) const {
@@ -135,10 +119,11 @@ public:
 			retval << " with " << num_different << " changed elements";
 			break;
 		case ArrayCompositions::FEW_DISTINCT:
-			retval << " with " << this->num_distinct_values << " possible values";
+			retval << " with " << num_distinct_values << " possible values";
 			break;
 		case ArrayCompositions::ALL_DISCRETE:
 		case ArrayCompositions::ALL_SAME:
+		case ArrayCompositions::ALL_PERMUTATIONS:
 		default:
 			break;
 		}
