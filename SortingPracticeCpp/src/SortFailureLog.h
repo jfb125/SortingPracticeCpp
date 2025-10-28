@@ -22,21 +22,21 @@ public:
 	array_size_t array_size;
 	T* input_array;
 	T* result_array;
-	IsSortedResult _diagnostics;
+	IsSortedResult m_diagnostics;
 	std::string *_message;
 
 
 	std::string to_string(void) const {
 		std::stringstream retval;
 
-		if (_diagnostics._is_sorted) {
+		if (m_diagnostics.is_sorted) {
 			retval << "    no failure occurred" << std::endl;
 		} else {
 			retval << "!!!!!!!!!! **** failure occurred **** !!!!!!!!!!" << std::endl;
 			retval 	<< "  elements out-of-place were ["
-					<< _diagnostics._mismatched_index_i
+					<< m_diagnostics.mismatched_index_i
 					<< "] vs ["
-					<< _diagnostics._mismatched_index_j << "]"
+					<< m_diagnostics.mismatched_index_j << "]"
 					<< std::endl;
 		}
 
@@ -64,14 +64,14 @@ public:
 			delete _message;
 			_message = nullptr;
 		}
-		_diagnostics._is_sorted = false;
-		_diagnostics._mismatched_index_i = 0;
-		_diagnostics._mismatched_index_j = 0;
+		m_diagnostics.is_sorted = false;
+		m_diagnostics.mismatched_index_i = 0;
+		m_diagnostics.mismatched_index_j = 0;
 	}
 
 
 	SortFailureLog() {
-		_diagnostics.clear();
+		m_diagnostics.clear();
 		input_array 	= nullptr;
 		result_array 	= nullptr;
 		array_size		= 0;
@@ -90,7 +90,7 @@ public:
 			delete _message;
 			_message = nullptr;
 		}
-		_diagnostics.clear();
+		m_diagnostics.clear();
 	}
 	// deep copies of pointer objects
 	SortFailureLog(IsSortedResult diagnostics,
@@ -125,7 +125,7 @@ public:
 			_message = nullptr;
 		}
 
-		_diagnostics= diagnostics;
+		m_diagnostics= diagnostics;
 	}
 
 	SortFailureLog(const SortFailureLog &other)
@@ -155,7 +155,7 @@ public:
 				_message = nullptr;
 			}
 
-			_diagnostics = other._diagnostics;
+			m_diagnostics = other.m_diagnostics;
 		}
 	}
 
@@ -185,7 +185,7 @@ public:
 			} else {
 				_message = nullptr;
 			}
-			_diagnostics = other._diagnostics;
+			m_diagnostics = other.m_diagnostics;
 		}
 	}
 
@@ -198,7 +198,7 @@ public:
 		other.result_array 	= nullptr;
 		_message = other._message;
 		other._message 		= nullptr;
-		_diagnostics 		= other._diagnostics;
+		m_diagnostics 		= other.m_diagnostics;
 	}
 
 	SortFailureLog& operator=(SortFailureLog &&other) noexcept {
@@ -210,12 +210,12 @@ public:
 			other.result_array 	= nullptr;
 			_message 			= other._message;
 			other._message 		= nullptr;
-			_diagnostics 		= other._diagnostics;
+			m_diagnostics 		= other.m_diagnostics;
 		}
 		return *this;
 	}
 
-	SortFailureLog& set_input(T*input, array_size_t size) {
+	SortFailureLog& copy_input(T*input, array_size_t size) {
 		if (input_array) {
 			delete input_array;
 		}
@@ -231,7 +231,7 @@ public:
 		return *this;
 	}
 
-	SortFailureLog& set_result(T* result, array_size_t size) {
+	SortFailureLog& copy_result(T* result, array_size_t size) {
 		if (result_array) {
 			delete result_array;
 		}

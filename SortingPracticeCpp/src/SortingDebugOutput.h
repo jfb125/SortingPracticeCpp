@@ -145,10 +145,22 @@ namespace SortingUtilities {
 		lower_index_unordered = 0;
 		upper_index_unordered = 0;
 		for (array_size_t i = size-1; i > 0 ; --i) {
+			metrics.compares++;
 			if (array[i] < array[i-1]) {
 				lower_index_unordered = i-1;
 				upper_index_unordered = i;
 				return false;
+			}
+		}
+		return true;
+	}
+
+	template <typename T>
+	bool isStable(T *array, array_size_t size) {
+		for (array_size_t i = 1; i != size; i++) {
+			if (array[i].value == array[i-1].value) {
+				if (array[i].index < array[i-1].index)
+					return false;
 			}
 		}
 		return true;

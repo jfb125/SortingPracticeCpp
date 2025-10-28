@@ -64,28 +64,38 @@ int main(int argc, char *argv[])
 		}
 	};
 
-	using DataType = char;
-	DataType first_value 	= 'A';
-	DataType last_value 	= 'Z';
+	using DataType = std::string;
+	DataType first_value("AAAA");
+	DataType last_value("ZZZZ");
 	auto next_value = [] (DataType& current, DataType& first, DataType& last) {
-		if (current == last) current = first;
-		else				 current = current+1;
+		if (current == last) {
+			current = first;
+		} else {
+			for (int i = current.size()-1; i >= 0; i--) {
+				if (current[i] == 'Z') {
+					current[i] = 'A';
+				} else {
+					current[i]++;
+					break;
+				}
+			}
+		}
 	};
 
-//	array_size_t array_sizes[]	= { 64, 128, 256, 512, 1024 }; //, 2048, 4096 };
-	array_size_t array_sizes[] 	= { 8 };
+	array_size_t array_sizes[]	= { 64, 128, 256, 512 };
+//	array_size_t array_sizes[] 	= { 8 };
 	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
-//			SortAlgorithms::BUBBLE_SORT,
-//			SortAlgorithms::SELECTION_SORT,
+			SortAlgorithms::BUBBLE_SORT,
+			SortAlgorithms::SELECTION_SORT,
 			SortAlgorithms::INSERTION_SORT,
-//			SortAlgorithms::DUTCH_FLAG_SORT,
-//			SortAlgorithms::HEAP_SORT,
-//			SortAlgorithms::QUICK_SORT,
-//			SortAlgorithms::OPTIMIZED_QUICK_SORT,
+			SortAlgorithms::DUTCH_FLAG_SORT,
+			SortAlgorithms::HEAP_SORT,
+			SortAlgorithms::QUICK_SORT,
+			SortAlgorithms::OPTIMIZED_QUICK_SORT,
 			SortAlgorithms::MERGE_SORT,
-//			SortAlgorithms::INPLACE_MERGE,
+			SortAlgorithms::INPLACE_MERGE,
 //			SortAlgorithms::BLOCK_SORT,
 	};
 	int num_sort_algorithms = sizeof(sort_algorithms)/sizeof(SortAlgorithms);
@@ -99,11 +109,13 @@ int main(int argc, char *argv[])
 	UNUSED_VAR(num_different);
 #pragma pop_macro("UNUSED_VAR")
 
+	//	BE VERY CAREFUL WHEN SELECTING 'ALL_PERMUTATIONS' - even
+	//	an array size of 8 will generate 8! = 40320 repetitions
 	ArrayComposition array_compositions[] = {
 			{ArrayCompositions::ALL_DISCRETE},
-			{ArrayCompositions::ALL_SAME},
-//			{ArrayCompositions::FEW_DISTINCT, num_discrete, num_different},
-//			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different},
+//			{ArrayCompositions::ALL_SAME},
+			{ArrayCompositions::FEW_DISTINCT, num_discrete, num_different},
+			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different},
 //			{ArrayCompositions::ALL_PERMUTATIONS},
 	};
 	int num_compositions = sizeof(array_compositions)/sizeof(ArrayComposition);
@@ -112,7 +124,7 @@ int main(int argc, char *argv[])
 	constexpr array_size_t num_elements_out_of_order = 3;
 	InitialOrdering	initial_orderings[] = {
 			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
-			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
+//			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
 //			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
 //			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
 	};
@@ -168,7 +180,7 @@ int main(int argc, char *argv[])
 							array_size,
 							num_repetitions);
 
-					if (!results[cnt]->m_failure_log->_diagnostics._is_sorted) {
+					if (!results[cnt]->m_failure_log->m_diagnostics.is_sorted) {
 							std::cout << "Sort failed: ";
 							terseDump(results[cnt], 1);
 							std::cout << std::endl;
@@ -179,8 +191,8 @@ int main(int argc, char *argv[])
 		}
 	}
 	ResultTableOrdering table_structure(
-			ResultTableElements::COMPOSITION,
 			ResultTableElements::ORDERING,
+			ResultTableElements::COMPOSITION,
 			ResultTableElements::ALGORITHM,
 			ResultTableElements::COMPOSITION);
 

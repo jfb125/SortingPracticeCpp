@@ -20,6 +20,7 @@
 constexpr char test_result_table_header[] 	= PRINT_TEST_RESULT_TABLE_HEADER;
 constexpr char average_compares_string[]  	= "avg cmp";	// seven chars long
 constexpr char average_assignments_string[] = "avg asgn";	// eight chars long
+constexpr char stability_string[]			= "S?";
 constexpr char colon_separator[] 			= ": ";
 constexpr char comma_separator[]			= ", ";
 constexpr char space_separator[] 			= "  ";
@@ -30,6 +31,7 @@ constexpr int space_separator_strlen 		= 2;
 constexpr int slash_separator_strlen 		= 3;
 constexpr int average_compares_strlen 	 	= 7;
 constexpr int average_assignments_strlen 	= 8;
+constexpr int stability_string_strlen		= 2;
 
 /*	**************************************************************************	*/
 /*			Information about how the output table should be structured			*/
@@ -701,9 +703,11 @@ void printRowPreamble_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 				<< repetitions_str
 				<< space_separator;
 	for (int i = 0; i != size_data.num_sizes; i++) {
-		std::cout << std::setw(compares_strlen) << std::right << average_compares_string
+		std::cout << std::setw(compares_strlen) 		<< std::right << average_compares_string
 				  << std::setw(cmp_vs_asgn_extra_space) << slash_separator
-				  << std::setw(assignments_strlen) << std::left << average_assignments_string
+				  << std::setw(assignments_strlen) 		<< std::left << average_assignments_string
+				  << space_separator
+				  << std::setw(stability_string_strlen) << std::left << stability_string
 				  << space_separator;
 	}
 	std::cout << std::endl;
@@ -776,6 +780,10 @@ void printRowPreamble_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 				  << std::setw(0) << slash_separator
 				  << std::setw(assignments_strlen) << std::right
 				  << results[i]->m_sort_metrics.movesStr()
+				  << space_separator
+				  << std::setw(stability_string_strlen) << std::right
+//				  << (results[i]->m_failure_log->m_diagnostics.is_stable ? 'Y' : 'N')
+				  << (results[i]->m_is_stable ? 'Y' : 'N')
 				  << space_separator;
 	}
 	std::cout << std::endl << std::endl;

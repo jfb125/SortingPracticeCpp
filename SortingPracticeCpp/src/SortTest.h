@@ -104,6 +104,7 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 
 	OneTestResult<T> *retval =
 		new OneTestResult<T>(algorithm, composition, ordering, array_size, num_repetitions);
+	retval->m_is_stable = true;
 
 	PermutationGenerator<T> *permutation_generator = nullptr;
 	if (composition.composition == ArrayCompositions::ALL_PERMUTATIONS) {
@@ -115,7 +116,7 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 					  << " number of repetitions allowed " << std::endl;
 			retval->m_ignore = true;
 			//	avoid triggering an abort of successive tests
-			retval->m_failure_log->_diagnostics._is_sorted = true;
+			retval->m_failure_log->m_diagnostics.is_sorted = true;
 			return retval;
 		}
 		permutation_generator = new PermutationGenerator<T>(values, array_size);
@@ -129,7 +130,7 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 	std::stringstream msg;
 
 	//	_is_sorted will only get cleared the first time a sort fails
-	retval->m_failure_log->_diagnostics._is_sorted = true;
+	retval->m_failure_log->m_diagnostics.is_sorted = true;
 
 	SortMetrics compares_and_moves;
 	SortMetrics (*sort)(T*, array_size_t);
@@ -192,6 +193,7 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 			if (permutations_done)
 				retval->m_sort_metrics.num_repetitions = i+1;
 		}
+		SortingDataTypes::assignSequenceNumbers(sorted_data, array_size, 0);
 		copy_array(previous, sorted_data);
 		if (debug_verbose) {
 			std::cout << std::setw(6) << i << ": "
@@ -200,31 +202,38 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 		}
 //		printSideBySide(*reference_data, *sorted_data);
 		compares_and_moves = sort(sorted_data, array_size);
-
 //		printSideBySide(*reference_data, *sorted_data);
 //		std::cout << "evaluating success of repetition " << i << std::endl;
 
-		retval->m_sort_metrics.compares += compares_and_moves.compares;
-		retval->m_sort_metrics.assignments += compares_and_moves.assignments;
+		retval->m_sort_metrics.compares 	+= compares_and_moves.compares;
+		retval->m_sort_metrics.assignments 	+= compares_and_moves.assignments;
+		//	if every sort up to this point has been stable,
+		//	  see if this sort was stable
+		if (retval->m_is_stable) {
+			retval->m_is_stable	=
+					SortingUtilities::isStable(sorted_data, array_size);
+		}
+
 		IsSortedResult *result = new IsSortedResult;
-		result->_is_sorted =
+		result->is_sorted =
 			SortingUtilities::isSorted(sorted_data, array_size,
 									   compares_and_moves,
-									   result->_mismatched_index_i,
-									   result->_mismatched_index_j);
+									   result->mismatched_index_i,
+									   result->mismatched_index_j);
 
-		if (!result->_is_sorted) {
+//			SortingUtilities::isStable(sorted_data, array_size);
+		if (!result->is_sorted) {
 			msg << "****************** FAILURE ON REPETITION #" << i << std::endl;
-			msg << "[" << result->_mismatched_index_i << "] = "
+			msg << "[" << result->mismatched_index_i << "] = "
 //				<< sorted_data[result->_mismatched_index_i]
-                << " is not less than [" << result->_mismatched_index_j << "] = "
+                << " is not less than [" << result->mismatched_index_j << "] = "
 //				<< *sorted_data[result->_mismatched_index_j]
                 << std::endl;
 			std::cout << msg.str() << std::endl;
 			retval->m_failure_log = new SortFailureLog<T>();
-			retval->m_failure_log->_diagnostics = *result;
-			retval->m_failure_log->set_input(reference_data, array_size);
-			retval->m_failure_log->set_result(sorted_data, array_size);
+			retval->m_failure_log->m_diagnostics = *result;
+			retval->m_failure_log->copy_input(reference_data, array_size);
+			retval->m_failure_log->copy_result(sorted_data, array_size);
 			retval->m_failure_log->_message = new std::string("Elements out of order");;
 			retval->m_messages->enqueue(msg.str());
 			delete result;

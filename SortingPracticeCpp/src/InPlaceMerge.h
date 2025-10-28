@@ -83,6 +83,10 @@ namespace InPlaceMerge {
 			break;
 		}
 
+		if (SortingUtilities::isSorted(array, array_size, metrics)) {
+			return metrics ;
+		}
+
 		//	Small arrays can just be InsertionSorted and done
 		if (array_size < 2*initial_block_size) {
 			metrics = InsertionSort::sort(array, array_size);

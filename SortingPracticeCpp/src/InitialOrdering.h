@@ -23,10 +23,10 @@
 /*	**************************************************************************	*/
 
 enum class InitialOrderings {
-	NO_CHANGES,
-	IN_REVERSE_ORDER,	// 16 chars width
 	IN_RANDOM_ORDER,
-	FEW_CHANGES
+	IN_REVERSE_ORDER,	// 16 chars width
+	FEW_CHANGES,
+	NO_CHANGES,
 };
 const int max_initial_orderings_strlen = 16;
 namespace std {

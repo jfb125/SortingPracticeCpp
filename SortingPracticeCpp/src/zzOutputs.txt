@@ -1,18 +1,38 @@
-Sorting Performance In C++ built on Oct 28 2025 at 16:00:41
-Algorithms: 2 Compositions: 2 Orderings: 2 of : 1 different sizes resulting in 8 outcomes 
+Sorting Performance In C++ built on Oct 28 2025 at 17:27:42
+Algorithms: 9 Compositions: 3 Orderings: 1 of : 4 different sizes resulting in 108 outcomes 
 ====================================
 Sort Test Results
 ====================================
-                                           Array sizes           8          
-                                           Repetitions  avg cmp / avg asgn  
-ALL_DISCRETE  IN_REVERSE_ORDER  INSERTION_SORT    1000     28.0 /     42.0  
-ALL_DISCRETE  IN_REVERSE_ORDER  MERGE_SORT        1000     13.0 /     32.0  
-ALL_DISCRETE  IN_RANDOM_ORDER   INSERTION_SORT    1000     19.4 /     24.8  
-ALL_DISCRETE  IN_RANDOM_ORDER   MERGE_SORT        1000     17.4 /     32.0  
+                                                                         Array sizes             64                      128                      256                      512            
+                                                                         Repetitions     avg cmp / avg asgn    S?     avg cmp / avg asgn    S?     avg cmp / avg asgn    S?     avg cmp / avg asgn    S?  
+IN_RANDOM_ORDER  ALL_DISCRETE                           BUBBLE_SORT             1000      1974.9 /     3021.0   Y      8031.7 /    12214.0   Y     32422.7 /    48966.1   Y    130372.0 /   196173.1   Y  
+IN_RANDOM_ORDER  ALL_DISCRETE                           SELECTION_SORT          1000      2017.7 /      177.5   Y      8129.7 /      368.0   Y     32641.7 /      749.6   Y    130817.7 /     1515.4   Y  
+IN_RANDOM_ORDER  ALL_DISCRETE                           INSERTION_SORT          1000      1066.2 /     1125.5   Y      4193.9 /     4316.5   Y     16571.9 /    16821.5   Y     65896.1 /    66401.4   Y  
+IN_RANDOM_ORDER  ALL_DISCRETE                           MERGE_SORT              1000       306.8 /      384.0   Y       737.6 /     1024.0   Y      1728.1 /     2048.0   Y      3964.9 /     5120.0   Y  
+IN_RANDOM_ORDER  ALL_DISCRETE                           HEAP_SORT               1000       573.0 /      988.6   Y      1398.8 /     2353.7   Y      3307.7 /     5467.5   Y      7635.5 /    12464.3   Y  
+IN_RANDOM_ORDER  ALL_DISCRETE                           QUICK_SORT              1000       378.6 /      459.0   Y       925.2 /     1006.1   Y      2181.2 /     2190.6   Y      5065.7 /     4732.6   Y  
+IN_RANDOM_ORDER  ALL_DISCRETE                           OPTIMIZED_QUICK_SORT    1000       447.3 /      338.4   Y      1097.0 /      768.2   Y      2607.9 /     1716.4   Y      6045.7 /     3791.5   Y  
+IN_RANDOM_ORDER  ALL_DISCRETE                           DUTCH_FLAG_SORT         1000       526.7 /      721.7   Y      1255.9 /     1745.5   Y      2925.2 /     4143.5   Y      6681.5 /     9526.3   Y  
+IN_RANDOM_ORDER  ALL_DISCRETE                           INPLACE_MERGE           1000       413.9 /      687.0   Y       955.1 /     1743.0   Y      2161.3 /     4235.1   Y      4824.8 /     9978.1   Y  
 
-ALL_SAME      IN_REVERSE_ORDER  INSERTION_SORT    1000      7.0 /      0.0  
-ALL_SAME      IN_REVERSE_ORDER  MERGE_SORT        1000      7.0 /      0.0  
-ALL_SAME      IN_RANDOM_ORDER   INSERTION_SORT    1000      7.0 /      0.0  
-ALL_SAME      IN_RANDOM_ORDER   MERGE_SORT        1000      7.0 /      0.0  
+IN_RANDOM_ORDER  FEW_DIFFERENT with 2 changed elements  BUBBLE_SORT             1000      1694.0 /      188.6   Y      6732.3 /      374.9   Y     27183.3 /      758.2   Y    108701.3 /     1526.0   Y  
+IN_RANDOM_ORDER  FEW_DIFFERENT with 2 changed elements  SELECTION_SORT          1000      2038.0 /      126.2   Y      8170.8 /      250.1   Y     32724.0 /      508.0   Y    130986.9 /     1015.0   Y  
+IN_RANDOM_ORDER  FEW_DIFFERENT with 2 changed elements  INSERTION_SORT          1000       125.8 /      147.0   Y       251.9 /      291.6   Y       507.7 /      591.4   Y      1019.7 /     1185.4   Y  
+IN_RANDOM_ORDER  FEW_DIFFERENT with 2 changed elements  MERGE_SORT              1000       260.9 /      384.0   Y       588.0 /     1024.0   Y      1312.7 /     2048.0   Y      2886.5 /     5120.0   Y  
+IN_RANDOM_ORDER  FEW_DIFFERENT with 2 changed elements  HEAP_SORT               1000       222.5 /      213.9   N       439.2 /      411.7   N       868.2 /      801.3   N      1727.1 /     1575.2   N  
+IN_RANDOM_ORDER  FEW_DIFFERENT with 2 changed elements  QUICK_SORT              1000      1917.7 /      376.3   N      7922.6 /      760.3   N     32219.0 /     1528.5   N    129971.0 /     3064.5   N  
+IN_RANDOM_ORDER  FEW_DIFFERENT with 2 changed elements  OPTIMIZED_QUICK_SORT    1000      1976.9 /      313.3   N      8109.8 /      697.4   N     32662.9 /     1465.5   N    130925.9 /     3001.4   N  
+IN_RANDOM_ORDER  FEW_DIFFERENT with 2 changed elements  DUTCH_FLAG_SORT         1000       153.0 /       10.3   N       301.8 /       10.4   N       599.0 /       10.5   N      1197.9 /       10.4   N  
+IN_RANDOM_ORDER  FEW_DIFFERENT with 2 changed elements  INPLACE_MERGE           1000       197.3 /      161.6   Y       456.1 /      318.2   Y      1044.7 /      647.0   Y      2346.5 /     1273.5   Y  
+
+IN_RANDOM_ORDER  FEW_DISTINCT with 3 possible values    BUBBLE_SORT             1000      1800.2 /     2042.5   Y      7226.1 /     8213.9   Y     29061.6 /    32775.8   Y    116277.5 /   130981.4   Y  
+IN_RANDOM_ORDER  FEW_DISTINCT with 3 possible values    SELECTION_SORT          1000      2018.3 /      127.5   N      8130.3 /      253.6   N     32642.3 /      511.6   N    130818.4 /     1021.5   N  
+IN_RANDOM_ORDER  FEW_DISTINCT with 3 possible values    INSERTION_SORT          1000       743.0 /      765.7   Y      2864.1 /     2907.0   Y     11179.5 /    11266.2   Y     44170.6 /    44341.5   Y  
+IN_RANDOM_ORDER  FEW_DISTINCT with 3 possible values    MERGE_SORT              1000       286.3 /      384.0   Y       674.1 /     1024.0   Y      1559.1 /     2048.0   Y      3536.5 /     5120.0   Y  
+IN_RANDOM_ORDER  FEW_DISTINCT with 3 possible values    HEAP_SORT               1000       471.8 /      708.0   N      1122.6 /     1679.0   N      2586.4 /     3860.9   N      5868.0 /     8756.1   N  
+IN_RANDOM_ORDER  FEW_DISTINCT with 3 possible values    QUICK_SORT              1000       756.0 /      434.7   N      2877.4 /      893.3   N     11219.6 /     1810.3   N     44292.3 /     3644.3   N  
+IN_RANDOM_ORDER  FEW_DISTINCT with 3 possible values    OPTIMIZED_QUICK_SORT    1000       731.6 /      258.0   N      3032.6 /      717.0   N     11746.2 /     1633.2   N     45525.0 /     3467.9   N  
+IN_RANDOM_ORDER  FEW_DISTINCT with 3 possible values    DUTCH_FLAG_SORT         1000       210.9 /      127.5   N       420.5 /      247.2   N       836.6 /      498.0   N      1663.6 /      971.6   N  
+IN_RANDOM_ORDER  FEW_DISTINCT with 3 possible values    INPLACE_MERGE           1000       328.8 /      476.7   Y       761.8 /     1195.2   Y      1729.6 /     2880.4   Y      3873.0 /     6753.1   Y  
 
 Completed Sorting Performance In C++

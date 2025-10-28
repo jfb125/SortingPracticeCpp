@@ -45,6 +45,9 @@ namespace SortingUtilities {
 				  array_size_t &lower_index_unordered, array_size_t &upper_index_unordered);
 
 	template <typename T>
+	bool isStable(T *array, array_size_t size);
+
+	template <typename T>
 	SortMetrics swap(T*array, array_size_t i, array_size_t j);
 
 	// 'hide' this in the namespace to try to prevent collisions with function name

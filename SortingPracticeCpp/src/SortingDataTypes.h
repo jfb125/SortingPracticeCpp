@@ -41,6 +41,7 @@ struct SortMetrics {
 
 //#define NUMBER_OF_MOVES_PER_SWAP 3
 constexpr bool 			DEFAULT_ISSORTEDRESULT_IS_SORTED 			= false;
+constexpr bool 			DEFAULT_ISSORTEDRESULT_IS_STABLE 			= false;
 constexpr array_size_t 	DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_I 	= 0;
 constexpr array_size_t 	DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_J 	= 0;
 
@@ -57,39 +58,37 @@ std::string averageMetricsToString(	const SortMetrics &metrics,
 
 class IsSortedResult {
 public:
-	bool _is_sorted;
-	array_size_t _mismatched_index_i;
-	array_size_t _mismatched_index_j;
+	bool is_sorted;
+	array_size_t mismatched_index_i;
+	array_size_t mismatched_index_j;
 
 	void clear(void) {
-		_is_sorted = DEFAULT_ISSORTEDRESULT_IS_SORTED;
-		_mismatched_index_i =
-				DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_I;
-		_mismatched_index_j =
-				DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_J;
+		is_sorted 			= DEFAULT_ISSORTEDRESULT_IS_SORTED;
+		mismatched_index_i 	= DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_I;
+		mismatched_index_j 	= DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_J;
 	}
 
 	IsSortedResult() {
 		clear();
 	}
 
-	IsSortedResult(bool is_sorted, array_size_t i, array_size_t j) :
-		_is_sorted(is_sorted),
-		_mismatched_index_i(i),
-		_mismatched_index_j(j)
+	IsSortedResult(bool _is_sorted, bool _is_stable, array_size_t i, array_size_t j) :
+		is_sorted(_is_sorted),
+		mismatched_index_i(i),
+		mismatched_index_j(j)
 		{}
 
 	IsSortedResult(const IsSortedResult &other) {
-		_is_sorted = other._is_sorted;
-		_mismatched_index_i = other._mismatched_index_i;
-		_mismatched_index_j = other._mismatched_index_j;
+		is_sorted = other.is_sorted;
+		mismatched_index_i = other.mismatched_index_i;
+		mismatched_index_j = other.mismatched_index_j;
 	}
 
 	IsSortedResult& operator=(const IsSortedResult &other) {
 		if (this != &other) {
-			_is_sorted = other._is_sorted;
-			_mismatched_index_i = other._mismatched_index_i;
-			_mismatched_index_j = other._mismatched_index_j;
+			is_sorted = other.is_sorted;
+			mismatched_index_i = other.mismatched_index_i;
+			mismatched_index_j = other.mismatched_index_j;
 		}
 		return *this;
 	}

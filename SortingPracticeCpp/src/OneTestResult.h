@@ -77,8 +77,9 @@ private:
 		m_sort_metrics.compares 		= 0;
 		m_sort_metrics.assignments 		= 0;
 		m_sort_metrics.num_repetitions 	= 0;
-		m_messages 						= new MessageList();
+		m_is_stable						= false;
 		m_ignore						= true;
+		m_messages 						= new MessageList();
 	}
 
 public:
@@ -88,6 +89,7 @@ public:
 	array_size_t 		m_size;
 	SortTestMetrics 	m_sort_metrics;
 	SortFailureLog<T> 	*m_failure_log;
+	bool				m_is_stable;
 	bool				m_ignore;	// sortTest may not run a test if too big
 	MessageList 		*m_messages;
 
@@ -107,8 +109,9 @@ public:
 		m_sort_metrics.assignments 		= 0;
 		m_sort_metrics.num_repetitions 	= x_num_repetitions;
 		m_failure_log 					= new SortFailureLog<T>();
-		m_messages 						= new MessageList();
+		m_is_stable						= false;
 		m_ignore						= false;
+		m_messages 						= new MessageList();
 	}
 
 	OneTestResult(OneTestResult &other) {
@@ -118,6 +121,7 @@ public:
 			m_ordering 		= other.m_ordering;
 			m_size 			= other.m_size;
 			m_sort_metrics 	= other.m_sort_metrics;
+			m_is_stable		= other.m_is_stable;
 			m_ignore		= other.m_ignore;
 
 			if (other.m_failure_log)
@@ -143,6 +147,7 @@ public:
 			m_ordering 		= other.m_ordering;
 			m_size 			= other.m_size;
 			m_sort_metrics 	= other.m_sort_metrics;
+			m_is_stable		= other.m_is_stable;
 			m_ignore		= other.m_ignore;
 
 			// delete existing object
@@ -179,6 +184,7 @@ public:
 			m_ordering 		= other.m_ordering;
 			m_size 			= other.m_size;
 			m_sort_metrics 	= other.m_sort_metrics;
+			m_is_stable		= other.m_is_stable;
 			m_ignore		= other.m_ignore;
 
 			if (m_failure_log) {
@@ -217,6 +223,7 @@ public:
 			m_composition 		= other.m_composition;
 			m_ordering 			= other.m_ordering;
 			m_sort_metrics 		= other.m_sort_metrics;
+			m_is_stable			= other.m_is_stable;
 			m_ignore			= other.m_ignore;
 
 			// delete *this object
@@ -301,6 +308,7 @@ public:
 				<< std::left << "metrics:"
 				<< std::endl
 				<< m_sort_metrics.averagesStr();
+		result  << (m_is_stable ? "    stable" : "not stable");
 		result  << std::endl;
 
 		if (m_failure_log) {
