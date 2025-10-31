@@ -76,7 +76,7 @@ void disorganizeDataArray(T* array,
 template <typename T>
 SortMetrics bogusSort(T* array, array_size_t size) {
 	SortMetrics result(0,0);
-	result += SortingUtilities::randomizeArray(array, size);
+	SortingUtilities::randomizeArray(array, size, &result);
 	return result;
 }
 
@@ -108,7 +108,7 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 
 	PermutationGenerator<T> *permutation_generator = nullptr;
 	if (composition.composition == ArrayCompositions::ALL_PERMUTATIONS) {
-		FactorialType num_permutations = SortingUtilities::factorial(array_size);
+		factorial_t num_permutations = SortingUtilities::factorial(array_size);
 		if (num_permutations > num_repetitions) {
 			std::cout << "Test over all " << num_permutations
 					  << " not performed because num_permutations is less than "
@@ -205,8 +205,7 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 //		printSideBySide(*reference_data, *sorted_data);
 //		std::cout << "evaluating success of repetition " << i << std::endl;
 
-		retval->m_sort_metrics.compares 	+= compares_and_moves.compares;
-		retval->m_sort_metrics.assignments 	+= compares_and_moves.assignments;
+		retval->m_sort_metrics 	+= compares_and_moves;
 		//	if every sort up to this point has been stable,
 		//	  see if this sort was stable
 		if (retval->m_is_stable) {
@@ -217,7 +216,6 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 		IsSortedResult *result = new IsSortedResult;
 		result->is_sorted =
 			SortingUtilities::isSorted(sorted_data, array_size,
-									   compares_and_moves,
 									   result->mismatched_index_i,
 									   result->mismatched_index_j);
 

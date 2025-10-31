@@ -202,12 +202,12 @@ bool displayGenerateAllPermutations() {
 	return true;
 }
 
-FactorialType SortingUtilities::factorial(array_size_t vector_size) {
+factorial_t SortingUtilities::factorial(array_size_t vector_size) {
 
 	if (vector_size <= 0) return 1;
 
-	FactorialType result = 1;
-	FactorialType prior_value = 0;
+	factorial_t result = 1;
+	factorial_t prior_value = 0;
 	do {
 		result *= vector_size;
 		if (result < prior_value) {

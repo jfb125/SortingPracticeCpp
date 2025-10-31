@@ -83,7 +83,7 @@ namespace InPlaceMerge {
 			break;
 		}
 
-		if (SortingUtilities::isSorted(array, array_size, metrics)) {
+		if (SortingUtilities::isSorted(array, array_size, &metrics)) {
 			return metrics ;
 		}
 
@@ -128,7 +128,7 @@ namespace InPlaceMerge {
 			while (block_2_start < array_size) {
 				mergeBlocks(array, 	block_1_start, block_1_end,
 									block_2_start, block_2_end,
-									metrics);
+									&metrics);
 				//	move the indices to the next pair of blocks
 				block_1_start = block_2_end + 1;
 				block_1_end	  = block_1_start + block_size - 1;

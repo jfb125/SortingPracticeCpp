@@ -13,6 +13,7 @@
 #include <string>
 
 #include "SortingDataTypes.h"
+#include "SortTestMetrics.h"
 #include "OStreamState.h"
 
 constexpr int 	ELEMENT_WIDTH 		= 5;
@@ -91,68 +92,6 @@ namespace SortingUtilities {
 	    	crc = (crc << 8) ^ ccitt_hash[((crc >> 8) ^ _data) & 0x00FF];
 	    }
 	    return crc;
-	}
-
-	// returns bool
-	template <typename T>
-	bool isSorted(T *array, array_size_t size) {
-		for (array_size_t i = size-1; i > 0 ; --i) {
-			if (array[i] < array[i-1]) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	// 	returns bool
-	//	 updates the number of compares in 'metrics'
-	template <typename T>
-	bool isSorted(T *array, array_size_t size, SortMetrics &metrics) {
-		for (array_size_t i = size-1; i > 0 ; --i) {
-			metrics.compares++;
-			if (array[i] < array[i-1]) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	// 	returns bool
-	//	stores location of the unordered elements in i, j
-	//		always updates value of i & j
-	template <typename T>
-	bool isSorted(T *array, array_size_t size,
-				  array_size_t &lower_index_unordered, array_size_t &upper_index_unordered) {
-		lower_index_unordered = 0;
-		upper_index_unordered = 0;
-		for (array_size_t i = size-1; i > 0 ; --i) {
-			if (array[i] < array[i-1]) {
-				lower_index_unordered = i-1;
-				upper_index_unordered = i;
-				return false;
-			}
-		}
-		return true;
-	}
-
-	// returns bool
-	// stores number of compares in 'metrics'
-	// stores location of mismatch in lower_index_unordered & upper_index_unordered
-	// 	lower_index_unordered & upper_index_unordered are always updated
-	template <typename T>
-	bool isSorted(T *array, array_size_t size, SortMetrics &metrics,
-				  array_size_t &lower_index_unordered, array_size_t &upper_index_unordered) {
-		lower_index_unordered = 0;
-		upper_index_unordered = 0;
-		for (array_size_t i = size-1; i > 0 ; --i) {
-			metrics.compares++;
-			if (array[i] < array[i-1]) {
-				lower_index_unordered = i-1;
-				upper_index_unordered = i;
-				return false;
-			}
-		}
-		return true;
 	}
 
 	template <typename T>

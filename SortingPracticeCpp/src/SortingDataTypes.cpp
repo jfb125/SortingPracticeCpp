@@ -10,6 +10,7 @@
 #include <string>
 
 #include "SortingDataTypes.h"
+#include "SortTestMetrics.h"
 #include "OStreamState.h"
 
 std::ostream& operator<<(std::ostream &out, const SortingDataType<int> &object) {
@@ -29,9 +30,9 @@ std::ostream& operator<<(std::ostream &out, const SortingDataType<std::string> &
 
 std::ostream& operator<<(std::ostream &out, const SortMetrics& object) {
 	out << std::setw(compares_width) 	<< object.compares
-		<< " " << compares_str << ", "
+		<< " " << COMPARES_STRING << ", "
 		<< std::setw(assignments_width) << object.assignments
-		<< " " << assignments_str;
+		<< " " << ASSIGNMENTS_STRING;
 	return out;
 }
 
@@ -45,12 +46,12 @@ std::string averageMetricsToString(	const SortMetrics &metrics,
 									num_repetitions_t num_tests,
 									int precision,
 									int width) {
-	OStreamState ostream_state;	// restores state on exit
+	OStreamState ostream_state;	// restores state on exit:
 	std::stringstream result;
 	result 	<< std::setprecision(precision) << std::setw(width)
-			<< metrics.compares << " ave " << compares_str << ", "
+			<< metrics.compares << " ave " << COMPARES_STRING << ", "
 			<< std::setprecision(precision) << std::setw(width)
-			<< metrics.assignments << " ave " << assignments_str;
+			<< metrics.assignments << " ave " << ASSIGNMENTS_STRING;
 	return result.str();
 }
 

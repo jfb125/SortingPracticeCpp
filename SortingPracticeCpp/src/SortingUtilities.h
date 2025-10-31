@@ -15,8 +15,8 @@
 #pragma push_macro("_verbose")
 //#undef _verbose
 //#define _verbose true
-using FactorialType = long long;
-const FactorialType sorting_utilities_max_factorial = std::numeric_limits<long long>::max();
+using factorial_t = long long;
+const factorial_t sorting_utilities_max_factorial = std::numeric_limits<long long>::max();
 
 array_size_t calcRotationWithModulo(array_size_t rotation_count, array_size_t span);
 
@@ -30,28 +30,48 @@ namespace SortingUtilities {
 
 	/*	Debugging	*/
 
+	//	This can be used by a sorting algorthim to report the compares & assignments
+	//	  required to determine if the array is already sorted
 	template <typename T>
-	bool isSorted(T *array, array_size_t size);
+	bool isSorted(T *array, array_size_t size, SortMetrics *metrics = nullptr)
+	{
+		for (array_size_t i = size-1; i > 0 ; --i) {
+			if (metrics) metrics->compares++;
+			if (array[i] < array[i-1]) {
+				return false;
+			}
+		}
+		return true;
+	}
 
-	template <typename T>
-	bool isSorted(T *array, array_size_t size, SortMetrics &metrics);
-
+	// returns bool
+	// stores number of compares in 'metrics'
+	// stores location of mismatch in lower_index_unordered & upper_index_unordered
+	// 	lower_index_unordered & upper_index_unordered are always updated
 	template <typename T>
 	bool isSorted(T *array, array_size_t size,
-				  array_size_t &lower_index_unordered, array_size_t &upper_index_unordered);
+				  array_size_t &lower_index_unordered,
+				  array_size_t &upper_index_unordered,
+				  SortTestMetrics *metrics = nullptr) {
+		lower_index_unordered = 0;
+		upper_index_unordered = 0;
+		for (array_size_t i = size-1; i > 0 ; --i) {
+			if (metrics) metrics->compares++;
+			if (array[i] < array[i-1]) {
+				lower_index_unordered = i-1;
+				upper_index_unordered = i;
+				return false;
+			}
+		}
+		return true;
+	}
 
-	template <typename T>
-	bool isSorted(T *array, array_size_t size, SortMetrics &metrics,
-				  array_size_t &lower_index_unordered, array_size_t &upper_index_unordered);
 
 	template <typename T>
 	bool isStable(T *array, array_size_t size);
 
-	template <typename T>
-	SortMetrics swap(T*array, array_size_t i, array_size_t j);
-
 	// 'hide' this in the namespace to try to prevent collisions with function name
-	FactorialType factorial(array_size_t);
+	factorial_t factorial(array_size_t);
 
 	/*	******************************************************************	*/
 	/*					Functions used by some algorithms					*/
@@ -64,7 +84,7 @@ namespace SortingUtilities {
 										 array_size_t range_start,
 										 array_size_t range_end,
 										 T& value,
-										 SortMetrics &metrics);
+										 SortMetrics *metrics = nullptr);
 
 	/*	Returns the index of the first element that is equal to or greater than 'value'
 	 * 	This is used to insert a value to the left of it's peers	*/
@@ -73,28 +93,31 @@ namespace SortingUtilities {
 										  array_size_t range_start,
 										  array_size_t range_end,
 										  T& value,
-										  SortMetrics & metrics);
+										  SortMetrics *metrics = nullptr);
 
 	/*	rotates elements of an array [start:end] an amount, where negative
 	 * values of 'amount' indicate to rotate the span to the left */
 	template <typename T>
-	SortMetrics rotateArrayElementsRight(T* array,
-										 array_size_t start, array_size_t end,
-										 array_size_t amount);
+	void rotateArrayElementsRight(T* array, array_size_t start, array_size_t end,
+							 	  array_size_t amount,
+								  SortMetrics *metrics = nullptr);
 
 	/*	Some algorithms like QuickSort use this to ensure the array is not
 	 *	 in reverse order, which can lead to n^2 performance */
 	template <typename T>
-	SortMetrics randomizeArray(T* array, array_size_t size);
+	void randomizeArray(T* array, array_size_t size,
+						SortMetrics *metrics = nullptr);
 
 	/*	This is used in all of the QuickSort based algorithms	*/
 	template <typename T>
-	SortMetrics selectAndPositionPivot( T* array,
-										array_size_t start,
-										array_size_t end);
+	void selectAndPositionPivot(T* array,
+								array_size_t start,
+								array_size_t end,
+								SortMetrics *metrics = nullptr);
 
 	template <typename T>
-	SortMetrics swap(T*array, array_size_t i, array_size_t j);
+	void swap(T*array, array_size_t i, array_size_t j,
+			  SortMetrics *metrics = nullptr);
 
 
 	/*	**********************************************************************	*/
@@ -123,7 +146,7 @@ namespace SortingUtilities {
 										  array_size_t range_start,
 										  array_size_t range_end,
 										  T& value,
-										  SortMetrics &metrics) {
+										  SortMetrics *metrics) {
 
 		array_size_t start 	= range_start;
 		array_size_t end	= range_end;
@@ -133,7 +156,7 @@ namespace SortingUtilities {
 			//	determine the midpoint in an even size span
 			//	or the index on the left of mid in an odd size span
 			mid = start + (end-start)/2;
-			metrics.compares++;
+			if (metrics)	metrics->compares++;
 			if (array[mid] < value) {
 				//	if the array value at [mid] is < value
 				//	  look to the right for a [] >= value
@@ -144,7 +167,7 @@ namespace SortingUtilities {
 			}
 		}
 		if (start == range_end) {
-			metrics.compares++;
+			if (metrics)	metrics->compares++;
 			if (array[start] < value) {
 				start++;
 			}
@@ -173,7 +196,7 @@ namespace SortingUtilities {
 										 array_size_t range_start,
 										 array_size_t range_end,
 										 T& value,
-										 SortMetrics &metrics) {
+										 SortMetrics *metrics) {
 
 		array_size_t start 	= range_start;
 		array_size_t end	= range_end;
@@ -183,7 +206,7 @@ namespace SortingUtilities {
 			//	determine the midpoint in an even size span
 			//	or the index on the left of mid in an odd size span
 			mid = start + (end-start)/2;
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			if (array[mid] <= value) {
 				//	if the array value at [mid] is < value
 				//	  look to the right for a [] >= value
@@ -194,7 +217,7 @@ namespace SortingUtilities {
 			}
 		}
 		if (start == range_end) {
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			if (array[start] <= value) {
 				start++;
 			}
@@ -221,48 +244,42 @@ namespace SortingUtilities {
 	 */
 
 	template <typename T>
-	SortMetrics rotateArrayElementsRight(T* array,
-										 array_size_t start, array_size_t end,
-										 array_size_t amount) {
-		SortMetrics result(0,0);
+	void rotateArrayElementsRight(T* array,
+								  array_size_t start, array_size_t end,
+								  array_size_t amount,
+								  SortMetrics *metrics) {
 
 		if (end <= start)
-			return result;
+			return;
 
 		array_size_t span = end - start + 1;
 		if (span == 0)
-			return result;
+			return;
 
 		//	converts amounts that are not in [0,span) to in range
 		amount = calcRotationWithModulo(amount, span);
 
-		if (amount == 0)
-			return result;
-
 		//	reverse the entire array
 		for (array_size_t i = start, j = end; i < j; i++, j--) {
-			result += SortingUtilities::swap(array, i, j);
+			SortingUtilities::swap(array, i, j, metrics);
 		}
 
 		//	reverse the left hand side
 		for (array_size_t i = start, j = start+amount-1; i < j; i++, j--) {
-			result += SortingUtilities::swap(array, i, j);
+			SortingUtilities::swap(array, i, j, metrics);
 		}
 
 		//	reverse the right hand side
 		for (array_size_t i = start + amount, j = end; i < j; i++, j--) {
-			result += SortingUtilities::swap(array, i, j);
+			SortingUtilities::swap(array, i, j, metrics);
 		}
-		return result;
 	}
 
 	template <typename T>
-	SortMetrics randomizeArray(T* array, array_size_t size) {
-
-		SortMetrics ret_val(0, 0);
+	void randomizeArray(T* array, array_size_t size, SortMetrics *metrics) {
 
 		if (size <= 1)
-			return ret_val;
+			return;
 
 		uint64_t randomizer_seed = getChronoSeed();
 		randomizer_seed = SIMPLE_RANDOMIZER_DEFAULT_SEED;
@@ -273,17 +290,16 @@ namespace SortingUtilities {
 
 		for (array_size_t i = 0; i != end; i++) {
 			r = randomizer.rand(i, size);
-			ret_val += SortingUtilities::swap(array, i, r);
+			SortingUtilities::swap(array, i, r, metrics);
 		}
-
-		return ret_val;
 	}
 
 	template <typename T>
-	SortMetrics selectAndPositionPivot(T* array, array_size_t start, array_size_t end) {
+	void selectAndPositionPivot(T* array, array_size_t start, array_size_t end,
+								SortMetrics *metrics) {
 
 		constexpr bool debug_verbose = false;
-		SortMetrics returned_value(0,0);
+
 		// examine elements 1/4 of the way, 1/2 the way, and 3/4 of the way
 		array_size_t half = (end-start)/2;
 		array_size_t mid = start + half;
@@ -305,15 +321,15 @@ namespace SortingUtilities {
 				  << low << ", " << mid << ", " << high << std::endl;
 			SortingUtilities::printArrayAndPivot(array, start, end, 0, "prior to selecting and positioning pivot: ");
 		}
-		returned_value.compares++;
+		if (metrics) metrics->compares++;
 		if (array[low] < array[high])
 		{
 			// start is smaller than end
-			returned_value.compares++;
+			if (metrics) metrics->compares++;
 			if (array[low] < array[mid]) {
 				// start is smaller than end and smaller than or equal to mid
 				// start is the smallest, evaluate mid vs end
-				returned_value.compares++;
+				if (metrics) metrics->compares++;
 				if (array[mid] < array[high]) {
 					// mid is greater than or equal to start
 					//	but less than end
@@ -329,12 +345,12 @@ namespace SortingUtilities {
 				pivot = low;	// { 2, 1, 3 }
 			}
 		} else {
-			returned_value.compares++;
+			if (metrics)	metrics->compares++;
 			// end is smaller than or equal to start
 			if (array[high] < array[mid]) {
 				// end is smaller than or equal to start and smaller than or equal to mid
 				// end is the smallest, evaluate start vs mid
-				returned_value.compares++;
+				if (metrics)	metrics->compares++;
 				if (array[low] < array[mid]) {
 					// smart is greater than or equal to end but smaller than mid
 					pivot = low;	// { 2, 3, 1 }
@@ -351,24 +367,23 @@ namespace SortingUtilities {
 			std::cout << "selected pivot as element " << pivot << std::endl;
 			printArrayAndPivot(array, start, end, pivot, "");
 		}
-		returned_value += SortingUtilities::swap(array, start, pivot);
+		SortingUtilities::swap(array, start, pivot, metrics);
 
 		if (debug_verbose) {
 			std::cout << "array is now " << std::endl;
 			printArrayAndPivot(array, start, end, start, "");
 			std::cout << std::endl;
 		}
-		return returned_value;
 	}
 
 	template <typename T>
-	SortMetrics swap(T* array, array_size_t i, array_size_t j) {
+	void swap(T* array, array_size_t i, array_size_t j, SortMetrics *metrics) {
 		T temp	 = array[i];
 		array[i] = array[j];
 		array[j] = temp;
-		SortMetrics result(0,0);
-		result.assignments = num_assignments_per_swap;
-		return result;
+		if (metrics) {
+			metrics->assignments += num_assignments_per_swap;
+		}
 	}
 
 

@@ -27,7 +27,7 @@ namespace BubbleSort {
 				//   swap it - bubble your element up one position
 				result.compares++;
 				if (array[i-1] > array[i]) {
-					result += SortingUtilities::swap(array, i-1, i);
+					SortingUtilities::swap(array, i-1, i, &result);
 					was_swap = true;
 				}
 			}

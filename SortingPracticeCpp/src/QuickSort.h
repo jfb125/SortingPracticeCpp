@@ -35,7 +35,7 @@ namespace QuickSort {
 		if (span == 2) {
 			ret_val.compares++;
 			if (array[start] > array[end]) {
-				ret_val += SortingUtilities::swap(array, start, end);
+				SortingUtilities::swap(array, start, end, &ret_val);
 			}
 			return ret_val;
 		}
@@ -66,14 +66,14 @@ namespace QuickSort {
 			//	if lower crossed upper, the partition is
 			//	 complete, so swap pivot with upper and exit
 			if (lower >= upper) {
-				ret_val += SortingUtilities::swap(array, pivot, upper);
+				SortingUtilities::swap(array, pivot, upper, &ret_val);
 				break;
 			}
 			// [upper] <= pivot
 			// [lower] >  pivot
 			//   and lower < upper
 			//   so exchange them
-			ret_val += SortingUtilities::swap(array, lower, upper);
+			SortingUtilities::swap(array, lower, upper, &ret_val);
 			// at this point,
 			//	[upper] >  [pivot]
 			//	[lower] <= [pivot]
@@ -101,8 +101,8 @@ namespace QuickSort {
 		if (size <= 1)
 			return retval;
 
-		if (!SortingUtilities::isSorted(array, size, retval)) {
-			retval += SortingUtilities::randomizeArray(array, size);
+		if (!SortingUtilities::isSorted(array, size, &retval)) {
+			SortingUtilities::randomizeArray(array, size, &retval);
 			retval += partitionArray(array, 0, size-1);
 		}
 		return retval;

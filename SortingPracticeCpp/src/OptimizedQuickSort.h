@@ -37,7 +37,7 @@ namespace OptimizedQuickSort {
 		if (span == 2) {
 			ret_val.compares++;
 			if (array[start] > array[end]) {
-				ret_val += SortingUtilities::swap(array, start, end);
+				SortingUtilities::swap(array, start, end, &ret_val);
 			}
 			return ret_val;
 		}
@@ -49,7 +49,7 @@ namespace OptimizedQuickSort {
 		}
 
 		// move the median of three values into the position slot
-		ret_val += SortingUtilities::selectAndPositionPivot(array, start, end);
+		SortingUtilities::selectAndPositionPivot(array, start, end, &ret_val);
 
 		array_size_t pivot = start;
 		array_size_t upper = end;
@@ -70,10 +70,10 @@ namespace OptimizedQuickSort {
 			if (lower >= upper) {
 				// upper is at the right-most element that
 				//	is less than or equal to the pivot
-				ret_val += SortingUtilities::swap(array, pivot, upper);
+				SortingUtilities::swap(array, pivot, upper, &ret_val);
 				break;
 			}
-			ret_val += SortingUtilities::swap(array, lower, upper);
+			SortingUtilities::swap(array, lower, upper, &ret_val);
 		}
 
 		if (upper != start) {
@@ -93,7 +93,7 @@ namespace OptimizedQuickSort {
 		if (size <= 1)
 			return retval;
 
-		if (!SortingUtilities::isSorted(array, size, retval)) {
+		if (!SortingUtilities::isSorted(array, size, &retval)) {
 			// randomizeArray() requires that size > 1
 			//		retval += randomizeArray(array, size);
 			retval += partitionArray(array, 0, size-1);

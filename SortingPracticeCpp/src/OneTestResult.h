@@ -307,7 +307,7 @@ public:
 		result 	<< std::setw(test_parameter_label_width)
 				<< std::left << "metrics:"
 				<< std::endl
-				<< m_sort_metrics.averagesStr();
+				<< m_sort_metrics.averages_str();
 		result  << (m_is_stable ? "    stable" : "not stable");
 		result  << std::endl;
 

@@ -12,49 +12,11 @@ constexpr array_size_t ARRAY_SIZE_T_MAX = LONG_LONG_MAX;
 constexpr array_size_t MIN_ARRAY_SIZE_T	= ARRAY_SIZE_T_MIN;
 constexpr array_size_t MAX_ARRAY_SIZE_T	= ARRAY_SIZE_T_MAX;
 
-using num_repetitions_t = long;
-constexpr num_repetitions_t NUM_REPETITIONS_T_MIN = 0;
-constexpr num_repetitions_t NUM_REPETITIONS_T_MAX = LONG_MAX;
-
-using total_compares_t = long long;
-constexpr total_compares_t TOTAL_COMPARES_T_MIN = 0;
-constexpr total_compares_t TOTAL_COMPARES_T_MAX = LONG_LONG_MAX;
-
-using total_moves_t = long long;
-constexpr total_moves_t	TOTAL_MOVES_T_MIN = 0;
-constexpr total_moves_t TOTAL_MOVES_T_MAX = LONG_LONG_MAX;
-
-
-constexpr total_moves_t num_assignments_per_swap = 3;
-
-/*	******************************************************************	*/
-/*	class for storing the metrics that evaluate a sorting algorithm		*/
-/*	******************************************************************	*/
-
-struct SortMetrics {
-	total_compares_t 	compares;
-	total_moves_t 		assignments;
-	SortMetrics()	: compares(0), assignments(0) {}
-	SortMetrics(total_compares_t compares, total_moves_t moves) :
-		compares(compares), assignments(moves) {}
-};
-
-//#define NUMBER_OF_MOVES_PER_SWAP 3
 constexpr bool 			DEFAULT_ISSORTEDRESULT_IS_SORTED 			= false;
 constexpr bool 			DEFAULT_ISSORTEDRESULT_IS_STABLE 			= false;
 constexpr array_size_t 	DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_I 	= 0;
 constexpr array_size_t 	DEFAULT_ISSORTEDRESULT_MISMATCHED_INDEX_J 	= 0;
 
-
-constexpr int compares_width 	= 8;
-constexpr int assignments_width = 8;
-#define compares_str 	"compares"
-#define assignments_str	"assignments"
-std::ostream& operator<<(std::ostream &out, const SortMetrics& object);
-SortMetrics& operator+=(SortMetrics& lhs, const SortMetrics &rhs);
-std::string averageMetricsToString(	const SortMetrics &metrics,
-									num_repetitions_t num_tests,
-									int precision = 1, int width =8);
 
 class IsSortedResult {
 public:

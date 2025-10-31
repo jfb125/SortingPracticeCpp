@@ -136,7 +136,7 @@ namespace HeapSort {
 			retval.compares++;
 			if (array[this_node] < array[largest_child]) {
 				// swap the nodes
-				retval += SortingUtilities::swap(array, this_node, largest_child);
+				SortingUtilities::swap(array, this_node, largest_child, &retval);
 				// move down to the lower node
 				//  that had previously housed the largest child
 				this_node = largest_child;
@@ -155,7 +155,7 @@ namespace HeapSort {
 		SortMetrics retval(0,0);
 		if (size <= 1)	return retval;
 
-		if (SortingUtilities::isSorted(array, size, retval))
+		if (SortingUtilities::isSorted(array, size, &retval))
 			return retval;
 
 		retval += heapify(array, size);
@@ -163,7 +163,7 @@ namespace HeapSort {
 		// starting at the end of the array
 		for(array_size_t last_node = size-1; last_node != 0; last_node--) {
 			// swap the largest element [0] with the element in the last node
-			retval += SortingUtilities::swap(array, last_node, 0);
+			SortingUtilities::swap(array, last_node, 0, &retval);
 			// sink the element that was in the last node downward to preserve heap
 			retval += sinkNode(0, array, last_node);
 		}

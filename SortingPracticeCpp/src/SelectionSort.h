@@ -21,7 +21,7 @@ namespace SelectionSort {
 
 		SortMetrics result(0,0);
 
-		if (!SortingUtilities::isSorted(array, array_size, result))
+		if (!SortingUtilities::isSorted(array, array_size, &result))
 		{
 			array_size_t index_of_smallest_value;
 
@@ -41,10 +41,10 @@ namespace SelectionSort {
 				}
 
 				if (index_of_smallest_value != first_unsorted_element) {
-					result +=
-						SortingUtilities::swap(array,
-											   index_of_smallest_value,
-											   first_unsorted_element);
+					SortingUtilities::swap(array,
+										   index_of_smallest_value,
+										   first_unsorted_element,
+										   &result);
 				}
 			}
 		}

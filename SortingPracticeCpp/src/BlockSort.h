@@ -136,11 +136,11 @@ namespace BlockSort {
 
 		BlockSort::BlockSortingStrategy block_sorting_strategy =
 				BlockSort::BlockSortingStrategy::TABLE;
-		SortMetrics (*sortBlocks)(T* array, Descriptors<T> &desc, int num);
+		void (*sortBlocks)(T* array, Descriptors<T> &desc, int num, SortMetrics*);
 
 		switch(block_sorting_strategy) {
 		case BlockSort::BlockSortingStrategy::BINARY:
-			sortBlocks = BlockSort::sortBlocksBinarySearch;
+			sortBlocks = sortBlocksBinarySearch;
 			break;
 		case BlockSort::BlockSortingStrategy::HYBRID:
 			sortBlocks = sortBlocksHybrid;
@@ -163,8 +163,8 @@ namespace BlockSort {
 		//	  or having all of the fractional block in the last of b,
 		//	  tested to have similar performance(?)
 		num_desc = createDescriptors(array, start, mid, end, block_size, descriptors);
-		metrics	 = sortBlocks(array, descriptors, num_desc);
-		metrics += mergeAllBlocksLeftToRight(array, descriptors, num_desc);
+		sortBlocks(array, descriptors, num_desc, &metrics);
+		mergeAllBlocksLeftToRight(array, descriptors, num_desc, &metrics);
 //		metrics += mergeAllBlocksRightToLeft(array, descriptors, num_desc);
 		return metrics;
 	}

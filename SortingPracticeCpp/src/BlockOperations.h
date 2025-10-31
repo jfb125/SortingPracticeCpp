@@ -59,7 +59,7 @@ namespace BlockOperations
 											 array_size_t block_1_end,
 											 array_size_t block_2_begin,
 											 array_size_t block_2_end,
-											 SortMetrics &metrics);
+											 SortMetrics *metrics);
 
 	template <typename T>
 	array_size_t insertionSortPartial(T* array,
@@ -67,7 +67,7 @@ namespace BlockOperations
 									  array_size_t ignored,
 									  array_size_t mid,
 									  array_size_t end,
-									  SortMetrics &metrics);
+									  SortMetrics *metrics = nullptr);
 
 	/* 	Blocks do not have to be continuous nor do they have to be the same size */
 	template <typename T>
@@ -76,7 +76,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics);
+												SortMetrics *metrics = nullptr);
 
 	/*	Uses a binary search to identify spans of block_1 that can be
 	 * rotated into the midst of the block_2 */
@@ -87,7 +87,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics);
+												SortMetrics *metrics = nullptr);
 
 	/*	The first merge is done using a binary search. Successive merges
 	 * are done searching right-to-left.  It is possible that this is a
@@ -99,7 +99,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics);
+												SortMetrics *metrics = nullptr);
 
 	/*	Starts with a_index & b_index at the end of their blocks, then
 	 * moves right_to_left to identify spans of block_2 that can be
@@ -111,7 +111,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics);
+												SortMetrics *metrics = nullptr);
 
 	/* 	Blocks do not have to be continuous nor do they have to be the same size */
 	template <typename T>
@@ -121,13 +121,14 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics);
+												SortMetrics *metrics = nullptr);
 
 	template <typename T>
-	SortMetrics swapBlockElementsOfEqualSize(T* array,
-											 array_size_t block1_start,
-											 array_size_t block_2_start,
-											 array_size_t block_size);
+	void swapBlockElementsOfEqualSize(T* array,
+									 array_size_t block1_start,
+									 array_size_t block_2_start,
+									 array_size_t block_size,
+									 SortMetrics *metrics = nullptr);
 
 	/*	**********************************************************************	*/
 	/*	**********************************************************************	*/
@@ -197,7 +198,7 @@ namespace BlockOperations
 									  array_size_t ignored,
 									  array_size_t mid,
 									  array_size_t end,
-									  SortMetrics &metrics)
+									  SortMetrics *metrics)
 	{
 		array_size_t highest_b_position = end;
 
@@ -213,32 +214,32 @@ namespace BlockOperations
 			//	in order that means all the elements to the right,
 			//	which are in order b/c they came from the same
 			//	B_Block, are sorted.  Abort the loop
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			if (array[i-1] <= array[i])
 				break;
 			T temp = array[i];
-			metrics.assignments++;
+			if (metrics) metrics->assignments++;
 			int j = i;
 			for ( ; j > begin; j--) {
-				metrics.compares++;
+				if (metrics) metrics->compares++;
 				//	if the element to the left
 				//	  is <= temp, temp goes here
 				if (array[j-1] <= temp) {
+					if (metrics) metrics->assignments++;
 					array[j] = temp;
-					metrics.assignments++;
 					highest_b_position = j;
 					break;
 				}
 				//	shift the element to the right
+				if (metrics) metrics->assignments++;
 				array[j] = array[j-1];
-				metrics.assignments++;
 			}
 			// if the loop terminated b/c j == begin
 			//	there were no elements found <= temp
 			//	temp goes at begin
 			if (j <= begin) {
+				if (metrics) metrics->assignments++;
 				array[begin] = temp;
-				metrics.assignments++;
 				highest_b_position = begin;
 			}
 		}
@@ -304,7 +305,7 @@ namespace BlockOperations
 													array_size_t block_1_end,
 													array_size_t block_2_start,
 													array_size_t block_2_end,
-													SortMetrics &metrics) {
+													SortMetrics *metrics) {
 		constexpr bool debug_verbose= false;
 		bool announce_initial_array = true;
 		bool a_rotation_occurred	= false;
@@ -370,10 +371,9 @@ namespace BlockOperations
 							+ rotate_count			// moved to the right
 							- (span_end-span_start+1);// modulo span size
 			}
-			metrics +=
-				SortingUtilities::rotateArrayElementsRight(array,
-														   span_start, span_end,
-														   rotate_count);
+			SortingUtilities::rotateArrayElementsRight(array,
+													   span_start, span_end,
+													   rotate_count, metrics);
 			a_rotation_occurred = true;
 			if (debug_verbose) {
 				if (announce_initial_array) {
@@ -385,15 +385,15 @@ namespace BlockOperations
 							<< " b1_st "	<< std::setw(2) << block_1_start
 							<< " b2_st "	<< std::setw(2)	<< block_2_start
 							<< " b2_nd "	<< std::setw(2) << block_2_end
-							<< " a_st  " 		<< std::setw(2) << a_unmerged_start
-							<< " a_end "		<< std::setw(2)	<< a_unmerged_end
-							<< " b_st  "		<< std::setw(2) << b_unmerged_start
-							<< " b_end "		<< std::setw(2)	<< b_unmerged_end
+							<< " a_st  " 	<< std::setw(2) << a_unmerged_start
+							<< " a_end "	<< std::setw(2)	<< a_unmerged_end
+							<< " b_st  "	<< std::setw(2) << b_unmerged_start
+							<< " b_end "	<< std::setw(2)	<< b_unmerged_end
 							<< " sp_st " 	<< std::setw(2)	<< span_start
-							<< " sp_en "		<< std::setw(2)	<< span_end
+							<< " sp_en "	<< std::setw(2)	<< span_end
 							<< " rrcnt "	<< std::setw(2)	<< rotate_count
-							<< " b_max_pos "
-						    << std::setw(2) << b_max_pos << std::endl;
+							<< " b_max_pos " << std::setw(2) << b_max_pos
+							<< std::endl;
 				std::cout   << dbg_msg.str();
 			}
 			a_unmerged_start = span_start + rotate_count;
@@ -430,7 +430,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics) {
+												SortMetrics *metrics) {
 		constexpr bool debug_verbose = false;
 		std::stringstream initial_array_msg;
 
@@ -490,11 +490,11 @@ namespace BlockOperations
 			rotate_count= b_unmerged_end - a_unmerged_end;
 			b_span		= b_unmerged_end - b_unmerged_start;
 			b_max_pos	= span_start + b_span;	// = a_unmerged_end
-			metrics +=
-				SortingUtilities::rotateArrayElementsRight(array,
-													   	   span_start,
-														   span_end,
-														   rotate_count);
+			SortingUtilities::rotateArrayElementsRight(array,
+												   	   span_start,
+													   span_end,
+													   rotate_count,
+													   metrics);
 			return b_max_pos;
 		}
 
@@ -540,11 +540,11 @@ namespace BlockOperations
 			b_max_locked	= true;
 			a_unmerged_end	= span_start-1;
 
-			metrics +=
-				SortingUtilities::rotateArrayElementsRight(array,
-													   	   span_start,
-														   span_end,
-														   rotate_count);
+			SortingUtilities::rotateArrayElementsRight(array,
+												   	   span_start,
+													   span_end,
+													   rotate_count,
+													   metrics);
 		}
 
 		//	Binary search has been used to position a_end and b_end possibly
@@ -566,7 +566,7 @@ namespace BlockOperations
 			//	  	goes between two elements in the a_block
 
 			//	Case 1: array[b_end] >= (to the right of) array[a_end]
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			if (array[b_unmerged_end] >= array[a_unmerged_end]) {
 				if (!b_max_locked) {
 					b_max_pos = b_unmerged_end;
@@ -577,10 +577,10 @@ namespace BlockOperations
 			}
 			// array[b_end] is less than a[end] - determine how many
 			//	other a elements are greater than b
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			while (a_i >= a_unmerged_start && array[a_i] > array[b_unmerged_end]) {
 				a_i--;
-				metrics.compares++;
+				if (metrics) metrics->compares++;
 			}
 
 			//	2.  all elements in a are greater than [b_end]
@@ -591,11 +591,11 @@ namespace BlockOperations
 				span_start 	= a_i + 1;
 				span_end 	= b_unmerged_end;
 				rotate_count= b_unmerged_end - a_unmerged_end;
-				metrics +=
-					SortingUtilities::rotateArrayElementsRight(array,
-														   	   span_start,
-															   span_end,
-															   rotate_count);
+				SortingUtilities::rotateArrayElementsRight(array,
+													   	   span_start,
+														   span_end,
+														   rotate_count,
+														   metrics);
 				if (!b_max_locked) {
 					//	all of the remaining b has been moved to the start
 					b_max_pos = span_start  + b_span;
@@ -609,10 +609,10 @@ namespace BlockOperations
 			//
 			// 	find the first value in b that is less than array[a_i]
 			//	(a_i is the element immediately to the left of the span)
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			while (array[b_i] > array[a_i] && b_i > a_unmerged_end) {
 				b_i--;
-				metrics.compares++;
+				if (metrics) metrics->compares++;
 			}
 			span_start 	= a_i + 1;
 			span_end	= b_unmerged_end;
@@ -638,11 +638,11 @@ namespace BlockOperations
 						   << " BEFORE ROTATION"
 						   << std::endl;
 			}
-			metrics +=
-				SortingUtilities::rotateArrayElementsRight(array,
-													   	   span_start,
-														   span_end,
-														   rotate_count);
+			SortingUtilities::rotateArrayElementsRight(array,
+												   	   span_start,
+													   span_end,
+													   rotate_count,
+													   metrics);
 			//	all of the remaining b has been
 			//	rotated to the start of the span
 			b_span 				= b_unmerged_end-b_unmerged_start;
@@ -733,7 +733,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics)
+												SortMetrics *metrics)
 	{
 		constexpr bool debug_verbose		= false;
 		std::stringstream initial_array_msg;
@@ -788,7 +788,7 @@ namespace BlockOperations
 			//	  	goes between two elements in the a_block
 
 			//	Case 1: array[b_end] >= (to the right of) array[a_end]
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			if (array[b_unmerged_end] >= array[a_unmerged_end]) {
 				if (!b_max_frozen) {
 					b_max_pos = b_unmerged_end;
@@ -799,10 +799,10 @@ namespace BlockOperations
 			}
 			// array[b_end] is less than a[end] - determine how many
 			//	other a elements are greater than b
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			while (a_i >= a_unmerged_start && array[a_i] > array[b_unmerged_end]) {
 				a_i--;
-				metrics.compares++;
+				if (metrics) metrics->compares++;
 			}
 
 			//	2.  all elements in a are greater than [b_end]
@@ -813,11 +813,11 @@ namespace BlockOperations
 				span_start 	= a_i + 1;
 				span_end 	= b_unmerged_end;
 				rotate_count= b_unmerged_end - a_unmerged_end;
-				metrics +=
-					SortingUtilities::rotateArrayElementsRight(array,
-														   	   span_start,
-															   span_end,
-															   rotate_count);
+				SortingUtilities::rotateArrayElementsRight(array,
+													   	   span_start,
+														   span_end,
+														   rotate_count,
+														   metrics);
 				if (!b_max_frozen) {
 					//	all of the remaining b has been moved to the start
 					b_max_pos = span_start  + b_span;
@@ -831,10 +831,10 @@ namespace BlockOperations
 			//
 			// 	find the first value in b that is less than array[a_i]
 			//	(a_i is the element immediately to the left of the span)
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			while (array[b_i] > array[a_i] && b_i > a_unmerged_end) {
 				b_i--;
-				metrics.compares++;
+				if (metrics) metrics->compares++;
 			}
 			span_start 	= a_i + 1;
 			span_end	= b_unmerged_end;
@@ -860,11 +860,11 @@ namespace BlockOperations
 						   << " BEFORE ROTATION"
 						   << std::endl;
 			}
-			metrics +=
-				SortingUtilities::rotateArrayElementsRight(array,
-													   	   span_start,
-														   span_end,
-														   rotate_count);
+			SortingUtilities::rotateArrayElementsRight(array,
+												   	   span_start,
+													   span_end,
+													   rotate_count,
+													   metrics);
 			//	all of the remaining b has been
 			//	rotated to the start of the span
 			b_span 				= b_unmerged_end-b_unmerged_start;
@@ -1059,7 +1059,7 @@ namespace BlockOperations
 											 array_size_t block_1_end,
 											 array_size_t block_2_start,
 											 array_size_t block_2_end,
-											 SortMetrics &metrics);
+											 SortMetrics *metrics);
 
 	template <typename T>
 	array_size_t mergeTwoBlocksElementsByTableLowerSmallest(T * array,
@@ -1067,7 +1067,7 @@ namespace BlockOperations
 											 array_size_t block_1_end,
 											 array_size_t block_2_start,
 											 array_size_t block_2_end,
-											 SortMetrics &metrics) {
+											 SortMetrics *metrics) {
 
 		/*	**************************************************************	*/
 		/*							debug									*/
@@ -1191,14 +1191,14 @@ namespace BlockOperations
 			//	pass through this loop.
 			array_size_t block_1_index = block_1_locations_table[block_1_locations_table_index];
 
-			metrics.compares++;
+			if (metrics) metrics->compares++;
 			if (array[block_1_index] <= array[block_2_index]) {
 				// the value from the left block goes into destination
 				if (destination_index != block_1_index) {
-					metrics +=
-						SortingUtilities::swap( array,
-												destination_index,
-												block_1_index);
+					SortingUtilities::swap( array,
+											destination_index,
+											block_1_index,
+											metrics);
 
 					// Update the table location of the entry that was just displaced,
 					//	which will be somewhere in the table after the current entry
@@ -1220,10 +1220,10 @@ namespace BlockOperations
 			else
 			{
 				// value from the right block is < value from the left block
-				T tmp 					 = array[destination_index];
-				array[destination_index] = array[block_2_index];
-				array[block_2_index] 	 = tmp;
-				metrics.assignments += 3;
+				SortingUtilities::swap(	array,
+										destination_index,
+										block_2_index,
+										metrics);
 
 				if (block_2_index == block_2_end_position) {
 					block_2_end_position = destination_index;
@@ -1256,10 +1256,10 @@ namespace BlockOperations
 			if (debug_verbose) message << "flush: " << debug_string() << std::endl;
 
 			array_size_t block_1_index	= block_1_locations_table[block_1_locations_table_index];
-			T tmp 					= array[destination_index];
-			array[destination_index]= array[block_1_index];
-			array[block_1_index]	= tmp;
-			metrics.assignments += 3;
+			SortingUtilities::swap(	array,
+									destination_index,
+									block_1_index,
+									metrics);
 			//	update the table's contents from AFTER the element that was just stored
 			update_locations_table(block_1_locations_table,
 								   block_1_locations_table_index+1, block_1_locations_table_size-1,
@@ -1289,7 +1289,7 @@ namespace BlockOperations
 											 array_size_t block_1_end,
 											 array_size_t block_2_start,
 											 array_size_t block_2_end,
-											 SortMetrics &metrics) {
+											 SortMetrics *metrics) {
 		//	trap all errors
 		if (block_1_end < block_1_start)	return 0;
 		if (block_2_end < block_2_start)	return 0;
@@ -1297,7 +1297,7 @@ namespace BlockOperations
 		array_size_t u_size = block_1_end - block_1_start + 1;
 		array_size_t v_size = block_2_end - block_2_start + 1;
 
-		if (true || u_size <= v_size) {
+		if (u_size <= v_size) {
 			return mergeTwoBlocksElementsByTableLowerSmallest(array,
 															  block_1_start,
 															  block_1_end,
@@ -1316,18 +1316,18 @@ namespace BlockOperations
 
 
 	/*	******************************************************************	*/
-	/*																		*/
 	/*		Merging blocks by allocating an auxiliary buffer that is the	*/
 	/*	size of the smaller buffer.  Elements are only moved into the 		*/
 	/*	auxiliary buffer whenever the element is displaced b/c its location	*/
 	/*	is the destination of the merged (incoming) element					*/
 	/*																		*/
-	/*	Two helper functions exist: one for when the first block is equal	*/
-	/*	  to or smaller than the second block, and one when the second		*/
-	/*	  block is equal to or smaller than the first block.				*/
-	/*	  The buffered block needs to be the smaller one to ensure that the	*/
-	/*	  loop in the merge algorithm goes through ALL of the other larger	*/
-	/*	  block.															*/
+	/*		Two helper functions exist: one for when the first block is 	*/
+	/*	equal to or smaller than the second block, and one when the second	*/
+	/*	block is smaller than the first block.								*/
+	/*																		*/
+	/*		The buffered block needs to be the smaller one to ensure that 	*/
+	/*	the	loop in the merge algorithm goes through ALL of the other 		*/
+	/*	larger block.														*/
 	/*	******************************************************************	*/
 
 	/*	This version treats the lower as being the smaller block	*/
@@ -1339,7 +1339,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics);
+												SortMetrics *metrics);
 
 	/*	This version treats the upper as being the smaller block	*/
 
@@ -1350,7 +1350,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics);
+												SortMetrics *metrics);
 
 	/*	******************************************************************	*/
 	/*			wrapper function that calls either LOWER or UPPER			*/
@@ -1363,7 +1363,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics)
+												SortMetrics *metrics)
 	{
 		array_size_t block_1_size = block_1_end - block_1_start + 1;
 		array_size_t block_2_size = block_2_end - block_2_start + 1;
@@ -1396,7 +1396,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics) {
+												SortMetrics *metrics) {
 
 		bool debug_verbose = false;
 		if (debug_verbose) {
@@ -1447,24 +1447,24 @@ namespace BlockOperations
 			if (!isAuxEmpty()) {
 				// block_1 element has previously been moved to auxiliary
 				//	  prefer block_1 over block_2 to preserve stability
-				metrics.compares++;
+				if (metrics) metrics->compares++;
 				if (auxiliary[aux_src] <= array[b_2_src]) {
 					//	if the destination is a b1 value, move it to aux
 					if (isDstInB1()) {
-						metrics.assignments++;
+						if (metrics) metrics->assignments++;
 						auxiliary[aux_dst++] = array[dst];
 					}
-					metrics.assignments++;
+					if (metrics) metrics->assignments++;
 					array[dst] = auxiliary[aux_src++];
 					dst = nextDst();
 				} else {
 					//	the element comes from block 2
 					if (isDstInB1()) {
-						metrics.assignments++;
+						if (metrics) metrics->assignments++;
 						auxiliary[aux_dst++] = array[dst];
 					}
 					if (dst != b_2_src) {
-						metrics.assignments++;
+						if (metrics) metrics->assignments++;
 						array[dst] 		= array[b_2_src];
 					}
 					//	final b has been moved into position, b2 is exhausted
@@ -1473,7 +1473,7 @@ namespace BlockOperations
 						dst 		= nextDst();
 						//	copy what remains of block_1 to end of array
 						while (!isAuxEmpty()) {
-							metrics.assignments++;
+							if (metrics) metrics->assignments++;
 							array[dst] 	= auxiliary[aux_src];
 							dst 		= nextDst();
 							aux_src++;
@@ -1486,18 +1486,18 @@ namespace BlockOperations
 				}
 			} else {
 				//	auxiliary is empty - block_1 value comes from dst
-				metrics.compares++;
+				if (metrics) metrics->compares++;
 				if (array[dst] <= array[b_2_src]) {
 					dst = nextDst();
 				} else {
 					// block_2 value is taken
 					if (isDstInB1()) {
-						metrics.assignments++;
+						if (metrics) metrics->assignments++;
 						auxiliary[aux_dst++] = array[dst];
 					}
 					//	if the b value is moved from further along
 					if (dst != b_2_src) {
-						metrics.assignments++;
+						if (metrics) metrics->assignments++;
 						array[dst] 		= array[b_2_src];
 					}
 					//	If final b2 value has been moved into place, copy
@@ -1506,7 +1506,7 @@ namespace BlockOperations
 						b_max_pos 	= dst;
 						dst 		= nextDst();
 						while (!isAuxEmpty()) {
-							metrics.assignments++;
+							if (metrics) metrics->assignments++;
 							array[dst] = auxiliary[aux_src++];
 							dst = nextDst();
 						}
@@ -1535,7 +1535,7 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics &metrics) {
+												SortMetrics *metrics) {
 
 		bool debug_verbose = false;
 		if (debug_verbose) {
@@ -1580,15 +1580,15 @@ namespace BlockOperations
 			}
 			if (!isAuxEmpty()) {
 				//	if block_1 has the higher value
-				metrics.compares++;
+				if (metrics) metrics->compares++;
 				if (array[b_1_src] > auxiliary[aux_src]) {
 					//	if the dst is in block_2, the value at
 					//	dst will be displaced
 					if (isDstB2()) {
-						metrics.assignments++;
+						if (metrics) metrics->assignments++;
 						auxiliary[aux_dst--] = array[dst];
 					}
-					metrics.assignments++;
+					if (metrics) metrics->assignments++;
 					array[dst] = array[b_1_src];
 					b_1_src--;
 					dst = nextDst();
@@ -1601,7 +1601,7 @@ namespace BlockOperations
 							b_max_locked = true;
 						}
 						while (!isAuxEmpty()) {
-							metrics.assignments++;
+							if (metrics) metrics->assignments++;
 							array[dst] = auxiliary[aux_src];
 							aux_src--;
 							dst = nextDst();
@@ -1619,25 +1619,25 @@ namespace BlockOperations
 					//	if the destination is in block_2, it will
 					//	be displaced by a greater block_2 value
 					if (isDstB2()) {
-						metrics.assignments++;
+						if (metrics) metrics->assignments++;
 						auxiliary[aux_dst--] = array[dst];
 					}
-					metrics.assignments++;
+					if (metrics) metrics->assignments++;
 					array[dst] = auxiliary[aux_src];
 					aux_src--;
 					dst = nextDst();
 				}
 			} else {
 				//	if block_1 has the higher value,
-				metrics.compares++;
+				if (metrics) metrics->compares++;
 				if (array[b_1_src] > array[dst]) {
 					//	if dst is in block_2, the element at dst will be displaced
 					if (isDstB2()) {
-						metrics.assignments++;
+						if (metrics) metrics->assignments++;
 						auxiliary[aux_dst] = array[dst];
 						aux_dst--;
 					}
-					metrics.assignments++;
+					if (metrics) metrics->assignments++;
 					array[dst] = array[b_1_src];
 					b_1_src--;
 					dst = nextDst();
@@ -1650,7 +1650,7 @@ namespace BlockOperations
 							b_max_locked = true;
 						}
 						while (!isAuxEmpty()) {
-							metrics.assignments++;
+							if (metrics) metrics->assignments++;
 							array[dst] = auxiliary[aux_src];
 							aux_src--;
 							dst = nextDst();
@@ -1686,29 +1686,26 @@ namespace BlockOperations
 	 */
 
 	template <typename T>
-	SortMetrics swapBlockElementsOfEqualSize(T* array,
-											 array_size_t block1_start,
-											 array_size_t block2_start,
-											 array_size_t block_size)
+	void swapBlockElementsOfEqualSize(T* array,
+									 array_size_t block1_start,
+									 array_size_t block2_start,
+									 array_size_t block_size,
+									 SortMetrics  *metrics)
 	{
-		SortMetrics result(0,0);
-
 		if (block_size <= 0)
-			return result;
+			return;
 
 		//	if the indices are not credible, leave
 		if (block1_start < 0 || block2_start < 0) {
 			//	TODO - throw an exception
-			return result;
+			return;
 		}
 
 		for (array_size_t i = 0; i != block_size; i++) {
-			result += SortingUtilities::swap(array, block1_start, block2_start);
+			SortingUtilities::swap(array, block1_start, block2_start, metrics);
 			block1_start++;
 			block2_start++;
 		}
-
-		return result;
 	}
 
 }	// namespace BlockSort

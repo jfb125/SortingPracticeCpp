@@ -89,7 +89,7 @@ namespace DutchFlagSort {
 			if (_verbose)	std::cout << "cutoff partition size 2" << std::endl;
 			result.compares++;
 			if (array[start] > array[end]) {
-				result += SortingUtilities::swap(array, start, end);
+				SortingUtilities::swap(array, start, end, &result);
 			}
 			return result;
 		}
@@ -99,7 +99,7 @@ namespace DutchFlagSort {
 			return InsertionSort::sort(&array[start], size);
 		}
 
-		result += SortingUtilities::selectAndPositionPivot(array, start, end);
+		SortingUtilities::selectAndPositionPivot(array, start, end, &result);
 
 		// left most copy of pivot
 		array_size_t lo = start;
@@ -133,7 +133,7 @@ namespace DutchFlagSort {
 			//   then advance i and advance lo
 			result.compares++;
 			if (array[i] < array[lo]) {
-				result += SortingUtilities::swap(array, i, lo);
+				SortingUtilities::swap(array, i, lo, &result);
 				lo++;
 				i++;
 				continue;
@@ -166,7 +166,7 @@ namespace DutchFlagSort {
 			}
 			// if hi has not reached i
 			if (!(hi <= i)) {
-				result += SortingUtilities::swap(array, i, hi);
+				SortingUtilities::swap(array, i, hi, &result);
 			}
 			if(_verbose) {
 						printThreeWayPartitionLine(array, start, end, lo, i, hi);
@@ -201,7 +201,7 @@ namespace DutchFlagSort {
 		if (size <= 1)
 			return result;
 
-		if (SortingUtilities::isSorted(array, size, result)) {
+		if (SortingUtilities::isSorted(array, size, &result)) {
 			return result;
 		}
 

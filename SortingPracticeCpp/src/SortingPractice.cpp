@@ -35,14 +35,14 @@ int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-//	testBlockSort();
-//	return EXIT_SUCCESS;
+	testBlockSort();
+	return EXIT_SUCCESS;
 //	sortingDataTypesTest();
 //	return EXIT_SUCCESS;
 
 	//	Ensure that if the user selects 'All_PERMUTATIONS', they are
 	//	asked to confirm a very large test run.
-	constexpr FactorialType max_repetitions_without_confirmation= 100000;
+	constexpr factorial_t max_repetitions_without_confirmation= 100000;
 	constexpr bool skip_confirm_permutation_size_confirmation 	= true;
 	auto confirm_permutation_size =
 		[&] (ArrayCompositions composition, array_size_t size) -> bool {
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 			composition != ArrayCompositions::ALL_PERMUTATIONS) {
 			return true;
 		}
-		FactorialType num_reps = SortingUtilities::factorial(size);
+		factorial_t num_reps = SortingUtilities::factorial(size);
 		if (num_reps > max_repetitions_without_confirmation) {
 			std::cout << "With an array of size " << size
 					  << " there will be " << num_reps

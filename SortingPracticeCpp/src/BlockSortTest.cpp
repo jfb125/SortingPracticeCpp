@@ -229,7 +229,7 @@ bool testBlockSort() {
 bool testBlockSortBinarySearchFirstElement()
 {
 	bool test_passed = true;
-	SortMetrics dummy_metrics(0,0);
+	SortMetrics metrics(0,0);
 
 	using DataType = char;
 	DataType first_value 		= 'B';
@@ -290,7 +290,7 @@ bool testBlockSortBinarySearchFirstElement()
 											unique_values, array_end+1);
 			array_size_t result =
 				SortingUtilities::binarySearchFirstElement(
-					unique_values, 0, array_end, i, dummy_metrics);
+					unique_values, 0, array_end, i, &metrics);
 			int expected =
 					correct_answer(unique_values, array_end+1, i);
 			std::cout << "     binarySearchFirst("
@@ -320,7 +320,7 @@ bool testBlockSortBinarySearchFirstElement()
 											triple_repeated_values, array_end+1);
 			array_size_t result =
 				SortingUtilities::binarySearchFirstElement(
-					triple_repeated_values, 0, array_end, i, dummy_metrics);
+					triple_repeated_values, 0, array_end, i, &metrics);
 			int expected =
 					correct_answer(triple_repeated_values, array_end+1, i);
 			std::cout << "     binarySearchFirst("
@@ -342,7 +342,7 @@ TEST_BINARY_SEARCH_FIRST_RETURN_LABEL:
 bool testBlockSortBinarySearchLastElement() {
 
 	bool test_passed = true;
-	SortMetrics metrics;
+
 	using DataType = char;
 	DataType first_value 			= 'B';
 	DataType less_than_first_value 	= 'A';
@@ -385,6 +385,7 @@ bool testBlockSortBinarySearchLastElement() {
 		}
 	}
 
+
 	for (int array_end = num_unique_values-1;
 			  array_end < num_unique_values; array_end++) {
 		std::cout << "\nTesting binaryLast() with an array with "
@@ -399,9 +400,10 @@ bool testBlockSortBinarySearchLastElement() {
 			//	print out the elements each time through the test
 			std::cout << SortingUtilities::arrayElementsToString(
 											unique_values, array_end+1);
+			SortMetrics metrics(0,0);
 			array_size_t result =
 				SortingUtilities::binarySearchLastElement(
-									unique_values, 0, array_end, value, metrics);
+									unique_values, 0, array_end, value, &metrics);
 			int expected_value = calc_expected(unique_values, array_end+1, value);
 			std::cout << " binarySearchLastElement("
 					  << std::setw(2) << value
@@ -430,9 +432,10 @@ bool testBlockSortBinarySearchLastElement() {
 				 	  value  = next_value(value)) {
 			std::cout << SortingUtilities::arrayElementsToString(
 											repeated_values, array_end+1);
+			SortMetrics metrics(0,0);
 			array_size_t result =
 				SortingUtilities::binarySearchLastElement (
-					repeated_values, 0, array_end, value, metrics);
+					repeated_values, 0, array_end, value, &metrics);
 			array_size_t expected_value =
 					calc_expected(repeated_values, array_end+1, value);
 			std::cout << " binarySearchLastElement("
@@ -1100,10 +1103,14 @@ bool testBlockSortBinarySearchLastBlock() {
 				}
 			}
 
-			SortMetrics result(0,0);
+			SortMetrics metrics(0,0);
 			array_size_t result_index = 0;
-			result += binarySearchLastBlock(haystack, haystack_start, haystack_end,
-										  	key, result_index);
+			binarySearchLastBlock(	haystack,
+				  	  	  	  	  	haystack_start,
+									haystack_end,
+									key,
+									result_index,
+									&metrics);
 
 			msg << std::setw(3) << test_number
 				<< " binarySearchLastBlock(" << needle << ") on array: " << std::endl;
@@ -1115,7 +1122,7 @@ bool testBlockSortBinarySearchLastBlock() {
 			msg << std::endl;
 			msg << "returned " 	  << std::setw(2) << result_index
 				<< " when passed "<< std::setw(2) << key
-				<< " which took " << std::setw(2) << result.compares
+				<< " which took " << std::setw(2) << metrics.compares
 				<< " compares\n"
 				<< std::endl;
 			//	check the result of the function
@@ -1244,12 +1251,12 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	BlockOperations::MergeStrategy merge_strategies[] =
 	{
-//		BlockOperations::MergeStrategy::HYBRID,
-//		BlockOperations::MergeStrategy::RGT_TO_LFT,
+		BlockOperations::MergeStrategy::HYBRID,
+		BlockOperations::MergeStrategy::RGT_TO_LFT,
 		BlockOperations::MergeStrategy::BINARY,
 		BlockOperations::MergeStrategy::INSERTION,
 		BlockOperations::MergeStrategy::TABLE,
-//		BlockOperations::MergeStrategy::AUXILLIARY,
+		BlockOperations::MergeStrategy::AUXILLIARY,
 	};
 
 	int num_merge_strategies = 	sizeof(merge_strategies) /
@@ -1257,13 +1264,13 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	auto calc_mid_min = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
 		// mid can not be 1
-//		return 1;
-		return nominal_mid;
+		return 1;
+//		return nominal_mid;
 	};
 	auto calc_mid_max = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
 		//	mid can be the end of the array
-//		return size-1;
-		return nominal_mid;
+		return size-1;
+//		return nominal_mid;
 	};
 
 	bool test_passed 	= true;
@@ -1386,7 +1393,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 														test_vectors[i],
 														left_start, left_end,
 														right_start, right_end,
-														metrics);
+														&metrics);
 						break;
 					case BlockOperations::MergeStrategy::BINARY:
 						reported_final_b_location =
@@ -1394,14 +1401,15 @@ bool testBlockSortMergeBlocksExhaustively() {
 														test_vectors[i],
 														left_start, left_end,
 														right_start, right_end,
-														metrics);
+														&metrics);
 						break;
 					case BlockOperations::MergeStrategy::HYBRID:
 						reported_final_b_location =
 							BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_Hybrid(
 														test_vectors[i],
 														left_start, left_end,
-														right_start, right_end, metrics);
+														right_start, right_end,
+														&metrics);
 						break;
 					case BlockOperations::MergeStrategy::INSERTION:
 						reported_final_b_location =
@@ -1409,7 +1417,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 														test_vectors[i],
 														left_start, left_end,
 														right_start, right_end,
-														metrics);
+														&metrics);
 						break;
 					case BlockOperations::MergeStrategy::RGT_TO_LFT:
 						reported_final_b_location =
@@ -1417,15 +1425,15 @@ bool testBlockSortMergeBlocksExhaustively() {
 														test_vectors[i],
 														left_start, left_end,
 														right_start, right_end,
-														metrics);
+														&metrics);
 						break;
 					case BlockOperations::MergeStrategy::TABLE:
 						reported_final_b_location =
 							BlockOperations::mergeTwoBlocksElementsByTable(
-														 test_vectors[i],
-														 left_start, left_end,
-														 right_start, right_end,
-														 metrics);
+														test_vectors[i],
+														left_start, left_end,
+														right_start, right_end,
+														&metrics);
 						break;
 					}
 
@@ -1443,13 +1451,11 @@ bool testBlockSortMergeBlocksExhaustively() {
 						most_moves = metrics;
 					}
 
-					SortMetrics dummy(0,0);
 					array_size_t actual_final_b_location =
 							SortingUtilities::binarySearchLastElement(test_vectors[i],
 																	  left_start,
 																	  right_end,
-																	  final_b_value,
-																	  dummy);
+																	  final_b_value);
 					//	binarySearchLast reports location of the element
 					//	greater than the final b, so we need to decrement
 					//	back to the actual location of the final b_value
@@ -1563,10 +1569,10 @@ bool testBlockSortMergeBlocksRandomly() {
 
 	BlockOperations::MergeStrategy merge_strategies[] =
 	{
+		BlockOperations::MergeStrategy::INSERTION,
+		BlockOperations::MergeStrategy::BINARY,
 		BlockOperations::MergeStrategy::HYBRID,
 		BlockOperations::MergeStrategy::RGT_TO_LFT,
-		BlockOperations::MergeStrategy::BINARY,
-		BlockOperations::MergeStrategy::INSERTION,
 		BlockOperations::MergeStrategy::TABLE,
 		BlockOperations::MergeStrategy::AUXILLIARY,
 	};
@@ -1669,7 +1675,7 @@ bool testBlockSortMergeBlocksRandomly() {
 														test_array,
 														left_start, left_end,
 														right_start, right_end,
-														metrics);
+														&metrics);
 					break;	// unreachable
 				case BlockOperations::MergeStrategy::BINARY:
 					reported_final_b_position =
@@ -1677,14 +1683,15 @@ bool testBlockSortMergeBlocksRandomly() {
 														test_array,
 														left_start, left_end,
 														right_start, right_end,
-														metrics);
+														&metrics);
 					break;
 				case BlockOperations::MergeStrategy::HYBRID:
 					reported_final_b_position =
 						BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_RightToLeft(
 													test_array,
 													left_start, left_end,
-													right_start, right_end, metrics);
+													right_start, right_end,
+													&metrics);
 					break;
 				case BlockOperations::MergeStrategy::INSERTION:
 					reported_final_b_position =
@@ -1692,14 +1699,15 @@ bool testBlockSortMergeBlocksRandomly() {
 													test_array,
 													left_start, left_end,
 													right_start, right_end,
-													metrics);
+													&metrics);
 					break;
 				case BlockOperations::MergeStrategy::RGT_TO_LFT:
 					reported_final_b_position =
 						BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_RightToLeft(
 													test_array,
 													left_start, left_end,
-													right_start, right_end, metrics);
+													right_start, right_end,
+													&metrics);
 					break;
 				case BlockOperations::MergeStrategy::TABLE:
 					reported_final_b_position =
@@ -1707,7 +1715,7 @@ bool testBlockSortMergeBlocksRandomly() {
 													test_array,
 												 	left_start, left_end,
 													right_start, right_end,
-													metrics);
+													&metrics);
 					break;
 				}
 				total_results += metrics;
@@ -1721,13 +1729,11 @@ bool testBlockSortMergeBlocksRandomly() {
 					std::cout << message.str();
 				}
 
-				SortMetrics dummy(0,0);
 				array_size_t actual_final_b_position =
 						SortingUtilities::binarySearchLastElement(test_array,
 																  left_start,
 																  right_end,
-																  final_b_value,
-																  dummy);
+																  final_b_value);
 				//	binarySearchLast reports location of the element
 				//	greater than the final b, so we need to decrement
 				//	back to the actual location of the final b_value
@@ -1789,7 +1795,8 @@ bool testBlockSortMergeBlocksRandomly() {
 						 << " compares and "
 						 << std::fixed << std::setprecision(1) << std::setw(12)
 						 << static_cast<double>(total_results.assignments) / num_test_passes
-						 << " moves" << std::endl;
+						 << " moves"
+						 << std::endl;
 			}
 		}
 		if (num_merge_strategies != 1 && echo_test_result) {
@@ -1866,7 +1873,7 @@ bool testBlockSortRotateArrayElements() {
 		};
 
 	bool test_passed = true;
-	SortMetrics rotate_result(0,0);
+	SortMetrics rotate_metrics(0,0);
 
 	//	list all the array sizes to be tested
 	//	array_size_t array_sizes[] = {	8, 9, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
@@ -1927,8 +1934,8 @@ bool testBlockSortRotateArrayElements() {
 			}
 
 			rotateArrayElementsLongWay(expected_array, 0, array_size-1, rotate_count);
-			rotate_result =
-				SortingUtilities::rotateArrayElementsRight(rotated_array, 0, array_size-1, rotate_count);
+			SortingUtilities::rotateArrayElementsRight(
+						rotated_array, 0, array_size-1, rotate_count, &rotate_metrics);
 			//	check results
 			for (int i = 0 ; i < array_size; i++) {
 				if (rotated_array[i] != expected_array[i]) {
@@ -1953,7 +1960,7 @@ bool testBlockSortRotateArrayElements() {
 								  << "\"";
 					}
 				}
-				std::cout << " took:" << std::setw(7) << rotate_result.assignments
+				std::cout << " took:" << std::setw(7) << rotate_metrics.assignments
 						  << " moves\n";
 			}
 			if (!test_passed) {
@@ -2578,7 +2585,7 @@ bool testBlockSortSortBlocks() {
 							array_size_t start;
 							array_size_t mid;
 							array_size_t end;
-							array_size_t num_blocks;
+							int	num_blocks;
 
 							switch(block_organization) {
 							case BlockSort::BlockOrganizations::SYMMETRIC:
@@ -2625,16 +2632,16 @@ bool testBlockSortSortBlocks() {
 									 << std::endl;
 							switch(sorting_strategy) {
 							case BlockSort::BlockSortingStrategy::RIGHT_TO_LEFT:
-								metrics = BlockSort::sortBlocksRightToLeft(result_array, blocks, num_blocks);
+								BlockSort::sortBlocksRightToLeft(result_array, blocks, num_blocks, &metrics);
 								break;
 							case BlockSort::BlockSortingStrategy::BINARY:
-								metrics = BlockSort::sortBlocksBinarySearch(result_array, blocks, num_blocks);
+								BlockSort::sortBlocksBinarySearch(result_array, blocks, num_blocks, &metrics);
 								break;
 							case BlockSort::BlockSortingStrategy::HYBRID:
-								metrics = BlockSort::sortBlocksHybrid(result_array, blocks, num_blocks);
+								BlockSort::sortBlocksHybrid(result_array, blocks, num_blocks, &metrics);
 								break;
 							case BlockSort::BlockSortingStrategy::TABLE:
-								metrics = BlockSort::sortBlocksByTable(result_array, blocks, num_blocks);
+								BlockSort::sortBlocksByTable(result_array, blocks, num_blocks, &metrics);
 								break;
 							default:
 								break;
@@ -3061,7 +3068,10 @@ bool testBlockSortSwapBlocks() {
 						generate_expected_descriptors(expected_array,
 													  expected_descriptors, i, j);
 
-						metrics = BlockSort::swapBlocks(array_under_test, descriptors_under_test, i, j);
+						BlockSort::swapBlocks(array_under_test,
+											  descriptors_under_test,
+											  i, j,
+											  &metrics);
 
 						if (metrics.assignments > max_moves) {
 							max_moves = metrics.assignments;
@@ -3159,7 +3169,7 @@ bool testBlockSortSort() {
 //	};
 	int num_array_sizes = sizeof(array_sizes) / sizeof(array_size_t);
 
-	SortMetrics total_metrics[num_array_sizes];
+	SortTestMetrics total_metrics[num_array_sizes];
 
 	double nlogn[num_array_sizes];
 	double ave_compares[num_array_sizes];
@@ -3264,7 +3274,7 @@ bool testBlockSortSort() {
 				}
 			}
 
-			total_metrics[array_size_i] = SortMetrics(0,0);
+			total_metrics[array_size_i] = SortTestMetrics(0,0, array_size);
 
 			for (int test_number = 1; test_number <= num_test_runs; test_number++)
 			{
@@ -3274,7 +3284,6 @@ bool testBlockSortSort() {
 				for (int i = 0; i != array_size; i++) {
 					test_array[i] = reference_array[i];
 				}
-
 
 				std::stringstream msg;
 				msg << "indices   :" << arrayIndicesToString(	array_size, array_mid,
@@ -3330,12 +3339,10 @@ bool testBlockSortSort() {
 													descriptors, num_blocks, "randomized:",
 													value_width, element_width) << std::endl;
 
-//				test_metrics = sortAndMergeBlocks(test_array, descriptors, num_blocks);
-				total_metrics[array_size_i] += test_metrics;
 				msg << blockSortToString<DataType>(test_array, array_size, array_mid,
 													descriptors, num_blocks, "sorted    :",
 													value_width, element_width) << std::endl;
-
+				total_metrics[array_size_i] += test_metrics;
 				array_size_t mismatched_i;
 				array_size_t mismatched_j;
 				if (!SortingUtilities::isSorted(test_array, array_size,
@@ -3358,7 +3365,7 @@ bool testBlockSortSort() {
 					std::cout << "test number " << std::setw(5) << test_number
 							  << " took " 		<< test_metrics.compares
 							  << " compares and " << test_metrics.assignments
-							  << " moves" 		<< std::endl;
+							  << " assignments" 		<< std::endl;
 					if (debug_verbose) {
 						//	there is a lot of info in the console if debugging,
 						//	so add extra white space after the test
@@ -3372,7 +3379,7 @@ bool testBlockSortSort() {
 				std::cout << "Array size " << std::setw(6) << array_size
 						  << " repeated " << std::setw(6) << num_test_runs
 						  << " ave time complexity "
-						  << averageMetricsToString(total_metrics[array_size_i],num_test_runs);
+						  << total_metrics[array_size_i].averages_str();
 				if (array_size_i) {
 					int 	this_i	  	= array_size_i;
 					int		prev_i		= array_size_i-1;

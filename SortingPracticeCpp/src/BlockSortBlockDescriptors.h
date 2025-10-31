@@ -10,6 +10,7 @@
 
 #include <memory>
 #include "SortingDataTypes.h"
+#include "SortTestMetrics.h"
 //#include "BlockSortDataTypes.h"
 
 namespace BlockSort {

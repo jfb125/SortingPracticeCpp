@@ -27,7 +27,7 @@ namespace MergeSort {
 			return ret_val;
 		}
 
-		if (SortingUtilities::isSorted(array, size, ret_val)) {
+		if (SortingUtilities::isSorted(array, size, &ret_val)) {
 			return ret_val;
 		}
 

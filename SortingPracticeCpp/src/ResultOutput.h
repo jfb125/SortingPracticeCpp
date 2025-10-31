@@ -776,10 +776,10 @@ void printRowPreamble_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 		}
 		//	print out the next set of test metrics
 		std::cout << std::setw(compares_strlen) << std::right
-				  << results[i]->m_sort_metrics.comparesStr()
+				  << results[i]->m_sort_metrics.compares_str()
 				  << std::setw(0) << slash_separator
 				  << std::setw(assignments_strlen) << std::right
-				  << results[i]->m_sort_metrics.movesStr()
+				  << results[i]->m_sort_metrics.assignments_str()
 				  << space_separator
 				  << std::setw(stability_string_strlen) << std::right
 //				  << (results[i]->m_failure_log->m_diagnostics.is_stable ? 'Y' : 'N')
