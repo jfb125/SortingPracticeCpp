@@ -49,7 +49,7 @@
 	#define MERGE_STRATEGY_ROTATE_STRING		"RGT_TO_LFT"
 	#define MERGE_STRATEGY_TABLE_STRING			"TABLE"
 	#define MERGE_STRATEGY_UNKNOWN_STRING		"UNKNOWN"
-	#define MERGE_STRATEGY_MAX_STRING_LENGTH	11
+	#define MERGE_STRATEGY_MAX_STRING_LENGTH	10
 
 namespace BlockOperations
 {
@@ -61,11 +61,14 @@ namespace BlockOperations
 											 array_size_t block_2_end,
 											 SortMetrics *metrics);
 
+	/*	Sorts an array from [begin:end] using an insertion sort
+	 * 	Parameter 'ignored' is provided to make its signature match
+	 * 	BlockMerging algorithms	*/
 	template <typename T>
 	array_size_t insertionSortPartial(T* array,
 									  array_size_t begin,
 									  array_size_t ignored,
-									  array_size_t mid,
+									  array_size_t suspect,
 									  array_size_t end,
 									  SortMetrics *metrics = nullptr);
 
@@ -196,18 +199,18 @@ namespace BlockOperations
 	array_size_t insertionSortPartial(T* 		   array,
 									  array_size_t begin,
 									  array_size_t ignored,
-									  array_size_t mid,
+									  array_size_t suspect,
 									  array_size_t end,
 									  SortMetrics *metrics)
 	{
 		array_size_t highest_b_position = end;
 
-		if (begin > end || mid > end) {
+		if (begin > end || suspect > end) {
 			return highest_b_position;
 		}
 
 		//	from here to the end of the array
-		for (int i = mid; i <= end ; i++) {
+		for (int i = suspect; i <= end ; i++) {
 			//	keep reseting highest_b_position to the end
 			highest_b_position = end;
 			// The first time a B_Block element is found that is
@@ -247,7 +250,9 @@ namespace BlockOperations
 	}
 
 
-	/*	Merge blocks using binary searches to identify spans to rotate
+	/*	Merge blocks using binary searches to identify spans to rotate.
+	 * Returns the final position of the rightmost element from b after
+	 * b is merged.
 	 *
 	 * In the following discussion,
 	 * 	last(start,end,key) 	refers to a binary search that
@@ -267,7 +272,7 @@ namespace BlockOperations
 	 * 	Rc						is the count to rotate the span right
 	 *
 	 * Consider the following array:
-	 *[       A Block        ][    B Block
+	 *[       A Block        ][    B Block        ]
 	 * 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14	| As Ae Bs Be | Ss Se Rc
 	 * A  G  H  I  M  N  O  P  B  C  D  E  F  J  K	  0  7  8  14   1  13  5
 	 * 		span_start 	= last(As,Ae,[Bs]='B')		=  1
@@ -411,16 +416,10 @@ namespace BlockOperations
 
 
 	/*
-	 *
-	 *
-	 *
 	 * The first merge is done using a binary search. Successive merges
 	 * are done searching right-to-left.  It is possible that once found,
 	 * right_to_left is more efficient since blocks may be interleaved
-	 *
-	 *
-	 *
-	 *
+	 * and thus the gaps do not require a lot of searching.
 	 */
 
 	template <typename T>
@@ -482,7 +481,7 @@ namespace BlockOperations
 		//	if this [b_end] goes before all of A
 		//		  A Block	  B Block
 		//	      0 1 2 3     4 5 6 7
-		//	 	[ M O Q S ] [ A B C D ]	first_a_grater_than_b_end = 0
+		//	 	[ M O Q S ] [ A B C D ]	first_a_greater_than_b_end = 0
 		//	exit with [ A B C D M O Q S ] and b_max = 3
 		if (first_a_greater_than_b_end <= a_unmerged_start) {
 			span_start 	= a_unmerged_start;
@@ -684,7 +683,7 @@ namespace BlockOperations
 
 	/*	Merge blocks using identifying spans to rotate into place by starting
 	 * an index at the end of block 1, and an index at the end of block 2,
-	 * and moving right to left.
+	 * and moving the indices right to left.
 	 *
 	 * In the following discussion,
 	 * 	rotate(span_start, span_end, rotate_count)
@@ -725,7 +724,6 @@ namespace BlockOperations
 	 * 	Move from right to left through b to determine:
 	 * 	There are no elements in b that are less than [a_e]
 	 */
-
 	template <typename T>
 	array_size_t mergeTwoAdjacentBlocksBy_Rotation_RightToLeft(
 												T* 			 array,
@@ -904,155 +902,30 @@ namespace BlockOperations
 		return b_max_pos;
 	}
 
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+	/*						MERGE BLOCKS BY ROTATION END OF SECTION						*/
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
 
-	/*
-	 * 	mergeBlocksByTable(	array,
-	 * 						block_1_start, block_1_end,
-	 * 						blocK_2_start, block_2_end)
-	 *
-	 * 	This function merges the array elements from [b1_start:b1_end] with
-	 * 	  the array elements from [b2_start:b2_end] by using a table to keep
-	 * 	  track of where the elements from [b1_start:b1_end] get moved as the
-	 * 	  merge proceeds.
-	 *
-	 * 	It is assumed that the values within each block are in ascending order.
-	 *
-	 * 	Note that this algorithm does not require the blocks to be contiguous, nor
-	 * 	 does it require the size of block_1 to be less than the size of block_2
-	 *
-	 * 	The algorithm creates a table of where each element from block_1
-	 * 	  moves to if it is swapped out of its position in the array.
-	 * 	  This table of array indices allows the algorithm to only require
-	 * 	  one temporary location for an array element during the swap.  However, it
-	 * 	  requires the space necessary for table of indices that initially has
-	 * 	  a quantity of elements equal to the size of the block_1
-	 *
-	 *	Note that updating the table of block_1 indices takes an element-wise search
-	 *	  through the table to determine which where a displaced block_1 element is
-	 *	  stored in the table.  This is denoted in the following example by t[x] = t[t_ptr]
-	 *	  where the block_1 element at 'dst' was stored in table at table index 'x'.
-	 *	  Note in the example that block_1 elements often get displaced multiple times.
-	 *	  The element in the table at table index [x] which was a 'dst' is now at:
-	 *	  	b2_ptr if the source of the swap was an element from block_2,
-	 *	  		which do not get displaced out of their original location during merging
-	 *	  	t[tpr] if the source of the swap was an element originally in block_1,
-	 *	  		which do often get displaced out of their original location during merging
-	 *
-	 *	In the following discussion
-	 *		'b1s' is block_1_start		'b1e' is block_1_end
-	 *		'b2s' is blocK_2_start		'b2e' is block_2_end
-	 *		b1_ptr is the array index of the location of the next element from block_1
-	 *		b2_ptr is the array index of the location of the next element from block_2
-	 *		t_ptr  is the index into the table of where block_1 elements have been displaced
-	 *		'-' indicates an index that is no longer part of the algorithm
-	 *
-	 * 	Consider the blocks "BDF" and "ACEG
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [B   D   F  ]   [A   C   E   G  ] ||  m    [ m+0 m+1 m+2 ]    0      m+0       n+0
-	 *
-	 *  [t[t_ptr=0]=m+0] = 'B'  > [b2_ptr] = 'A' .... xchg(dst, b2_ptr);    t[0]=b2_ptr; b2_ptr++;
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   D   F  ]   [B   C   E   G  ] ||  m+1  [ n+0 m+1 m+2 ]    0      n+0       n+1
-	 *
-	 *  [t[t_ptr=0]=n+0] = 'B' <= [b2_ptr] = 'C' .... xchg(dst, t[t_ptr]);  t[x=1]=t[t_ptrr]; t_ptr++;
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   B   F  ]   [D   C   E   G  ] ||  m+2  [ -   n+0 m+2 ]    1      n+0       n+1
-	 *
-	 *  [t[t_ptr=1]=n+0] = 'D' >  [b2_ptr] = 'C' .... xchg(dst, b2_ptr);    t[x=2]=b2_ptr; b2_ptr++;
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   B   C  ]   [D   F   E   G  ] ||  n+0  [ -   n+0 n+1 ]    1      n+0       n+2
-	 *
-	 * 	[t[tpr=1]=n+0] = 'D' <= [r_rptr] = 'E' ... dst == t[t_ptr=1], no swap occurred, t_ptr++
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			    table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   B   C  ]   [D   F   E   G  ] ||  n+1  [ -   -   n+1 ]    2      n+1       n+2
-	 *
-	 * 	[t[t_ptr=2]=n+1] = 'F' <= [r_rptr] = 'E' ... xchng(dst, b2_ptr);    t[x=2]=b2_ptr; b2_ptr++
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3			   table 't'
-	 * 	b1s     b1e     b2s         b2e  ||  dst  [ 0   1   2   ]    t_ptr  t[t_ptr]  b2_ptr
-	 * [A   B   C  ]   [D   E   F   G  ] ||  n+2  [ -   -   -   ]    3       -        n+3
-	 *
-	 * 	t_ptr has been exhausted because t_ptr = sizeof(table)),
-	 * 		therefore all block_1 elements are in their correct location and all unexamined
-	 * 		elements are block_2 elements which are in the originial, and correct, locations
-	 *
-	 *	The displacement of the block_1 elements, often multiple times, causes this algorithm
-	 *	  to use more swaps than a merge sort that uses an auxilliary array, which has a
-	 *	  guaranteed min & max number of swaps == nlog(n).  It was empirically observed
-	 *	  that this algorithm is on the order of swap complexity of insertion sort.
-	 *
-	 * 	As an example of the number of displacements of block_1 elements that can occur,
-	 * 	  consider the blocks "EFG" and "ABCD"
-	 *
-	 * 	m+0 m+1 m+2     n+0 n+1 n+2 n+3   dst      table            t_ptr  t[t_ptr] b2_ptr
-	 * 	E   F   G  ...  A   B   C   D  ||  m+0  [ m+0 m+1 m+2 ]     0      [0]=m+0  n+0
-	 * 	A   F   G  ...  E   B   C   D  ||  m+1  [ n+0 m+1 m+2 ]     0      [0]=n+0  n+1
-	 * 	A   B   C  ...  E   F   G   D  ||  m+2  [ n+0 n+1 m+2 ]     0      [0]=n+0  n+2
-	 * 	A   B   C  ...  D   F   G   E  ||  n+0  [ n+3 n+1 n+2 ]     0      [0]=n+0  n+3
-	 * 	A   B   C  ...  D   F   G   E  ||  n+1  [ n+3 n+1 n+2 ]     0      [0]=n+3  n+4
-	 *
-	 * 	All of the right block values "A:D" have been placed b/c n+4 > right_end = n+3,
-	 * 		but the left block values are no longer in sequence
-	 *
-	 * 	A   B   C  ...  D   F   G   E  ||  n+1  [ n+3 n+1 n+2 ]     0      [0]=n+3  -
-	 * 	A   B   C  ...  D   E   G   F  ||  n+2  [ -   n+3 n+2 ]     1      [1]=n+3  -
-	 * 	A   B   C  ...  D   E   F   G  ||  n+3  [ -   -   n+3 ]     2      [1]=n+3  -
-	 * 	A   B   C  ...  D   E   F   G  ||  n+4  [ -   -   -   ]     3      -        -
-	 *
-	 * 	t_ptr= has exceeded sizeof(table)=2 and all right blocks are in place, done
-	 *
-	 * 									Algorithm:
-	 * 	nextDestination(dst)
-	 *		if (dst == block_1_end)	dst = block_2_start
-	 *		else					dst++
-	 *
-	 * 	dst = block_1_start
-	 * 	t_ptr = 0
-	 * 	b2_ptr = blocK_2_start
-	 * 	while (dst <= right_end) {
-	 * 		b1_ptr = table[t_ptr]
-	 *
-	 * 		if (array[b1_ptr] <= array[b2_ptr] {
-	 * 			// the element to be merged came from block_1
-	 * 			if (dst != b1_ptr) {
-	 * 			 	swap(dst, b1_ptr)
-	 * 			 	//	the element block was from block_1
-	 * 			 	for (x = t_ptr+1; x != sizeof(table), x++) {
-	 * 			 		if(table[x] == dst) {
-	 * 			 			table[x] = table[t_ptr]
-	 * 			 			break
-	 * 			 		}
-	 * 			 	}
-	 * 			t_ptr++
-	 * 			if (t_ptr == sizeof(table))
-	 * 				break;
-	 * 		} else {
-	 * 			// the element came from block_2
-	 * 			if (dst != b2_ptr) {
-	 * 				swap(dst, b2_ptr)
-	 * 				//	block_2 elements always overwrite block_1 elements
-	 * 				//	search table to determine if the element
-	 * 				//	  displaced element was from block_1
-	 * 				for (x = t_ptr; x != sizeof(table), x++) {
-	 * 					if(table[x] == dst)
-	 * 						table[x] = b2_ptr
-	 * 				}
-	 * 			}
-	 * 			b2_ptr++
-	 *		}
-	 * 		next_destination(dst)
-	 */
 
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+	/*																					*/
+	/*								MERGING BLOCKS BY TABLE								*/
+	/*																					*/
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsByTableLowerSmallest(T * array,
+											 array_size_t block_1_start,
+											 array_size_t block_1_end,
+											 array_size_t block_2_start,
+											 array_size_t block_2_end,
+											 SortMetrics *metrics);
 	template <typename T>
 	array_size_t mergeTwoBlocksElementsByTableUpperSmallest(T * array,
 											 array_size_t block_1_start,
@@ -1061,221 +934,42 @@ namespace BlockOperations
 											 array_size_t block_2_end,
 											 SortMetrics *metrics);
 
-	template <typename T>
-	array_size_t mergeTwoBlocksElementsByTableLowerSmallest(T * array,
-											 array_size_t block_1_start,
-											 array_size_t block_1_end,
-											 array_size_t block_2_start,
-											 array_size_t block_2_end,
-											 SortMetrics *metrics) {
-
-		/*	**************************************************************	*/
-		/*							debug									*/
-		/*	**************************************************************	*/
-
-		constexpr bool debug_verbose = false;
-		std::stringstream message;
-
-#pragma push_macro("dbg_ln")
-#define dbg_ln(msg)\
-		do {\
-			if (debug_verbose)	{	std::cout << msg << std::endl;	}\
-		} while(false)
-
-#pragma push_macro("dbg")
-#define dbg(msg)\
-		do {\
-			if (debug_verbose)	{	std::cout << msg;	}\
-		} while(false)
-
-		//	The lambda 'debug_string' cannot be defined until after many
-		//	function variables have been declared. This is typed in here
-		//	so that it doesn't intrude upon the regular code after
-		//	the variables 'array', etc, are defined
-#pragma push_macro("define_debug_string")
-#define define_debug_string\
-		auto debug_string = [&] () -> std::string {\
-			std::stringstream result;\
-			for (array_size_t i = block_1_start; i <= block_2_end; ) {\
-				result << std::setw(3) << /*array[i].key.str() */ " key value not printed " << " ";\
-				i++;\
-				if (i-1 == block_1_end) {\
-					i = block_2_start;\
-				}\
-			}\
-			result << " " << std::setw(3) << block_1_locations_table_index\
-				   << " using table [";\
-			for (int i = 0; i != block_1_locations_table_size; i++) {\
-				if (i < block_1_locations_table_index) {\
-					result << " - ";\
-				} else {\
-					result << std::setw(3) << block_1_locations_table[i];\
-				}\
-			}\
-			result 	<< "] dst " << std::setw(2) << destination_index\
-					<< " t_ptr " << std::setw(2) << block_1_locations_table_index\
-					<< " b2_ptr " << std::setw(2) << block_2_index;\
-			return result.str();\
-		};\
-
-		/*	**************************************************************	*/
-		/*							lambdas									*/
-		/*	**************************************************************	*/
-
-		auto next_destination = [=] (array_size_t _dest) -> array_size_t {
-			if (_dest != block_1_end)
-				return _dest + 1;
-			else
-				return block_2_start;
-		};
-
-		//	If an element swapped into 'dst' was in the displacement table,
-		//	update the table's entry for the element to now be located at 'src'
-		auto update_locations_table = [] (array_size_t *table, array_size_t start, array_size_t end,
-										  array_size_t dst, array_size_t src) {
-			for (array_size_t i = start; i <= end; i++) {
-				//	the element in the table which was
-				//	previously at 'dst', it is now at 'src'
-				if (table[i] == dst) {
-					table[i] = src;
-					break;
-				}
-			}
-		};
-
-		/*	**************************************************************	*/
-		/*							algorithm								*/
-		/*	**************************************************************	*/
-
-		//	Keep track of where the final element in block 2 (B_Block) ends up
-		//	after the merge.  This is the position of the last element guaranteed
-		//	to be in it's final place.  Any A_Block elements at the end of
-		//	the array may be larger than the next B_Block's first elements
-
-		array_size_t block_2_end_position 	= block_2_end;
-		array_size_t block_1_size 			= block_1_end - block_1_start + 1;
-		array_size_t block_2_size 			= block_2_end - block_2_start + 1;
-
-		if (block_1_size <= 0 || block_2_size <= 0) {
-			return block_2_end_position;
-		}
-
-		//	Build the table of locations of the lower block's elements
-
-		array_size_t block_1_locations_table_size = block_1_size;
-		array_size_t block_1_locations_table[block_1_locations_table_size];
-
-		for (array_size_t i = 0, src = block_1_start; i < block_1_locations_table_size; ) {
-			block_1_locations_table[i++] = src++;
-		}
-
-		//	Perform the merge
-
-		array_size_t block_1_locations_table_index 	= 0;
-		array_size_t block_2_index				  	= block_2_start;
-		array_size_t destination_index  			= block_1_start;
-
-		//	define the lambda 'debug_string() after the above variables
-		//	have been declared
-		define_debug_string;
-
-		/*	******************************************************	*/
-		/*					the algorithm code						*/
-		/*	******************************************************	*/
-
-		while (destination_index <= block_2_end)
-		{
-			// Point to the current location of the next block_1 element
-			//	which may not be stored in its original position b/c
-			//	the block_1 element may have been displaced in a previous
-			//	pass through this loop.
-			array_size_t block_1_index = block_1_locations_table[block_1_locations_table_index];
-
-			if (metrics) metrics->compares++;
-			if (array[block_1_index] <= array[block_2_index]) {
-				// the value from the left block goes into destination
-				if (destination_index != block_1_index) {
-					SortingUtilities::swap( array,
-											destination_index,
-											block_1_index,
-											metrics);
-
-					// Update the table location of the entry that was just displaced,
-					//	which will be somewhere in the table after the current entry
-					update_locations_table(block_1_locations_table,
-								   	   	   block_1_locations_table_index+1, block_1_locations_table_size-1,
-										   destination_index, block_1_index);
-				}
-
-				if (debug_verbose) message   << "left:  " << debug_string() << std::endl;
-
-				destination_index = next_destination(destination_index);
-
-				//	if we have moved / merged all of the block_1 elements, we are done
-				if (++block_1_locations_table_index == block_1_locations_table_size) {
-					if (debug_verbose) message << "Terminated due to table_index == table_size " << std::endl;
-					break;
-				}
-			}
-			else
-			{
-				// value from the right block is < value from the left block
-				SortingUtilities::swap(	array,
-										destination_index,
-										block_2_index,
-										metrics);
-
-				if (block_2_index == block_2_end_position) {
-					block_2_end_position = destination_index;
-				}
-
-				//	Update the table entry of the location of the element
-				//	that was just displaced, which may be in any position in the table
-				update_locations_table(block_1_locations_table,
-								   	   block_1_locations_table_index, block_1_locations_table_size-1,
-									   destination_index, block_2_index);
-
-				if (debug_verbose) message << "right: " << debug_string() << std::endl;
-
-				destination_index = next_destination(destination_index);
-
-				//	if all the elements from block_2 are in place, break loop
-				if (++block_2_index > block_2_end) {
-					if (debug_verbose) message << "Terminated due to block_2_index > block_2_end" << std::endl;
-					break;
-				}
-			}
-		}
-
-		//	If the while loop terminated because all block_2 elements are now in place,
-		//	  it is possible that there are displaced block_1 elements that are not
-		//	  in order.  Reorder any remaining block_1 values that have been displaced
-		while(destination_index <= block_2_end &&
-			  block_1_locations_table_index < block_1_locations_table_size)
-		{
-			if (debug_verbose) message << "flush: " << debug_string() << std::endl;
-
-			array_size_t block_1_index	= block_1_locations_table[block_1_locations_table_index];
-			SortingUtilities::swap(	array,
-									destination_index,
-									block_1_index,
-									metrics);
-			//	update the table's contents from AFTER the element that was just stored
-			update_locations_table(block_1_locations_table,
-								   block_1_locations_table_index+1, block_1_locations_table_size-1,
-								   destination_index, block_1_index);
-			block_1_locations_table_index++;
-			destination_index = next_destination(destination_index);
-		}
-
-		if (debug_verbose)	std::cout << message.str() << std::endl;
-		return block_2_end_position;
-
-#pragma pop_macro("define_debug_string")
-#pragma pop_macro("dbg")
-#pragma pop_macro("dbg_ln")
-	}
-
+	/*
+	 *	template <typename T>
+	 * 	array_size_t mergeTwoBlocksElementsByTable(
+	 * 										T * array,
+	 *										array_size_t block_1_start,
+	 *	 									array_size_t block_1_end,
+	 *										array_size_t block_2_start,
+	 *										array_size_t block_2_end,
+	 *										SortMetrics *metrics) {
+	 *
+	 *	Two blocks, which do not have to be contiguous, are merged in place
+	 *	by maintaining a table of to where a block elements get displaced
+	 *	prior to moving into its final place.
+	 *
+	 *	Returns the final position of the element that was in block_2_end.	All elements,
+	 *	including that element, are now in their final position. Successive merges by the
+	 *	calling sort routine will start after the largest block 2's final position.
+	 *
+	 *	  Block 1||  Block 2	Dst	  Table of  Table
+	 *	  							  b1 pstns  index
+	 *	  0  1  2  3  4  5  6	      0  1  2	 0	 Block 1 value		 Block 2 value
+	 *	[ E  F  I  C  D  G  H ]	 0	  0  1  2	 0	 [Table[0]=0] = 'E'  [3] = 'C'
+	 *	[ C  F  I  E  D  G  H ]  1    3  1  2    0   [Table[0]=3] = 'E'  [4] = 'D'
+	 *	[ C  D  I  E  F  G  H ]  2    3  4  2    0   [Table[0]=3] = 'E'  [5] = 'G'
+	 *  [ C  D  E  I  F  G  H ]  3    x  4  3    1   [Table[1]=4] = 'F'  [5] = 'G'
+	 *	[ C  D  E  I  F  G  H ]  4    x  4  3    1   [Table[1]=4] = 'F'  [5] = 'G'
+	 *	[ C  D  E  F  I  G  H ]  5    x  x  4    2   [Table[2]=4] = 'I'  [5] = 'G'
+	 *	[ C  D  E  F  G  I  H ]  6    x  x  5    2   [Table[2]=5] = 'I'  [6] = 'H'
+	 *	[ C  D  E  F  G  H  I ]  x    x  x  x    3  Table Index = 3, done
+	 *		returns 5, which is where the 'H' from block 2 ended up
+	 *
+	 * 	Managing the overhead of the table is an expense. To minimize this expense,
+	 * 	  there is a function perform the merge for when block_1 is smaller than
+	 * 	  or equal to block_2's size, and a separate function for when block_2 is
+	 * 	  the smaller block
+	 */
 
 	/*
 	 * 	Primary function that determines which sub-function to call,
@@ -1290,15 +984,16 @@ namespace BlockOperations
 											 array_size_t block_2_start,
 											 array_size_t block_2_end,
 											 SortMetrics *metrics) {
-		//	trap all errors
-		if (block_1_end < block_1_start)	return 0;
-		if (block_2_end < block_2_start)	return 0;
 
-		array_size_t u_size = block_1_end - block_1_start + 1;
-		array_size_t v_size = block_2_end - block_2_start + 1;
+		array_size_t block_1_size = block_1_end - block_1_start + 1;
+		array_size_t block_2_size = block_2_end - block_2_start + 1;
 
-		if (u_size <= v_size) {
-			return mergeTwoBlocksElementsByTableLowerSmallest(array,
+		//	if either block is empty, no need to merge
+		if (block_1_size <= 0 || block_2_size <= 0)
+			return block_2_end;
+
+		if (block_1_size <= block_2_size) {
+			return  mergeTwoBlocksElementsByTableLowerSmallest(array,
 															  block_1_start,
 															  block_1_end,
 															  block_2_start,
@@ -1314,21 +1009,320 @@ namespace BlockOperations
 		}
 	}
 
+	/*
+	 * 		FUNCTION FOR MERGING BY TABLE WHEN BLOCK 1 SIZE <= BLOCK 2 SIZE
+	 *
+	 * 	The algorithm creates a table of the location of each element from block 1
+	 * 	Every time a location of a block 1 element gets displaced, the table is
+	 * 	updated with the new location of the block 1 element that was at 'dest'
+	 *
+	 * 	Note that frequently a block 1 element will displace another block 1 element.
+	 * 	The example above demonstrates this.
+	 *
+	 * 	When 'dest' == block_2_end, and the element at block_2_end is moved, the
+	 * 	final location of that element is stored to return to caller
+	 */
 
-	/*	******************************************************************	*/
-	/*		Merging blocks by allocating an auxiliary buffer that is the	*/
-	/*	size of the smaller buffer.  Elements are only moved into the 		*/
-	/*	auxiliary buffer whenever the element is displaced b/c its location	*/
-	/*	is the destination of the merged (incoming) element					*/
-	/*																		*/
-	/*		Two helper functions exist: one for when the first block is 	*/
-	/*	equal to or smaller than the second block, and one when the second	*/
-	/*	block is smaller than the first block.								*/
-	/*																		*/
-	/*		The buffered block needs to be the smaller one to ensure that 	*/
-	/*	the	loop in the merge algorithm goes through ALL of the other 		*/
-	/*	larger block.														*/
-	/*	******************************************************************	*/
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsByTableLowerSmallest(T * array,
+											 array_size_t block_1_start,
+											 array_size_t block_1_end,
+											 array_size_t block_2_start,
+											 array_size_t block_2_end,
+											 SortMetrics *metrics)
+	{
+		array_size_t largest_b2_position 	= block_2_end;
+
+		//	Check to see if merging is necessary
+
+		array_size_t block_1_size 			= block_1_end - block_1_start + 1;
+		array_size_t block_2_size 			= block_2_end - block_2_start + 1;
+
+		if (block_1_size <= 0 || block_2_size <= 0) {
+			return largest_b2_position;
+		}
+
+		//	Build the table of locations of block_1's elements
+
+		array_size_t table_size = block_1_size;
+		array_size_t block_1_locations_table[table_size];
+
+		for (array_size_t i = 0, src = block_1_start; i < table_size; ) {
+			block_1_locations_table[i++] = src++;
+		}
+
+		//	Perform the merge
+
+		array_size_t table_index 	= 0;
+		array_size_t block_2_source	= block_2_start;
+		array_size_t dest  			= block_1_start;
+
+		//	This loop will terminate when either:
+		//	   the table of block_1 elements is empty (all block_1 values merged)
+		//	OR all of block_2's elements have been merged
+		//
+		//	Note that if it exits b/c all of block 2 elements are in place, the remaining
+		//	  block 1 referenced by the table may no longer be in order - flush the table
+		while (true)
+		{
+			// Point to the current location of the next block_1 element which may
+			//	have been displaced in a previous pass through this loop.
+			array_size_t block_1_source = block_1_locations_table[table_index];
+			if (metrics) metrics->compares++;
+
+			if (array[block_1_source] <= array[block_2_source]) {
+				// the value from block 1 goes into 'dest'
+				if (dest != block_1_source) {
+					SortingUtilities::swap( array,
+											dest,
+											block_1_source,
+											metrics);
+					// Update the table location of the block_1 element that was
+					//	at 'dest', which has been swapped to location 'block_1_source'
+					for (array_size_t i = table_index+1; i != table_size; i++) {
+						if (block_1_locations_table[i] == dest) {
+							block_1_locations_table[i] = block_1_source;
+						}
+					}
+				}
+				//	update dest assuming blocks may not be contiguous
+				if (dest != block_1_end)	dest++;
+				else  						dest = block_2_start;
+				//	if all block_1 elements have been merged into place, done
+				if (++table_index == table_size)
+					break;
+			}
+			else
+			{
+				// value from the block 2 is < value from the block 1
+				if (dest != block_2_source) {
+					SortingUtilities::swap(	array,
+											dest,
+											block_2_source,
+											metrics);
+					//	Was the element at 'block_2_end' swapped to 'dest'?
+					if (block_2_source == block_2_end)
+						largest_b2_position = dest;
+					//	Ensure that if the displaced element was in the table,
+					//	  it's location gets updated to where it was swapped
+					for (array_size_t i = table_index; i != table_size; i++) {
+						if (block_1_locations_table[i] == dest) {
+							block_1_locations_table[i] = block_2_source;
+						}
+					}
+				}
+				//	update dest assuming blocks may not be contiguous
+				if (dest != block_1_end)	dest++;
+				else 						dest = block_2_start;
+				//	if all the elements from block_2 are in place, break loop
+				if (++block_2_source > block_2_end)
+					break;
+			}
+		}
+
+		//	If break out of while loop because all block_2 elements are now in place,
+		//	  it is possible that there remain displaced block_1 elements that are no
+		//	  longer in order. Finish positioning remaining block_1 elements from the table
+		while(table_index < table_size)
+		{
+			array_size_t block_1_source	= block_1_locations_table[table_index];
+			if (block_1_source != dest) {
+				SortingUtilities::swap(	array,
+										dest,
+										block_1_source,
+										metrics);
+				// Update the table location of the block_1 element that was
+				//	at 'dest', which has been swapped to 'block_1_source'
+				for (array_size_t i = table_index+1; i != table_size; i++) {
+					if (block_1_locations_table[i] == dest) {
+						block_1_locations_table[i] = block_1_source;
+					}
+				}
+			}
+			//	update dest assuming blocks may not be contiguous
+			if (dest != block_1_end) 	dest++;
+			else  						dest = block_2_start;
+			table_index++;
+		}
+
+		return largest_b2_position;
+	}
+
+	/*
+	 * 		FUNCTION FOR MERGING BY TABLE WHEN BLOCK 1 SIZE > BLOCK 2 SIZE
+	 *
+	 * 	The algorithm creates a table of the location of each element from block 2
+	 * 	Every time a location of a block 2 element gets displaced, the table is
+	 * 	updated with the new location of the block 2 element that was at 'dest'
+	 *
+	 * 	Note that frequently a block 2 element will displace another block 2 element.
+	 *
+	 *	The 'dest' index starts at the end of block 2 and moves leftwards
+	 * 	The table is accessed in a right-to-left order to match the right-to-left
+	 * 	movement of 'dest'.
+	 *
+	 * 	If the table_index is at the right-most location, that indicates that
+	 * 	the largest block 2 value has not been put in its final position in the array.
+	 * 	It may have previously been displaced from its initial position of 'block_2_end',
+	 * 	but it is not in its final position.
+	 *
+	 * 	Block 1  |Block 2 Dst  Table 	Table	B1 Pos		B2 Pos
+	 * 	  0 1 2 3 4 5 6		   Pstns	Index
+	 *	[ A B O P L M N ]  6   4 5 6     2		[3] = 'P'	[Table[2]=6] = 'N'  not in final
+	 *	[ A B O N L M P ]  5   4 5 3     2      [2] = 'O'   [Table[2]=3] = 'N'  not in final
+	 *	[ A B M N L O P ]  4   4 2 3     2      [1] = 'B'   [Table[2]=3] = 'N'  not in final
+	 *	[ A B M L N O P ]  3   3 2 x     1      [1] = 'B'   [Table[1]=2] = 'M'  in final pos
+	 *	[ A B L M N O P ]  2   3 x x     0      [1] = 'B'   [Table[0]=3] = 'L'
+	 *	[ A B L M N O P ]  1   x x x    -1  Table Index = -1, done
+	 *			return 4, which is where 'N' ended up
+	 *
+	 *	Note that in the event that all of block 1 get placed but there are still indices
+	 *	of elements in the block 2 table, it is likely that the elements refered to by the
+	 *	table need to be restored to their correct order by flushing the table
+	 */
+
+	template <typename T>
+	array_size_t mergeTwoBlocksElementsByTableUpperSmallest(T * array,
+											 array_size_t block_1_start,
+											 array_size_t block_1_end,
+											 array_size_t block_2_start,
+											 array_size_t block_2_end,
+											 SortMetrics *metrics)
+	{
+		array_size_t b2_max_position 		= block_2_end;
+
+		array_size_t block_1_size = block_1_end - block_1_start + 1;
+		array_size_t block_2_size = block_2_end - block_2_start + 1;
+
+		if (block_1_size <= 0 || block_2_size <= 0)
+			return b2_max_position;
+
+		//	build the table which will be accessed right to left
+		array_size_t table_size = block_2_size;
+		array_size_t block_2_locations_table[table_size];
+		for (array_size_t i = table_size-1, src = block_2_end; i >= 0; ) {
+			block_2_locations_table[i--] = src--;
+		}
+
+		//	initialize the indices
+		array_size_t table_index	= table_size-1;
+		array_size_t b1_source 		= block_1_end;
+		array_size_t dest			= block_2_end;
+
+		//	This loop exits (break) when either
+		//	  	all of the block_2 elements are in place (table_index = -1)
+		//	OR  there are no more block 1 elements to be placed (b1_source < block_1_start
+		//
+		//	Note that if it exits b/c all of block 1 elements are in place, the remaining
+		//	  block 2 referenced by the table may no longer be in order - flush the table
+		while (true)
+		{
+			// determine position of the current block 2 element to be merged
+			array_size_t b2_source = block_2_locations_table[table_index];
+			if (metrics) metrics->compares++;
+
+			if (array[b1_source] > array[b2_source]) {
+				// b1 is the larger element
+				if (b1_source != dest) {
+					SortingUtilities::swap(array, dest, b1_source, metrics);
+					//	if the element from block_2_end (table_index == right)
+					//	  has not been merged, and it was at 'dest'
+					if (table_index == table_size-1 &&
+						dest == block_2_locations_table[table_index]) {
+							// block_2_end is now at b1_source
+							b2_max_position = b1_source;
+					}
+					//	update the table entry that contains'dest'
+					//	which has now been displaced to b1_source
+					for (array_size_t i = table_index; i >= 0; i--) {
+						if (block_2_locations_table[i] == dest) {
+							block_2_locations_table[i] = b1_source;
+							break;
+						}
+					}
+				}
+				//	update dest assuming blocks may not be contiguous
+				if (dest != block_2_start) 	dest--;
+				else						dest = block_1_end;
+				//	if all of the elements from block_1 have been moved
+				//	break loop and go flush block_2_locations_table[]
+				if (--b1_source < block_1_start) {
+					break;
+				}
+			} else {
+				// block_2's element is the larger element
+				if (b2_source != dest) {
+					SortingUtilities::swap(array, dest, b2_source, metrics);
+					//	did we put into place the largest b2 element?
+					if (table_index == table_size-1) {
+						b2_max_position = dest;
+					}
+					//	if the dest was the location of a block_2_element in
+					//	the table, update the table with the new location
+					for (array_size_t i = table_index-1; i >= 0; i--) {
+						if (block_2_locations_table[i] == dest) {
+							block_2_locations_table[i] = b2_source;
+							break;
+						}
+					}
+				}
+				//	update dest assuming blocks may not be contiguous
+				if (dest != block_2_start)	dest--;
+				else						dest = block_1_end;
+				//	if all block_2 elements have been placed, we are done
+				if (--table_index < 0)
+					break;
+			}
+		}
+
+		//	flush the block_2_locations_in the table if there are still elements in it
+		while (table_index >= 0) {
+			array_size_t b2_source = block_2_locations_table[table_index];
+			if (dest != block_2_locations_table[table_index]) {
+				SortingUtilities::swap(array, dest, b2_source, metrics);
+				// did we move in the largest b2 element into dest?
+				if (table_index == table_size-1) {
+					b2_max_position = dest;
+				}
+				for (array_size_t i = table_index-1; i >= 0; i--) {
+					if (block_2_locations_table[i] == dest) {
+						block_2_locations_table[i] = b2_source;
+						break;
+					}
+				}
+			}
+			if (dest != block_2_start)	dest--;
+			else						dest = block_1_end;
+			table_index--;
+		}
+
+		return b2_max_position;
+	}
+
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+	/*						MERGE BLOCKS BY TABLE END OF SECTION						*/
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+
+
+
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+	/*																					*/
+	/*						MERGING BLOCKS BY AUXILLIARY BUFFER							*/
+	/*																					*/
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+	/*	******************************************************************************	*/
+
+	/*
+	 * 	Merging blocks by allocating an auxiliary 'displacement' buffer (queue) that
+	 * 	is the size	of the smaller block. Elements are only moved into the
+	 * 	'displacement' buffer when their position in the array is the destination
+	 * 	of an element from the larger block.
+	 */
 
 	/*	This version treats the lower as being the smaller block	*/
 
@@ -1367,6 +1361,11 @@ namespace BlockOperations
 	{
 		array_size_t block_1_size = block_1_end - block_1_start + 1;
 		array_size_t block_2_size = block_2_end - block_2_start + 1;
+
+		if (block_1_size <= 0 || block_2_size <= 0) {
+			return block_2_end;
+		}
+
 		if (block_1_size <= block_2_size) {
 			return BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBufferFor_LOWER(
 												array,
@@ -1386,6 +1385,53 @@ namespace BlockOperations
 		}
 	}
 
+	//	I did this instead of using std::queue<T> in order for the reader to
+	//	  clearly see the internals of how the auxiliary buffer (queue) works
+	template <typename T>
+	class Queue {
+		T *q;
+		array_size_t size;
+		array_size_t start;
+		array_size_t end;
+		array_size_t put;
+		array_size_t get;
+		bool empty;
+		bool full;
+	public:
+		Queue(array_size_t sz) {
+			size 	= sz;
+			q 		= new T[size];
+			start 	= 0;
+			end		= size-1;
+			put		= start;
+			get		= start;
+			empty	= true;
+			full	= false;
+		}
+		~Queue() {
+			if (q)
+				delete[] q;
+		}
+		void enqueue(T object) {
+			q[put] 	= object;
+			empty 	= false;
+			put 	= put != end ? put+1 : start;
+			full 	= put == get;
+		}
+		T dequeue(void) {
+			array_size_t loc = get;
+			full 	= false;
+			get 	= get != end ? get + 1 : start;
+			empty 	= get == put;
+			return q[loc];
+		}
+		T& peek(void) {
+			return q[get];
+		}
+		bool is_empty(void)	{	return empty;	}
+		bool is_full(void)	{	return full;	}
+	};
+
 
 	/*	version that treats the lower as being the smaller block	*/
 
@@ -1396,134 +1442,94 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics *metrics) {
-
-		bool debug_verbose = false;
-		if (debug_verbose) {
-			std::cout << "Entering 'byAuxiliary_LOWER'" << std::endl;
-		}
-
-		array_size_t block_1_size 		= block_1_end-block_1_start+1;
-		T auxiliary[block_1_size];
-		array_size_t aux_dst			= 0;
-		array_size_t aux_src			= 0;
-		array_size_t b_2_src			= block_2_start;
-		array_size_t dst				= block_1_start;
-		array_size_t b_max_pos			= block_2_end;
-
-
-		auto isAuxEmpty = [&] () -> bool {	return aux_dst == aux_src; 	};
-		auto isDstInB1	= [&] () -> bool {	return dst <= block_1_end;	};
-		auto nextDst	= [&] () -> array_size_t {
-			return dst != block_1_end ? dst + 1 : block_2_start; };
-
-		auto debug = [&] (std::string trailer) -> std::string {
-			array_size_t dbg_sz = block_2_end - block_2_start + 1
-								+ block_1_end - block_1_start + 1;
-			std::stringstream msg;
-			msg << SortingUtilities::arrayElementsToString(array, dbg_sz);
-			msg << " dst = " 		<< std::setw(2) << dst
-				<< " aux_src = " 	<< std::setw(2) << aux_src
-				<< " aux_dst = " 	<< std::setw(2) << aux_dst
-				<< " b_2_src = "  	<< std::setw(2) << b_2_src
-				<< " aux: ";
-			for (int i = aux_src; i < aux_dst; i++) {
-				msg << std::setw(2) << " auxiliary value not printed " /*auxiliary[i]*/ << " ";
-			}
-			msg << trailer;
-			return msg.str();
+												SortMetrics *metrics)
+	{
+		auto add_one_compare = [&metrics] {
+			if (metrics)	metrics->compares++;
+		};
+		auto add_one_assignment = [&metrics] {
+			if (metrics)	metrics->assignments++;
 		};
 
-		//	while there are still block_1 values unexamined	dst <= block_1_end
-		//	 or   there are still block_1 values unmerged	!isAuxEmpty()
-		//	i.e. - once dst goes past block_1_end, the only remaining
-		//			unmerged block_1 values are in 'auxiliary[]'
-		while (dst <= block_1_end || !isAuxEmpty())
-		{
-			if (debug_verbose) {
-				std::cout << debug(" top of loop") << std::endl;
-			}
-			//	block_1 value is taken
-			if (!isAuxEmpty()) {
-				// block_1 element has previously been moved to auxiliary
-				//	  prefer block_1 over block_2 to preserve stability
-				if (metrics) metrics->compares++;
-				if (auxiliary[aux_src] <= array[b_2_src]) {
-					//	if the destination is a b1 value, move it to aux
-					if (isDstInB1()) {
-						if (metrics) metrics->assignments++;
-						auxiliary[aux_dst++] = array[dst];
-					}
-					if (metrics) metrics->assignments++;
-					array[dst] = auxiliary[aux_src++];
-					dst = nextDst();
+		auto next_dest = [&] (array_size_t current_dest) -> array_size_t {
+			if (current_dest != block_1_end)	return current_dest+1;
+			else								return block_2_start;
+		};
+
+		array_size_t b_max_position = block_2_end;
+		array_size_t queue_size = (block_1_end - block_1_start + 1);
+		BlockOperations::Queue<T> queue(queue_size);
+
+		array_size_t dest 		= block_1_start;
+		array_size_t b2_source 	= block_2_start;
+
+		//	process all the elements in block_1
+		while (dest <= block_1_end && b2_source <= block_2_end) {
+			if (queue.is_empty()) {
+				add_one_compare();
+				if (array[dest] <= array[b2_source]) {
+					// the element at dest (b1_source) is <= b2_source
 				} else {
-					//	the element comes from block 2
-					if (isDstInB1()) {
-						if (metrics) metrics->assignments++;
-						auxiliary[aux_dst++] = array[dst];
-					}
-					if (dst != b_2_src) {
-						if (metrics) metrics->assignments++;
-						array[dst] 		= array[b_2_src];
-					}
-					//	final b has been moved into position, b2 is exhausted
-					if (b_2_src == b_max_pos) {
-						b_max_pos 	= dst;
-						dst 		= nextDst();
-						//	copy what remains of block_1 to end of array
-						while (!isAuxEmpty()) {
-							if (metrics) metrics->assignments++;
-							array[dst] 	= auxiliary[aux_src];
-							dst 		= nextDst();
-							aux_src++;
-						}
-						break;
-					}
-					//	there are remaining elements in block_2
-					dst = nextDst();
-					b_2_src++;
+					// the element at dest (b1_source) is > b2_source
+					add_one_assignment();
+					queue.enqueue(array[dest]);
+					add_one_assignment();
+					array[dest] = array[b2_source];
+					if (b2_source == block_2_end)
+						b_max_position = dest;
+					b2_source++;
 				}
 			} else {
-				//	auxiliary is empty - block_1 value comes from dst
-				if (metrics) metrics->compares++;
-				if (array[dst] <= array[b_2_src]) {
-					dst = nextDst();
+				// the dest will be overwritten by either dequeue or b2_source
+				add_one_assignment();
+				queue.enqueue(array[dest]);
+				add_one_compare();
+				if (queue.peek() <= array[b2_source]) {
+					// the element in queue <= b2_source
+					add_one_assignment();
+					array[dest] = queue.dequeue();
 				} else {
-					// block_2 value is taken
-					if (isDstInB1()) {
-						if (metrics) metrics->assignments++;
-						auxiliary[aux_dst++] = array[dst];
-					}
-					//	if the b value is moved from further along
-					if (dst != b_2_src) {
-						if (metrics) metrics->assignments++;
-						array[dst] 		= array[b_2_src];
-					}
-					//	If final b2 value has been moved into place, copy
-					//	  what remains of block_1 into the end of the array
-					if (b_2_src == b_max_pos) {
-						b_max_pos 	= dst;
-						dst 		= nextDst();
-						while (!isAuxEmpty()) {
-							if (metrics) metrics->assignments++;
-							array[dst] = auxiliary[aux_src++];
-							dst = nextDst();
-						}
-						break;
-					}
-					b_2_src++;
-					dst = nextDst();
+					//	the eleement in q > b2_source
+					add_one_assignment();
+					array[dest] = array[b2_source];
+					if (b2_source == block_2_end)
+						b_max_position = dest;
+					b2_source++;
 				}
 			}
-			if (debug_verbose) {
-				std::cout << debug(" bottom of loop") << std::endl;
+			dest = next_dest(dest);
+		}
+
+		//	all of block_1 has been merged or is in the queue
+		while (!queue.is_empty() && b2_source <= block_2_end) {
+			add_one_compare();
+			if (queue.peek() <= array[b2_source]) {
+				//	the element in the queue < b2_source
+				add_one_assignment();
+				array[dest] = queue.dequeue();
+			} else {
+				//	the element in b2 is < queue
+				add_one_assignment();
+				array[dest] = array[b2_source];
+				if (b2_source == block_2_end)
+					b_max_position = dest;
+				b2_source++;
 			}
+			dest = next_dest(dest);
 		}
-		if (debug_verbose) {
-			std::cout << "Exiting 'byAuxiliary_LOWER'" << std::endl;
+
+		//	all of block 1 and block 2 have been parsed
+		//	There may be some elements in the queue yet to go in dest
+		while (!queue.is_empty()) {
+			if (dest > block_2_end) {
+				std::cout << "WHOOPS - dest past end, but queue still has elements" << std::endl;
+			}
+			add_one_assignment();
+			array[dest] = queue.dequeue();
+			dest = next_dest(dest);
 		}
-		return b_max_pos;
+
+		return b_max_position;
 	}
 
 	/*	version that treats the upper as being the smaller block	*/
@@ -1535,154 +1541,119 @@ namespace BlockOperations
 												array_size_t block_1_end,
 												array_size_t block_2_start,
 												array_size_t block_2_end,
-												SortMetrics *metrics) {
-
-		bool debug_verbose = false;
-		if (debug_verbose) {
-			std::cout << "Entering 'byAuxiliary_UPPER'" << std::endl;
-		}
-
-		array_size_t block_2_size		= block_2_end - block_2_start + 1;
-		T auxiliary[block_2_size];
-		array_size_t aux_dst			= block_2_size-1;
-		array_size_t aux_src			= block_2_size-1;
-		array_size_t b_1_src			= block_1_end;
-		array_size_t dst				= block_2_end;
-		array_size_t b_max_pos			= block_2_end;
-		array_size_t b_max_locked		= false;
-
-		auto debug = [&] (std::string trailer) -> std::string {
-			array_size_t dbg_sz = block_2_end - block_2_start + 1
-								+ block_1_end - block_1_start + 1;
-			std::stringstream msg;
-			msg << SortingUtilities::arrayElementsToString(array, dbg_sz);
-			msg << " dst = " 		<< std::setw(2) << dst
-				<< " aux_src = " 	<< std::setw(2) << aux_src
-				<< " aux_dst = " 	<< std::setw(2) << aux_dst
-				<< " b_1_src = "  	<< std::setw(2) << b_1_src
-				<< " aux: ";
-			for (int i = aux_dst+1; i < block_2_size; i++) {
-				msg << std::setw(2) << "auxiliary[i] not printed" /* auxiliary[i]*/ << " ";
-			}
-			msg << trailer;
-			return msg.str();
+												SortMetrics *metrics)
+	{
+		auto add_one_compare = [&metrics] () {
+			if (metrics)	metrics->compares++;
+		};
+		auto add_one_assignment = [&metrics] () {
+			if (metrics)	metrics->assignments++;
 		};
 
-		auto isAuxEmpty = [&] () -> bool	{ 	return aux_src == aux_dst;	 };
-		auto isDstB2	= [&] () -> bool	{ 	return dst >= block_2_start; };
-		auto nextDst	= [&] () -> array_size_t {
-			return dst != block_2_start ? dst - 1 : block_1_end;
+		auto next_dest = [&] (array_size_t current_dest) -> array_size_t {
+			return current_dest != block_2_start ? current_dest-1 : block_1_end;
 		};
 
-		while (dst >= block_2_start || !isAuxEmpty()) {
-			if (debug_verbose) {
-				std::cout << debug(" top of loop") << std::endl;
-			}
-			if (!isAuxEmpty()) {
+
+		enum class B2LockingStates {
+			B2_MAX_ORIGINAL_POSITION,
+			B2_MAX_IN_QUEUE,
+			B2_MAX_LOCKED
+		};
+
+
+		array_size_t	b2_max_location 	= block_2_end;
+		B2LockingStates b2_locking_state	= B2LockingStates::B2_MAX_ORIGINAL_POSITION;
+
+		array_size_t	queue_size	= block_2_end - block_2_start + 1;
+		BlockOperations::Queue<T> queue(queue_size);
+
+
+		array_size_t dest		= block_2_end;
+		array_size_t b1_source	= block_1_end;
+
+		while (dest >= block_2_start || b1_source >= block_1_start) {
+
+			if (queue.is_empty()) {
+				// source of b2 element will be dest
 				//	if block_1 has the higher value
-				if (metrics) metrics->compares++;
-				if (array[b_1_src] > auxiliary[aux_src]) {
-					//	if the dst is in block_2, the value at
-					//	dst will be displaced
-					if (isDstB2()) {
-						if (metrics) metrics->assignments++;
-						auxiliary[aux_dst--] = array[dst];
-					}
-					if (metrics) metrics->assignments++;
-					array[dst] = array[b_1_src];
-					b_1_src--;
-					dst = nextDst();
-					// if all of the block_1 values have been placed,
-					//	flush the auxiliary (displaced) buffer
-					if (b_1_src < block_1_start) {
-						//	this flush may be first placed b2
-						if (!b_max_locked) {
-							b_max_pos 	 = dst;
-							b_max_locked = true;
-						}
-						while (!isAuxEmpty()) {
-							if (metrics) metrics->assignments++;
-							array[dst] = auxiliary[aux_src];
-							aux_src--;
-							dst = nextDst();
-						}
-						break;
-					}
+				add_one_compare();
+				if (array[dest] > array[b1_source]) {
+					// the element at dest (block_2) is in place
 				} else {
-					//	the value in block_2 is greater or equal to block_1
-					//	if this is the first value from block_2 to be
-					//		placed, assign b_max_pos
-					if (!b_max_locked) {
-						b_max_pos = dst;
-						b_max_locked = true;
+					// the element at dest (block_2) will be displaced
+					add_one_assignment();
+					queue.enqueue(array[dest]);
+					if (dest == block_2_end) {
+						b2_locking_state = B2LockingStates::B2_MAX_IN_QUEUE;
 					}
-					//	if the destination is in block_2, it will
-					//	be displaced by a greater block_2 value
-					if (isDstB2()) {
-						if (metrics) metrics->assignments++;
-						auxiliary[aux_dst--] = array[dst];
-					}
-					if (metrics) metrics->assignments++;
-					array[dst] = auxiliary[aux_src];
-					aux_src--;
-					dst = nextDst();
+					add_one_assignment();
+					array[dest] = array[b1_source];
+					b1_source--;
 				}
 			} else {
-				//	if block_1 has the higher value,
-				if (metrics) metrics->compares++;
-				if (array[b_1_src] > array[dst]) {
-					//	if dst is in block_2, the element at dst will be displaced
-					if (isDstB2()) {
-						if (metrics) metrics->assignments++;
-						auxiliary[aux_dst] = array[dst];
-						aux_dst--;
-					}
-					if (metrics) metrics->assignments++;
-					array[dst] = array[b_1_src];
-					b_1_src--;
-					dst = nextDst();
-					//	if all of b_1 has been merged, flush
-					//	auxiliary into the remaining array positions
-					if (b_1_src < block_1_start) {
-						//	this flush may be first placed b2
-						if (!b_max_locked) {
-							b_max_pos 	 = dst;
-							b_max_locked = true;
-						}
-						while (!isAuxEmpty()) {
-							if (metrics) metrics->assignments++;
-							array[dst] = auxiliary[aux_src];
-							aux_src--;
-							dst = nextDst();
-						}
-						break;
+				//	source of b2 element will be queue
+
+				//	regardless of where the element comes from, either
+				//	b1 or from the queue, dest will be displaced
+				add_one_assignment();
+				queue.enqueue(array[dest]);
+
+				add_one_compare();
+				if (queue.peek() > array[b1_source]) {
+					add_one_assignment();
+					array[dest] = queue.dequeue();
+					if (b2_locking_state == B2LockingStates::B2_MAX_IN_QUEUE) {
+						b2_max_location = dest;
+						b2_locking_state= B2LockingStates::B2_MAX_LOCKED;
 					}
 				} else {
-					//	the element in block_2 is the larger,
-					//		which is already at dst
-					//	if this is the first time a block_2
-					//	has been placed in its final position,
-					//	store it as the max b postion
-					if (!b_max_locked) {
-						b_max_pos 	 = dst;
-						b_max_locked = true;
-					}
-					dst = nextDst();
+					add_one_assignment();
+					array[dest] = array[b1_source];
+					b1_source--;
 				}
 			}
-			if (debug_verbose) {
-				std::cout << debug(" bottom of loop") << std::endl;
-			}
+			dest = next_dest(dest);
 		}
-		return b_max_pos;
+
+		//	finish comparing an block 2 elements to block 1
+		while (!queue.is_empty() && b1_source >= block_1_end) {
+			add_one_compare();
+			if (queue.peek() > array[b1_source]) {
+				add_one_assignment();
+				array[dest] = queue.dequeue();
+				if (b2_locking_state != B2LockingStates::B2_MAX_LOCKED) {
+					b2_max_location	= dest;
+					b2_locking_state= B2LockingStates::B2_MAX_LOCKED;
+				}
+			} else {
+				add_one_assignment();
+				array[dest] = array[b1_source];
+				b1_source--;
+			}
+			dest = next_dest(dest);
+		}
+
+		while (!queue.is_empty()) {
+			if (dest < block_1_start) {
+				std::cout << "WHOOPS: dest < block_1_start while !queue.empty()\n";
+			}
+			array[dest] = queue.dequeue();
+			if (b2_locking_state != B2LockingStates::B2_MAX_LOCKED) {
+				b2_max_location	= dest;
+				b2_locking_state= B2LockingStates::B2_MAX_LOCKED;
+			}
+			dest = next_dest(dest);
+		}
+		return b2_max_location;
 	}
 
 	/*
 	 *	ComparesAndMoves swapBlockElements(array, b1_start, b2_start, block_size)
 	 *
-	 *	usage	num_ops = blockSwap(array, 40, 20, 10);
-	 *	usage	num_ops = blockSwap(array, 20, 40, 10);
-	 *	usage	num_ops = blockSwap(array, 20, 30, 15);
+	 *	usage	blockSwap(array, 40, 20, 10, metrics);
+	 *	usage	blockSwap(array, 20, 40, 10);
+	 *	usage	blockSwap(array, 20, 30, 15);
 	 */
 
 	template <typename T>
@@ -1707,7 +1678,6 @@ namespace BlockOperations
 			block2_start++;
 		}
 	}
-
 }	// namespace BlockSort
 
 namespace std{

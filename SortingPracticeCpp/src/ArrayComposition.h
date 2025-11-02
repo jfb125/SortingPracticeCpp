@@ -90,7 +90,7 @@ public:
 	bool operator==(const ArrayComposition &other) const {
 		return composition == other.composition;
 	}
-	bool operator<(const ArrayComposition &other) const {
+	bool operator< (const ArrayComposition &other) const {
 		return composition < other.composition;
 	}
 	bool operator!=(const ArrayComposition &other) const {
@@ -103,7 +103,7 @@ public:
 	bool operator>=(const ArrayComposition & other) const {
 		return !(composition < other.composition);
 	}
-	bool operator>(const ArrayComposition & other) const {
+	bool operator> (const ArrayComposition & other) const {
 		return !(composition == other.composition ||
 				 composition < other.composition);
 	}

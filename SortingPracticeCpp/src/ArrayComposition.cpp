@@ -24,14 +24,14 @@ bool isValid(ArrayCompositions composition) {
 bool operator==(const ArrayCompositions u, const ArrayCompositions v) {
 	return static_cast<int>(u) == static_cast<int>(v);
 }
-bool operator<(const ArrayCompositions u, const ArrayCompositions v) {
+bool operator< (const ArrayCompositions u, const ArrayCompositions v) {
 	return static_cast<int>(u) < static_cast<int>(v);
 }
 //	derived
 bool operator<=(const ArrayCompositions u, const ArrayCompositions v) {
 	return (u == v) || (u < v);
 }
-bool operator>(const ArrayCompositions u, const ArrayCompositions v) {
+bool operator> (const ArrayCompositions u, const ArrayCompositions v) {
 	return !(u == v) && !(u < v);
 }
 bool operator>=(const ArrayCompositions u, const ArrayCompositions v) {

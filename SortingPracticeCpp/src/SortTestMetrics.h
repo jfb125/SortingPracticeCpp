@@ -79,13 +79,12 @@ public:
 	}
 	friend std::ostream& operator<<(std::ostream& out, SortMetrics&object) {
 		OStreamState ostream_state;
-		out << COMPARES_STRING << " "
-			<< std::setw(compares_width)
+		out << std::setw(compares_width)
 			<< std::right << object.compares
-			<< ", "
-			<< ASSIGNMENTS_STRING << " "
+			<< " " << COMPARES_STRING << ", "
 			<< std::setw(assignments_width)
-			<< std::right << object.assignments;
+			<< std::right << object.assignments
+			<< " " << ASSIGNMENTS_STRING;
 		return out;
 	}
 };

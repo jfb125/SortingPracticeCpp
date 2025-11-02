@@ -1173,25 +1173,32 @@ bool testBlockSortMergeBlocksExhaustively() {
 	/*						test configuration					*/
 	/*	******************************************************	*/
 
-	using DataType = std::string; //std::pair<char, array_size_t>;
-	DataType first_data_value = "AAA";
+//	using DataType = std::string; //std::pair<char, array_size_t>;
+//	DataType first_data_value = "AAA";
+	using DataType = char;
+	DataType first_data_value = 'A';
+	DataType last_data_value = 'Z';
 
 	/*	******************************************************	*/
 	/*						lambdas								*/
 	/*	******************************************************	*/
 
-	auto next_value = [](DataType current) -> DataType {
-		DataType result = current;
-		for (int i = current.size()-1; i >= 0; i--) {
-			if (result.at(i) == 'Z') {
-				result.at(i) = 'A';
-				continue;
-			}
-			result.at(i)++;
-			break;
-		}
-		return result;
+	auto next_value = [=](DataType current) -> DataType {
+		if (current != last_data_value)	return ++current;
+		else							return first_data_value;
 	};
+//	auto next_value = [](DataType current) -> DataType {
+//		DataType result = current;
+//		for (int i = current.size()-1; i >= 0; i--) {
+//			if (result.at(i) == 'Z') {
+//				result.at(i) = 'A';
+//				continue;
+//			}
+//			result.at(i)++;
+//			break;
+//		}
+//		return result;
+//	};
 
 	auto calc_n_chose_k = [] (long long n, long long k) -> long long {
 
@@ -1245,16 +1252,16 @@ bool testBlockSortMergeBlocksExhaustively() {
 	bool echo_result 	= true;
 
 
-//	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
-	int test_vector_sizes[] 	= { 16, 17 };
+	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
+//	int test_vector_sizes[] = { 8 };
 	int num_test_vectors_sizes 	= sizeof(test_vector_sizes) / sizeof(int);
 
 	BlockOperations::MergeStrategy merge_strategies[] =
 	{
-		BlockOperations::MergeStrategy::HYBRID,
-		BlockOperations::MergeStrategy::RGT_TO_LFT,
-		BlockOperations::MergeStrategy::BINARY,
-		BlockOperations::MergeStrategy::INSERTION,
+//		BlockOperations::MergeStrategy::HYBRID,
+//		BlockOperations::MergeStrategy::RGT_TO_LFT,
+//		BlockOperations::MergeStrategy::BINARY,
+//		BlockOperations::MergeStrategy::INSERTION,
 		BlockOperations::MergeStrategy::TABLE,
 		BlockOperations::MergeStrategy::AUXILLIARY,
 	};
@@ -1263,14 +1270,14 @@ bool testBlockSortMergeBlocksExhaustively() {
 								sizeof(BlockOperations::MergeStrategy);
 
 	auto calc_mid_min = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
-		// mid can not be 1
-		return 1;
-//		return nominal_mid;
+//		return 1;
+		return nominal_mid;
+//		return nominal_mid+1;
 	};
 	auto calc_mid_max = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
-		//	mid can be the end of the array
-		return size-1;
+//		return size-1;
 //		return nominal_mid;
+		return nominal_mid+1;
 	};
 
 	bool test_passed 	= true;
@@ -1464,7 +1471,7 @@ bool testBlockSortMergeBlocksExhaustively() {
 								 << std::setw(MERGE_STRATEGY_MAX_STRING_LENGTH)
 								 << std::left << merge_strategy << std::right
 								 << " to "
-								 << std::setw(9) << ' '	/* total hack */
+								 << std::setw(MERGE_STRATEGY_MAX_STRING_LENGTH) << ' '	/* total hack */
 								 << SortingUtilities::arrayElementsToString(test_vectors[i], u_size)
 								 << " |"
 								 << SortingUtilities::arrayElementsToString(&test_vectors[i][mid], v_size)
