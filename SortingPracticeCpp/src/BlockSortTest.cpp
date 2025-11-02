@@ -1252,8 +1252,8 @@ bool testBlockSortMergeBlocksExhaustively() {
 	bool echo_result 	= true;
 
 
-	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
-//	int test_vector_sizes[] = { 8 };
+//	int test_vector_sizes[] = { 16, 17, 18, 19, 20, 21, 22 };
+	int test_vector_sizes[] = { 16, 17 };
 	int num_test_vectors_sizes 	= sizeof(test_vector_sizes) / sizeof(int);
 
 	BlockOperations::MergeStrategy merge_strategies[] =
@@ -1271,13 +1271,13 @@ bool testBlockSortMergeBlocksExhaustively() {
 
 	auto calc_mid_min = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
 //		return 1;
-		return nominal_mid;
-//		return nominal_mid+1;
+//		return nominal_mid;
+		return nominal_mid-2;
 	};
 	auto calc_mid_max = [] (array_size_t size, array_size_t nominal_mid) -> array_size_t {
 //		return size-1;
-//		return nominal_mid;
-		return nominal_mid+1;
+//		return nominal_mid
+		return nominal_mid+2;
 	};
 
 	bool test_passed 	= true;

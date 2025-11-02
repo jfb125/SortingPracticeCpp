@@ -1,14 +1,39 @@
-Sorting Performance In C++ built on Nov  2 2025 at 00:22:59
+Sorting Performance In C++ built on Nov  2 2025 at 10:13:15
 testBlockSort
 testBlockSortMergeBlocksExhaustively
+
+Merging all         8008 pairs of unique arrays of size 16 where mid =     6 using strategy TABLE      took average of        14.0 compares and       35.9 assignments
+Merging all         8008 pairs of unique arrays of size 16 where mid =     6 using strategy AUXILLIARY took average of        14.0 compares and       19.5 assignments
+
+Merging all        11440 pairs of unique arrays of size 16 where mid =     7 using strategy TABLE      took average of        14.2 compares and       36.2 assignments
+Merging all        11440 pairs of unique arrays of size 16 where mid =     7 using strategy AUXILLIARY took average of        14.2 compares and       20.5 assignments
 
 Merging all        12870 pairs of unique arrays of size 16 where mid =     8 using strategy TABLE      took average of        14.2 compares and       36.3 assignments
 Merging all        12870 pairs of unique arrays of size 16 where mid =     8 using strategy AUXILLIARY took average of        14.2 compares and       21.3 assignments
 
 Merging all        11440 pairs of unique arrays of size 16 where mid =     9 using strategy TABLE      took average of        14.2 compares and       36.2 assignments
-WHOOPS: dest < block_1_start while !queue.empty()
-WHOOPS: dest < block_1_start while !queue.empty()
-    0  when divided into two subarrays, each sorted:    A    B    C    D    E    F    G    H    I |   J    K    L    M    N    O    P , final b value P is at  15
-       merged using strategy AUXILLIARY to              I    I    I    I    I    I    I    I    I |   J    K    L    M    N    O    P , final b value location -2 vs expected 15
- which took       17 compares,       20 assignments which is in ERROR
-double free or corruption (out)
+Merging all        11440 pairs of unique arrays of size 16 where mid =     9 using strategy AUXILLIARY took average of        14.2 compares and       20.5 assignments
+
+Merging all         8008 pairs of unique arrays of size 16 where mid =    10 using strategy TABLE      took average of        14.0 compares and       35.9 assignments
+Merging all         8008 pairs of unique arrays of size 16 where mid =    10 using strategy AUXILLIARY took average of        14.0 compares and       19.5 assignments
+
+
+Merging all        12376 pairs of unique arrays of size 17 where mid =     6 using strategy TABLE      took average of        14.9 compares and       38.5 assignments
+Merging all        12376 pairs of unique arrays of size 17 where mid =     6 using strategy AUXILLIARY took average of        14.9 compares and       20.4 assignments
+
+Merging all        19448 pairs of unique arrays of size 17 where mid =     7 using strategy TABLE      took average of        15.1 compares and       38.9 assignments
+Merging all        19448 pairs of unique arrays of size 17 where mid =     7 using strategy AUXILLIARY took average of        15.1 compares and       21.5 assignments
+
+Merging all        24310 pairs of unique arrays of size 17 where mid =     8 using strategy TABLE      took average of        15.2 compares and       39.0 assignments
+Merging all        24310 pairs of unique arrays of size 17 where mid =     8 using strategy AUXILLIARY took average of        15.2 compares and       22.4 assignments
+
+Merging all        24310 pairs of unique arrays of size 17 where mid =     9 using strategy TABLE      took average of        15.2 compares and       39.0 assignments
+Merging all        24310 pairs of unique arrays of size 17 where mid =     9 using strategy AUXILLIARY took average of        15.2 compares and       22.4 assignments
+
+Merging all        19448 pairs of unique arrays of size 17 where mid =    10 using strategy TABLE      took average of        15.1 compares and       38.9 assignments
+Merging all        19448 pairs of unique arrays of size 17 where mid =    10 using strategy AUXILLIARY took average of        15.1 compares and       21.5 assignments
+
+
+PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
+
+testBlockSort() ran 1 successful tests

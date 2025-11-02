@@ -1467,9 +1467,7 @@ namespace BlockOperations
 		while (dest <= block_1_end && b2_source <= block_2_end) {
 			if (queue.is_empty()) {
 				add_one_compare();
-				if (array[dest] <= array[b2_source]) {
-					// the element at dest (b1_source) is <= b2_source
-				} else {
+				if (array[dest] > array[b2_source]) {
 					// the element at dest (b1_source) is > b2_source
 					add_one_assignment();
 					queue.enqueue(array[dest]);
@@ -1500,7 +1498,7 @@ namespace BlockOperations
 			dest = next_dest(dest);
 		}
 
-		//	all of block_1 has been merged or is in the queue
+		//	compare any block_1 elements in queue vs block_2 elements
 		while (!queue.is_empty() && b2_source <= block_2_end) {
 			add_one_compare();
 			if (queue.peek() <= array[b2_source]) {
@@ -1518,12 +1516,8 @@ namespace BlockOperations
 			dest = next_dest(dest);
 		}
 
-		//	all of block 1 and block 2 have been parsed
-		//	There may be some elements in the queue yet to go in dest
+		//	transfer any remaining block 1 elements from queue
 		while (!queue.is_empty()) {
-			if (dest > block_2_end) {
-				std::cout << "WHOOPS - dest past end, but queue still has elements" << std::endl;
-			}
 			add_one_assignment();
 			array[dest] = queue.dequeue();
 			dest = next_dest(dest);
@@ -1554,38 +1548,31 @@ namespace BlockOperations
 			return current_dest != block_2_start ? current_dest-1 : block_1_end;
 		};
 
-
-		enum class B2LockingStates {
-			B2_MAX_ORIGINAL_POSITION,
-			B2_MAX_IN_QUEUE,
-			B2_MAX_LOCKED
-		};
-
-
 		array_size_t	b2_max_location 	= block_2_end;
-		B2LockingStates b2_locking_state	= B2LockingStates::B2_MAX_ORIGINAL_POSITION;
+		//	set if block_2_end gets enqueued,
+		//	cleared when block_2_end (if in queue) gets dequeued,
+		//		indicating that b2_max_location should be updated
+		bool			b2_max_in_queue		= false;
 
 		array_size_t	queue_size	= block_2_end - block_2_start + 1;
 		BlockOperations::Queue<T> queue(queue_size);
 
-
 		array_size_t dest		= block_2_end;
 		array_size_t b1_source	= block_1_end;
 
-		while (dest >= block_2_start || b1_source >= block_1_start) {
+		//	In all of the comments, keep in mind that b/c the array is being
+		//	merged from right-to-left, the larger of the two values is moved
+		while (dest >= block_2_start && b1_source >= block_1_start) {
 
 			if (queue.is_empty()) {
-				// source of b2 element will be dest
-				//	if block_1 has the higher value
+				// source of b2 element will be dest which is in block_2
 				add_one_compare();
-				if (array[dest] > array[b1_source]) {
-					// the element at dest (block_2) is in place
-				} else {
-					// the element at dest (block_2) will be displaced
+				if (array[b1_source] > array[dest]) {
+					// the element at b1_source > dest
 					add_one_assignment();
 					queue.enqueue(array[dest]);
 					if (dest == block_2_end) {
-						b2_locking_state = B2LockingStates::B2_MAX_IN_QUEUE;
+						b2_max_in_queue	= true;
 					}
 					add_one_assignment();
 					array[dest] = array[b1_source];
@@ -1593,21 +1580,21 @@ namespace BlockOperations
 				}
 			} else {
 				//	source of b2 element will be queue
-
 				//	regardless of where the element comes from, either
 				//	b1 or from the queue, dest will be displaced
 				add_one_assignment();
 				queue.enqueue(array[dest]);
-
 				add_one_compare();
 				if (queue.peek() > array[b1_source]) {
+					//	element in queue > b1_source
 					add_one_assignment();
 					array[dest] = queue.dequeue();
-					if (b2_locking_state == B2LockingStates::B2_MAX_IN_QUEUE) {
+					if (b2_max_in_queue) {
 						b2_max_location = dest;
-						b2_locking_state= B2LockingStates::B2_MAX_LOCKED;
+						b2_max_in_queue = false;
 					}
 				} else {
+					//	element at b1_source > element in queue
 					add_one_assignment();
 					array[dest] = array[b1_source];
 					b1_source--;
@@ -1616,17 +1603,19 @@ namespace BlockOperations
 			dest = next_dest(dest);
 		}
 
-		//	finish comparing an block 2 elements to block 1
-		while (!queue.is_empty() && b1_source >= block_1_end) {
+		//	compare block 2 elements stored in queue against block 1 elements
+		while (!queue.is_empty() && b1_source >= block_1_start) {
 			add_one_compare();
 			if (queue.peek() > array[b1_source]) {
+				//	element in queue > b1_source
 				add_one_assignment();
 				array[dest] = queue.dequeue();
-				if (b2_locking_state != B2LockingStates::B2_MAX_LOCKED) {
-					b2_max_location	= dest;
-					b2_locking_state= B2LockingStates::B2_MAX_LOCKED;
+				if (b2_max_in_queue) {
+					b2_max_location = dest;
+					b2_max_in_queue = false;
 				}
 			} else {
+				//	element at b1_source > queue
 				add_one_assignment();
 				array[dest] = array[b1_source];
 				b1_source--;
@@ -1634,14 +1623,13 @@ namespace BlockOperations
 			dest = next_dest(dest);
 		}
 
+		//	transfer any remaining block_2 elements in queue to the array
 		while (!queue.is_empty()) {
-			if (dest < block_1_start) {
-				std::cout << "WHOOPS: dest < block_1_start while !queue.empty()\n";
-			}
+			add_one_assignment();
 			array[dest] = queue.dequeue();
-			if (b2_locking_state != B2LockingStates::B2_MAX_LOCKED) {
-				b2_max_location	= dest;
-				b2_locking_state= B2LockingStates::B2_MAX_LOCKED;
+			if (b2_max_in_queue) {
+				b2_max_location = dest;
+				b2_max_in_queue = false;
 			}
 			dest = next_dest(dest);
 		}
