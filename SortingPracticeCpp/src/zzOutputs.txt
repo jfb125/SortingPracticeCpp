@@ -1,39 +1,40 @@
-Sorting Performance In C++ built on Nov  2 2025 at 10:13:15
-testBlockSort
-testBlockSortMergeBlocksExhaustively
+Sorting Performance In C++ built on Nov  2 2025 at 16:11:52
+Algorithms: 3 Compositions: 4 Orderings: 2 of : 2 different sizes resulting in 48 outcomes 
+====================================
+Sort Test Results
+====================================
+                                                                   Array sizes           64                  128          
+                                                                   Repetitions   avg cmp / avg asgn  stbl   avg cmp / avg asgn  stbl  
+ALL_DISCRETE                           IN_RANDOM_ORDER   MERGE_SORT       1000     306.8 /    384.0  n/a      737.6 /   1024.0  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   INPLACE_MERGE    1000     413.9 /    680.8  n/a      955.1 /   1728.8  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   BLOCK_SORT       1000     433.2 /    942.3  n/a     1014.1 /   2558.4  n/a   
 
-Merging all         8008 pairs of unique arrays of size 16 where mid =     6 using strategy TABLE      took average of        14.0 compares and       35.9 assignments
-Merging all         8008 pairs of unique arrays of size 16 where mid =     6 using strategy AUXILLIARY took average of        14.0 compares and       19.5 assignments
+ALL_DISCRETE                           IN_REVERSE_ORDER  MERGE_SORT       1000     193.0 /    384.0  n/a      449.0 /   1024.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  INPLACE_MERGE    1000     545.0 /    792.0  n/a     1153.0 /   1776.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  BLOCK_SORT       1000     495.0 /   1065.0  n/a      998.0 /   2362.0  n/a   
 
-Merging all        11440 pairs of unique arrays of size 16 where mid =     7 using strategy TABLE      took average of        14.2 compares and       36.2 assignments
-Merging all        11440 pairs of unique arrays of size 16 where mid =     7 using strategy AUXILLIARY took average of        14.2 compares and       20.5 assignments
+ALL_SAME                               IN_RANDOM_ORDER   MERGE_SORT       1000      63.0 /      0.0   Y       127.0 /      0.0   Y    
+ALL_SAME                               IN_RANDOM_ORDER   INPLACE_MERGE    1000      63.0 /      0.0   Y       127.0 /      0.0   Y    
+ALL_SAME                               IN_RANDOM_ORDER   BLOCK_SORT       1000     139.0 /      0.0   Y       350.0 /      0.0   Y    
 
-Merging all        12870 pairs of unique arrays of size 16 where mid =     8 using strategy TABLE      took average of        14.2 compares and       36.3 assignments
-Merging all        12870 pairs of unique arrays of size 16 where mid =     8 using strategy AUXILLIARY took average of        14.2 compares and       21.3 assignments
+ALL_SAME                               IN_REVERSE_ORDER  MERGE_SORT       1000      63.0 /      0.0   Y       127.0 /      0.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  INPLACE_MERGE    1000      63.0 /      0.0   Y       127.0 /      0.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  BLOCK_SORT       1000     139.0 /      0.0   Y       350.0 /      0.0   Y    
 
-Merging all        11440 pairs of unique arrays of size 16 where mid =     9 using strategy TABLE      took average of        14.2 compares and       36.2 assignments
-Merging all        11440 pairs of unique arrays of size 16 where mid =     9 using strategy AUXILLIARY took average of        14.2 compares and       20.5 assignments
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   MERGE_SORT       1000     260.9 /    384.0   Y       588.0 /   1024.0   Y    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   INPLACE_MERGE    1000     197.3 /    156.6   Y       456.1 /    310.6   Y    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   BLOCK_SORT       1000     190.2 /    156.6   Y       451.2 /    310.6   Y    
 
-Merging all         8008 pairs of unique arrays of size 16 where mid =    10 using strategy TABLE      took average of        14.0 compares and       35.9 assignments
-Merging all         8008 pairs of unique arrays of size 16 where mid =    10 using strategy AUXILLIARY took average of        14.0 compares and       19.5 assignments
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  MERGE_SORT       1000     306.0 /    384.0   Y       688.0 /   1024.0   Y    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  INPLACE_MERGE    1000     257.0 /    203.0   Y       571.0 /    395.0   Y    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  BLOCK_SORT       1000     210.0 /    203.0   Y       483.0 /    395.0   Y    
 
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   MERGE_SORT       1000     286.3 /    384.0   Y       674.1 /   1024.0   Y    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   INPLACE_MERGE    1000     328.8 /    476.7   Y       761.8 /   1195.2   Y    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   BLOCK_SORT       1000     328.5 /    668.3   Y       761.1 /   1805.8   Y    
 
-Merging all        12376 pairs of unique arrays of size 17 where mid =     6 using strategy TABLE      took average of        14.9 compares and       38.5 assignments
-Merging all        12376 pairs of unique arrays of size 17 where mid =     6 using strategy AUXILLIARY took average of        14.9 compares and       20.4 assignments
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  MERGE_SORT       1000     256.0 /    384.0   Y       578.0 /   1024.0   Y    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  INPLACE_MERGE    1000     282.0 /    444.0   Y       540.0 /    929.0   Y    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  BLOCK_SORT       1000     239.0 /    783.0   Y       498.0 /   1621.0   Y    
 
-Merging all        19448 pairs of unique arrays of size 17 where mid =     7 using strategy TABLE      took average of        15.1 compares and       38.9 assignments
-Merging all        19448 pairs of unique arrays of size 17 where mid =     7 using strategy AUXILLIARY took average of        15.1 compares and       21.5 assignments
-
-Merging all        24310 pairs of unique arrays of size 17 where mid =     8 using strategy TABLE      took average of        15.2 compares and       39.0 assignments
-Merging all        24310 pairs of unique arrays of size 17 where mid =     8 using strategy AUXILLIARY took average of        15.2 compares and       22.4 assignments
-
-Merging all        24310 pairs of unique arrays of size 17 where mid =     9 using strategy TABLE      took average of        15.2 compares and       39.0 assignments
-Merging all        24310 pairs of unique arrays of size 17 where mid =     9 using strategy AUXILLIARY took average of        15.2 compares and       22.4 assignments
-
-Merging all        19448 pairs of unique arrays of size 17 where mid =    10 using strategy TABLE      took average of        15.1 compares and       38.9 assignments
-Merging all        19448 pairs of unique arrays of size 17 where mid =    10 using strategy AUXILLIARY took average of        15.1 compares and       21.5 assignments
-
-
-PASS:  function testBlockSortMergeBlocksExhaustively() returns TRUE
-
-testBlockSort() ran 1 successful tests
+Completed Sorting Performance In C++

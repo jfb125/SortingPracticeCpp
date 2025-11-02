@@ -53,3 +53,28 @@ std::string rowPreambleToString(SortAlgorithms &algorithm, ArrayComposition &com
 
 	return result.str();
 }
+
+
+std::string stabilityToString(ArrayCompositions composition, bool stable)
+{
+	std::stringstream retval;
+
+	switch(composition) {
+	//	if there are no identical elements, there is not question
+	//	of whether or not the common elements preserved their order
+	case ArrayCompositions::ALL_DISCRETE:
+	case ArrayCompositions::ALL_PERMUTATIONS:
+		retval << is_not_applicable_stability_string;
+		break;
+	case ArrayCompositions::FEW_DIFFERENT:
+	case ArrayCompositions::ALL_SAME:
+	case ArrayCompositions::FEW_DISTINCT:
+		if (stable) {
+			retval << is_stable_string;
+		} else {
+			retval << is_not_stable_string;
+		}
+	}
+	return retval.str();
+}
+

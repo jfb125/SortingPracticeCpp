@@ -27,7 +27,7 @@
 
 //#include "BlockSort.h"
 
-bool testBlockSort();
+//bool testBlockSort();
 
 //	next_value has to be a standalone function to pass to generateReferenceVector
 
@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
 {
 	std::cout << "Sorting Performance In C++" << " built on " __DATE__ << " at " __TIME__ << std::endl;
 
-	testBlockSort();
-	return EXIT_SUCCESS;
+//	testBlockSort();
+//	return EXIT_SUCCESS;
 //	sortingDataTypesTest();
 //	return EXIT_SUCCESS;
 
@@ -82,21 +82,21 @@ int main(int argc, char *argv[])
 		}
 	};
 
-	array_size_t array_sizes[]	= { 64, 128, 256, 512 };
-//	array_size_t array_sizes[] 	= { 8 };
+//	array_size_t array_sizes[]	= { 64, 128, 256, 512 };
+	array_size_t array_sizes[] 	= { 64, 128 };
 	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
-			SortAlgorithms::BUBBLE_SORT,
-			SortAlgorithms::SELECTION_SORT,
-			SortAlgorithms::INSERTION_SORT,
-			SortAlgorithms::DUTCH_FLAG_SORT,
-			SortAlgorithms::HEAP_SORT,
-			SortAlgorithms::QUICK_SORT,
-			SortAlgorithms::OPTIMIZED_QUICK_SORT,
+//			SortAlgorithms::BUBBLE_SORT,
+//			SortAlgorithms::SELECTION_SORT,
+//			SortAlgorithms::INSERTION_SORT,
+//			SortAlgorithms::DUTCH_FLAG_SORT,
+//			SortAlgorithms::HEAP_SORT,
+//			SortAlgorithms::QUICK_SORT,
+//			SortAlgorithms::OPTIMIZED_QUICK_SORT,
 			SortAlgorithms::MERGE_SORT,
 			SortAlgorithms::INPLACE_MERGE,
-//			SortAlgorithms::BLOCK_SORT,
+			SortAlgorithms::BLOCK_SORT,
 	};
 	int num_sort_algorithms = sizeof(sort_algorithms)/sizeof(SortAlgorithms);
 
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 	//	an array size of 8 will generate 8! = 40320 repetitions
 	ArrayComposition array_compositions[] = {
 			{ArrayCompositions::ALL_DISCRETE},
-//			{ArrayCompositions::ALL_SAME},
+			{ArrayCompositions::ALL_SAME},
 			{ArrayCompositions::FEW_DISTINCT, num_discrete, num_different},
 			{ArrayCompositions::FEW_DIFFERENT, num_discrete, num_different},
 //			{ArrayCompositions::ALL_PERMUTATIONS},
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 	constexpr array_size_t num_elements_out_of_order = 3;
 	InitialOrdering	initial_orderings[] = {
 			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
-//			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
+			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
 //			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
 //			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
 	};
@@ -134,12 +134,18 @@ int main(int argc, char *argv[])
 	OneTestResult<SortingDataType<DataType>>* results[num_results];
 
 	/*
-	 * 	The ranodmizer is used to disorder the input data in sortTest
-	 * 		Use the default value if a repeatable result is desired
-	 * 		otherwise, use the seed based upon the system time
+	 * 	The randomizer is a pseudo-random sequence generator that is
+	 * 	used to disorder the input data in sortTest.
+	 * 	Use the default value if a repeatable result is desired each
+	 * 	time the program is run.
 	 */
-	uint64_t randomizer_seed = SIMPLE_RANDOMIZER_DEFAULT_SEED;
-//	randomizer_seed = getChronoSeed();	// override default to get some variety
+	bool use_chrono_seed = false;
+	uint64_t randomizer_seed;
+	if (use_chrono_seed) {
+		randomizer_seed = getChronoSeed();
+	} else {
+		randomizer_seed = SIMPLE_RANDOMIZER_DEFAULT_SEED;
+	}
 	SimpleRandomizer randomizer(randomizer_seed);
 
 	int num_repetitions = 1000;
@@ -191,10 +197,10 @@ int main(int argc, char *argv[])
 		}
 	}
 	ResultTableOrdering table_structure(
-			ResultTableElements::ORDERING,
 			ResultTableElements::COMPOSITION,
+			ResultTableElements::ORDERING,
 			ResultTableElements::ALGORITHM,
-			ResultTableElements::COMPOSITION);
+			ResultTableElements::ORDERING);
 
 	printTestResults(results, cnt, table_structure);
 

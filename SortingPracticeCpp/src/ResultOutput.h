@@ -17,21 +17,24 @@
 
 #define PRINT_TEST_RESULT_TABLE_HEADER "===================================="
 
-constexpr char test_result_table_header[] 	= PRINT_TEST_RESULT_TABLE_HEADER;
-constexpr char average_compares_string[]  	= "avg cmp";	// seven chars long
-constexpr char average_assignments_string[] = "avg asgn";	// eight chars long
-constexpr char stability_string[]			= "S?";
-constexpr char colon_separator[] 			= ": ";
-constexpr char comma_separator[]			= ", ";
-constexpr char space_separator[] 			= "  ";
-constexpr char slash_separator[] 			= " / ";
-constexpr int comma_separator_strlen 		= 2;
-constexpr int colon_separator_strlen 		= 2;
-constexpr int space_separator_strlen 		= 2;
-constexpr int slash_separator_strlen 		= 3;
-constexpr int average_compares_strlen 	 	= 7;
-constexpr int average_assignments_strlen 	= 8;
-constexpr int stability_string_strlen		= 2;
+constexpr char test_result_table_header[] 			= PRINT_TEST_RESULT_TABLE_HEADER;
+constexpr char average_compares_string[]  			= "avg cmp";	// seven chars long
+constexpr char average_assignments_string[] 		= "avg asgn";	// eight chars long
+constexpr char stability_string[]					= "stbl";
+constexpr char is_stable_string[]					= " Y  ";
+constexpr char is_not_stable_string[]				= " n  ";
+constexpr char is_not_applicable_stability_string[]	= "n/a ";
+constexpr char colon_separator[] 					= ": ";
+constexpr char comma_separator[]					= ", ";
+constexpr char space_separator[] 					= "  ";
+constexpr char slash_separator[] 					= " / ";
+constexpr int comma_separator_strlen 				= 2;
+constexpr int colon_separator_strlen 				= 2;
+constexpr int space_separator_strlen 				= 2;
+constexpr int slash_separator_strlen 				= 3;
+constexpr int average_compares_strlen 	 			= 7;
+constexpr int average_assignments_strlen 			= 8;
+constexpr int stability_string_strlen				= 4;
 
 /*	**************************************************************************	*/
 /*			Information about how the output table should be structured			*/
@@ -222,6 +225,8 @@ std::string rowPreambleToString(SortAlgorithms &algorithm,
 template <typename T>
 void sortResultsArray(OneTestResult<T>** results, int num_tests,
 					  CompareFunction<T> isULessThanV);
+
+std::string stabilityToString(ArrayCompositions composition, bool stable);
 
 //	Dumps the parameters of one result without dumping the sort_metrics
 //	'i', if >= 0, is printed at the start of the line
@@ -782,8 +787,8 @@ void printRowPreamble_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 				  << results[i]->m_sort_metrics.assignments_str()
 				  << space_separator
 				  << std::setw(stability_string_strlen) << std::right
-//				  << (results[i]->m_failure_log->m_diagnostics.is_stable ? 'Y' : 'N')
-				  << (results[i]->m_is_stable ? 'Y' : 'N')
+				  << stabilityToString(results[i]->m_composition.composition,
+						  	  	  	   results[i]->m_is_stable)
 				  << space_separator;
 	}
 	std::cout << std::endl << std::endl;
