@@ -67,7 +67,7 @@ private:
 	// don't allow a constructor that does not
 	//	allocate the array size_results
 	OneTestResult() {
-		m_algorithm 					= SortAlgorithms::SORT_ALGORITHMS_COUNT;
+		m_algorithm 					= SortAlgorithms::INVALID_SORT;
 		m_composition.composition 		= DEFAULT_ARRAY_COMPOSITION;
 		m_composition.num_different 	= 0;
 		m_composition.num_distinct_values = 0;

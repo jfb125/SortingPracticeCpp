@@ -5,58 +5,8 @@
  *      Author: Joe Baker
  */
 
-/*	TODO - List
- * Change 'ComparesAndMoves' to 'ComparesAndAssignments'
- * Change every variable of tylpe 'ComparesAndMoves' to 'metrics'
- * Change every function that returns 'metrics' to access them by
- * 	a pointer passed the function parameters
- * Set the default value of the p_metrics to nullptr
- *
+/*
  * TODO - List
- * Include the version of insertionSort that uses a pointer to the leftmost
- * 	element that is known to be sorted in this namespace.
- * Use the local version of insertionSortFromN to do the initial insertion sort
- * In all comments showing Blocks under/above the array, make sure that the
- * 	boundaries of the blocks are denoted with '|', not '[]'
- *
- * 	TODO - Merging
- *
- *	Block Organization:
- *
- * 	The organizing for block structures, either symmetric or full_A0, has been
- * 	tested empirically to show a performance penalty of 5% in the sorting itself.
- *
- * 	Requiring the 'mid' point to be an integer multiple of the block size (full_A0)
- * 	complicates the divide & conquer by power of two algorithm.  The effort to
- * 	align the bottom up x2 algorithm with the full_A0 sorting of the blocks is
- * 	will not be supported for the time being.
- *
- *	Block Sorting:
- *
- *	Sorting of the blocks has been tested using BINARY_SEARCH, ROTATION, HYBRID
- *	and TABLE. TABLE performs twice as fast as the other algorithms and will thus
- *	be used from this point forward.
- *
- *	Merging Pairs of Blocks:
- *
- *	Merging pairs of blocks that are of equal size has been tested and found
- *	that using a TABLE is more than twice as fast as a method that uses
- *	binary searches to identify spans within the B_Block that can be rotated
- *	into place between to A_Block elements. The O(n) for the table method
- *	is n, whereas the O(n) for the binary search/rotate which is n^2.
- *	In the canonical implementation TABLE is used for the merge, where the
- *	table is implemented as	monotonically ascending sub-array of distinct values.
- *
- *	Merging all of the Blocks:
- *
- *	Merging all of the pairs of the blocks does not seem to be performing as
- *	expected.  This may be due to the fact that in the actual algorithm, the
- *	B_Block that must be merged is usually quite smaller than the 'Mega-Block'
- *	of previously merged values to its left.  Thus, the TABLE that is created
- *	of the Mega-block is always the largest table and thus the most moves.
- *	The next step will be to try to 	optimize TABLE merging to always build
- *	the TABLE based upon which block is	the smallest to see if this affects
- *	the number of moves necessary.
  */
 
 #ifndef BLOCKSORT_H_
@@ -92,7 +42,22 @@
 
 namespace BlockSort {
 
-	/*	**************************************************************************	*/
+	template <typename T>
+	void assignBlockMergeFunction(
+			BlockOperations::MergeFunction& function,
+			BlockOperations::MergeStrategy strategy);
+
+	template <typename T>
+	void assignCreateDescriptorsFunction(
+			BlockSort::CreateDescriptorsFunction<T> &function,
+			BlockSort::BlockOrganizations organization);
+
+	template <typename T>
+	void assignSortBlocksFunction(
+			BlockSort::SortBlocksFunction<T>& function,
+			BlockSort::BlockSortingStrategy strategy);
+
+ 	/*	**************************************************************************	*/
 	/*	**************************************************************************	*/
 	/*							algorithm function declarations						*/
 	/*	**************************************************************************	*/
@@ -103,70 +68,40 @@ namespace BlockSort {
 	 * The blocks are then sorted.  The blocks are then merged
 	 */
 	template <typename T>
-	SortMetrics sort(T* array, array_size_t start, array_size_t mid, array_size_t end)
+	void sort(	T* array,
+				array_size_t start, array_size_t mid, array_size_t end,
+				SortMetrics *metrics = nullptr)
 	{
+		BlockSort::CreateDescriptorsFunction createDescriptors;
+		assignCreateDescriptorsFunction<T>(
+				createDescriptors,
+				BlockSort::BlockOrganizations::SYMMETRIC);
+
+		BlockSort::SortBlocksFunction sortBlocks;
+		assignSortBlocksFunction<T>(
+				sortBlocks,
+				BlockSort::BlockSortingStrategy::TABLE);
+
+		BlockOperations::MergeFunction 	mergeBlocks;
+		assignBlockMergeFunction<T>(
+				mergeBlocks,
+				BlockOperations::MergeStrategy::TABLE);
+
+		//	The size of the blocks is defined as the sqrt of the size of
+		//	the lower half of the array, which is always <= the size of
+		//	the upper half
 		array_size_t u_size		= mid-start;
 		array_size_t block_size = static_cast<array_size_t>(std::sqrt(u_size));
 
 		Descriptors<T> descriptors;
 		int num_desc;
 
-		//
-		//	How to organize the blocks
-		//
-		constexpr BlockSort::BlockOrganizations block_organization =
-					BlockSort::BlockOrganizations::SYMMETRIC;
-
-		int (*createDescriptors)(T* array,
-								 array_size_t st, array_size_t mid, array_size_t end,
-								 array_size_t block_size, Descriptors<T>&);
-
-		switch (block_organization) {
-			case BlockSort::BlockOrganizations::FULL_A0_BLOCK:
-				createDescriptors = createBlockDescriptors_A0_Full;
-				break;
-			case BlockSort::BlockOrganizations::SYMMETRIC:
-				createDescriptors = createBlockDescriptorsSymmetrically;
-				break;
-			}
-
-		//
-		//	How to sort the blocks
-		//
-
-		BlockSort::BlockSortingStrategy block_sorting_strategy =
-				BlockSort::BlockSortingStrategy::TABLE;
-		void (*sortBlocks)(T* array, Descriptors<T> &desc, int num, SortMetrics*);
-
-		switch(block_sorting_strategy) {
-		case BlockSort::BlockSortingStrategy::BINARY:
-			sortBlocks = sortBlocksBinarySearch;
-			break;
-		case BlockSort::BlockSortingStrategy::HYBRID:
-			sortBlocks = sortBlocksHybrid;
-			break;
-		case BlockSort::BlockSortingStrategy::RIGHT_TO_LEFT:
-			sortBlocks = sortBlocksRightToLeft;
-			break;
-		default:
-		case BlockSort::BlockSortingStrategy::TABLE:
-			sortBlocks = sortBlocksByTable;
-			break;
-		}
-
-		SortMetrics metrics(0,0);
-
-		u_size		= mid-start;
-		block_size 	= static_cast<array_size_t>(std::sqrt(u_size));
-
-		//	creating block descriptors in either way, symmetric around mid
-		//	  or having all of the fractional block in the last of b,
-		//	  tested to have similar performance(?)
-		num_desc = createDescriptors(array, start, mid, end, block_size, descriptors);
-		sortBlocks(array, descriptors, num_desc, &metrics);
-		mergeAllBlocksLeftToRight(array, descriptors, num_desc, &metrics);
-//		metrics += mergeAllBlocksRightToLeft(array, descriptors, num_desc);
-		return metrics;
+		num_desc = createDescriptors(array, start,
+									 mid, end, block_size,
+									 descriptors,
+									 metrics);
+		sortBlocks(array, descriptors, num_desc, metrics);
+		mergeBlocks(array, descriptors, num_desc, metrics);
 	}
 
 	/*	**************************************************	*/
@@ -182,14 +117,12 @@ namespace BlockSort {
 	constexpr array_size_t initial_block_size = 16;
 
 	template <typename T>
-	SortMetrics sort(T *array, array_size_t size) {
+	void sort(T *array, array_size_t size, SortMetrics *metrics) {
 
 		constexpr bool debug_verbose = false;
-		SortMetrics metrics(0,0);
 
 		if (size < 2*initial_block_size) {
-			metrics = InsertionSort::sort(array, size);
-			return metrics;
+			return InsertionSort::sort(array, size, metrics);
 		}
 
 		//	Initially sort the elements within each block using an insertion sort
@@ -201,7 +134,7 @@ namespace BlockSort {
 			if (block_start + initial_block_size > size) {
 				sub_array_size = size - block_start;
 			}
-			metrics += InsertionSort::sort(&array[block_start], sub_array_size);
+			InsertionSort::sort(&array[block_start], sub_array_size, metrics);
 		}
 		_dbg_ln("  Made it through sorting initial blocks");
 
@@ -217,7 +150,7 @@ namespace BlockSort {
 			if (block_2_end > size-1)
 				block_2_end = size-1;
 			while (block_2_start < size) {
-				metrics += sort(array, block_1_start, block_2_start, block_2_end);
+				sort(array, block_1_start, block_2_start, block_2_end, metrics);
 				block_1_start = block_2_end+1;
 				block_1_end	  = block_1_start + block_size - 1;
 				//	if block 1 extends to or past the end of the array
@@ -233,9 +166,85 @@ namespace BlockSort {
 			block_size *= 2;
 		}
 		_dbg_ln("BlockSort() is returning");
-		return metrics;
+		return;
+	}	// function srot
+
+	/*	******************************************************************	*/
+	/*					Functions to make main function more concise		*/
+	/*	******************************************************************	*/
+
+	template <typename T>
+	void assignCreateDescriptorsFunction(
+			BlockSort::CreateDescriptorsFunction<T> &function,
+			BlockSort::BlockOrganizations organization)
+	{
+		switch (organization) {
+			case BlockSort::BlockOrganizations::FULL_A0_BLOCK:
+				function = createBlockDescriptors_A0_Full<T>;
+				break;
+			case BlockSort::BlockOrganizations::SYMMETRIC:
+				function = createBlockDescriptorsSymmetrically<T>;
+				break;
+			}
 	}
-}
+
+	template <typename T>
+	void assignSortBlocksFunction(
+			BlockSort::SortBlocksFunction<T>& function,
+			BlockSort::BlockSortingStrategy strategy)
+	{
+		switch(strategy) {
+		case BlockSort::BlockSortingStrategy::BINARY:
+			function = sortBlocksBinarySearch<T>;
+			break;
+		case BlockSort::BlockSortingStrategy::HYBRID:
+			function = sortBlocksHybrid<T>;
+			break;
+		case BlockSort::BlockSortingStrategy::RIGHT_TO_LEFT:
+			function = sortBlocksRightToLeft<T>;
+			break;
+		default:
+		case BlockSort::BlockSortingStrategy::TABLE:
+			function = sortBlocksByTable<T>;
+			break;
+		}
+	}
+
+	template <typename T>
+	void assignBlockMergeFunction(
+				BlockOperations::MergeFunction& function,
+				BlockOperations::MergeStrategy strategy)
+	{
+		switch(strategy) {
+		case BlockOperations::MergeStrategy::AUXILLIARY:
+			function =
+				BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer<T>;
+			break;
+		case BlockOperations::MergeStrategy::BINARY:
+			function =
+				BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_BinarySearch<T>;
+			break;
+		case BlockOperations::MergeStrategy::HYBRID:
+			function =
+				BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_Hybrid<T>;
+			break;
+		case BlockOperations::MergeStrategy::INSERTION:
+			function =
+				BlockOperations::insertionSortPartial<T>;
+			break;
+		case BlockOperations::MergeStrategy::RGT_TO_LFT:
+			function =
+				BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_RightToLeft<T>;
+			break;
+		case BlockOperations::MergeStrategy::TABLE:
+		default:
+			function =
+				BlockOperations::mergeTwoBlocksElementsByTable<T>;
+			break;
+		}
+	}
+
+}	// namespace BlockSort
 
 #pragma pop_macro("_dbg")
 #pragma pop_macro("_dbg_ln")

@@ -18,13 +18,24 @@ namespace BlockSort {
 	template <typename T>
 	class BlockDescriptor;
 
+	template <typename T>
+	using CreateDescriptorsFunction = void (*)(T* array,
+											   array_size_t start,
+											   array_size_t mid,
+											   array_size_t end,
+											   array_size_t block_size,
+											   Descriptors<T> &blocks,
+											   SortMetrics *metrics);
+
+
 	/*	Assigns key values to the blocks.  This is useful if the underlying array
 	 * has been sorted, such as initially sorting element within blocks. */
 
 	template <typename T>
 	SortMetrics assignBlockKeys(T* array,
 								std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
-								int num_descriptors);
+								int num_descriptors,
+								SortMetrics *metrics = nullptr);
 
 	/*	Creates an array of block descriptors of types A & B {A[0]A[1]..A[m]B[0]..B[n]}
 	 * 	  where A[0] is a full block but B[n] may not be a full block in the case where
@@ -39,7 +50,8 @@ namespace BlockSort {
 											array_size_t mid,
 											array_size_t end,
 											array_size_t block_size,
-											Descriptors<T> &descriptors);
+											Descriptors<T> &descriptors,
+											SortMetrics *metrics = nullptr);
 
 
 	/*	Creates an array of block descriptors of types A & B {[A0][A1]..[Am][B0]..[Bn]}
@@ -54,7 +66,8 @@ namespace BlockSort {
 											array_size_t mid,
 											array_size_t end,
 		    								array_size_t block_size,
-											Descriptors<T> &descriptors);
+											Descriptors<T> &descriptors,
+											SortMetrics *metrics = nullptr);
 
 	/*
 	 * 	Makes createBlock_______() more concise
@@ -64,7 +77,8 @@ namespace BlockSort {
 	void assignBlockData(BlockDescriptor<T> &block,
 						 T*array, BlockType type,
 						 array_size_t start,
-						 array_size_t block_size);
+						 array_size_t block_size,
+						 SortMetrics *metrics = nullptr);
 
 
 	/*	***********************************************************************************	*/
@@ -80,11 +94,16 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	SortMetrics assignBlockKeys(T**array, std::unique_ptr<BlockDescriptor<T>[]> &descriptors, int num_descriptors) {
+	void assignBlockKeys(T**array,
+						 std::unique_ptr<BlockDescriptor<T>[]> &descriptors,
+						 int num_descriptors,
+						 SortMetrics *metrics) {
 
 		for (int i = 0; i != num_descriptors; i++) {
 			BlockDescriptor<T>*p = &descriptors[i];	// improves readability
 			switch(p->type) {
+			if (metrics)
+				metrics->assignments++;
 			case BlockType::A_BLOCK:
 				p->key = array[p->start_index];
 				break;
@@ -97,8 +116,6 @@ namespace BlockSort {
 			}
 			p++;
 		}
-
-		return SortMetrics(0,0);
 	}
 
 
@@ -153,7 +170,8 @@ namespace BlockSort {
 										array_size_t mid,
 										array_size_t end,
 										array_size_t block_size,
-										Descriptors<T> &blocks) {
+										Descriptors<T> &blocks,
+										SortMetrics *metrics) {
 
 		array_size_t lower_span = mid-start;
 		array_size_t upper_span = end-mid + 1;
@@ -253,7 +271,8 @@ namespace BlockSort {
 												array_size_t mid,
 												array_size_t end,
 												array_size_t block_size,
-												Descriptors<T> &blocks) {
+												Descriptors<T> &blocks,
+												SortMetrics *metrics) {
 
 		array_size_t lower_span = mid-start;
 		array_size_t upper_span = end-mid + 1;
@@ -287,7 +306,8 @@ namespace BlockSort {
 		//	if the first A_Block is a partial, it's .end_index != (.start_index+block_size-1)
 		if (first_block_size) {
 			assignBlockData(blocks[block_number], array,
-							BlockType::A_BLOCK, start_of_block, first_block_size);
+							BlockType::A_BLOCK, start_of_block, first_block_size,
+							metrics);
 			start_of_block += first_block_size;
 			block_number = 1;
 		}
@@ -295,7 +315,8 @@ namespace BlockSort {
 		//	the full A_Blocks where .end_index = (.start_index+block_size-1)
 		while (start_of_block < mid) {
 			assignBlockData(blocks[block_number], array,
-							BlockType::A_BLOCK, start_of_block, block_size);
+							BlockType::A_BLOCK, start_of_block, block_size,
+							metrics);
 			start_of_block += block_size;
 			block_number++;
 		}
@@ -303,7 +324,8 @@ namespace BlockSort {
 		//	the full B_Blocks where .end_index = (.start_index+block_size-1)
 		while (block_number < num_blocks-1) {
 			assignBlockData(blocks[block_number], array,
-							BlockType::B_BLOCK, start_of_block, block_size);
+							BlockType::B_BLOCK, start_of_block, block_size,
+							metrics);
 			start_of_block += block_size;
 			block_number++;
 		}
@@ -313,6 +335,8 @@ namespace BlockSort {
 		blocks[block_number].type 			= BlockType::B_BLOCK;
 		blocks[block_number].start_index	= start_of_block;
 		blocks[block_number].end_index		= end;
+		if (metrics)
+			metrics->assignments++;
 		blocks[block_number].key			= array[end];
 
 		return num_blocks;
@@ -324,10 +348,14 @@ namespace BlockSort {
 	 */
 
 	template <typename T>
-	void assignBlockData(BlockDescriptor<T> &block, T* array, BlockType type, array_size_t start, array_size_t block_size) {
+	void assignBlockData(BlockDescriptor<T> &block, T* array, BlockType type,
+						 array_size_t start, array_size_t block_size,
+						 SortMetrics *metrics) {
 		block.type 			= type;
 		block.start_index 	= start;
 		block.end_index		= start + block_size-1;
+		if (metrics)
+			metrics->assignments++;
 		if (type == BlockType::A_BLOCK) {
 			block.key = array[block.start_index];
 		} else {

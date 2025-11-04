@@ -96,9 +96,15 @@ namespace SortingUtilities {
 										  SortMetrics *metrics = nullptr);
 
 	/*	rotates elements of an array [start:end] an amount, where negative
-	 * values of 'amount' indicate to rotate the span to the left */
+	 * values of 'amount' indicate to rotate the span to the left.
+	 * Note that blocks do not have to be contiguous */
+
 	template <typename T>
-	void rotateArrayElementsRight(T* array, array_size_t start, array_size_t end,
+	void rotateArrayElementsRight(T* array,
+								  array_size_t block_1_start,
+								  array_size_t block_1_end,
+								  array_size_t block_2_start,
+								  array_size_t block_2_end,
 							 	  array_size_t amount,
 								  SortMetrics *metrics = nullptr);
 
@@ -245,22 +251,24 @@ namespace SortingUtilities {
 
 	template <typename T>
 	void rotateArrayElementsRight(T* array,
-								  array_size_t start, array_size_t end,
+								  array_size_t span_start,
+								  array_size_t span_end,
 								  array_size_t amount,
 								  SortMetrics *metrics) {
 
-		if (end <= start)
-			return;
+		array_size_t span = span_end-span_start;
 
-		array_size_t span = end - start + 1;
-		if (span == 0)
+		//	qualify all of the block indices
+		if (span <= 0)
 			return;
 
 		//	converts amounts that are not in [0,span) to in range
 		amount = calcRotationWithModulo(amount, span);
+		if (amount == 0)
+			return;
 
 		//	reverse the entire array
-		for (array_size_t i = start, j = end; i < j; i++, j--) {
+		for (array_size_t i = ascending_start, j = descending_end; i++, j--) {
 			SortingUtilities::swap(array, i, j, metrics);
 		}
 

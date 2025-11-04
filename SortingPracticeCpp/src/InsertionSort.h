@@ -16,27 +16,28 @@
 namespace InsertionSort {
 
 	template <typename T>
-	SortMetrics sort(T *array, array_size_t size) {
+	void sort(T *array, array_size_t size, SortMetrics *metrics = nullptr) {
 
-		SortMetrics ret_val(0,0);
+		auto add_one_compare 	= [&metrics] {
+			if (metrics) metrics->compares++; };
+		auto add_one_assignment = [&metrics] {
+			if (metrics) metrics->assignments++; };
 
-		for (array_size_t i = 1;
-						  i != size;
-						  i ++)
+		for (array_size_t i = 1; i != size; i++)
 		{
 			// if the element to the left of element_in_question is equal to
 			//	of smaller,	then element_in_question is in the correct place
-			ret_val.compares++;
+			add_one_compare();
 			if (array[i-1] <= array[i])
 				continue;
 
 			// make a copy of the element_in_question, which will be stored
 			//  in the correct location once the correct location is found
-			ret_val.assignments++;
+			add_one_assignment();
 			T current_value = array[i];
 
 			// move the larger element to the right
-			ret_val.assignments++;
+			add_one_assignment();
 			array[i] = array[i-1];
 			array_size_t prev_i = i-1;
 
@@ -46,9 +47,9 @@ namespace InsertionSort {
 			while(prev_i != 0) {
 				// if the element to the left of current
 				//  is greater than current_value it needs to move to the right
-				ret_val.compares++;
+				add_one_compare();
 				if (array[prev_i-1] > current_value) {
-					ret_val.assignments++;
+					add_one_assignment();
 					array[prev_i] = array[prev_i-1];
 					prev_i--;
 				} else {
@@ -56,9 +57,8 @@ namespace InsertionSort {
 				}
 			}
 			array[prev_i] = current_value;
-			ret_val.assignments++;
+			add_one_assignment();
 		}
-		return ret_val;
 	}
 }
 

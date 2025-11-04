@@ -89,6 +89,10 @@ public:
 	}
 };
 
+void inc_cmpr(SortMetrics*);
+void inc_asgn(SortMetrics*);
+
+
 //	This keeps track of the cumulative performance of many runs of a sort
 class	SortTestMetrics {
 public:

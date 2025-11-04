@@ -279,7 +279,7 @@ int getstrlenAlgorithm(OneTestResult<T>** results, int num_tests) {
 	int max_len = 0;
 
 	for (int i = 0; i != num_tests; i++) {
-		std::string algstr = toString(results[i]->m_algorithm);
+		std::string algstr = to_string(results[i]->m_algorithm);
 		int len = strlen(algstr.c_str());
 		if (len > max_len) {
 			max_len = len;

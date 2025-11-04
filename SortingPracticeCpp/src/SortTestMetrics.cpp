@@ -15,6 +15,14 @@
 #include "OStreamState.h"
 #include "SortTestMetrics.h"
 
+void inc_cmpr(SortMetrics *metrics) {
+	if (metrics) metrics->compares++;
+}
+void inc_asgn(SortMetrics *metrics) {
+	if (metrics) metrics->assignments++;
+}
+
+
 double	SortTestMetrics::averageCompares(void) const {
 
 	if (num_repetitions) {

@@ -12,53 +12,37 @@
 #include <sstream>
 #include <string>
 
+#include "SortingDataTypes.h"
+#include "SortTestMetrics.h"
+
 /*	**************************************************************************	*/
 /*	**************************************************************************	*/
 /*	 						supported sort algorithms							*/
 /*	**************************************************************************	*/
 /*	**************************************************************************	*/
 
-#undef _SORT_ALGORITHM
-#define _SORT_ALGORITHMS\
-	_SORT_ALGORITHM(BUBBLE_SORT)\
-	_SORT_ALGORITHM(SELECTION_SORT)\
-	_SORT_ALGORITHM(INSERTION_SORT)\
-	_SORT_ALGORITHM(MERGE_SORT)\
-	_SORT_ALGORITHM(HEAP_SORT)\
-	_SORT_ALGORITHM(QUICK_SORT)\
-	_SORT_ALGORITHM(OPTIMIZED_QUICK_SORT)\
-	_SORT_ALGORITHM(DUTCH_FLAG_SORT)\
-	_SORT_ALGORITHM(RADIX_SORT)\
-	_SORT_ALGORITHM(COUNTING_SORT)\
-	_SORT_ALGORITHM(INPLACE_MERGE)\
-	_SORT_ALGORITHM(BLOCK_SORT)\
-	_SORT_ALGORITHM(SORT_ALGORITHMS_COUNT)	// place holder
+template <typename T>
+using SortFunction = void (*)(T* array_size_t, SortMetrics*);
 
-#define _SORT_ALGORITHM(alg)	alg,
-enum SortAlgorithms {
-	_SORT_ALGORITHMS
+enum class SortAlgorithms {
+	BUBBLE_SORT,
+	SELECTION_SORT,
+	INSERTION_SORT,
+	MERGE_SORT,
+	HEAP_SORT,
+	QUICK_SORT,
+	OPTIMIZED_QUICK_SORT,
+	DUTCH_FLAG_SORT,
+	RADIX_SORT,
+	COUNTING_SORT,
+	INPLACE_MERGE,
+	BLOCK_SORT,
+	INVALID_SORT,
 };
-
-#define MIN_SORT_ALGORITHM 		SortAlgorithms::BUBBLE_SORT
-#define MAX_SORT_ALGORITHM 		SortAlgorithms::BLOCK_SORT
-#define INVALID_SORT_ALGORITHM	SortAlgorithms::SORT_ALGORITHMS_COUNT
 
 bool isValid(SortAlgorithms);
 
-SortAlgorithms& operator++(SortAlgorithms& algorithm);
-SortAlgorithms operator++(SortAlgorithms& algorithm, int unused);
-
-int operator-(SortAlgorithms u, SortAlgorithms v);
-
-bool operator==(SortAlgorithms u, SortAlgorithms v);
-bool operator<(SortAlgorithms u, SortAlgorithms v);
-
-bool operator!=(SortAlgorithms u, SortAlgorithms v);
-bool operator<=(SortAlgorithms u, SortAlgorithms v);
-bool operator>=(SortAlgorithms u, SortAlgorithms v);
-bool operator>(SortAlgorithms u, SortAlgorithms v);
-
 std::ostream& operator<<(std::ostream&, SortAlgorithms);
-std::string toString(SortAlgorithms);
+std::string to_string(SortAlgorithms);
 
 #endif /* SORTALGORITHM_H_ */

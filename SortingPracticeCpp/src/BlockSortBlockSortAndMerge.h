@@ -13,6 +13,12 @@
 namespace BlockSort {
 
 
+	template <typename T>
+	using SortBlocksFunction = void (*)(T* array,
+										Descriptors<T> &blocks,
+										int num_blocks,
+										SortMetrics*);
+
 	/*	Merges each pair of adjacent descriptors.  This maybe(?) necessary after a pass
 	 * through the array that combines adjacent descriptors to avoid having to regenerate
 	 * the descriptors each time the block size is doubled in a bottom up merge
@@ -20,7 +26,8 @@ namespace BlockSort {
 	template <typename T>
 	int mergeAdajacentPairsOfDescriptors(T* array,
 										 Descriptors<T> &descriptors,
-										 int num_descriptors);
+										 int num_descriptors,
+										 SortMetrics *metrics = nullptr);
 
 	/*	Starting with the leftmost A_Block, merge blocks
 	 * expects a set of descriptors that is in order by key	*/
@@ -357,7 +364,6 @@ namespace BlockSort {
 	 *	Testing indicates that restarting the binary search each time makes this algorithm
 	 *		less efficient than starting at the rightmost B_Block and moving left one block at a time.
 	 */
-
 
 	template <typename T>
 	void sortBlocksBinarySearch(T* array,
