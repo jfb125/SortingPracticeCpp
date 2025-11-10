@@ -15,10 +15,6 @@
 #include "ResultOutput.h"
 #include "TestFixtures.h"
 
-#pragma push_macro("to_i")
-#define to_i(e_num)	static_cast<int>(e_num)
-
-
 /*	******************************************************************************	*/
 /*	******************************************************************************	*/
 /*									main()											*/
@@ -83,7 +79,7 @@ int main(int argc, char *argv[])
 	};
 
 //	array_size_t array_sizes[]	= { 64, 128, 256, 512 };
-	array_size_t array_sizes[] 	= { 64, 128 };
+	array_size_t array_sizes[] 	= { 1000 };
 	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
@@ -92,11 +88,11 @@ int main(int argc, char *argv[])
 //			SortAlgorithms::INSERTION_SORT,
 //			SortAlgorithms::DUTCH_FLAG_SORT,
 //			SortAlgorithms::HEAP_SORT,
-//			SortAlgorithms::QUICK_SORT,
-//			SortAlgorithms::OPTIMIZED_QUICK_SORT,
-			SortAlgorithms::MERGE_SORT,
-			SortAlgorithms::INPLACE_MERGE,
-			SortAlgorithms::BLOCK_SORT,
+			SortAlgorithms::QUICK_SORT,
+			SortAlgorithms::PROTECTED_QUICK_SORT,
+//			SortAlgorithms::MERGE_SORT,
+//			SortAlgorithms::INPLACE_MERGE,
+//			SortAlgorithms::BLOCK_SORT,
 	};
 	int num_sort_algorithms = sizeof(sort_algorithms)/sizeof(SortAlgorithms);
 
@@ -125,8 +121,8 @@ int main(int argc, char *argv[])
 	InitialOrdering	initial_orderings[] = {
 			{InitialOrderings::IN_RANDOM_ORDER, num_elements_out_of_order},
 			{InitialOrderings::IN_REVERSE_ORDER, num_elements_out_of_order},
-//			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
-//			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
+			{InitialOrderings::FEW_CHANGES, num_elements_out_of_order},
+			{InitialOrderings::NO_CHANGES, num_elements_out_of_order},
 	};
 	int num_initial_orderings = sizeof(initial_orderings)/sizeof(InitialOrdering);
 
@@ -148,7 +144,7 @@ int main(int argc, char *argv[])
 	}
 	SimpleRandomizer randomizer(randomizer_seed);
 
-	int num_repetitions = 1000;
+	int num_repetitions = 100;
 
 	std::cout 	<< "Algorithms: " << num_sort_algorithms
 				<< " Compositions: " << num_compositions

@@ -49,7 +49,8 @@ constexpr int assignments_width = 8;
 #define ONE_SORT_AVERAGES_LOW_PRECISION 1
 
 //	This keeps track of the number of compares & assignments
-//	which is a figure of merit for one sorting operation
+//	which are a figure of merit for a sorting operation
+
 class	SortMetrics {
 public:
 	compares_t		compares;
@@ -88,9 +89,6 @@ public:
 		return out;
 	}
 };
-
-void inc_cmpr(SortMetrics*);
-void inc_asgn(SortMetrics*);
 
 
 //	This keeps track of the cumulative performance of many runs of a sort

@@ -14,10 +14,21 @@
 
 namespace BubbleSort {
 
-	template <typename T>
-	SortMetrics sort(T* array, array_size_t size) {
+	/*	**********************************************************************	*/
+	/*								function declaration						*/
+	/*	**********************************************************************	*/
 
-		SortMetrics result(0,0);
+	//	Declare the function with a default value for the SortMetrics pointer
+	template <typename T>
+	void sort(T* array, array_size_t size, SortMetrics *metrics = nullptr);
+
+
+	/*	**********************************************************************	*/
+	/*								function definition							*/
+	/*	**********************************************************************	*/
+
+	template <typename T>
+	void sort(T* array, array_size_t size, SortMetrics *metrics) {
 
 		for (array_size_t lowest_unsorted = 0; lowest_unsorted != size-1; lowest_unsorted++) {
 			bool was_swap = false;
@@ -25,9 +36,9 @@ namespace BubbleSort {
 			{
 				// if the element before you is larger than you,
 				//   swap it - bubble your element up one position
-				result.compares++;
+				if (metrics) metrics->compares++;
 				if (array[i-1] > array[i]) {
-					SortingUtilities::swap(array, i-1, i, &result);
+					SortingUtilities::swap(array, i-1, i, metrics);
 					was_swap = true;
 				}
 			}
@@ -35,7 +46,6 @@ namespace BubbleSort {
 				break;
 			}
 		}
-		return result;
 	}
 }
 

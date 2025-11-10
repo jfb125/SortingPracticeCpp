@@ -11,17 +11,26 @@
 #include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 
-#include <iostream>
-
 
 namespace SelectionSort {
 
+	/*	**************************************************************	*/
+	/*							function declaration					*/
+	/*	**************************************************************	*/
+
+	// Declare the function with default value for SortMetrics pointer
 	template <typename T>
-	SortMetrics sort(T *array, array_size_t array_size) {
+	void sort(T *array, array_size_t array_size, SortMetrics *metrics = nullptr);
 
-		SortMetrics result(0,0);
 
-		if (!SortingUtilities::isSorted(array, array_size, &result))
+	/*	**************************************************************	*/
+	/*							function definition						*/
+	/*	**************************************************************	*/
+
+	template <typename T>
+	void sort(T *array, array_size_t array_size, SortMetrics *metrics) {
+
+		if (!SortingUtilities::isSorted(array, array_size, metrics))
 		{
 			array_size_t index_of_smallest_value;
 
@@ -34,7 +43,7 @@ namespace SelectionSort {
 				for (array_size_t searching_index = first_unsorted_element+1;
 								  searching_index < array_size;
 								  searching_index++) {
-					result.compares++;
+					if (metrics) metrics->compares++;
 					if (array[searching_index] < array[index_of_smallest_value]) {
 						index_of_smallest_value = searching_index;
 					}
@@ -44,12 +53,11 @@ namespace SelectionSort {
 					SortingUtilities::swap(array,
 										   index_of_smallest_value,
 										   first_unsorted_element,
-										   &result);
+										   metrics);
 				}
 			}
 		}
-
-		return result;
+		return;
 	}
 }
 

@@ -1,40 +1,56 @@
-Sorting Performance In C++ built on Nov  2 2025 at 16:11:52
-Algorithms: 3 Compositions: 4 Orderings: 2 of : 2 different sizes resulting in 48 outcomes 
+Sorting Performance In C++ built on Nov 10 2025 at 16:58:45
+Algorithms: 2 Compositions: 4 Orderings: 4 of : 1 different sizes resulting in 32 outcomes 
 ====================================
 Sort Test Results
 ====================================
-                                                                   Array sizes           64                  128          
-                                                                   Repetitions   avg cmp / avg asgn  stbl   avg cmp / avg asgn  stbl  
-ALL_DISCRETE                           IN_RANDOM_ORDER   MERGE_SORT       1000     306.8 /    384.0  n/a      737.6 /   1024.0  n/a   
-ALL_DISCRETE                           IN_RANDOM_ORDER   INPLACE_MERGE    1000     413.9 /    680.8  n/a      955.1 /   1728.8  n/a   
-ALL_DISCRETE                           IN_RANDOM_ORDER   BLOCK_SORT       1000     433.2 /    942.3  n/a     1014.1 /   2558.4  n/a   
+                                                                         Array sizes          1000          
+                                                                         Repetitions    avg cmp / avg asgn  stbl  
+ALL_DISCRETE                           IN_RANDOM_ORDER   QUICK_SORT              100    11288.7 /   6898.3  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   PROTECTED_QUICK_SORT    100    10824.3 /   8483.9  n/a   
 
-ALL_DISCRETE                           IN_REVERSE_ORDER  MERGE_SORT       1000     193.0 /    384.0  n/a      449.0 /   1024.0  n/a   
-ALL_DISCRETE                           IN_REVERSE_ORDER  INPLACE_MERGE    1000     545.0 /    792.0  n/a     1153.0 /   1776.0  n/a   
-ALL_DISCRETE                           IN_REVERSE_ORDER  BLOCK_SORT       1000     495.0 /   1065.0  n/a      998.0 /   2362.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  QUICK_SORT              100   499999.0 /   2997.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  PROTECTED_QUICK_SORT    100     9843.0 /   5109.0  n/a   
 
-ALL_SAME                               IN_RANDOM_ORDER   MERGE_SORT       1000      63.0 /      0.0   Y       127.0 /      0.0   Y    
-ALL_SAME                               IN_RANDOM_ORDER   INPLACE_MERGE    1000      63.0 /      0.0   Y       127.0 /      0.0   Y    
-ALL_SAME                               IN_RANDOM_ORDER   BLOCK_SORT       1000     139.0 /      0.0   Y       350.0 /      0.0   Y    
+ALL_DISCRETE                           FEW_CHANGES 3     QUICK_SORT              100   267828.5 /   2984.4  n/a   
+ALL_DISCRETE                           FEW_CHANGES 3     PROTECTED_QUICK_SORT    100     9716.3 /   2932.6  n/a   
 
-ALL_SAME                               IN_REVERSE_ORDER  MERGE_SORT       1000      63.0 /      0.0   Y       127.0 /      0.0   Y    
-ALL_SAME                               IN_REVERSE_ORDER  INPLACE_MERGE    1000      63.0 /      0.0   Y       127.0 /      0.0   Y    
-ALL_SAME                               IN_REVERSE_ORDER  BLOCK_SORT       1000     139.0 /      0.0   Y       350.0 /      0.0   Y    
+ALL_DISCRETE                           NO_CHANGES        QUICK_SORT              100   500498.0 /   2994.0  n/a   
+ALL_DISCRETE                           NO_CHANGES        PROTECTED_QUICK_SORT    100      999.0 /      0.0  n/a   
 
-FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   MERGE_SORT       1000     260.9 /    384.0   Y       588.0 /   1024.0   Y    
-FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   INPLACE_MERGE    1000     197.3 /    156.6   Y       456.1 /    310.6   Y    
-FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   BLOCK_SORT       1000     190.2 /    156.6   Y       451.2 /    310.6   Y    
+ALL_SAME                               IN_RANDOM_ORDER   QUICK_SORT              100   499500.0 /   2994.0   n    
+ALL_SAME                               IN_RANDOM_ORDER   PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
 
-FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  MERGE_SORT       1000     306.0 /    384.0   Y       688.0 /   1024.0   Y    
-FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  INPLACE_MERGE    1000     257.0 /    203.0   Y       571.0 /    395.0   Y    
-FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  BLOCK_SORT       1000     210.0 /    203.0   Y       483.0 /    395.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  QUICK_SORT              100   499500.0 /   2994.0   n    
+ALL_SAME                               IN_REVERSE_ORDER  PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
 
-FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   MERGE_SORT       1000     286.3 /    384.0   Y       674.1 /   1024.0   Y    
-FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   INPLACE_MERGE    1000     328.8 /    476.7   Y       761.8 /   1195.2   Y    
-FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   BLOCK_SORT       1000     328.5 /    668.3   Y       761.1 /   1805.8   Y    
+ALL_SAME                               FEW_CHANGES 3     QUICK_SORT              100   499500.0 /   2994.0   n    
+ALL_SAME                               FEW_CHANGES 3     PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
 
-FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  MERGE_SORT       1000     256.0 /    384.0   Y       578.0 /   1024.0   Y    
-FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  INPLACE_MERGE    1000     282.0 /    444.0   Y       540.0 /    929.0   Y    
-FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  BLOCK_SORT       1000     239.0 /    783.0   Y       498.0 /   1621.0   Y    
+ALL_SAME                               NO_CHANGES        QUICK_SORT              100   499500.0 /   2994.0   n    
+ALL_SAME                               NO_CHANGES        PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   QUICK_SORT              100   497506.0 /   2995.4   n    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   PROTECTED_QUICK_SORT    100   499845.4 /   5983.4   n    
+
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  QUICK_SORT              100   498503.0 /   2994.0   n    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  PROTECTED_QUICK_SORT    100   500496.0 /   5985.0   n    
+
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     QUICK_SORT              100   497506.0 /   2988.0   n    
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        QUICK_SORT              100   497506.0 /   2988.0   n    
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   QUICK_SORT              100   167833.6 /   4143.9   n    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   PROTECTED_QUICK_SORT    100   170016.0 /   7126.1   n    
+
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  QUICK_SORT              100   167833.0 /   3981.0   n    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  PROTECTED_QUICK_SORT    100   169492.0 /   6966.0   n    
+
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     QUICK_SORT              100   218321.7 /   2986.5   n    
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     PROTECTED_QUICK_SORT    100   164353.1 /   5791.3   n    
+
+FEW_DISTINCT with 3 possible values    NO_CHANGES        QUICK_SORT              100   167166.0 /   2982.0   n    
+FEW_DISTINCT with 3 possible values    NO_CHANGES        PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
 
 Completed Sorting Performance In C++

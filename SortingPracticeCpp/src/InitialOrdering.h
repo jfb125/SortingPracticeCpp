@@ -109,7 +109,7 @@ public:
 		std::stringstream result;
 		result << std::to_string(m_ordering);
 		if (m_ordering == InitialOrderings::FEW_CHANGES) {
-			result << m_num_out_of_place;
+			result << " " << m_num_out_of_place;
 		}
 		return result.str();
 	}

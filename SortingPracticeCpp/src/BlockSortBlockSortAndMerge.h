@@ -96,7 +96,7 @@ namespace BlockSort {
 
 	/*	sort an array of [A_0..A_m:B_0..B_n] using an insertion sort			*/
 	template <typename T>
-	void sortBlocksInsertioin(	T* array,
+	void sortBlocksInsertion(	T* array,
 								Descriptors<T> &blocks,
 								int num_blocks,
 								SortMetrics *metrics = nullptr);
@@ -243,6 +243,8 @@ namespace BlockSort {
 	void mergeAllBlocksLeftToRight(T* array,
 								   Descriptors<T> &block_descriptors,
 								   int num_blocks,
+								   BlockOperations::MergeFunction<T>
+										&mergeBlocks,
 								   SortMetrics *metrics) {
 		enum class ParsingState {
 			A_LOOKING_FOR_B,
@@ -286,9 +288,9 @@ namespace BlockSort {
 						array_size_t start 	= ordered_end + 1;
 						array_size_t mid	= first_b_element;
 						array_size_t end	= previous_blocks_end;
-						ordered_end =
-								BlockOperations::mergeTwoBlocksElementsByTable(
-									array, start, mid-1, mid, end, metrics);
+						ordered_end = mergeBlocks(array,
+												  start, mid-1, mid, end,
+												  metrics);
 					}
 					a_block_seen_previously = true;
 					parsing_state 			= ParsingState::A_LOOKING_FOR_B;

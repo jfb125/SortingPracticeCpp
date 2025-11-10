@@ -24,10 +24,7 @@
 #include "SortingUtilities.h"
 #include "SortingDebugOutput.h"
 #include "InsertionSort.h"
-//#include "BlockSortDebugging.h"
-//#include "BlockSortBlockDescriptors.h"
-//#include "BlockSortBlockMoving.h"
-//#include "BlockSortElementMoving.h"
+#include "BlockOperations.h"
 
 #pragma push_macro("_dbg_ln")
 #pragma push_macro("_dbg")
@@ -42,9 +39,11 @@
 
 namespace BlockSort {
 
+	/*	These make reading the actual sort source code a little cleaner	*/
+
 	template <typename T>
 	void assignBlockMergeFunction(
-			BlockOperations::MergeFunction& function,
+			BlockOperations::MergeFunction<T>& function,
 			BlockOperations::MergeStrategy strategy);
 
 	template <typename T>
@@ -70,22 +69,24 @@ namespace BlockSort {
 	template <typename T>
 	void sort(	T* array,
 				array_size_t start, array_size_t mid, array_size_t end,
-				SortMetrics *metrics = nullptr)
+				SortMetrics *metrics = nullptr);
+
+	template <typename T>
+	void sort(	T* array,
+				array_size_t start, array_size_t mid, array_size_t end,
+				SortMetrics *metrics)
 	{
-		BlockSort::CreateDescriptorsFunction createDescriptors;
-		assignCreateDescriptorsFunction<T>(
-				createDescriptors,
-				BlockSort::BlockOrganizations::SYMMETRIC);
+		BlockSort::CreateDescriptorsFunction<T> createDescriptors;
+		assignCreateDescriptorsFunction<T>( createDescriptors,
+											BlockSort::BlockOrganizations::SYMMETRIC);
 
-		BlockSort::SortBlocksFunction sortBlocks;
-		assignSortBlocksFunction<T>(
-				sortBlocks,
-				BlockSort::BlockSortingStrategy::TABLE);
+		BlockSort::SortBlocksFunction<T> sortBlocks;
+		assignSortBlocksFunction<T>(sortBlocks,
+									BlockSort::BlockSortingStrategy::TABLE);
 
-		BlockOperations::MergeFunction 	mergeBlocks;
-		assignBlockMergeFunction<T>(
-				mergeBlocks,
-				BlockOperations::MergeStrategy::TABLE);
+		BlockOperations::MergeFunction<T> 	mergeBlocks;
+		assignBlockMergeFunction<T>(mergeBlocks,
+									BlockOperations::MergeStrategy::TABLE);
 
 		//	The size of the blocks is defined as the sqrt of the size of
 		//	the lower half of the array, which is always <= the size of
@@ -101,7 +102,7 @@ namespace BlockSort {
 									 descriptors,
 									 metrics);
 		sortBlocks(array, descriptors, num_desc, metrics);
-		mergeBlocks(array, descriptors, num_desc, metrics);
+		mergeAllBlocksLeftToRight(array, descriptors, num_desc, mergeBlocks, metrics);
 	}
 
 	/*	**************************************************	*/
@@ -117,12 +118,15 @@ namespace BlockSort {
 	constexpr array_size_t initial_block_size = 16;
 
 	template <typename T>
+	void sort(T *array, array_size_t size, SortMetrics *metrics = nullptr);
+
+	template <typename T>
 	void sort(T *array, array_size_t size, SortMetrics *metrics) {
 
 		constexpr bool debug_verbose = false;
 
 		if (size < 2*initial_block_size) {
-			return InsertionSort::sort(array, size, metrics);
+			InsertionSort::sort(array, size, metrics);
 		}
 
 		//	Initially sort the elements within each block using an insertion sort
@@ -138,8 +142,8 @@ namespace BlockSort {
 		}
 		_dbg_ln("  Made it through sorting initial blocks");
 
-		array_size_t block_size = initial_block_size;
-		array_size_t block_1_start = 0;
+		array_size_t block_size 	= initial_block_size;
+		array_size_t block_1_start 	= 0;
 
 		while (block_size < size) {
 			block_1_start = 0;
@@ -212,7 +216,7 @@ namespace BlockSort {
 
 	template <typename T>
 	void assignBlockMergeFunction(
-				BlockOperations::MergeFunction& function,
+				BlockOperations::MergeFunction<T>& function,
 				BlockOperations::MergeStrategy strategy)
 	{
 		switch(strategy) {

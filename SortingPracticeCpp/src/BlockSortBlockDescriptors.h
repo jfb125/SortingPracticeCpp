@@ -19,8 +19,8 @@ namespace BlockSort {
 	class BlockDescriptor;
 
 	template <typename T>
-	using CreateDescriptorsFunction = void (*)(T* array,
-											   array_size_t start,
+	using CreateDescriptorsFunction = int (*)( T* array,
+										   	   array_size_t start,
 											   array_size_t mid,
 											   array_size_t end,
 											   array_size_t block_size,

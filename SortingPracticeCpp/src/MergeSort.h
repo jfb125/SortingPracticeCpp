@@ -18,17 +18,46 @@
 
 namespace MergeSort {
 
-	template <typename T>
-	SortMetrics sortObjectsBottomUp(T*array, array_size_t size) {
+	/*	**************************************************************	*/
+	/*						function declarations						*/
+	/*	**************************************************************	*/
 
-		SortMetrics ret_val(0,0);
+	// Declare function with default value for SortMetrics pointer
+	template <typename T>
+	void sort(T* array, array_size_t size, SortMetrics *metrics = nullptr);
+
+	template <typename T>
+	void sortObjectsBottomUp(T* array, array_size_t size, SortMetrics *metrics=nullptr);
+
+
+	/*	**************************************************************	*/
+	/*						function definitions						*/
+	/*	**************************************************************	*/
+
+	/*
+	 * 	Wrapper to match convention of other sort algorithms
+	 */
+
+	template <typename T>
+	void sort(T* array, array_size_t size, SortMetrics *metrics) {
+
+		return sortObjectsBottomUp(array, size, metrics);
+	}
+
+	/*
+	 * Sort objects without recursion which avoids allocating memory
+	 * every time the function is recursively called and the call overhead
+	 */
+
+	template <typename T>
+	void sortObjectsBottomUp(T*array, array_size_t size, SortMetrics *metrics) {
 
 		if (size <= 1) {
-			return ret_val;
+			return;
 		}
 
-		if (SortingUtilities::isSorted(array, size, &ret_val)) {
-			return ret_val;
+		if (SortingUtilities::isSorted(array, size, metrics)) {
+			return;
 		}
 
 		T aux[size];
@@ -77,12 +106,12 @@ namespace MergeSort {
 					// compare values on left & right and move the lesser value,
 					//	given precedence to the left value if they are equal
 					//	which guarantees stability
-					ret_val.compares++;
+					if (metrics) metrics->compares++;
 					if (src_array[left] <= src_array[right]) {
-						ret_val.assignments++;
+						if (metrics) metrics->assignments++;
 						dst_array[dst++] = src_array[left++];
 					} else {
-						ret_val.assignments++;
+						if (metrics) metrics->assignments++;
 						dst_array[dst++] = src_array[right++];
 					}
 				}
@@ -90,11 +119,11 @@ namespace MergeSort {
 				// right == right_stop or left == left_stop, but not both.
 				// Finish copying the source half that was not completed.
 				while (left < left_stop) {
-					ret_val.assignments++;
+					if (metrics) metrics->assignments++;
 					dst_array[dst++] = src_array[left++];
 				}
 				while (right < right_stop) {
-					ret_val.assignments++;
+					if (metrics) metrics->assignments++;
 					dst_array[dst++] = src_array[right++];
 				}
 			}
@@ -105,20 +134,14 @@ namespace MergeSort {
 		//	copy aux back into array
 		if (dst_array == aux) {
 //			std::cout << "... copying aux into array" << std::endl;
-			ret_val.assignments += size;
+			if (metrics) metrics->assignments += size;
 			for (array_size_t i = 0; i != size; i++) {
 				array[i] = aux[i];
 			}
 		}
-
-		return ret_val;
+		return;
 	}
 
-	template <typename T>
-	SortMetrics sort(T* array, array_size_t size) {
-
-		return sortObjectsBottomUp(array, size);
-	}
 };
 
 #endif /* MERGESORT_H_ */

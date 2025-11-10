@@ -15,6 +15,7 @@
 
 #include "BlockSortDataTypes.h"		// Descriptor datatype
 #include "SortingUtilities.h"		// swap, debug utilities
+#include "BlockOperations.h"
 
 /*
  * 	The order of function definitions in this file is:
@@ -769,96 +770,36 @@ namespace BlockOperations {
 								  SortMetrics *metrics) {
 
 		//	qualify all of the block indices
-
-		if ((block_1_start == block_1_end) && (block_2_start == block_2_end))
+		if (span_end == span_start) {
 			return;
+		}
 
 		//	ensure that the boundaries are ascending
-		if (block_1_start > block_1_end) {
+		if (span_start > span_end) {
 			array_size_t temp;
-			temp			= block_1_start;
-			block_1_start	= block_1_end;
-			block_1_end		= temp;
-		}
-		if (block_2_start > block_2_end) {
-			array_size_t temp;
-			temp			= block_2_start;
-			block_2_start	= block_2_end;
-			block_2_end		= temp;
+			temp		= span_start;
+			span_start	= span_end;
+			span_end	= temp;
 		}
 
-		array_size_t ascending_start;
-		array_size_t ascending_end;
-		array_size_t descending_start;
-		array_size_t descending_end;
-		array_size_t ascending_index;
-		array_size_t descending_index;
-
-		//	ensure block boundaries are ascending
-		if (block_1_start > block_1_end) {
-			array_size_t temp 	= block_1_start;
-			block_1_start		= block_1_end;
-			block_1_end			= temp;
-		}
-		if (block_2_start > block_2_end) {
-			array_size_t temp 	= block_2_start;
-			block_2_start 		= block_2_end;
-			block_2_end			= temp;
-		}
-		//	ensure that block_1 start to the left of block_2
-		if (block_1_start > block_2_start) {
-			array_size_t temp 	= block_1_start;
-			block_1_start		= block_2_start;
-			block_2_start		= temp;
-			temp				= block_1_end;
-			block_1_end			= block_2_end;
-			block_1_end			= temp;
-		}
-		//	if block_1 overlaps block_2, leave
-		if (block_1_end > block_2_start) {
-			return;
-		}
-
-		//	both of these will not be true, even if one is true
-		if (block_1_start == block_1_end) {
-			ascending_start		= block_2_start;
-			ascending_end		= block_2_end;
-			descending_start	= block_2_start;
-			descending_end		= block_2_end;
-		} else
-		if (block_2_start == block_2_end) {
-			ascending_start		= block_1_start;
-			ascending_end		= block_1_end;
-			descending_start	= block_1_start;
-			descending_end		= block_1_end;
-		} else {
-			ascending_start		= block_1_start;
-			ascending_end		= block_1_end;
-			descending_start	= block_2_start;
-			descending_end		= block_2_end;
-		}
-
-		array_size_t span = (ascending_end-ascending_start+1) +
-							(descending_end-descending_start+1);
-		if (span == 0)
-			return;
+		array_size_t span_size = span_end - span_start + 1;
 		//	converts amounts that are not in [0,span) to in range
-		amount = calcRotationWithModulo(amount, span);
+		amount = calcRotationWithModulo(amount, span_size);
 		if (amount == 0)
 			return;
 
 		//	reverse the entire array
-		for (array_size_t i = ascending_start, j = descending_end; i++, j--) {
+		for (array_size_t i = span_start, j = span_end; i < j; j++, j--) {
 			SortingUtilities::swap(array, i, j, metrics);
 		}
 
 		//	reverse the left hand side
-		for (array_size_t i = start, j = start+amount-1; i < j; i++, j--) {
+		for (array_size_t i = span_start, j = span_start+amount-1; i < j; i++, j--) {
 			SortingUtilities::swap(array, i, j, metrics);
 		}
 
 		//	reverse the right hand side
-		for (array_size_t i = start + amount, j = end; i < j; i++, j--) {
+		for (array_size_t i = span_start + amount, j = span_end; i < j; i++, j--) {
 			SortingUtilities::swap(array, i, j, metrics);
 		}
 	}

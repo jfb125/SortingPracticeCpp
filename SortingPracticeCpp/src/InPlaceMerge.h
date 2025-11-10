@@ -12,6 +12,7 @@
 #include <string>
 
 #include "BlockOperations.h"
+#include "BlockSort.h"
 #include "SortingDataTypes.h"
 #include "SortingUtilities.h"
 #include "InsertionSort.h"
@@ -47,54 +48,43 @@ namespace InPlaceMerge {
 
 	constexpr array_size_t initial_block_size = 16;
 
+	/*	**************************************************************	*/
+	/*						function declarations						*/
+	/*	**************************************************************	*/
+
+	//	Declare the function with a default value for SortMetrics pointer
+	template <typename T>
+	void sort(T *array, array_size_t array_size, SortMetrics *metrics = nullptr);
+
+
+	/*	**************************************************************	*/
+	/*						function definitions						*/
+	/*	**************************************************************	*/
 
 	template <typename T>
-	SortMetrics sort(T *array, array_size_t array_size) {
+	void sort(T *array, array_size_t array_size, SortMetrics *metrics) {
 
 		bool debug_verbose = false;
 
-		SortMetrics metrics(0,0);
-
+		BlockOperations::MergeFunction<T> mergeBlocks;
 		BlockOperations::MergeStrategy merge_strategy =
 					BlockOperations::MergeStrategy::TABLE;
 		_dbg_ln("InPlaceMerge using " << merge_strategy);
 
-		BlockOperations::MergeFunction<T> mergeBlocks;
+		BlockSort::assignBlockMergeFunction(mergeBlocks, merge_strategy);
 
-		switch(merge_strategy) {
-		case BlockOperations::MergeStrategy::AUXILLIARY:
-			mergeBlocks = BlockOperations::mergeTwoBlocksElementsUsingAuxiliaryBuffer;
-			break;
-		case BlockOperations::MergeStrategy::INSERTION:
-			mergeBlocks = BlockOperations::insertionSortPartial;
-			break;
-		case BlockOperations::MergeStrategy::BINARY:
-			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_BinarySearch;
-			break;
-		case BlockOperations::MergeStrategy::HYBRID:
-			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_Hybrid;
-			break;
-		case BlockOperations::MergeStrategy::RGT_TO_LFT:
-			mergeBlocks = BlockOperations::mergeTwoAdjacentBlocksBy_Rotation_RightToLeft;
-			break;
-		case BlockOperations::MergeStrategy::TABLE:
-		default:
-			mergeBlocks = BlockOperations::mergeTwoBlocksElementsByTable;
-			break;
-		}
-
-		if (SortingUtilities::isSorted(array, array_size, &metrics)) {
-			return metrics ;
+		if (SortingUtilities::isSorted(array, array_size, metrics)) {
+			return;
 		}
 
 		//	Small arrays can just be InsertionSorted and done
 		if (array_size < 2*initial_block_size) {
-			metrics = InsertionSort::sort(array, array_size);
-			return metrics;
+			InsertionSort::sort(array, array_size, metrics);
+			return;
 		}
 
-		array_size_t block_size = initial_block_size;
-		array_size_t block_start = 0;
+		array_size_t block_size	= initial_block_size;
+		array_size_t block_start= 0;
 
 		//	Ensure that each block's elements are sorted
 		while (block_start < array_size) {
@@ -103,9 +93,8 @@ namespace InPlaceMerge {
 			if (block_start + num_elements > array_size)
 				num_elements = array_size - block_start;
 			//	sort each block using a (simple) insertion sort
-			metrics +=
 				InsertionSort::sort(&array[block_start],
-									 num_elements);
+									num_elements, metrics);
 			//	move over to the next block
 			block_start += block_size;
 		}
@@ -128,7 +117,7 @@ namespace InPlaceMerge {
 			while (block_2_start < array_size) {
 				mergeBlocks(array, 	block_1_start, block_1_end,
 									block_2_start, block_2_end,
-									&metrics);
+									metrics);
 				//	move the indices to the next pair of blocks
 				block_1_start = block_2_end + 1;
 				block_1_end	  = block_1_start + block_size - 1;
@@ -147,7 +136,7 @@ namespace InPlaceMerge {
 			block_size *= 2;
 		}
 		_dbg_ln("InPlaceMerge sort is returning");
-		return metrics;
+		return;
 	}
 }
 

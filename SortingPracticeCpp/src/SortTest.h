@@ -39,7 +39,7 @@
 #include "SelectionSort.h"
 #include "MergeSort.h"
 #include "HeapSort.h"
-#include "OptimizedQuickSort.h"
+#include "ProtectedQuickSort.h"
 #include "QuickSort.h"
 
 
@@ -74,10 +74,12 @@ void disorganizeDataArray(T* array,
 /*	**************************************************************************	*/
 
 template <typename T>
-SortMetrics bogusSort(T* array, array_size_t size) {
-	SortMetrics result(0,0);
-	SortingUtilities::randomizeArray(array, size, &result);
-	return result;
+void bogusSort(T* array, array_size_t size, SortMetrics *metrics = nullptr);
+
+template <typename T>
+void bogusSort(T* array, array_size_t size, SortMetrics *metrics) {
+	SortingUtilities::randomizeArray(array, size, metrics);
+	return;
 }
 
 /*
@@ -132,8 +134,7 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 	//	_is_sorted will only get cleared the first time a sort fails
 	retval->m_failure_log->m_diagnostics.is_sorted = true;
 
-	SortMetrics compares_and_moves;
-	SortMetrics (*sort)(T*, array_size_t);
+	void (*sort)(T*, array_size_t, SortMetrics*);
 
 	switch (algorithm) {
 	case SortAlgorithms::BUBBLE_SORT:
@@ -151,8 +152,8 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 	case SortAlgorithms::MERGE_SORT:
 		sort = MergeSort::sort;
 		break;
-	case SortAlgorithms::OPTIMIZED_QUICK_SORT:
-		sort = OptimizedQuickSort::sort;
+	case SortAlgorithms::PROTECTED_QUICK_SORT:
+		sort = ProtectedQuickSort::sort;
 		break;
 	case SortAlgorithms::QUICK_SORT:
 		sort = QuickSort::sort;
@@ -200,8 +201,9 @@ OneTestResult<T>* testOneAlgorithm(	SortAlgorithms& algorithm,
 					  << SortingUtilities::arrayElementsToString(sorted_data, array_size)
 					  << std::endl;
 		}
+		SortMetrics compares_and_moves(0,0);
 //		printSideBySide(*reference_data, *sorted_data);
-		compares_and_moves = sort(sorted_data, array_size);
+		sort(sorted_data, array_size, &compares_and_moves);
 //		printSideBySide(*reference_data, *sorted_data);
 //		std::cout << "evaluating success of repetition " << i << std::endl;
 

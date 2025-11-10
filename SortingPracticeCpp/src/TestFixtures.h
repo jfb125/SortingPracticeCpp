@@ -17,6 +17,7 @@
 #include "GenerateTestVectors.h"
 #include "SortTest.h"
 
+bool testBlockSort();
 bool testPermuntationGenerator();
 
 
