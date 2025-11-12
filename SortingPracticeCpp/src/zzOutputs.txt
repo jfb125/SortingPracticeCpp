@@ -1,56 +1,152 @@
-Sorting Performance In C++ built on Nov 10 2025 at 16:58:45
-Algorithms: 2 Compositions: 4 Orderings: 4 of : 1 different sizes resulting in 32 outcomes 
+Sorting Performance In C++ built on Nov 11 2025 at 20:50:03
+Algorithms: 8 Compositions: 4 Orderings: 4 of : 3 different sizes resulting in 384 outcomes 
 ====================================
 Sort Test Results
 ====================================
-                                                                         Array sizes          1000          
-                                                                         Repetitions    avg cmp / avg asgn  stbl  
-ALL_DISCRETE                           IN_RANDOM_ORDER   QUICK_SORT              100    11288.7 /   6898.3  n/a   
-ALL_DISCRETE                           IN_RANDOM_ORDER   PROTECTED_QUICK_SORT    100    10824.3 /   8483.9  n/a   
+                                                                        Array sizes           128                          256                          512                 
+                                                                        Repetitions    avg cmp / avg asgn   stbl    avg cmp / avg asgn   stbl    avg cmp / avg asgn   stbl  
+ALL_DISCRETE                           IN_RANDOM_ORDER   BUBBLE SORT            100     8018.0 /   12221.9  n/a     32464.2 /   48924.9  n/a    130326.9 /  197019.1  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   SELECTION SORT         100     8129.6 /     368.2  n/a     32641.6 /     749.5  n/a    130817.8 /    1514.5  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   INSERTION SORT         100     4196.7 /    4318.2  n/a     16558.2 /   16808.7  n/a     66178.5 /   66683.4  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   MERGE SORT             100      735.9 /    1024.0  n/a      1727.0 /    2048.0  n/a      3960.9 /    5120.0  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   HEAP SORT              100     1399.7 /    2353.5  n/a      3305.6 /    5464.9  n/a      7635.2 /   12461.5  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   QUICK SORT             100      906.7 /     627.6  n/a      2209.0 /    1420.5  n/a      5067.6 /    3194.1  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   PROTECTED QUCK SORT    100      941.5 /     818.4  n/a      2182.2 /    1813.7  n/a      4982.4 /    3992.0  n/a   
+ALL_DISCRETE                           IN_RANDOM_ORDER   DUTCH SORT             100     1248.5 /    1766.2  n/a      2911.9 /    4133.4  n/a      6685.7 /    9559.7  n/a   
 
-ALL_DISCRETE                           IN_REVERSE_ORDER  QUICK_SORT              100   499999.0 /   2997.0  n/a   
-ALL_DISCRETE                           IN_REVERSE_ORDER  PROTECTED_QUICK_SORT    100     9843.0 /   5109.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  BUBBLE SORT            100     8128.0 /   24384.0  n/a     32640.0 /   97920.0  n/a    130816.0 /  392448.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  SELECTION SORT         100     8129.0 /     192.0  n/a     32641.0 /     384.0  n/a    130817.0 /     768.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  INSERTION SORT         100     8128.0 /    8382.0  n/a     32640.0 /   33150.0  n/a    130816.0 /  131838.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  MERGE SORT             100      448.0 /    1024.0  n/a      1024.0 /    2048.0  n/a      2304.0 /    5120.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  HEAP SORT              100     1295.0 /    2106.0  n/a      3107.0 /    4926.0  n/a      7204.0 /   11316.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  QUICK SORT             100     8191.0 /     381.0  n/a     32767.0 /     765.0  n/a    131071.0 /    1533.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  PROTECTED QUCK SORT    100      887.0 /     651.0  n/a      2017.0 /    1299.0  n/a      4544.0 /    2607.0  n/a   
+ALL_DISCRETE                           IN_REVERSE_ORDER  DUTCH SORT             100     1083.0 /    1530.0  n/a      2459.0 /    3564.0  n/a      5502.0 /    8136.0  n/a   
 
-ALL_DISCRETE                           FEW_CHANGES 3     QUICK_SORT              100   267828.5 /   2984.4  n/a   
-ALL_DISCRETE                           FEW_CHANGES 3     PROTECTED_QUICK_SORT    100     9716.3 /   2932.6  n/a   
+ALL_DISCRETE                           FEW_CHANGES 3     BUBBLE SORT            100     7301.6 /    1115.5  n/a     29188.0 /    2330.8  n/a    115714.0 /    4445.6  n/a   
+ALL_DISCRETE                           FEW_CHANGES 3     SELECTION SORT         100     8160.1 /       8.9  n/a     32706.0 /       9.0  n/a    130959.0 /       9.0  n/a   
+ALL_DISCRETE                           FEW_CHANGES 3     INSERTION SORT         100      495.4 /     561.9  n/a      1028.5 /    1155.1  n/a      1989.2 /    2218.2  n/a   
+ALL_DISCRETE                           FEW_CHANGES 3     MERGE SORT             100      538.3 /    1024.0  n/a      1207.0 /    2048.0  n/a      2664.6 /    5120.0  n/a   
+ALL_DISCRETE                           FEW_CHANGES 3     HEAP SORT              100     1487.7 /    2539.6  n/a      3505.5 /    5861.9  n/a      8093.2 /   13339.0  n/a   
+ALL_DISCRETE                           FEW_CHANGES 3     QUICK SORT             100     4506.4 /     369.5  n/a     18006.5 /     754.0  n/a     68358.4 /    1520.5  n/a   
+ALL_DISCRETE                           FEW_CHANGES 3     PROTECTED QUCK SORT    100      870.5 /     381.0  n/a      1992.5 /     761.0  n/a      4502.3 /    1530.4  n/a   
+ALL_DISCRETE                           FEW_CHANGES 3     DUTCH SORT             100      994.5 /    1454.6  n/a      2281.7 /    3403.8  n/a      5137.8 /    7777.1  n/a   
 
-ALL_DISCRETE                           NO_CHANGES        QUICK_SORT              100   500498.0 /   2994.0  n/a   
-ALL_DISCRETE                           NO_CHANGES        PROTECTED_QUICK_SORT    100      999.0 /      0.0  n/a   
+ALL_DISCRETE                           NO_CHANGES        BUBBLE SORT            100      127.0 /       0.0  n/a       255.0 /       0.0  n/a       511.0 /       0.0  n/a   
+ALL_DISCRETE                           NO_CHANGES        SELECTION SORT         100      127.0 /       0.0  n/a       255.0 /       0.0  n/a       511.0 /       0.0  n/a   
+ALL_DISCRETE                           NO_CHANGES        INSERTION SORT         100      127.0 /       0.0  n/a       255.0 /       0.0  n/a       511.0 /       0.0  n/a   
+ALL_DISCRETE                           NO_CHANGES        MERGE SORT             100      448.0 /    1024.0  n/a      1024.0 /    2048.0  n/a      2304.0 /    5120.0  n/a   
+ALL_DISCRETE                           NO_CHANGES        HEAP SORT              100      127.0 /       0.0  n/a       255.0 /       0.0  n/a       511.0 /       0.0  n/a   
+ALL_DISCRETE                           NO_CHANGES        QUICK SORT             100     8254.0 /     378.0  n/a     32894.0 /     762.0  n/a    131326.0 /    1530.0  n/a   
+ALL_DISCRETE                           NO_CHANGES        PROTECTED QUCK SORT    100      127.0 /       0.0  n/a       255.0 /       0.0  n/a       511.0 /       0.0  n/a   
+ALL_DISCRETE                           NO_CHANGES        DUTCH SORT             100      990.0 /    1458.0  n/a      2277.0 /    3414.0  n/a      5133.0 /    7788.0  n/a   
 
-ALL_SAME                               IN_RANDOM_ORDER   QUICK_SORT              100   499500.0 /   2994.0   n    
-ALL_SAME                               IN_RANDOM_ORDER   PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+ALL_SAME                               IN_RANDOM_ORDER   BUBBLE SORT            100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_RANDOM_ORDER   SELECTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_RANDOM_ORDER   INSERTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_RANDOM_ORDER   MERGE SORT             100      448.0 /    1024.0   Y       1024.0 /    2048.0   Y       2304.0 /    5120.0   Y    
+ALL_SAME                               IN_RANDOM_ORDER   HEAP SORT              100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_RANDOM_ORDER   QUICK SORT             100     8128.0 /     378.0   n      32640.0 /     762.0   n     130816.0 /    1530.0   n    
+ALL_SAME                               IN_RANDOM_ORDER   PROTECTED QUCK SORT    100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_RANDOM_ORDER   DUTCH SORT             100      256.0 /       3.0   n        512.0 /       3.0   n       1024.0 /       3.0   n    
 
-ALL_SAME                               IN_REVERSE_ORDER  QUICK_SORT              100   499500.0 /   2994.0   n    
-ALL_SAME                               IN_REVERSE_ORDER  PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  BUBBLE SORT            100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  SELECTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  INSERTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  MERGE SORT             100      448.0 /    1024.0   Y       1024.0 /    2048.0   Y       2304.0 /    5120.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  HEAP SORT              100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  QUICK SORT             100     8128.0 /     378.0   n      32640.0 /     762.0   n     130816.0 /    1530.0   n    
+ALL_SAME                               IN_REVERSE_ORDER  PROTECTED QUCK SORT    100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               IN_REVERSE_ORDER  DUTCH SORT             100      256.0 /       3.0   n        512.0 /       3.0   n       1024.0 /       3.0   n    
 
-ALL_SAME                               FEW_CHANGES 3     QUICK_SORT              100   499500.0 /   2994.0   n    
-ALL_SAME                               FEW_CHANGES 3     PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+ALL_SAME                               FEW_CHANGES 3     BUBBLE SORT            100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               FEW_CHANGES 3     SELECTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               FEW_CHANGES 3     INSERTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               FEW_CHANGES 3     MERGE SORT             100      448.0 /    1024.0   Y       1024.0 /    2048.0   Y       2304.0 /    5120.0   Y    
+ALL_SAME                               FEW_CHANGES 3     HEAP SORT              100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               FEW_CHANGES 3     QUICK SORT             100     8128.0 /     378.0   n      32640.0 /     762.0   n     130816.0 /    1530.0   n    
+ALL_SAME                               FEW_CHANGES 3     PROTECTED QUCK SORT    100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               FEW_CHANGES 3     DUTCH SORT             100      256.0 /       3.0   n        512.0 /       3.0   n       1024.0 /       3.0   n    
 
-ALL_SAME                               NO_CHANGES        QUICK_SORT              100   499500.0 /   2994.0   n    
-ALL_SAME                               NO_CHANGES        PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+ALL_SAME                               NO_CHANGES        BUBBLE SORT            100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               NO_CHANGES        SELECTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               NO_CHANGES        INSERTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               NO_CHANGES        MERGE SORT             100      448.0 /    1024.0   Y       1024.0 /    2048.0   Y       2304.0 /    5120.0   Y    
+ALL_SAME                               NO_CHANGES        HEAP SORT              100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               NO_CHANGES        QUICK SORT             100     8128.0 /     378.0   n      32640.0 /     762.0   n     130816.0 /    1530.0   n    
+ALL_SAME                               NO_CHANGES        PROTECTED QUCK SORT    100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+ALL_SAME                               NO_CHANGES        DUTCH SORT             100      256.0 /       3.0   n        512.0 /       3.0   n       1024.0 /       3.0   n    
 
-FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   QUICK_SORT              100   497506.0 /   2995.4   n    
-FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   PROTECTED_QUICK_SORT    100   499845.4 /   5983.4   n    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   BUBBLE SORT            100     6414.8 /     338.9   Y      27568.4 /     764.5   Y     115099.1 /    1605.2   Y    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   SELECTION SORT         100     8166.1 /     231.4   Y      32725.7 /     511.1   Y     130993.5 /    1094.5   Y    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   INSERTION SORT         100      240.0 /     267.2   Y        509.8 /     595.7   Y       1046.1 /    1264.5   Y    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   MERGE SORT             100      539.6 /    1024.0   Y       1232.4 /    2048.0   Y       2734.3 /    5120.0   Y    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   HEAP SORT              100      435.1 /     413.0   n        869.8 /     801.5   n       1733.6 /    1574.9   n    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   QUICK SORT             100     7878.1 /     379.2   n      32141.6 /     763.1   n     129798.0 /    1531.5   n    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   PROTECTED QUCK SORT    100     8164.2 /     751.2   n      32723.7 /    1519.2   n     130991.5 /    3055.5   n    
+FEW_DIFFERENT with 2 changed elements  IN_RANDOM_ORDER   DUTCH SORT             100      258.9 /      10.2   n        515.0 /      10.2   n       1027.0 /      10.5   n    
 
-FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  QUICK_SORT              100   498503.0 /   2994.0   n    
-FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  PROTECTED_QUICK_SORT    100   500496.0 /   5985.0   n    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  BUBBLE SORT            100     8128.0 /     759.0   Y      32640.0 /    1527.0   Y     130816.0 /    3063.0   Y    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  SELECTION SORT         100     8254.0 /     381.0   Y      32894.0 /     765.0   Y     131326.0 /    1533.0   Y    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  INSERTION SORT         100      378.0 /     507.0   Y        762.0 /    1019.0   Y       1530.0 /    2043.0   Y    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  MERGE SORT             100      562.0 /    1024.0   Y       1264.0 /    2048.0   Y       2798.0 /    5120.0   Y    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  HEAP SORT              100      506.0 /     384.0   n       1018.0 /     768.0   n       2042.0 /    1536.0   n    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  QUICK SORT             100     8003.0 /     378.0   n      32387.0 /     762.0   n     130307.0 /    1530.0   n    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  PROTECTED QUCK SORT    100     8252.0 /     753.0   n      32892.0 /    1521.0   n     131324.0 /    3057.0   n    
+FEW_DIFFERENT with 2 changed elements  IN_REVERSE_ORDER  DUTCH SORT             100      259.0 /      12.0   n        515.0 /      12.0   n       1027.0 /      12.0   n    
 
-FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     QUICK_SORT              100   497506.0 /   2988.0   n    
-FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     BUBBLE SORT            100      607.0 /      22.7   Y        902.7 /      22.9   Y        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     SELECTION SORT         100      610.9 /      22.5   Y        905.2 /      15.2   Y        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     INSERTION SORT         100      134.5 /      22.6   Y        262.6 /      17.8   Y        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     MERGE SORT             100      455.2 /    1024.0   Y       1028.9 /    2048.0   Y       2304.0 /    5120.0   Y    
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     HEAP SORT              100      146.6 /      24.2   n        267.9 /      15.6   n        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     QUICK SORT             100     7880.5 /     372.2   n      32134.0 /     756.1   n     129798.0 /    1524.0   n    
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     PROTECTED QUCK SORT    100      610.8 /      44.8   n        905.2 /      30.3   n        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  FEW_CHANGES 3     DUTCH SORT             100      256.1 /       3.2   n        512.1 /       3.1   n       1024.0 /       3.0   n    
 
-FEW_DIFFERENT with 2 changed elements  NO_CHANGES        QUICK_SORT              100   497506.0 /   2988.0   n    
-FEW_DIFFERENT with 2 changed elements  NO_CHANGES        PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        BUBBLE SORT            100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        SELECTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        INSERTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        MERGE SORT             100      448.0 /    1024.0   Y       1024.0 /    2048.0   Y       2304.0 /    5120.0   Y    
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        HEAP SORT              100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        QUICK SORT             100     7878.0 /     372.0   n      32134.0 /     756.0   n     129798.0 /    1524.0   n    
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        PROTECTED QUCK SORT    100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DIFFERENT with 2 changed elements  NO_CHANGES        DUTCH SORT             100      256.0 /       3.0   n        512.0 /       3.0   n       1024.0 /       3.0   n    
 
-FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   QUICK_SORT              100   167833.6 /   4143.9   n    
-FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   PROTECTED_QUICK_SORT    100   170016.0 /   7126.1   n    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   BUBBLE SORT            100     7220.7 /    8246.4   Y      29090.5 /   32702.4   Y     116266.2 /  131688.0   Y    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   SELECTION SORT         100     8130.1 /     254.2   n      32642.2 /     512.0   n     130818.3 /    1021.9   n    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   INSERTION SORT         100     2874.9 /    2917.8   Y      11155.0 /   11242.3   Y      44406.2 /   44576.9   Y    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   MERGE SORT             100      670.9 /    1024.0   Y       1556.2 /    2048.0   Y       3533.8 /    5120.0   Y    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   HEAP SORT              100     1124.4 /    1682.1   n       2582.2 /    3854.1   n       5867.2 /    8752.0   n    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   QUICK SORT             100     2876.4 /     512.9   n      11209.7 /    1043.2   n      44265.2 /    2112.8   n    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   PROTECTED QUCK SORT    100     3129.2 /     878.9   n      11705.3 /    1793.4   n      45347.3 /    3632.1   n    
+FEW_DISTINCT with 3 possible values    IN_RANDOM_ORDER   DUTCH SORT             100      415.2 /     260.2   n        833.9 /     465.1   n       1649.5 /    1020.5   n    
 
-FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  QUICK_SORT              100   167833.0 /   3981.0   n    
-FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  PROTECTED_QUICK_SORT    100   169492.0 /   6966.0   n    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  BUBBLE SORT            100     7308.0 /   16383.0   Y      29237.0 /   65532.0   Y     116620.0 /  262143.0   Y    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  SELECTION SORT         100     8171.0 /     132.0   n      32726.0 /     264.0   n     130987.0 /     516.0   n    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  INSERTION SORT         100     5586.0 /    5633.0   Y      22097.0 /   22188.0   Y      87890.0 /   88065.0   Y    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  MERGE SORT             100      535.0 /    1024.0   Y       1198.0 /    2048.0   Y       2649.0 /    5120.0   Y    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  HEAP SORT              100     1089.0 /    1479.0   n       2492.0 /    3405.0   n       5663.0 /    7827.0   n    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  QUICK SORT             100     2879.0 /     492.0   n      11221.0 /    1005.0   n      44287.0 /    2028.0   n    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  PROTECTED QUCK SORT    100     3084.0 /     861.0   n      11640.0 /    1758.0   n      45132.0 /    3549.0   n    
+FEW_DISTINCT with 3 possible values    IN_REVERSE_ORDER  DUTCH SORT             100      426.0 /     264.0   n        851.0 /     519.0   n       1706.0 /    1032.0   n    
 
-FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     QUICK_SORT              100   218321.7 /   2986.5   n    
-FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     PROTECTED_QUICK_SORT    100   164353.1 /   5791.3   n    
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     BUBBLE SORT            100     6306.5 /     636.0   Y      25269.1 /    1334.1   Y      99069.8 /    2434.3   Y    
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     SELECTION SORT         100     7917.0 /     143.6   n      31728.3 /     274.0   n     127038.9 /     558.0   n    
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     INSERTION SORT         100      338.2 /     353.4   Y        698.9 /     728.9   Y       1321.7 /    1364.0   Y    
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     MERGE SORT             100      515.5 /    1024.0   Y       1161.8 /    2048.0   Y       2575.2 /    5120.0   Y    
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     HEAP SORT              100     1140.4 /    1767.2   n       2608.5 /    4007.2   n       5931.6 /    9036.8   n    
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     QUICK SORT             100     3557.6 /     370.4   n      13975.2 /     754.3   n      55240.8 /    1522.6   n    
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     PROTECTED QUCK SORT    100     2980.7 /     716.2   n      11273.0 /    1461.1   n      43757.6 /    2950.9   n    
+FEW_DISTINCT with 3 possible values    FEW_CHANGES 3     DUTCH SORT             100      346.4 /     137.3   n        688.0 /     265.2   n       1370.5 /     519.7   n    
 
-FEW_DISTINCT with 3 possible values    NO_CHANGES        QUICK_SORT              100   167166.0 /   2982.0   n    
-FEW_DISTINCT with 3 possible values    NO_CHANGES        PROTECTED_QUICK_SORT    100      999.0 /      0.0   Y    
+FEW_DISTINCT with 3 possible values    NO_CHANGES        BUBBLE SORT            100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DISTINCT with 3 possible values    NO_CHANGES        SELECTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DISTINCT with 3 possible values    NO_CHANGES        INSERTION SORT         100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DISTINCT with 3 possible values    NO_CHANGES        MERGE SORT             100      448.0 /    1024.0   Y       1024.0 /    2048.0   Y       2304.0 /    5120.0   Y    
+FEW_DISTINCT with 3 possible values    NO_CHANGES        HEAP SORT              100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DISTINCT with 3 possible values    NO_CHANGES        QUICK SORT             100     2794.0 /     366.0   n      11050.0 /     750.0   n      43946.0 /    1518.0   n    
+FEW_DISTINCT with 3 possible values    NO_CHANGES        PROTECTED QUCK SORT    100      127.0 /       0.0   Y        255.0 /       0.0   Y        511.0 /       0.0   Y    
+FEW_DISTINCT with 3 possible values    NO_CHANGES        DUTCH SORT             100      343.0 /     138.0   n        684.0 /     267.0   n       1367.0 /     522.0   n    
 
 Completed Sorting Performance In C++

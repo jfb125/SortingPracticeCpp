@@ -2,7 +2,7 @@
  * HeapSort.h
  *
  *  Created on: Jul 1, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 #ifndef HEAPSORT_H_
@@ -32,10 +32,10 @@ namespace HeapSort {
 	#pragma push_macro("leftChild")
 	#pragma push_macro("rightChild")
 
-	#define farthestNode(i) ((i)/2 - 1)
-	#define parent(i) 		(((i)-1)/2)
-	#define leftChild(i) 	((i)*2 + 1)
-	#define rightChild(i) 	((i)*2 + 2)
+	#define farthestNode(size) ((size)/2 - 1)
+	#define parent(i) 			(((i)-1)/2)
+	#define leftChild(i) 		((i)*2 + 1)
+	#define rightChild(i) 		((i)*2 + 2)
 
 
 	/*	**********************************************************	*/
@@ -97,6 +97,11 @@ namespace HeapSort {
 	/*				array management			*/
 	/* ****************************************	*/
 
+	/*
+	 * Rearrange the elements to conform to the max heap property
+	 *   where each parent node is >= its children
+	 */
+
 	template <typename T>
 	void heapify(T*array, array_size_t size, SortMetrics *metrics) {
 
@@ -108,6 +113,12 @@ namespace HeapSort {
 			HeapSort::sinkNode(node, array, size, metrics);
 		} while (node != 0);
 	}
+
+
+	/*
+	 * 	Move the element at 'this_node' down to a place where its parent
+	 *	  is >= to the element
+	 */
 
 	template <typename T>
 	void sinkNode(array_size_t this_node, T*array, array_size_t size,
@@ -163,6 +174,11 @@ namespace HeapSort {
 	/*				debugging resources			*/
 	/* ****************************************	*/
 
+	/*
+	 * Verify the array satisfies the max heap property where every parent
+	 * is >= its children
+	 */
+
 	template <typename T>
 	bool isMaxHeap(T*array, array_size_t size, SortMetrics *metrics) {
 
@@ -200,6 +216,12 @@ namespace HeapSort {
 
 		return true;
 	}
+
+
+	/*
+	 * Print the array to the screen in a way the illustrates the
+	 * hierarchical structure of the max heap property
+	 */
 
 	template <typename T>
 	void printHeap(T*array, array_size_t size) {

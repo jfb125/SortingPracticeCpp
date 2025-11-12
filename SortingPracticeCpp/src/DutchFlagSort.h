@@ -2,7 +2,7 @@
  * DutchFlagSort.h
  *
  *  Created on: Jul 6, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 #ifndef DUTCHFLAGSORT_H_
@@ -36,18 +36,22 @@ namespace DutchFlagSort {
 	constexpr bool use_safety_counter	= false;
 
 	// 	To print the debugging messages, the whole array needs to be
-	// 	printed, not only the portion that was passed to the partitioning function
+	// 	printed, not just the portion that was passed to the partitioning function
 	static array_size_t global_start;
 	static array_size_t global_end;
 
 	template <typename T>
-	void printArrayPivotPossibilities(T* array,
-									  array_size_t start, array_size_t end,
-									  array_size_t lo, array_size_t mid, array_size_t hi);
-	template <typename T>
-	void printThreeWayPartitionLine(  T*array,
-									  array_size_t start, array_size_t end,
-									  array_size_t lo, array_size_t i, array_size_t hi);
+	std::string threeWayPartitionToString(T*array,
+									  	  array_size_t start, array_size_t end,
+										  array_size_t lo, array_size_t i,
+										  array_size_t hi);
+
+	#define dbg_msg(msg) do {\
+		if (debug_verbose) {\
+			std::cout << threeWayPartitionToString(array,start,end,lo,i,hi)\
+				  	  << msg << std::endl;\
+		}\
+	} while (false)
 
 
 	/*	**********************************************************************	*/
@@ -74,16 +78,12 @@ namespace DutchFlagSort {
 	template <typename T>
 	void sort(T* array, array_size_t size, SortMetrics *metrics) {
 
-		//	These define the width of the whole array in printThreeWayPartitionLine()
+		//	These define the width of the whole array for threeWayPartitionToString()
 		global_start= 0;
 		global_end 	= size-1;
 
 		if (size <= 1)
 			return;
-
-		if (SortingUtilities::isSorted(array, size, metrics)) {
-			return;
-		}
 
 		threeWayPartition(array, 0, size-1, metrics);
 		return;
@@ -106,7 +106,6 @@ namespace DutchFlagSort {
 
 
 		if (size == 2) {
-			if (debug_verbose)	std::cout << "cutoff partition size 2" << std::endl;
 			if (metrics) metrics->compares++;
 			if (array[start] > array[end]) {
 				SortingUtilities::swap(array, start, end, metrics);
@@ -115,7 +114,6 @@ namespace DutchFlagSort {
 		}
 
 		if (size < max_size_to_cutoff_to_insertion_sort) {
-			if (debug_verbose)	std::cout << "cutoff to insertion sort" << std::endl;
 			InsertionSort::sort(&array[start], size, metrics);
 			return;
 		}
@@ -129,17 +127,16 @@ namespace DutchFlagSort {
 		// index that will move leftward to seek next value <= pivot when i is stopped
 		array_size_t hi = end;
 
-		if(debug_verbose) {
-			printThreeWayPartitionLine(array, start, end, lo, i, hi);
-			std::cout << " before partitioning" << std::endl;
-		}
+		//	If pivot == 3, an intermediate state of array may be:
+		//	{ 0  1  3  3  6  4  5 }
+		//	        lo    i     hi
+
+		dbg_msg(" before partitioning ");
 
 		while (i <= hi)
 		{
-			if(debug_verbose) {
-				printThreeWayPartitionLine(array, start, end, lo, i, hi);
-				std::cout << " at top of while loop " << std::endl;
-			}
+			dbg_msg(" at top of while loop ");
+
 			if(debug_verbose) {
 				static int safety_counter = safety_counter_value;
 				if (use_safety_counter && !safety_counter--) {
@@ -157,6 +154,7 @@ namespace DutchFlagSort {
 				SortingUtilities::swap(array, i, lo, metrics);
 				lo++;
 				i++;
+				//	go to the top of the loop to evaluate i <= hi
 				continue;
 			}
 
@@ -165,50 +163,53 @@ namespace DutchFlagSort {
 			if (metrics) metrics->compares++;
 			if (array[i] == array[lo]) {
 				i++;
+				//	go to the top of the loop to evaluate i <= hi
 				continue;
 			}
 
-			if(debug_verbose) {
-				printThreeWayPartitionLine(array, start, end, lo, i, hi);
-				std::cout << " seeking [hi] <= [pivot]" << std::endl;
-			}
+			dbg_msg(" seeking [hi] <= [pivot]");
 			// [i] > pivot which is stored at [lo]
-			// find right-most element <= pivot at [lo]
-			//   which may involve hi moving down past 8
+			// find right-most element <= pivot
+			// --hi may reach i if no elements are <= pivot
 			if (metrics) metrics->compares++;
 			while (array[hi] > array[lo]) {
+				//	hi is being moved, so each time it moves it has
+				//	to be compared to i to see if we are done
 				if (--hi == i)
+					//	all the elements to the right of i,  which is itself
+					//	greater than the pivot, are greater than i
+					//	then the partitioning is done
 					break;
+				dbg_msg(" seeking [hi] <= [pivot]");
 				if (metrics) metrics->compares++;
-				if(debug_verbose) {
-					printThreeWayPartitionLine(array, start, end, lo, i, hi);
-					std::cout << " seeking [hi] <= [pivot]" << std::endl;
-				}
 			}
-			// if hi has not reached i
+			// 	if the above loop did NOT terminate b/c hi == i,
+			// 		then [hi] <= pivot.  Swap it with i, which is one
+			//	element to the right of the pivot(s)
+			//	The result of this swap will not result in the final
+			//		position of the element at [hi].
+			//	if [hi] == pivot, then i will get the pivot, which will
+			//	  	require the next pass through the loop to increment i
+			//	if [hi] <  pivot, then [i] will get the value which is < pivot
+			//	  	which will require the next pass through the loop to
+			//		swap [i] vs [lo]
+
 			if (!(hi <= i)) {
 				SortingUtilities::swap(array, i, hi, metrics);
 			}
-			if(debug_verbose) {
-				printThreeWayPartitionLine(array, start, end, lo, i, hi);
-				std::cout << " exchanged " << std::endl;
-			}
+			dbg_msg(" exchanged [i] vs [hi] ");
+			//	The element at [hi] has been moved from 'hi', although not to its
+			//	final position. Decrement 'hi' to point to the previous element
 			hi--;
 		}
 
-		if(debug_verbose) {
-			printThreeWayPartitionLine(array, start, end, lo, i, hi);
-			std::cout << " completed partitioning " << std::endl;
-		}
+		dbg_msg(" completed partitioning ");
 
 		// at this point, hi < i to terminate the while loop
 		threeWayPartition(array, start, lo-1, metrics);
 		threeWayPartition(array, i, end, metrics);
 
-		if(debug_verbose) {
-			printThreeWayPartitionLine(array, start, end, lo, i, hi);
-			std::cout << " after combining sub-partitions " << *metrics << std::endl;
-		}
+		dbg_msg(" after combining sub-partitions ");
 		return;
 	}
 
@@ -218,47 +219,39 @@ namespace DutchFlagSort {
 	/*	**********************************************************************	*/
 
 	template <typename T>
-	void printThreeWayPartitionLine(T*array, array_size_t start, array_size_t end, array_size_t lo, array_size_t i, array_size_t hi) {
+	std::string threeWayPartitionToString(T*array,
+										  array_size_t start, array_size_t end,
+										  array_size_t lo, array_size_t i,
+										  array_size_t hi) {
 
-		constexpr int lngth = 10;
-		std::cout << lo << ", " << i << ", " << hi << " ";
+		constexpr int lngth = 8;
+		std::stringstream result;
+		result << std::setw(4) << lo << ", "
+			   << std::setw(4) << i  << ", "
+			   << std::setw(4) << hi << " ";
 		for (array_size_t q = global_start; q <= global_end; q++) {
+			//	elements in the array that are not part of this partitioning pass
 			if (q < start or q > end) {
-				std::cout 			<< "    " << std::setw(lngth) << std::right << " "	<< " ";
+				result	<< "     " << std::setw(lngth+1) << std::right << " ";
 				continue;
 			}
+			//	the element at the leftmost copy of the pivot
 			if(q == lo) {
-				std::cout 			<< " lo>" << std::setw(lngth) << " " /*array[q]*/ << "<";
+				result	<< "<lo> " << std::setw(lngth) << array[q] << " ";
+			} else
+			//	the element immediately after the rightmost copy of pivot
+			if (q == i) {
+				result	<< "< i> " << std::setw(lngth) << array[q] << " ";
+			} else
+			//	the rightmost element that is has not been placed
+			if (q == hi) {
+				result	<< "<hi> " << std::setw(lngth) << array[q] << " ";
 			} else {
-				if (q == i) {
-					std::cout 		<< "  i>" << std::setw(lngth) << " " /*array[q]*/ << "<";
-				} else {
-					if (q == hi) {
-						std::cout 	<< " hi>" << std::setw(lngth) << " " /*array[q]*/ << "<";
-					} else {
-						std::cout 	<< "    " << std::setw(lngth) << " " /*array[q]*/ << " ";
-					}
-				}
+			//	an element in the sub-array that is not lo, i, nor hi
+				result	<< "     " << std::setw(lngth) << array[q] << " ";
 			}
 		}
-	}
-
-	template <typename T>
-	void printArrayPivotPossibilities(T*array, array_size_t start, array_size_t end, array_size_t lo, array_size_t mid, array_size_t hi) {
-
-		int lngth = array[start]->last_name.size();
-		std::cout << "          ";
-		for (array_size_t q = global_start; q <= global_end; q++) {
-			if (q < start or q > end) {
-				std::cout << "  " << std::setw(lngth) << std::right << " " 	<< "   ";
-				continue;
-			}
-			if (q == lo || q == mid || q == hi) {
-				std::cout << " [" << std::setw(lngth) << array[q]->last_name << "]  ";
-			} else {
-				std::cout << "  " << std::setw(lngth) << array[q]->last_name << "   ";
-			}
-		}
+		return result.str();
 	}
 }
 

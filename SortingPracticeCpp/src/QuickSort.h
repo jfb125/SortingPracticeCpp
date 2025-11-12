@@ -2,7 +2,7 @@
  * QuickSort.h
  *
  *  Created on: Jul 3, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 #ifndef QUICKSORT_H_

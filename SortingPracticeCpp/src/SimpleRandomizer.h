@@ -2,7 +2,7 @@
  * SimpleRandomizer.h
  *
  *  Created on: Jun 13, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 /*	This class is a wrapper around an implementation found
@@ -32,8 +32,8 @@ uint64_t testSimpleRandomizer(uint64_t min, uint64_t max);
 
 class SimpleRandomizer {
 private:
-	uint64_t	_seed;
-	uint64_t	_recent;
+	uint64_t	m_seed;
+	uint64_t	m_recent;
 	uint64_t	mt[NN];
 	int 		mti = NN+1;
 

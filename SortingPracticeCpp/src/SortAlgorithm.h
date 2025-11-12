@@ -2,7 +2,7 @@
  * SortAlgorithm.h
  *
  *  Created on: Apr 16, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 #ifndef SORTALGORITHM_H_

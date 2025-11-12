@@ -79,18 +79,18 @@ int main(int argc, char *argv[])
 	};
 
 //	array_size_t array_sizes[]	= { 64, 128, 256, 512 };
-	array_size_t array_sizes[] 	= { 1000 };
+	array_size_t array_sizes[] 	= { 128, 256, 512 };
 	int num_array_sizes 	 	= sizeof(array_sizes) / sizeof(array_size_t);
 
 	SortAlgorithms 	sort_algorithms[] = {
-//			SortAlgorithms::BUBBLE_SORT,
-//			SortAlgorithms::SELECTION_SORT,
-//			SortAlgorithms::INSERTION_SORT,
-//			SortAlgorithms::DUTCH_FLAG_SORT,
-//			SortAlgorithms::HEAP_SORT,
+			SortAlgorithms::BUBBLE_SORT,
+			SortAlgorithms::SELECTION_SORT,
+			SortAlgorithms::INSERTION_SORT,
+			SortAlgorithms::DUTCH_FLAG_SORT,
+			SortAlgorithms::HEAP_SORT,
 			SortAlgorithms::QUICK_SORT,
 			SortAlgorithms::PROTECTED_QUICK_SORT,
-//			SortAlgorithms::MERGE_SORT,
+			SortAlgorithms::MERGE_SORT,
 //			SortAlgorithms::INPLACE_MERGE,
 //			SortAlgorithms::BLOCK_SORT,
 	};

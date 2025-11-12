@@ -2,7 +2,7 @@
  * InsertionSort.h
  *
  *  Created on: Jun 27, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 #ifndef INSERTIONSORT_H_
@@ -40,7 +40,7 @@ namespace InsertionSort {
 			if (array[i-1] <= array[i])
 				continue;
 
-			// make a copy of the 'i' which will be stored in the
+			// make a copy of the [i] which will be stored in the
 			//	correct location once an element <= to [i] is found
 			if (metrics) metrics->assignments++;
 			T current_value = array[i];

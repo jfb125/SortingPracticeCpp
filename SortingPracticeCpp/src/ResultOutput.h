@@ -698,7 +698,8 @@ void printRowPreamble_ColumnsSize_CellsAverages(OneTestResult<T>** results,
 	for (int i = 0; i != size_data.num_sizes; i++) {
 		std::cout << std::setw(compares_strlen + slash_separator_strlen)
 				  << size_data.sizes[i];
-		std::cout << std::setw(assignments_strlen) << "" << space_separator;
+		std::cout << std::setw(assignments_strlen + stability_string_strlen)
+				  << " " << space_separator << space_separator;
 	}
 	std::cout << std::endl;
 

@@ -2,7 +2,7 @@
  * QuickInsertionHybridSort.h
  *
  *  Created on: Jul 3, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 #ifndef PROTECTEDQUICKSORT_H_

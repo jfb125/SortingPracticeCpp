@@ -8,7 +8,6 @@ CPP_SRCS += \
 ../src/BlockOperations.cpp \
 ../src/BlockSort.cpp \
 ../src/BlockSortTest.cpp \
-../src/Disorganizer.cpp \
 ../src/InitialOrdering.cpp \
 ../src/MessageList.cpp \
 ../src/OneTestResult.cpp \
@@ -19,10 +18,9 @@ CPP_SRCS += \
 ../src/SortFailureLog.cpp \
 ../src/SortFailureLog_test.cpp \
 ../src/SortTestMetrics.cpp \
-../src/SortableObject.cpp \
 ../src/SortingDataTypes.cpp \
 ../src/SortingDataTypes_test.cpp \
-../src/SortingPractice.cpp \
+../src/SortingTestBench.cpp \
 ../src/SortingUtilities.cpp \
 ../src/TestFixtures.cpp \
 ../src/nChoosek.cpp \
@@ -33,7 +31,6 @@ CPP_DEPS += \
 ./src/BlockOperations.d \
 ./src/BlockSort.d \
 ./src/BlockSortTest.d \
-./src/Disorganizer.d \
 ./src/InitialOrdering.d \
 ./src/MessageList.d \
 ./src/OneTestResult.d \
@@ -44,10 +41,9 @@ CPP_DEPS += \
 ./src/SortFailureLog.d \
 ./src/SortFailureLog_test.d \
 ./src/SortTestMetrics.d \
-./src/SortableObject.d \
 ./src/SortingDataTypes.d \
 ./src/SortingDataTypes_test.d \
-./src/SortingPractice.d \
+./src/SortingTestBench.d \
 ./src/SortingUtilities.d \
 ./src/TestFixtures.d \
 ./src/nChoosek.d \
@@ -58,7 +54,6 @@ OBJS += \
 ./src/BlockOperations.o \
 ./src/BlockSort.o \
 ./src/BlockSortTest.o \
-./src/Disorganizer.o \
 ./src/InitialOrdering.o \
 ./src/MessageList.o \
 ./src/OneTestResult.o \
@@ -69,10 +64,9 @@ OBJS += \
 ./src/SortFailureLog.o \
 ./src/SortFailureLog_test.o \
 ./src/SortTestMetrics.o \
-./src/SortableObject.o \
 ./src/SortingDataTypes.o \
 ./src/SortingDataTypes_test.o \
-./src/SortingPractice.o \
+./src/SortingTestBench.o \
 ./src/SortingUtilities.o \
 ./src/TestFixtures.o \
 ./src/nChoosek.o \
@@ -91,7 +85,7 @@ src/%.o: ../src/%.cpp src/subdir.mk
 clean: clean-src
 
 clean-src:
-	-$(RM) ./src/ArrayComposition.d ./src/ArrayComposition.o ./src/BlockOperations.d ./src/BlockOperations.o ./src/BlockSort.d ./src/BlockSort.o ./src/BlockSortTest.d ./src/BlockSortTest.o ./src/Disorganizer.d ./src/Disorganizer.o ./src/InitialOrdering.d ./src/InitialOrdering.o ./src/MessageList.d ./src/MessageList.o ./src/OneTestResult.d ./src/OneTestResult.o ./src/ResultOutput.d ./src/ResultOutput.o ./src/SimpleRandomizer.d ./src/SimpleRandomizer.o ./src/SimpleRandomizer_test.d ./src/SimpleRandomizer_test.o ./src/SortAlgorithm.d ./src/SortAlgorithm.o ./src/SortFailureLog.d ./src/SortFailureLog.o ./src/SortFailureLog_test.d ./src/SortFailureLog_test.o ./src/SortTestMetrics.d ./src/SortTestMetrics.o ./src/SortableObject.d ./src/SortableObject.o ./src/SortingDataTypes.d ./src/SortingDataTypes.o ./src/SortingDataTypes_test.d ./src/SortingDataTypes_test.o ./src/SortingPractice.d ./src/SortingPractice.o ./src/SortingUtilities.d ./src/SortingUtilities.o ./src/TestFixtures.d ./src/TestFixtures.o ./src/nChoosek.d ./src/nChoosek.o ./src/nChoosek_test.d ./src/nChoosek_test.o
+	-$(RM) ./src/ArrayComposition.d ./src/ArrayComposition.o ./src/BlockOperations.d ./src/BlockOperations.o ./src/BlockSort.d ./src/BlockSort.o ./src/BlockSortTest.d ./src/BlockSortTest.o ./src/InitialOrdering.d ./src/InitialOrdering.o ./src/MessageList.d ./src/MessageList.o ./src/OneTestResult.d ./src/OneTestResult.o ./src/ResultOutput.d ./src/ResultOutput.o ./src/SimpleRandomizer.d ./src/SimpleRandomizer.o ./src/SimpleRandomizer_test.d ./src/SimpleRandomizer_test.o ./src/SortAlgorithm.d ./src/SortAlgorithm.o ./src/SortFailureLog.d ./src/SortFailureLog.o ./src/SortFailureLog_test.d ./src/SortFailureLog_test.o ./src/SortTestMetrics.d ./src/SortTestMetrics.o ./src/SortingDataTypes.d ./src/SortingDataTypes.o ./src/SortingDataTypes_test.d ./src/SortingDataTypes_test.o ./src/SortingTestBench.d ./src/SortingTestBench.o ./src/SortingUtilities.d ./src/SortingUtilities.o ./src/TestFixtures.d ./src/TestFixtures.o ./src/nChoosek.d ./src/nChoosek.o ./src/nChoosek_test.d ./src/nChoosek_test.o
 
 .PHONY: clean-src
 

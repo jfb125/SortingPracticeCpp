@@ -2,7 +2,7 @@
  * SelectionSort.h
  *
  *  Created on: Jun 27, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 #ifndef SELECTIONSORT_H_

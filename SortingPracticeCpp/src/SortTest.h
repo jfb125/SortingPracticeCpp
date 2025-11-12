@@ -17,7 +17,6 @@
 #include <ctime>
 
 #include "ArrayComposition.h"
-#include "Disorganizer.h"
 #include "SortFailureLog.h"
 #include "InitialOrdering.h"
 #include "GenerateTestVectors.h"
@@ -25,7 +24,6 @@
 #include "OneTestResult.h"		// results of running n tests of a given array length
 #include "ResultOutput.h"
 #include "SimpleRandomizer.h"
-#include "SortableObject.h"
 #include "SortAlgorithm.h"
 #include "SortingDataTypes.h"
 

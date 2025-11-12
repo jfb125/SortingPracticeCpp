@@ -23,6 +23,7 @@
 //	TODO - make a copy of the initial values
 //		   compare each new state to the initial to detect 'm_done'
 //	       This will be more reliable in situations with repeated values
+
 template <typename T>
 class PermutationGenerator {
 private:

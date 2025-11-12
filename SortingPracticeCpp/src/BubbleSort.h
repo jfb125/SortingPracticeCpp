@@ -2,7 +2,7 @@
  * BubbleSort.h
  *
  *  Created on: Jun 18, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 #ifndef BUBBLESORT_H_

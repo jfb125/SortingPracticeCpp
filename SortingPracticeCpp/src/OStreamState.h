@@ -2,7 +2,7 @@
  * OStreamState.h
  *
  *  Created on: Sep 25, 2025
- *      Author: joe
+ *      Author: Joe Baker
  */
 
 #ifndef OSTREAMSTATE_H_
@@ -46,6 +46,5 @@ public:
 		return *this;
 	}
 };
-
 
 #endif /* OSTREAMSTATE_H_ */
